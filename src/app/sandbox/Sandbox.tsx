@@ -33,7 +33,7 @@ export async function mountSandbox(root: HTMLElement, services: GameServices, sp
   document.body.classList.add('sandbox');
 
   if (kind === 'minigame') {
-    await discoverPlugins(services, { filter: { minigames: (k) => k === `minigames/${id}`, sins: () => false, scenes: () => false, modes: () => false } });
+    await discoverPlugins(services, { filter: { minigames: (k) => k === `minigames/${id}`, systems: () => false, scenes: () => false, modes: () => false } });
     const mg = services.registries.minigames.get(id);
     render(<ServicesProvider services={services}>{mg ? <MiniGameHarness services={services} mg={mg} caseId={q.get('case')} difficulty={Number(q.get('difficulty') ?? 0.5)} /> : <p class="sb-error">Mini-game “{id}” not found or failed to load (see console).</p>}</ServicesProvider>, root);
     return;
@@ -41,7 +41,7 @@ export async function mountSandbox(root: HTMLElement, services: GameServices, sp
 
   if (kind === 'page') {
     const entry = Object.entries(pages).find(([p]) => p.endsWith(`/${id}.tsx`));
-    await discoverPlugins(services, { filter: { sins: () => false, scenes: () => false, modes: () => false } });
+    await discoverPlugins(services, { filter: { systems: () => false, scenes: () => false, modes: () => false } });
     if (!entry) {
       render(<p class="sb-error">Sandbox page “{id}” not found.</p>, root);
       return;
@@ -65,7 +65,7 @@ export async function mountSandbox(root: HTMLElement, services: GameServices, sp
   const r = services.registries;
   render(
     <div class="sb-index">
-      <h1>Sinsight sandbox</h1>
+      <h1>Lumen sandbox</h1>
       <h2>Mini-games</h2>
       <ul>{r.minigames.all().map((m) => <li key={m.id}><a href={`?sandbox=minigame/${m.id}`}>{m.icon} {m.title}</a></li>)}</ul>
       <h2>Scenes</h2>
@@ -73,7 +73,7 @@ export async function mountSandbox(root: HTMLElement, services: GameServices, sp
       <h2>Pages</h2>
       <ul>{pageIds.map((p) => <li key={p}><a href={`?sandbox=page/${p}`}>{p}</a></li>)}</ul>
       <h2>Content</h2>
-      <p>{r.cases.all().length} cases · {r.diagnoses.all().length} diagnoses · {r.sins.all().length} sins · {r.modes.all().length} modes</p>
+      <p>{r.cases.all().length} cases · {r.diagnoses.all().length} diagnoses · {r.systems.all().length} systems · {r.modes.all().length} modes</p>
     </div>,
     root,
   );

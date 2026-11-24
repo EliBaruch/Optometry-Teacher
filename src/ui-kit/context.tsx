@@ -38,7 +38,7 @@ export function asComponent<P>(view: View<P>): ComponentType<P> {
 
 /**
  * Renders every HUD widget registered for a slot, sorted by order.
- * Scenes use this so they never need to know which sins exist.
+ * Scenes use this so they never need to know which engagement systems exist.
  */
 export function HudSlot(props: { slot: HudSlotId; class?: string }) {
   const services = useServices();

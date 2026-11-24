@@ -1,6 +1,6 @@
 /**
  * Generic plugin registry. Every pluggable thing (mini-games, cases, diagnoses,
- * sins, scenes, modes, HUD widgets) lives in one of these. Plugins are
+ * systems, scenes, modes, HUD widgets) lives in one of these. Plugins are
  * discovered by the app composition root; consumers only ever look them up by id.
  */
 export interface Identified {

@@ -1,4 +1,4 @@
-import type { ClinicalCase, Diagnosis, GameServices, MiniGameModule, ModeModule, SceneModule, SinModule } from '@core';
+import type { ClinicalCase, Diagnosis, GameServices, MiniGameModule, ModeModule, SceneModule, SystemModule } from '@core';
 import { DISABLED_PLUGINS } from './plugins.config';
 
 type Mod = Record<string, unknown>;
@@ -15,7 +15,7 @@ const GLOBS = {
   minigames: import.meta.glob<Mod>(['../minigames/*/index.ts', '../minigames/*/index.tsx']),
   scenes: import.meta.glob<Mod>(['../scenes/*/index.ts', '../scenes/*/index.tsx']),
   modes: import.meta.glob<Mod>('../modes/*/index.ts'),
-  sins: import.meta.glob<Mod>(['../sins/*/index.ts', '../sins/*/index.tsx']),
+  systems: import.meta.glob<Mod>(['../systems/*/index.ts', '../systems/*/index.tsx']),
 };
 
 export type PluginKind = keyof typeof GLOBS;
@@ -60,7 +60,7 @@ function safely(key: string, fn: () => void) {
 
 export interface DiscoveryReport {
   minigames: number;
-  sins: number;
+  systems: number;
   scenes: number;
   modes: number;
   cases: number;
@@ -81,7 +81,7 @@ export async function discoverPlugins(services: GameServices, opts: DiscoverOpti
     load<MiniGameModule>('minigames', f.minigames),
     load<SceneModule>('scenes', f.scenes),
     load<ModeModule>('modes', f.modes),
-    load<SinModule>('sins', f.sins),
+    load<SystemModule>('systems', f.systems),
   ]);
   dx.forEach(({ key, item }) => safely(key, () => r.diagnoses.register(item)));
   cs.forEach(({ key, item }) => safely(key, () => r.cases.register(item)));
@@ -91,13 +91,13 @@ export async function discoverPlugins(services: GameServices, opts: DiscoverOpti
   const uninstalls: (() => void)[] = [];
   sn.forEach(({ key, item }) =>
     safely(key, () => {
-      r.sins.register(item);
+      r.systems.register(item);
       uninstalls.push(item.install(services));
     }),
   );
   const report: DiscoveryReport = {
     minigames: r.minigames.all().length,
-    sins: r.sins.all().length,
+    systems: r.systems.all().length,
     scenes: r.scenes.all().length,
     modes: r.modes.all().length,
     cases: r.cases.all().length,

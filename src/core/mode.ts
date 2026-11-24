@@ -1,6 +1,5 @@
 import type { ClinicalCase } from './case';
 import type { GameServices } from './services';
-import type { SinId } from './sins';
 
 export interface ModeRules {
   /** Number of patients in the run; 'endless' until lives run out */
@@ -34,7 +33,8 @@ export interface ModeModule {
   icon: string;
   accent: string;
   order: number;
-  sin?: SinId;
+  /** Internal design note only */
+  drive?: import('./systems').DesignDrive;
   rules: ModeRules;
   /** Pick the next case, or null to end the run. Must not repeat within a run unless pool exhausted. */
   pickNext(services: GameServices, run: RunSnapshot): ClinicalCase | null;

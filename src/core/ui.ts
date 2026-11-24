@@ -1,5 +1,5 @@
 import type { GameServices } from './services';
-import type { SinId } from './sins';
+import type { SystemId } from './systems';
 
 /**
  * Framework-neutral view type. Preact function components satisfy it.
@@ -32,7 +32,7 @@ export interface HudWidget {
   id: string;
   slot: HudSlot;
   order: number;
-  sin?: SinId;
+  system?: SystemId;
   component: View<{ services: GameServices }>;
 }
 
@@ -44,7 +44,7 @@ export interface HubEntry {
   icon: string;
   accent: string;
   order: number;
-  sin?: SinId;
+  system?: SystemId;
   sceneId: string;
   params?: Record<string, unknown>;
   /** Optional badge text, e.g. "3 NEW" or "LIVE" */

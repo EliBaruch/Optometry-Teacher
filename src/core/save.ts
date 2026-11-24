@@ -36,14 +36,14 @@ export function browserStorage(): StorageAdapter {
   }
 }
 
-const PREFIX = 'sinsight:';
+const PREFIX = 'lumen:';
 
 interface Envelope<T> { v: number; data: T }
 
 export interface SaveService {
   /**
    * A persisted, namespaced state slice. Each module owns its own namespace,
-   * e.g. 'sin:greed'. `version` + `migrate` allow schema evolution per module.
+   * e.g. 'sys:economy'. `version` + `migrate` allow schema evolution per module.
    */
   slot<T>(namespace: string, initial: T, opts?: { version?: number; migrate?: (old: unknown, oldVersion: number) => T }): Signal<T>;
   exportAll(): string;

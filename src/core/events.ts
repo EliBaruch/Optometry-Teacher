@@ -1,11 +1,11 @@
 import type { DiagnosisId, Urgency } from './case';
 import type { MiniGameResult, TestId } from './minigame';
 import type { ScoreBreakdown } from './scoring';
-import type { SinId } from './sins';
+import type { SystemId } from './systems';
 
 /** A reward granted by any engagement system; the results scene lists these. */
 export interface RewardGrant {
-  source: SinId | 'core';
+  source: SystemId | 'core';
   label: string;
   /** Short display value, e.g. "+120", "x3", "NEW!" */
   value: string;
@@ -46,7 +46,7 @@ export interface GameEvents {
   'practice:completed': { testId: TestId; result: MiniGameResult };
 
   'reward:granted': RewardGrant;
-  'achievement:unlocked': { id: string; title: string; description: string; icon: string; sin?: SinId };
+  'achievement:unlocked': { id: string; title: string; description: string; icon: string; system?: SystemId };
   'toast': { message: string; icon?: string; tone?: 'info' | 'good' | 'bad' | 'epic' };
 
   'learning:reviewed': { diagnosisId: DiagnosisId; quality: number };

@@ -1,4 +1,4 @@
-# Sinsight — Architecture
+# Lumen — Architecture
 
 > **Rule zero: nothing is a monolith.** Every feature is a plugin in its own folder. Delete the
 > folder (or list it in `src/app/plugins.config.ts`) and the game still builds and runs.
@@ -16,7 +16,7 @@ src/
 ├── content/     Pure data: diagnoses/ and cases/. Depends on core types only.
 ├── modes/<m>/   Game modes (run rules + case picking). Depends on core.
 ├── minigames/<g>/  One folder per clinical test mini-game.  → core, ui-kit, render
-├── sins/<s>/    One folder per engagement system (the 7 sins). → core, ui-kit, render
+├── systems/<s>/    One folder per engagement system (ranks, economy, rivals, streaks, collection, emergencies, comfort). → core, ui-kit, render
 ├── scenes/<s>/  Screens (title, hub, exam room, results…).     → core, ui-kit, render
 └── app/         Composition root: discovery, adapters, shell, sandbox. May import anything.
 ```
@@ -25,22 +25,22 @@ src/
 |---|---|
 | core | nothing |
 | render, audio, learning, ui-kit, content, modes | core |
-| minigames/*, sins/*, scenes/* | core, ui-kit, render — **and only their own folder** (no sibling plugins) |
+| minigames/*, systems/*, scenes/* | core, ui-kit, render — **and only their own folder** (no sibling plugins) |
 | app | anything |
 
 Third-party packages outside `app/`: `preact` only.
 
 ## How plugins connect (without knowing each other)
 
-* **Registries** (`services.registries.*`): minigames, cases, diagnoses, sins, scenes, modes, hud, hub.
+* **Registries** (`services.registries.*`): minigames, cases, diagnoses, systems, scenes, modes, hud, hub.
   `src/app/discover.ts` auto-discovers folders by convention, loads each independently
   (`Promise.allSettled`) and registers its `default` export. A plugin that throws is skipped.
 * **Event bus** (`services.bus`, catalogue in `core/events.ts`): e.g. the exam scene emits
-  `case:completed`; Greed pays coins, Pride grants XP, Gluttony bumps the streak — none of them
+  `case:completed`; the economy pays coins, ranks grant XP, streaks bump the combo — none of them
   know the others exist. Handlers are isolated: one throwing handler can't break the rest.
 * **Ports** (`core/ports.ts`): `AudioPort`, `FxPort`, `LearningPort`. Null adapters exist for each,
   so any adapter can be removed/replaced in `app/main.tsx`.
-* **HUD slots & hub entries**: scenes render `<HudSlot slot="topbar-left"/>`; sins register widgets
+* **HUD slots & hub entries**: scenes render `<HudSlot slot="topbar-left"/>`; systems register widgets
   into slots. The hub renders every registered `HubEntry` + every `ModeModule`.
 * **Persistence**: `services.save.slot(namespace, initial, {version, migrate})` — each module owns a
   namespaced, versioned slice. No shared save blob to corrupt.
@@ -52,7 +52,7 @@ Third-party packages outside `app/`: `preact` only.
 | plugin | file | default export |
 |---|---|---|
 | mini-game | `src/minigames/<test-id>/index.ts` | `MiniGameModule` (`mount(host, ctx, done) → cleanup`, `report()`, `practice()`) |
-| sin | `src/sins/<sin>/index.ts` | `SinModule` (`install(services) → uninstall`) |
+| engagement system | `src/systems/<id>/index.ts` | `SystemModule` (`install(services) → uninstall`) |
 | scene | `src/scenes/<id>/index.ts(x)` | `SceneModule` or `SceneModule[]` |
 | mode | `src/modes/<id>/index.ts` | `ModeModule` |
 | cases | `src/content/cases/*.ts` | `ClinicalCase[]` |

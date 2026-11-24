@@ -10,7 +10,7 @@ import { createSaveService, memoryStorage, type StorageAdapter } from './save';
 import { createCaseSession, createRunController } from './session';
 import type { GameServices, Registries } from './services';
 import { DEFAULT_SETTINGS, type Settings } from './settings';
-import type { SinModule } from './sins';
+import type { SystemModule } from './systems';
 import type { HubEntry, HudWidget, SceneModule } from './ui';
 
 export interface ServiceOverrides {
@@ -34,7 +34,7 @@ export function createServices(o: ServiceOverrides = {}): GameServices {
     minigames: createRegistry<MiniGameModule>('minigames'),
     cases: createRegistry<ClinicalCase>('cases'),
     diagnoses: createRegistry<Diagnosis>('diagnoses'),
-    sins: createRegistry<SinModule>('sins'),
+    systems: createRegistry<SystemModule>('systems'),
     scenes: createRegistry<SceneModule>('scenes'),
     modes: createRegistry<ModeModule>('modes'),
     hud: createRegistry<HudWidget>('hud'),
@@ -45,7 +45,7 @@ export function createServices(o: ServiceOverrides = {}): GameServices {
   const services: GameServices = {
     bus,
     save,
-    rng: createRng(o.seed ?? 'sinsight'),
+    rng: createRng(o.seed ?? 'lumen'),
     clock: { now },
     audio: o.audio ?? nullAudio,
     fx: o.fx ?? nullFx,

@@ -7,7 +7,7 @@ import { browserStorage, createServices } from '@core';
 import { ServicesProvider } from '@ui-kit';
 import { createAudio } from '@audio';
 import { createFx } from '@render';
-import { createLearning } from '@learning';
+import { attachLearning, createLearning } from '@learning';
 import { discoverPlugins } from './discover';
 import { Shell } from './Shell';
 import './app.css';
@@ -24,6 +24,7 @@ async function boot() {
   services.audio = createAudio();
   services.fx = createFx(fxLayer, root, { reducedMotion: () => services.settings.get().reducedMotion });
   services.learning = createLearning(services.save, services.clock.now);
+  attachLearning(services);
 
   const applySettings = () => {
     const s = services.settings.get();
@@ -42,12 +43,12 @@ async function boot() {
   if (sandbox) {
     const { mountSandbox } = await import('./sandbox/Sandbox');
     await mountSandbox(root, services, sandbox);
-    (window as unknown as { __sinsight: unknown }).__sinsight = services;
+    (window as unknown as { __lumen: unknown }).__lumen = services;
     return;
   }
 
   const { report } = await discoverPlugins(services);
-  console.info('[sinsight] plugins', report);
+  console.info('[lumen] plugins', report);
   if (!services.registries.scenes.has(services.router.current.get().id)) {
     const fallback = services.registries.scenes.has('hub') ? 'hub' : services.registries.scenes.all()[0]?.id;
     if (fallback) services.router.replace(fallback);
@@ -61,7 +62,7 @@ async function boot() {
   );
   services.bus.emit('app:ready', {});
   // Debug handle for QA / e2e tests.
-  (window as unknown as { __sinsight: unknown }).__sinsight = services;
+  (window as unknown as { __lumen: unknown }).__lumen = services;
 }
 
 void boot();

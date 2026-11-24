@@ -1,7 +1,8 @@
-import type { FxPort } from '@core';
-import { nullFx } from '@core';
-
-/** Placeholder — replaced by the render foundation builder. */
-export function createFx(_layer: HTMLElement, _shakeTarget: HTMLElement, _opts: { reducedMotion: () => boolean }): FxPort {
-  return nullFx;
-}
+/**
+ * render/ — shared procedural art. Each sub-folder is owned independently and
+ * re-exported here. Consumers import from '@render'.
+ */
+export * from './fx';
+export * from './avatar';
+export * from './eye';
+export * from './fundus';

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Seven Sins Eye Clinic — an animated optometry diagnosis game",
+  "description": "Lumen — an animated optometry diagnosis game",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p tsconfig.json && vite build",

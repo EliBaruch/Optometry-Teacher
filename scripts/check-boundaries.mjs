@@ -9,7 +9,7 @@
  *   ui-kit                       -> core
  *   content                      -> core
  *   modes/<m>                    -> core
- *   minigames/<g>, sins/<s>, scenes/<s>  -> core, ui-kit, render   (and only their OWN folder)
+ *   minigames/<g>, systems/<s>, scenes/<s>  -> core, ui-kit, render   (and only their OWN folder)
  *   app                          -> anything (composition root)
  * Third-party packages allowed outside app: preact only.
  */
@@ -19,7 +19,7 @@ import { join, relative, resolve, dirname, sep } from 'node:path';
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const SRC = join(ROOT, 'src');
 const ALIASES = { '@core': 'core', '@ui-kit': 'ui-kit', '@render': 'render', '@audio': 'audio', '@learning': 'learning' };
-const PLUGIN_LAYERS = new Set(['minigames', 'sins', 'scenes', 'modes']);
+const PLUGIN_LAYERS = new Set(['minigames', 'systems', 'scenes', 'modes']);
 const ALLOWED = {
   core: [],
   render: ['core'],
@@ -29,7 +29,7 @@ const ALLOWED = {
   content: ['core'],
   modes: ['core'],
   minigames: ['core', 'ui-kit', 'render'],
-  sins: ['core', 'ui-kit', 'render'],
+  systems: ['core', 'ui-kit', 'render'],
   scenes: ['core', 'ui-kit', 'render'],
   app: '*',
 };

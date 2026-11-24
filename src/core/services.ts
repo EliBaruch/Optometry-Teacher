@@ -10,14 +10,14 @@ import type { SaveService } from './save';
 import type { CaseSessionController, RunController } from './session';
 import type { Settings } from './settings';
 import type { Signal } from './signal';
-import type { SinModule } from './sins';
+import type { SystemModule } from './systems';
 import type { HubEntry, HudWidget, SceneModule } from './ui';
 
 export interface Registries {
   minigames: Registry<MiniGameModule>;
   cases: Registry<ClinicalCase>;
   diagnoses: Registry<Diagnosis>;
-  sins: Registry<SinModule>;
+  systems: Registry<SystemModule>;
   scenes: Registry<SceneModule>;
   modes: Registry<ModeModule>;
   hud: Registry<HudWidget>;
