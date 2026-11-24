@@ -59,9 +59,9 @@ const pituitaryWingMirrors: ClinicalCase = {
   management:
     'Refer within days to neuro-ophthalmology/neurosurgery via the GP or hospital pathway for MRI of the pituitary with contrast and a pituitary hormone panel (prolactin, cortisol, thyroid, sex hormones). He should stop driving until fields are reassessed. Treatment is surgical (transsphenoidal) for most non-functioning macroadenomas or dopamine agonists for a prolactinoma; fields often improve after decompression.',
   teachingPoints: [
-    'Bitemporal hemianopia respects the vertical midline in both eyes: the lesion is at the chiasm, where crossing nasal fibres serve the temporal fields.',
+    'Bitemporal hemianopia respects the vertical midline in both eyes: the lesion is at the chiasm, where crossing nasal fibres serve the temporal fields. Homonymous defects (same side in both eyes) mean a lesion behind the chiasm.',
     'Glaucoma field loss respects the HORIZONTAL midline (arcuate, nasal step) and comes with cupping; this patient has normal cups and normal IOP.',
-    'Homonymous defects affect the same side in both eyes (behind the chiasm); bitemporal defects affect opposite sides.',
+    'Quick bedside chiasm sign: hold a red cap either side of the vertical midline. It looks duller or washed out in the temporal half of each eye\'s field, often before a full field defect shows.',
     'Long-standing chiasmal compression gives "band" or bow-tie pallor of the nasal and temporal disc.',
     'Ask hormonal questions: fatigue, low libido, galactorrhoea or acromegalic change point to the pituitary.',
   ],
@@ -69,7 +69,8 @@ const pituitaryWingMirrors: ClinicalCase = {
     'Sudden severe headache with ophthalmoplegia, falling vision or drowsiness = pituitary apoplexy, a neurosurgical emergency.',
   ],
   sources: [
-    'https://eyewiki.aao.org/Pituitary_Apoplexy',
+    'https://eyewiki.aao.org/Pituitary_Adenoma',
+    'https://www.ncbi.nlm.nih.gov/books/NBK545213/',
   ],
 };
 

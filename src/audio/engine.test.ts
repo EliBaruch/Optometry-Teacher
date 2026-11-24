@@ -167,3 +167,19 @@ describe('audio engine', () => {
     expect(() => audio.play('coin')).not.toThrow();
   });
 });
+
+describe('rapid scene changes', () => {
+  it('switches tracks mid-crossfade without automation errors', async () => {
+    const { audio, flush, run, ctx } = setup();
+    audio.unlock();
+    await flush();
+    const order: TrackId[] = ['title', 'hub', 'exam', 'emergency', 'results', 'zen', 'title'];
+    for (const id of order) {
+      audio.music(id);
+      run(0.3); // well inside the 1.8 s fade
+    }
+    expect(audio.track()).toBe('title');
+    run(5);
+    expect(ctx().errors).toEqual([]);
+  });
+});

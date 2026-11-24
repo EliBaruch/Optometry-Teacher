@@ -10,6 +10,10 @@ import type { EyeGeometry } from './geometry';
 import type { EyeState } from './types';
 
 const TAU = Math.PI * 2;
+const hash = (i: number) => {
+  const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+};
 
 export function drawSclera(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeState): void {
   const { pxmm, cx, cy, ix, iy } = g;
@@ -44,7 +48,7 @@ function drawConjVessels(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeSt
   const { pxmm, ix, iy, irisR } = g;
   const red = s.redness;
   const diffuse = s.rednessPattern === 'diffuse' ? red : red * 0.35;
-  const n = Math.round(22 + diffuse * 60);
+  const n = Math.round(12 + diffuse * 70);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   for (let i = 0; i < n; i++) {
@@ -64,8 +68,8 @@ function drawConjVessels(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeSt
       y = iy + Math.sin(ang) * r * (0.55 + 0.45 * (1 - r / (pxmm * 16))) + rng.float(-0.3, 0.3) * pxmm;
       pts.push([x, y]);
     }
-    const thick = rng.float(0.05, 0.16) * pxmm * (1 + diffuse * 1.4);
-    const alpha = rng.float(0.25, 0.55) * (0.45 + diffuse * 1.1);
+    const thick = rng.float(0.04, 0.12) * pxmm * (1 + diffuse * 1.6);
+    const alpha = rng.float(0.25, 0.55) * (0.3 + diffuse * 1.3);
     const col: RGB = rng.chance(0.3) ? [150, 40, 50] : [196, 52, 52];
     ctx.strokeStyle = rgba(col, Math.min(0.9, alpha));
     ctx.lineWidth = thick;
@@ -114,15 +118,15 @@ function drawInjection(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeStat
     gr.addColorStop(1, 'rgba(150,40,80,0)');
     ctx.fillStyle = gr;
     ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = `rgba(120,20,60,${0.45 * red})`;
-    ctx.lineWidth = Math.max(0.6, pxmm * 0.06);
-    for (let i = 0; i < 120; i++) {
-      const a = (i / 120) * TAU + Math.sin(i * 7.3) * 0.02;
-      const r0 = irisR * 1.0;
-      const r1 = irisR + pxmm * (1.2 + Math.abs(Math.sin(i * 3.1)) * 1.6);
+    ctx.lineWidth = Math.max(0.6, pxmm * 0.05);
+    for (let i = 0; i < 150; i++) {
+      const a = (i / 150) * TAU + hash(i) * 0.05;
+      const r0 = irisR * (1.0 + hash(i + 7) * 0.03);
+      const r1 = irisR + pxmm * (0.8 + hash(i + 3) * 2.4);
+      ctx.strokeStyle = `rgba(125,20,60,${(0.15 + hash(i + 11) * 0.35) * red})`;
       ctx.beginPath();
       ctx.moveTo(ix + Math.cos(a) * r0, iy + Math.sin(a) * r0);
-      ctx.lineTo(ix + Math.cos(a) * r1, iy + Math.sin(a) * r1);
+      ctx.quadraticCurveTo(ix + Math.cos(a + 0.02) * (r0 + r1) / 2, iy + Math.sin(a + 0.02) * (r0 + r1) / 2, ix + Math.cos(a + (hash(i + 5) - 0.5) * 0.06) * r1, iy + Math.sin(a + (hash(i + 5) - 0.5) * 0.06) * r1);
       ctx.stroke();
     }
   } else {
@@ -160,32 +164,48 @@ function blobPoints(rng: Rng, x: number, y: number, rx: number, ry: number, n = 
 
 function drawSubconj(ctx: CanvasRenderingContext2D, g: EyeGeometry, _s: EyeState, rng: Rng): void {
   const { pxmm, ix, iy, irisR, nasal } = g;
-  // typically temporal / inferotemporal, flat, sharply demarcated, spares the limbus
-  const dir = (nasal > 0 ? Math.PI : 0) + rng.float(-0.4, 0.5);
-  const d = irisR + pxmm * 4.6;
-  const x = ix + Math.cos(dir) * d;
-  const y = iy + Math.sin(dir) * d * 0.55;
-  const pts = blobPoints(rng, x, y, pxmm * 5.2, pxmm * 3.6, 18, 0.3);
-  ctx.save();
-  ctx.beginPath();
-  smoothClosedPath(ctx, pts);
-  const gr = ctx.createRadialGradient(x, y, 0, x, y, pxmm * 6);
-  gr.addColorStop(0, '#b50d18');
-  gr.addColorStop(0.7, '#c8141c');
-  gr.addColorStop(1, '#d8323a');
-  ctx.fillStyle = gr;
-  ctx.shadowColor = 'rgba(200,20,30,0.6)';
-  ctx.shadowBlur = pxmm * 0.6;
-  ctx.fill();
-  ctx.restore();
-  // feathered edge spots
-  for (let i = 0; i < 10; i++) {
+  // flat, bright red, sharply demarcated sheet — typically temporal/inferotemporal,
+  // stopping just short of the limbus. Built from overlapping soft lobes for an organic edge.
+  const dir = (nasal > 0 ? Math.PI : 0) + rng.float(-0.25, 0.45);
+  const d = irisR + pxmm * 5;
+  const x0 = ix + Math.cos(dir) * d;
+  const y0 = iy + Math.sin(dir) * d * 0.6;
+  const lobes: [number, number, number][] = [];
+  for (let i = 0; i < 26; i++) {
     const a = rng.float(0, TAU);
-    ctx.fillStyle = 'rgba(200,25,35,0.55)';
+    const rr = Math.sqrt(rng.next());
+    lobes.push([x0 + Math.cos(a) * rr * pxmm * 4.2, y0 + Math.sin(a) * rr * pxmm * 3.2, pxmm * rng.float(1.2, 2.4)]);
+  }
+  ctx.save();
+  // keep a thin white rim at the limbus
+  ctx.beginPath();
+  ctx.rect(ix - pxmm * 30, iy - pxmm * 20, pxmm * 60, pxmm * 40);
+  ctx.ellipse(ix, iy, irisR * g.foreX + pxmm * 0.9, irisR * g.foreY + pxmm * 0.9, 0, 0, TAU, true);
+  ctx.clip('evenodd');
+  ctx.filter = 'blur(' + (pxmm * 0.12).toFixed(1) + 'px)';
+  ctx.fillStyle = 'rgba(214,40,46,0.55)';
+  for (const [x, y, r] of lobes) {
     ctx.beginPath();
-    ctx.arc(x + Math.cos(a) * pxmm * 5.6, y + Math.sin(a) * pxmm * 3.9, pxmm * rng.float(0.2, 0.6), 0, TAU);
+    ctx.arc(x, y, r * 1.12, 0, TAU);
     ctx.fill();
   }
+  ctx.filter = 'none';
+  ctx.fillStyle = '#c3121b';
+  ctx.beginPath();
+  for (const [x, y, r] of lobes) {
+    ctx.moveTo(x + r, y);
+    ctx.arc(x, y, r, 0, TAU);
+  }
+  ctx.fill();
+  // denser centre, slight sheen
+  const gr = ctx.createRadialGradient(x0, y0, 0, x0, y0, pxmm * 5);
+  gr.addColorStop(0, 'rgba(120,0,8,0.45)');
+  gr.addColorStop(1, 'rgba(120,0,8,0)');
+  ctx.fillStyle = gr;
+  ctx.beginPath();
+  ctx.arc(x0, y0, pxmm * 5, 0, TAU);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawPinguecula(ctx: CanvasRenderingContext2D, g: EyeGeometry, rng: Rng): void {
@@ -212,7 +232,7 @@ function drawPinguecula(ctx: CanvasRenderingContext2D, g: EyeGeometry, rng: Rng)
 
 function drawCaruncle(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeState): void {
   const { pxmm, medialCanthus, nasal } = g;
-  const x = medialCanthus[0] - nasal * pxmm * 1.6;
+  const x = medialCanthus[0] - nasal * pxmm * 1.2;
   const y = medialCanthus[1] - pxmm * 0.1;
   const gr = ctx.createRadialGradient(x, y, 0, x, y, pxmm * 2.6);
   const r = s.redness;
@@ -224,11 +244,13 @@ function drawCaruncle(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeState
   ctx.ellipse(x, y, pxmm * 2.4, pxmm * 2.0, 0, 0, TAU);
   ctx.fill();
   // plica semilunaris: a pale crescent fold lateral to the caruncle
-  ctx.strokeStyle = 'rgba(225,160,150,0.55)';
-  ctx.lineWidth = pxmm * 0.35;
+  const pl = ctx.createLinearGradient(x - nasal * pxmm * 3.2, y, x - nasal * pxmm * 1.6, y);
+  pl.addColorStop(0, 'rgba(225,165,155,0)');
+  pl.addColorStop(1, 'rgba(225,165,155,0.45)');
+  ctx.fillStyle = pl;
   ctx.beginPath();
-  ctx.ellipse(x - nasal * pxmm * 1.9, y, pxmm * 0.8, pxmm * 2.2, 0, nasal > 0 ? Math.PI * 0.6 : -Math.PI * 0.4, nasal > 0 ? Math.PI * 1.4 : Math.PI * 0.4);
-  ctx.stroke();
+  ctx.ellipse(x - nasal * pxmm * 2.0, y, pxmm * 0.9, pxmm * 2.4, 0, 0, TAU);
+  ctx.fill();
   // wet glints
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.beginPath();
@@ -260,47 +282,93 @@ function drawChemosis(ctx: CanvasRenderingContext2D, g: EyeGeometry, amount: num
 export function drawPterygium(ctx: CanvasRenderingContext2D, g: EyeGeometry, seed: number): void {
   const { pxmm, ix, iy, irisR, nasal } = g;
   const rng = createRng(seed ^ 0x9e7);
-  const apexX = ix + nasal * (irisR - pxmm * 2.3);
-  const apexY = iy + pxmm * 0.15;
-  const baseX = ix + nasal * (irisR + pxmm * 8.5);
-  const pts: [number, number][] = [
-    [apexX, apexY - pxmm * 0.55],
-    [ix + nasal * (irisR + pxmm * 0.2), iy - pxmm * 1.3],
-    [baseX, iy - pxmm * 2.8],
-    [baseX, iy + pxmm * 3.1],
-    [ix + nasal * (irisR + pxmm * 0.2), iy + pxmm * 1.4],
-    [apexX, apexY + pxmm * 0.6],
+  const apexX = ix + nasal * (irisR - pxmm * 2.2);
+  const apexY = iy + pxmm * 0.1;
+  const limbX = ix + nasal * irisR;
+  const baseX = ix + nasal * (irisR + pxmm * 9);
+  const body: [number, number][] = [
+    [apexX - nasal * pxmm * 0.2, apexY],
+    [apexX + nasal * pxmm * 0.6, apexY - pxmm * 0.85],
+    [limbX + nasal * pxmm * 0.3, iy - pxmm * 1.6],
+    [limbX + nasal * pxmm * 4, iy - pxmm * 2.6],
+    [baseX, iy - pxmm * 3.4],
+    [baseX, iy + pxmm * 3.6],
+    [limbX + nasal * pxmm * 4, iy + pxmm * 2.8],
+    [limbX + nasal * pxmm * 0.3, iy + pxmm * 1.7],
+    [apexX + nasal * pxmm * 0.6, apexY + pxmm * 0.9],
   ];
   ctx.save();
   ctx.beginPath();
-  smoothClosedPath(ctx, pts);
+  smoothClosedPath(ctx, body);
   const gr = ctx.createLinearGradient(apexX, 0, baseX, 0);
-  gr.addColorStop(0, 'rgba(235,215,205,0.88)');
-  gr.addColorStop(0.25, 'rgba(230,180,170,0.82)');
-  gr.addColorStop(1, 'rgba(215,120,115,0.55)');
+  gr.addColorStop(0, 'rgba(238,222,214,0.92)');
+  gr.addColorStop(0.3, 'rgba(236,196,186,0.88)');
+  gr.addColorStop(1, 'rgba(222,150,140,0.7)');
   ctx.fillStyle = gr;
+  ctx.shadowColor = 'rgba(120,40,40,0.25)';
+  ctx.shadowBlur = pxmm * 0.5;
   ctx.fill();
+  ctx.shadowBlur = 0;
   ctx.clip();
-  // radial vessels running toward the head
+  // fleshy fibrovascular texture: wavy, roughly parallel vessels running in the
+  // wing, converging as it tapers, ending at staggered points before the head
   ctx.lineCap = 'round';
-  for (let i = 0; i < 16; i++) {
-    const y0 = iy + rng.float(-2.6, 2.8) * pxmm;
-    ctx.strokeStyle = `rgba(185,40,45,${rng.float(0.45, 0.8)})`;
-    ctx.lineWidth = pxmm * rng.float(0.07, 0.16);
+  const halfW = (u: number) => pxmm * (3.3 - 2.6 * u); // u: 0 base → 1 head
+  for (let i = 0; i < 30; i++) {
+    const f = rng.float(-0.95, 0.95);
+    const uEnd = rng.float(0.55, 0.97);
+    const freq = rng.float(6, 14);
+    const ph = rng.float(0, 6.28);
+    const amp = pxmm * rng.float(0.08, 0.22);
+    ctx.strokeStyle = `rgba(${rng.int(165, 200)},${rng.int(35, 70)},${rng.int(45, 70)},${rng.float(0.4, 0.8).toFixed(2)})`;
+    const w0 = pxmm * rng.float(0.08, 0.17);
+    let px = 0;
+    let py = 0;
+    const steps = 16;
+    for (let j = 0; j <= steps; j++) {
+      const u = (j / steps) * uEnd;
+      const x = baseX + (apexX + nasal * pxmm * 0.8 - baseX) * u;
+      const y = iy + f * halfW(u) + Math.sin(u * freq + ph) * amp * (1 - u * 0.6);
+      if (j > 0) {
+        ctx.lineWidth = Math.max(0.5, w0 * (1 - (j / steps) * 0.6));
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+      px = x;
+      py = y;
+    }
+  }
+  // whitish fibrous streaks
+  ctx.strokeStyle = 'rgba(255,245,240,0.25)';
+  ctx.lineWidth = pxmm * 0.25;
+  for (let i = 0; i < 6; i++) {
+    const y0 = iy + rng.float(-2, 2) * pxmm;
     ctx.beginPath();
     ctx.moveTo(baseX, y0);
-    ctx.bezierCurveTo(baseX - nasal * pxmm * 3, y0 + rng.float(-0.4, 0.4) * pxmm, apexX + nasal * pxmm * 3, apexY + (y0 - iy) * 0.3, apexX + nasal * pxmm * rng.float(0.4, 1.4), apexY + (y0 - iy) * 0.15);
+    ctx.quadraticCurveTo(limbX + nasal * pxmm * 2, y0 * 0.5 + apexY * 0.5, apexX + nasal * pxmm * 1.2, apexY + (y0 - iy) * 0.2);
     ctx.stroke();
   }
   ctx.restore();
-  // grey avascular cap ahead of the head (+ iron line hint)
-  ctx.fillStyle = 'rgba(220,225,230,0.45)';
+  // greyish avascular cap ahead of the head, with Fuchs islets
+  const cap = ctx.createRadialGradient(apexX, apexY, 0, apexX, apexY, pxmm * 1.1);
+  cap.addColorStop(0, 'rgba(225,230,235,0.6)');
+  cap.addColorStop(1, 'rgba(225,230,235,0)');
+  ctx.fillStyle = cap;
   ctx.beginPath();
-  ctx.ellipse(apexX - nasal * pxmm * 0.35, apexY, pxmm * 0.55, pxmm * 0.9, 0, 0, TAU);
+  ctx.arc(apexX, apexY, pxmm * 1.1, 0, TAU);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(150,110,60,0.35)';
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = 'rgba(240,240,240,0.6)';
+    ctx.beginPath();
+    ctx.arc(apexX - nasal * pxmm * rng.float(0.3, 0.9), apexY + rng.float(-0.6, 0.6) * pxmm, pxmm * 0.09, 0, TAU);
+    ctx.fill();
+  }
+  // Stocker line (iron) just ahead of the head
+  ctx.strokeStyle = 'rgba(160,115,60,0.4)';
   ctx.lineWidth = pxmm * 0.08;
   ctx.beginPath();
-  ctx.arc(apexX + nasal * pxmm * 0.1, apexY, pxmm * 1.1, nasal > 0 ? Math.PI * 0.65 : -Math.PI * 0.35, nasal > 0 ? Math.PI * 1.35 : Math.PI * 0.35);
+  ctx.arc(apexX + nasal * pxmm * 0.9, apexY, pxmm * 1.4, nasal > 0 ? Math.PI * 0.7 : -Math.PI * 0.3, nasal > 0 ? Math.PI * 1.3 : Math.PI * 0.3);
   ctx.stroke();
 }

@@ -108,7 +108,7 @@ export function createDrop(w: number, h: number, rand: Rand, anywhere = true): D
     len: 6 + rand() * 26,
     v: 0,
     hold: rand() * 2.5,
-    a: 0.08 + rand() * 0.16,
+    a: 0.12 + rand() * 0.2,
   };
 }
 

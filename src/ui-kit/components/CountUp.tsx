@@ -70,7 +70,8 @@ export function CountUp({ value, from = 0, duration, delay = 0, decimals = 0, pr
 
   const fmt = (n: number) => prefix + (format ? format(n) : formatNumber(n, decimals)) + suffix;
   return (
-    <span class={cx('lm-num lm-countup', klass)} aria-label={fmt(value)} role="text">
+    <span class={cx('lm-num lm-countup', klass)}>
+      <span class="lm-sr-only">{fmt(value)}</span>
       <span aria-hidden="true">{fmt(shown)}</span>
     </span>
   );

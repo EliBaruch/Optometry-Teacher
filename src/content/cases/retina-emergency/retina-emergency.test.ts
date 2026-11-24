@@ -17,17 +17,35 @@ const CANONICAL_DIAGNOSES = [
   'healthy-eyes',
 ];
 
+/**
+ * tests/content.test.ts eagerly globs every file under src/content/cases (including this one) before
+ * filtering, which would register these suites a second time inside the content gate. Only run them
+ * when this file is the test file vitest is actually executing.
+ */
+const RUN_HERE = /retina-emergency\.test\.ts$/.test(expect.getState().testPath ?? '');
+
 const mods = import.meta.glob<{ default: ClinicalCase }>(['./*.ts', '!./*.test.ts'], { eager: true });
 const cases = Object.values(mods).map((m) => m.default);
 const byDx = (dx: string) => cases.find((c) => c.diagnosis === dx)!;
 const PLAYER_FORBIDDEN = /\b(sins?|deadly|vice|pride|greed|envy|gluttony|lust|wrath|sloth)\b/i;
 
-describe('retina & emergency case group', () => {
+describe.runIf(RUN_HERE)('retina & emergency case group', () => {
   it('covers all 14 assigned diagnoses exactly once', () => {
     const want = ['npdr', 'pdr', 'diabetic-macular-edema', 'hypertensive-retinopathy', 'dry-amd', 'wet-amd', 'retinal-detachment',
       'pvd', 'retinal-tear', 'crao', 'crvo', 'brvo', 'central-serous', 'healthy-eyes'];
     expect(cases.map((c) => c.diagnosis).sort()).toEqual([...want].sort());
     expect(new Set(cases.map((c) => c.id)).size).toBe(cases.length);
+  });
+
+  it('keeps graded urgency and management wording in agreement', () => {
+    expect(byDx('wet-amd').urgency).toBe('urgent');
+    expect(byDx('wet-amd').management).not.toMatch(/within days\)|ideally within days/i);
+    const htn = byDx('hypertensive-retinopathy');
+    expect(htn.teachingPoints.join(' ')).toMatch(/not required/i);
+    // 'soon' = see within days: management must not promise only a multi-week window.
+    for (const c of cases.filter((x) => x.urgency === 'soon')) {
+      expect(c.management, c.id).not.toMatch(/within (a couple of|1\s*[-–]\s*2|two|few) weeks/i);
+    }
   });
 
   it.each(cases.map((c) => [c.id, c] as const))('%s satisfies the content contract', (_id, c) => {
@@ -59,6 +77,27 @@ describe('retina & emergency case group', () => {
       expect(f.refraction[eye].axis).toBeGreaterThanOrEqual(1);
       expect(f.refraction[eye].axis).toBeLessThanOrEqual(180);
       expect(Number.isInteger(f.refraction[eye].sphere * 4)).toBe(true);
+      // Uncorrected VA must match the refraction: myopic blur costs roughly 0.3+ logMAR per dioptre
+      // on top of BCVA, and beyond ~-4.5 D the 40 cm near target sits well past the far point.
+      const r = f.refraction[eye];
+      const se = r.sphere + r.cylinder / 2;
+      if (se <= -0.75) {
+        expect(f.va[eye].uncorrected - f.va[eye].bestCorrected, `${c.id} ${eye} myopic blur`).toBeGreaterThanOrEqual(Math.min(1.5, 0.3 * -se) - 0.05);
+      }
+      if (se <= -4.5) expect(f.va[eye].nearUncorrected ?? 0, `${c.id} ${eye} near VA past the far point`).toBeGreaterThanOrEqual(0.8);
+      // Near VA must never silently inherit buildFindings' healthy default (0.0) in a pathological eye:
+      // macular disease, media opacity or detachment blurs 40 cm as much as 6 m.
+      const post = f.posterior[eye];
+      const pathological =
+        post.lesions.some((l) => l.zone === 'macula') ||
+        post.vitreous === 'hemorrhage' ||
+        post.detachment !== undefined ||
+        f.va[eye].bestCorrected >= 0.2;
+      if (pathological) {
+        // buildFindings back-fills 0.0, so the numeric floor below is what catches an inherited default.
+        expect(f.va[eye].nearUncorrected, `${c.id} ${eye} near VA must be set`).toBeDefined();
+        expect(f.va[eye].nearUncorrected!, `${c.id} ${eye} near VA vs BCVA`).toBeGreaterThanOrEqual(f.va[eye].bestCorrected - 0.1);
+      }
       for (const l of f.posterior[eye].lesions) {
         expect(l.density).toBeGreaterThanOrEqual(1);
         expect(l.density).toBeLessThanOrEqual(5);
@@ -86,6 +125,7 @@ describe('retina & emergency case group', () => {
   it('keeps hallmark signs clinically consistent', () => {
     const crao = byDx('crao').findings;
     expect(crao.pupils.rapd).toBe('OD');
+    expect(crao.fields.OD).toBe('central-scotoma'); // CF acuity without cilioretinal sparing: no central island
     expect(crao.posterior.OD.lesions.map((l) => l.type)).toEqual(expect.arrayContaining(['cherry-red-spot', 'retinal-whitening']));
     expect(crao.posterior.OS.lesions).toEqual([]);
 
@@ -113,6 +153,7 @@ describe('retina & emergency case group', () => {
     const rd = byDx('retinal-detachment').findings;
     expect(rd.posterior.OS.detachment?.zones.every((z) => z.startsWith('super'))).toBe(true);
     expect(rd.fields.OS).toBe('curtain-inferior');
+    expect(rd.pupils.rapd).toBe('OS');
 
     const csc = byDx('central-serous').findings;
     expect(csc.refraction.OS.sphere).toBeGreaterThan(csc.refraction.OD.sphere); // hyperopic shift

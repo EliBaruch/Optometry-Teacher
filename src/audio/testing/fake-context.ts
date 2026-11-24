@@ -13,6 +13,12 @@ export class FakeParam {
     this.value = v;
   }
   private check(type: string, value: number, time: number) {
+    // Browsers reject any automation that lands inside an active value curve.
+    const curve = this.events.find((e) => e.type === 'curve');
+    if (curve && type !== 'curve') {
+      const end = this.events.find((e) => e.type === 'curve-end')?.time ?? curve.time;
+      if (time >= curve.time && time < end) this.ctx.fail(`${type} at ${time} overlaps a value curve`);
+    }
     if (!Number.isFinite(value)) this.ctx.fail(`${type}: non-finite value ${value}`);
     if (!Number.isFinite(time) || time < 0) this.ctx.fail(`${type}: bad time ${time}`);
     this.events.push({ type, time, value });
@@ -40,7 +46,8 @@ export class FakeParam {
   }
   cancelScheduledValues(t: number) {
     if (!Number.isFinite(t) || t < 0) this.ctx.fail('cancel: bad time');
-    this.events = this.events.filter((e) => e.time < t);
+    // Like browsers: events at/after t are removed (a curve that started earlier survives).
+    this.events = this.events.filter((e) => e.time < t || (e.type === 'curve-end' && this.events.some((c) => c.type === 'curve' && c.time < t)));
     return this;
   }
 }

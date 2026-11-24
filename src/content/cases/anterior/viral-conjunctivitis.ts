@@ -31,8 +31,8 @@ const viralConjCase: ClinicalCase = {
   ],
   findings: buildFindings(36, {
     va: {
-      OD: { uncorrected: 0.6, bestCorrected: 0.1, pinhole: 0.2 },
-      OS: { uncorrected: 0.6, bestCorrected: 0.0, pinhole: 0.1 },
+      OD: { uncorrected: 0.8, bestCorrected: 0.1, pinhole: 0.2 },
+      OS: { uncorrected: 0.7, bestCorrected: 0.0, pinhole: 0.1 },
     },
     refraction: {
       OD: { sphere: -1.75, cylinder: 0, axis: 180 },

@@ -6,7 +6,7 @@ import { chordEvents, humanVel } from './util';
 export const exam: Composition = {
   id: 'exam',
   bpm: 88,
-  level: 0.75,
+  level: 1.15,
   verb: 0.3,
   echo: 0.15,
   filterHz: 1900,

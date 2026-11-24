@@ -200,13 +200,14 @@ export function mouthShape(g: Geo, p: RigParams): MouthShape {
   const cy = y + c;
   const upInner = y + k - o * 0.18;
   const loInner = y + k + o * 1.35;
-  const tu = g.lipU;
-  const tl = g.lipL;
+  const smile = clamp(curve / 4.4, 0, 1);
+  const tu = g.lipU * (1 - smile * 0.25);
+  const tl = g.lipL * (1 - smile * 0.4 - clamp(p.open, 0, 1) * 0.15);
   const upperTop = y - tu + k * 0.35 - o * 0.18;
 
   const open = `M${P(lx, cy)}Q${P(CX, upInner * 2 - (cy + cy) / 2)} ${P(rx, cy)}Q${P(CX, loInner * 2 - cy)} ${P(lx, cy)}Z`;
   const th = Math.min(o * 0.62, 4.4) * clamp(p.teeth, 0, 1);
-  const lowerTeeth = p.teeth > 0.6 && o < 5 ? Math.min(o * 0.5, 2.6) : 0;
+  const lowerTeeth = p.teeth > 0.6 && o < 5 && curve < 1 ? Math.min(o * 0.5, 2.6) : 0;
   const teeth =
     th > 0.05
       ? `M${P(lx - 1, cy - 6)}L${P(rx + 1, cy - 6)}L${P(rx + 1, cy + th)}Q${P(CX, upInner * 2 - cy + th)} ${P(lx - 1, cy + th)}Z` +
@@ -222,7 +223,7 @@ export function mouthShape(g: Geo, p: RigParams): MouthShape {
     `Q${P(CX + bowW * 0.4, upperTop - 0.1)} ${P(CX + bowW, upperTop)}` +
     `C${P(CX + bowW * 1.6, upperTop + 0.2)} ${P(rx - w * 0.35, cy - tu * 0.35)} ${P(rx, cy)}` +
     `Q${P(CX, upInner * 2 - cy)} ${P(lx, cy)}Z`;
-  const loBottom = loInner + tl * 1.5;
+  const loBottom = loInner + tl * 1.25;
   const lower =
     `M${P(rx, cy)}` +
     `C${P(rx - w * 0.2, loBottom - tl * 0.3)} ${P(CX + w * 0.45, loBottom)} ${P(CX, loBottom)}` +
@@ -260,21 +261,28 @@ export function rigAttrs(g: Geo, r: RigInput): AttrMap {
   const p = r.params;
   const out: AttrMap = {};
   const eye = (side: Side, key: 'L' | 'R') => {
-    const base = key === 'L' ? p.lidL : p.lidR;
-    const closure = base + (1 - base) * clamp(r.blink, 0, 1);
-    const wide = (key === 'L' ? p.wideL : p.wideR) * (1 - clamp(r.blink, 0, 1));
+    const gz = key === 'L' ? r.gazeL : r.gazeR;
+    const gy = clamp(gz.y, -1.6, 1.6);
+    // the upper lid follows vertical gaze (lid–globe synergy)
+    const base = clamp((key === 'L' ? p.lidL : p.lidR) + Math.max(0, gy) * 0.2, 0, 1);
+    const blink = clamp(r.blink, 0, 1);
+    const closure = base + (1 - base) * blink;
+    const wide = ((key === 'L' ? p.wideL : p.wideR) + Math.max(0, -gy) * 0.18) * (1 - blink);
     const low = key === 'L' ? p.lowL : p.lowR;
     const s = eyeShape(g, side, closure, wide, low);
-    const gz = key === 'L' ? r.gazeL : r.gazeR;
     const ix = clamp(gz.x, -1.6, 1.6) * g.eyeW * 0.44;
-    const iy = clamp(gz.y, -1.6, 1.6) * g.eyeH * 0.42 + closure * 0.9;
+    const iy = gy * g.eyeH * 0.42;
     out[`clip${key}`] = { d: s.almond };
     out[`lid${key}`] = { d: s.lid };
     out[`lash${key}`] = { d: s.lidEdge };
     out[`shade${key}`] = { d: s.lidEdge };
     out[`low${key}`] = { d: s.lower };
+    out[`tear${key}`] = { d: s.lower };
     out[`crease${key}`] = { d: s.crease };
     out[`iris${key}`] = { transform: `translate(${f(ix)} ${f(iy)})` };
+    // corneal reflex barely moves with rotation — so a deviated eye shows a
+    // decentred reflex (Hirschberg), exactly as in clinic.
+    out[`glint${key}`] = { transform: `translate(${f(ix * 0.3)} ${f(iy * 0.3)})` };
   };
   eye(-1, 'L');
   eye(1, 'R');

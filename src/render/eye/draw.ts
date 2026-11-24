@@ -223,15 +223,23 @@ export function drawEye(ctx: CanvasRenderingContext2D, w: number, h: number, s: 
     // fluorescent tear meniscus on the lower lid
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = 'rgba(120,255,80,0.45)';
-    ctx.lineWidth = g.pxmm * 0.3;
     ctx.beginPath();
-    const lo = g.lower.slice(4, -4);
-    lo.forEach(([x, y], i) => (i ? ctx.lineTo(x, y - g.pxmm * 0.2) : ctx.moveTo(x, y - g.pxmm * 0.2)));
+    fissurePath(ctx, g);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(120,255,80,0.28)';
+    ctx.lineWidth = g.pxmm * 0.35;
+    ctx.beginPath();
+    const lo = g.lower.slice(5, -5);
+    lo.forEach(([x, y], i) => (i ? ctx.lineTo(x, y - g.pxmm * 0.12) : ctx.moveTo(x, y - g.pxmm * 0.12)));
     ctx.stroke();
     ctx.restore();
   }
+  ctx.save();
+  ctx.beginPath();
+  fissurePath(ctx, g);
+  ctx.clip();
   drawReflections(ctx, g, s, t);
+  ctx.restore();
   const grain = grainPattern(ctx, 0.05);
   if (grain) {
     ctx.save();
@@ -256,6 +264,17 @@ export function drawSlitSection(ctx: CanvasRenderingContext2D, w: number, h: num
   ctx.beginPath();
   ctx.rect(0, 0, w, h);
   ctx.clip();
+  ctx.fillStyle = '#050307';
+  ctx.fillRect(0, 0, w, h);
+  const mag = Math.max(1, beam.mag ?? 1);
+  if (mag > 1) {
+    // magnify around the point where the beam meets the cornea
+    const fx = g.ix + Math.max(-1, Math.min(1, beam.x)) * g.irisR * g.foreX;
+    const shift = Math.sign(beam.angleDeg || 1) * g.pxmm * 0.8;
+    ctx.translate(w / 2, h / 2);
+    ctx.scale(mag, mag);
+    ctx.translate(-(fx + shift), -g.iy);
+  }
   drawScene(ctx, g, st, t);
   applyLighting(ctx, g, st);
   ctx.save();

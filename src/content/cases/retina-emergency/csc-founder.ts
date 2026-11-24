@@ -30,8 +30,9 @@ const cscFounder: ClinicalCase = {
   ],
   findings: buildFindings(37, {
     va: {
-      OD: { uncorrected: -0.1, bestCorrected: -0.1, pinhole: 0.0 },
-      OS: { uncorrected: 0.3, bestCorrected: 0.2, pinhole: 0.2 },
+      OD: { uncorrected: -0.1, bestCorrected: -0.1, pinhole: 0.0, nearUncorrected: 0.0 },
+      // Subfoveal fluid limits acuity at 40 cm too; accommodation covers the small hyperopic shift at 37.
+      OS: { uncorrected: 0.3, bestCorrected: 0.2, pinhole: 0.2, nearUncorrected: 0.3 },
     },
     refraction: {
       OD: { sphere: 0, cylinder: 0, axis: 180 },
@@ -42,6 +43,10 @@ const cscFounder: ClinicalCase = {
     posterior: {
       OS: {
         lesions: [{ type: 'pigment-clumping', zone: 'macula', density: 1 }],
+        // NOTE for painters / urgency hints: this is a SEROUS neurosensory detachment (a clear dome of
+        // subretinal fluid, no break), NOT a rhegmatogenous RD. The contract has no serous lesion type or
+        // detachment kind yet (core request filed); draw it as a smooth translucent macular blister and
+        // never score it as an emergency. Switch to the serous encoding as soon as core adds it.
         detachment: { zones: ['macula'], maculaOff: true },
       },
     },

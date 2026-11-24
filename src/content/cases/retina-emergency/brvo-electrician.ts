@@ -60,7 +60,7 @@ const brvoElectrician: ClinicalCase = {
   differentials: ['crvo', 'hypertensive-retinopathy', 'npdr', 'diabetic-macular-edema'],
   urgency: 'soon',
   management:
-    'Superotemporal branch retinal vein occlusion, right eye, with macular oedema (20/40): wedge of flame and dot-blot haemorrhages and cotton-wool spots downstream of an AV crossing, respecting the horizontal midline. Refer to retina within 1–2 weeks for OCT and anti-VEGF for the oedema; same-day blood pressure check and a letter to his GP — blood pressure control is the most important systemic step. Follow for neovascularisation (sector laser if it develops).',
+    'Superotemporal branch retinal vein occlusion, right eye, with macular oedema (20/40): wedge of flame and dot-blot haemorrhages and cotton-wool spots downstream of an AV crossing, respecting the horizontal midline. Refer to retina to be seen within days to 2 weeks for OCT and anti-VEGF for the oedema; same-day blood pressure check and a letter to his GP — blood pressure control is the most important systemic step. Follow for neovascularisation (sector laser if it develops).',
   teachingPoints: [
     'BRVO happens at an arteriovenous crossing, where a stiff artery compresses the vein in a shared sheath — hypertension is the biggest risk factor.',
     'The haemorrhages fan out in a wedge from the crossing and stop at the horizontal raphe; four quadrants would be CRVO.',

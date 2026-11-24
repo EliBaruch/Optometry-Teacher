@@ -24,7 +24,7 @@ const cn4PalsyHeadTilt: ClinicalCase = {
     },
   },
   chiefComplaint:
-    "Things are doubled one on top of the other, and the top one is a bit tilted, like a wonky picture frame. Reading and walking downstairs are the worst. I've caught myself tilting my head to the left to make it go away. My friends say I look like a curious dog.",
+    "Things are doubled one on top of the other, and the bottom one is a bit tilted, like a wonky picture frame. Reading and walking downstairs are the worst. I've caught myself tilting my head to the left to make it go away. My friends say I look like a curious dog.",
   triageNote: 'Bike crash 3 weeks ago with brief loss of consciousness; CT head in ED reported normal.',
   history: [
     { id: 'trauma', category: 'onset', q: 'When did this start, and was there any injury?', a: "Right after my crash three weeks ago. Front wheel hit a root, I went over the bars and hit my head. Out for maybe a few seconds. Helmet's cracked.", relevance: 'key' },

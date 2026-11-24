@@ -24,7 +24,7 @@ const bacterialConjCase: ClinicalCase = {
     { id: 'pain', category: 'symptoms', q: 'Any pain, light sensitivity or loss of vision?', a: 'Gritty, not painful. Light is fine. It’s blurry until I blink the goo away, then it’s clear.', relevance: 'key' },
     { id: 'cl', category: 'ocular-history', q: 'Do you wear contact lenses?', a: 'Never. Reading glasses for menus, that’s it.', relevance: 'key' },
     { id: 'itch', category: 'symptoms', q: 'Is it itchy?', a: "A little, but it's not my hay-fever itch.", relevance: 'helpful' },
-    { id: 'contacts', category: 'social', q: 'Anyone around you with a red eye?', a: 'My niece had pink eye last week and I was cuddling her all through the christening.', relevance: 'helpful' },
+    { id: 'contacts', category: 'social', q: 'Anyone around you with a red eye?', a: 'My niece had pink eye last week and I was cuddling her all through her birthday party.', relevance: 'helpful' },
     { id: 'cold', category: 'medical', q: 'Any recent cold or sore throat?', a: 'No, I’m never ill — I don’t have time to be.', relevance: 'helpful' },
     { id: 'meds', category: 'medications', q: 'Any medicines or allergies?', a: 'Nothing regular. Allergic to nothing except bad DJs.', relevance: 'neutral' },
     { id: 'fhx', category: 'family', q: 'Any glaucoma in the family?', a: 'Not that I know of.', relevance: 'red-herring' },

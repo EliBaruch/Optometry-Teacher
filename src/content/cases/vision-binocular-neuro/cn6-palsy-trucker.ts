@@ -67,7 +67,7 @@ const cn6PalsyTrucker: ClinicalCase = {
   essentialTests: ['motility', 'cover-test', 'ophthalmoscopy'],
   helpfulTests: ['pupils', 'visual-acuity', 'slit-lamp'],
   diagnosis: 'cn6-palsy',
-  differentials: ['cn3-palsy', 'cn4-palsy', 'accommodative-esotropia', 'giant-cell-arteritis'],
+  differentials: ['cn3-palsy', 'cn4-palsy', 'papilledema', 'giant-cell-arteritis'],
   urgency: 'urgent',
   management:
     'Refer same day / within 24 hours to neurology or the acute eye service: ESR, CRP and full blood count to exclude giant cell arteritis, BP and glucose review, and neuroimaging (MRI) per local pathway, which is mandatory if anything is atypical. Advise him not to drive and inform the licensing authority; occlude one eye or fit a Fresnel prism for comfort. Microvascular palsies usually recover within about 3–6 months; no improvement, progression or new signs demand imaging.',

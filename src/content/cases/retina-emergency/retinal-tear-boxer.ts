@@ -4,7 +4,7 @@ import { buildFindings, type ClinicalCase } from '@core';
 const retinalTearBoxer: ClinicalCase = {
   id: 'retinal-tear-boxer',
   difficulty: 3,
-  tags: ['flashes-floaters', 'trauma', 'myopia', 'contact-lens', 'sport'],
+  tags: ['flashes-floaters', 'trauma', 'myopia', 'blunt-trauma', 'sport'],
   patient: {
     name: 'Connor Byrne',
     age: 34,
@@ -30,8 +30,8 @@ const retinalTearBoxer: ClinicalCase = {
   ],
   findings: buildFindings(34, {
     va: {
-      OD: { uncorrected: 1.0, bestCorrected: 0.0, pinhole: 0.2 },
-      OS: { uncorrected: 1.0, bestCorrected: -0.1, pinhole: 0.2 },
+      OD: { uncorrected: 1.5, bestCorrected: 0.0, pinhole: 0.3, nearUncorrected: 1.0 },
+      OS: { uncorrected: 1.5, bestCorrected: -0.1, pinhole: 0.3, nearUncorrected: 0.9 },
     },
     refraction: {
       OD: { sphere: -5.5, cylinder: -0.5, axis: 175 },
@@ -56,12 +56,12 @@ const retinalTearBoxer: ClinicalCase = {
   differentials: ['pvd', 'retinal-detachment', 'myopia', 'healthy-eyes'],
   urgency: 'urgent',
   management:
-    'Symptomatic horseshoe retinal tear, right eye, superotemporal periphery, with pigment in the anterior vitreous and no detachment. Same-day/within-24-hour retina referral for laser retinopexy or cryotherapy to seal the tear before fluid gets under it. No sparring until cleared, and strict detachment warnings: a curtain means the emergency department tonight.',
+    'Symptomatic horseshoe retinal tear, right eye, superotemporal periphery, with pigment in the anterior vitreous and no detachment. Same-day/within-24-hour retina referral for laser retinopexy or cryotherapy to seal the tear before fluid gets under it. No sparring until cleared, and strict detachment warnings: a curtain means the emergency department tonight. After a punch to the eye, book IOP and gonioscopy at follow-up to look for angle recession.',
   teachingPoints: [
     '"Tobacco dust" (Shafer sign) in the anterior vitreous strongly suggests a retinal break — keep looking until you find it, with scleral depression.',
     'A symptomatic horseshoe tear goes to the retina service within 24 hours; sealing it now prevents most detachments.',
     'A flap tear is still attached to vitreous that keeps pulling on it — that traction is why it can progress.',
-    'Myopia and blunt trauma both raise the risk of tears, even in a 34-year-old.',
+    'Blunt trauma tears the retina at the vitreous base: hunt for a retinal dialysis (classically inferotemporal or superonasal) as well as horseshoe tears, and check for commotio, hyphema and, at follow-up, angle recession (IOP and gonioscopy).',
     'No curtain and full fields: this is a tear, not yet a detachment. That distinction sets the clock.',
   ],
   redFlags: ['Shafer sign', 'Shower of floaters', 'Blunt trauma', 'High myopia'],

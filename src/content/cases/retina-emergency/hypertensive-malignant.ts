@@ -80,7 +80,7 @@ const hypertensiveMalignant: ClinicalCase = {
   teachingPoints: [
     'Bilateral disc swelling: always take the blood pressure before you assume raised intracranial pressure.',
     'Flame haemorrhages and cotton-wool spots sit in the nerve fibre layer; with AV nicking, copper wiring and a macular star this is the hypertensive signature.',
-    'Disc oedema turns hypertensive retinopathy from a letter to the GP into an emergency (grade 4 / malignant hypertension).',
+    'Severe BP (180/120 or higher) with flame haemorrhages, cotton-wool spots or disc oedema is a hypertensive emergency: same-day ED. Disc swelling is not required. Chronic AV nicking or copper wiring alone with controlled BP is a letter to the GP.',
     'Diabetic retinopathy favours microaneurysms and dot-blot haemorrhages; CRVO is usually one eye with dilated, tortuous veins.',
     'Optic neuritis is usually one eye, painful on eye movement, with an RAPD and red desaturation — this patient has none of that.',
   ],

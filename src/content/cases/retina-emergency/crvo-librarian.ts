@@ -24,14 +24,14 @@ const crvoLibrarian: ClinicalCase = {
     { id: 'pressure', category: 'ocular-history', q: 'Have you ever been told your eye pressure was high? Any drops?', a: 'Yes — "pressure on the high side" three years ago. I had drops, then the bottle ran out and I… didn\'t replace it.', relevance: 'key' },
     { id: 'bp', category: 'medical', q: 'Do you have high blood pressure, diabetes or cholesterol problems?', a: 'Blood pressure for fifteen years. Cholesterol borderline. No diabetes.', relevance: 'key' },
     { id: 'gca', category: 'symptoms', q: 'Any new headache, scalp tenderness or jaw ache when chewing?', a: 'No. I can chew my bagel perfectly well, thank you.', relevance: 'helpful' },
-    { id: 'meds', category: 'medications', q: 'What medicines do you take?', a: 'Amlodipine, a statin, and vitamin D. I stopped the eye drops, as confessed.', relevance: 'helpful' },
+    { id: 'meds', category: 'medications', q: 'What medicines do you take?', a: 'Amlodipine, a statin, and vitamin D. I stopped the eye drops, as I admitted.', relevance: 'helpful' },
     { id: 'clots', category: 'medical', q: 'Any history of blood clots or blood disorders?', a: 'Never. My sister had a DVT after a long flight, if that counts.', relevance: 'neutral' },
     { id: 'reading', category: 'social', q: 'Have you been reading more than usual lately?', a: 'I always read too much. This is not eye strain, I promise you.', relevance: 'red-herring' },
   ],
   findings: buildFindings(69, {
     va: {
-      OD: { uncorrected: 0.7, bestCorrected: 0.6, pinhole: 0.6, nearUncorrected: 1.0 },
-      OS: { uncorrected: 0.2, bestCorrected: 0.0, pinhole: 0.0, nearUncorrected: 0.7 },
+      OD: { uncorrected: 1.0, bestCorrected: 0.6, pinhole: 0.6, nearUncorrected: 0.8 },
+      OS: { uncorrected: 0.6, bestCorrected: 0.0, pinhole: 0.1, nearUncorrected: 0.4 },
     },
     refraction: {
       OD: { sphere: -1.0, cylinder: -0.75, axis: 15, add: 2.5 },

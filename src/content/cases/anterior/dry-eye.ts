@@ -19,7 +19,7 @@ const dryEyeCase: ClinicalCase = {
   chiefComplaint:
     "By four o'clock my eyes feel like they've been rolled in sand. I blink and the spreadsheet snaps back into focus — for about three seconds. And, ridiculously, they water.",
   history: [
-    { id: 'timing', category: 'onset', q: 'When is it at its worst?', a: 'End of the workday, every day since tax season started. Weekends are much better. The air-con vent blows straight onto my desk.', relevance: 'key' },
+    { id: 'timing', category: 'onset', q: 'When is it at its worst?', a: 'End of the workday, every day since tax season started. Weekends are much better. The air-con vent blows straight across my desk from the right — and the right eye is always worse.', relevance: 'key' },
     { id: 'screen', category: 'social', q: 'How many hours a day on screens?', a: "Ten, eleven. Two monitors. My colleague says I stare at them like a hawk and forget to blink.", relevance: 'key' },
     { id: 'fluctuate', category: 'symptoms', q: 'Does your vision come and go with blinking?', a: 'Yes! Blurry, blink, clear, blurry again. My glasses are new so it can’t be them.', relevance: 'key' },
     { id: 'itch-discharge', category: 'symptoms', q: 'Any itching or sticky discharge?', a: "Not itchy — burning. No gunk, just this silly watering.", relevance: 'key' },
@@ -31,7 +31,9 @@ const dryEyeCase: ClinicalCase = {
   ],
   findings: buildFindings(54, {
     anterior: {
-      OD: { lids: ['meibomian-dysfunction'], cornea: ['punctate-keratitis', 'reduced-tbut'], fluorescein: 'inferior-punctate', tbutSec: 4 },
+      // OD faces the air-con vent: exposure staining across the open lid fissure. OS shows the
+      // inferior band typical of meibomian (evaporative) disease.
+      OD: { lids: ['meibomian-dysfunction'], cornea: ['punctate-keratitis', 'reduced-tbut'], fluorescein: 'interpalpebral', tbutSec: 4 },
       OS: { lids: ['meibomian-dysfunction'], cornea: ['punctate-keratitis', 'reduced-tbut'], fluorescein: 'inferior-punctate', tbutSec: 5 },
     },
     external: { tearing: ['OD', 'OS'] },
@@ -44,7 +46,7 @@ const dryEyeCase: ClinicalCase = {
   management:
     'Explain the tear film: screens roughly halve the blink rate, and a dry surface triggers reflex watering. Fix the environment (redirect the vent, lower the monitor, 20-20-20 breaks with full blinks), start preservative-free lubricants 4–6×/day and warm compresses with lid massage for the meibomian glands, and ask her GP whether the nightly antihistamine can be changed. Review in 6–8 weeks and step up (cyclosporine or lifitegrast, in-office gland therapy, punctal plugs) if symptoms persist.',
   teachingPoints: [
-    'Tear break-up time under 10 seconds is abnormal; 4–5 s points to an unstable, evaporative tear film.',
+    'Tear break-up time under 10 seconds is abnormal; 4–5 s points to an unstable, evaporative tear film. Staining across the open fissure means exposure (staring, airflow); an inferior band points to the lids and meibomian glands.',
     'Watery eyes are a classic dry-eye symptom: the irritated surface drives reflex tearing.',
     'Vision that blurs and then clears with a blink is a tear-film problem, not a refractive one.',
     'Burning without itch, no discharge and no follicles or papillae steers you away from allergic and infective conjunctivitis.',

@@ -20,7 +20,7 @@ const craoChoir: ClinicalCase = {
     "About fifty minutes ago, at rehearsal, my right eye went dark — like someone lowered a blind. No pain, my friend. I can see your hand moving, but not your face. My daughter drove me straight here.",
   triageNote: 'Onset 09:10 by the patient\'s watch. Arrived 10:00.',
   history: [
-    { id: 'onset-time', category: 'onset', q: 'Exactly when did it happen, and was it instant?', a: 'Ten past nine. In the middle of the Hallelujah chorus, instantly. One eye only.', relevance: 'key' },
+    { id: 'onset-time', category: 'onset', q: 'Exactly when did it happen, and was it instant?', a: 'Ten past nine. Right in the middle of the big finale, instantly. One eye only.', relevance: 'key' },
     { id: 'amaurosis', category: 'ocular-history', q: 'Have you ever had brief episodes of vision going grey or black that came back?', a: 'Twice last month the right eye greyed out for a few minutes, then came back. I thought it was the stage lights.', relevance: 'key' },
     { id: 'gca', category: 'symptoms', q: 'Any new headache, scalp tenderness, jaw pain on chewing, weight loss or aching shoulders?', a: 'None of those. My jaw is fine — I sang this morning.', relevance: 'key' },
     { id: 'heart', category: 'medical', q: 'Any heart rhythm problems, stroke, carotid disease or blood thinners?', a: 'An irregular heartbeat — atrial something. They gave me a blood thinner, but I stopped it two months ago after a nosebleed.', relevance: 'key' },
@@ -33,14 +33,15 @@ const craoChoir: ClinicalCase = {
   findings: buildFindings(72, {
     va: {
       OD: { uncorrected: 1.9, bestCorrected: 1.9, pinhole: 1.9, nearUncorrected: 1.9 },
-      OS: { uncorrected: 0.1, bestCorrected: 0.0, pinhole: 0.0, nearUncorrected: 0.7 },
+      OS: { uncorrected: 0.2, bestCorrected: 0.0, pinhole: 0.1, nearUncorrected: 0.7 },
     },
     refraction: {
       OD: { sphere: 0.75, cylinder: -0.5, axis: 90, add: 2.5 },
       OS: { sphere: 0.75, cylinder: -0.5, axis: 85, add: 2.5 },
     },
     pupils: { rapd: 'OD', rapdGrade: 3, reactivity: { OD: 'sluggish', OS: 'brisk' } },
-    fields: { OD: 'constricted' },
+    // No cilioretinal sparing: dense central / near-total loss with only a residual temporal island.
+    fields: { OD: 'central-scotoma' },
     amsler: { OD: { result: 'central-scotoma', center: { x: 0, y: 0 }, radius: 10 } },
     colorVision: { OD: { type: 'acquired-red-green', severity: 'severe' } },
     posterior: {
@@ -65,8 +66,8 @@ const craoChoir: ClinicalCase = {
     'Acute central retinal artery occlusion, right eye — an ocular stroke. Send him immediately to the nearest stroke-centre emergency department (call ahead, do not book a clinic appointment): he is within the window where thrombolysis may be considered, and he needs urgent brain imaging, carotid imaging, ECG/rhythm monitoring and a decision about anticoagulation. Request ESR, CRP and platelets the same day to exclude giant cell arteritis. Arrange follow-up for neovascularisation of the iris and angle over the coming weeks.',
   teachingPoints: [
     'Sudden painless monocular loss + dense RAPD + whitened retina + cherry-red spot = CRAO. It is a stroke: send to a stroke centre, not a routine eye clinic.',
-    'The cherry-red spot is normal choroid showing through the thin fovea, surrounded by oedematous, whitened inner retina.',
-    'Previous transient monocular blackouts (amaurosis fugax) were warning emboli — ask about them in every vascular patient.',
+    'The cherry-red spot is normal choroid showing through the thin fovea, ringed by oedematous, whitened inner retina. Without a cilioretinal artery the field is a dense central loss with only a small temporal island; a patent cilioretinal artery can spare the centre and keep good acuity.',
+    'Earlier transient blackouts (amaurosis fugax) were warning emboli. The embolus type points to the source: a bright Hollenhorst plaque is cholesterol, usually from the carotid, while AF throws fibrin-platelet clots. Both can coexist, which is why he gets carotid imaging AND rhythm monitoring.',
     'Over 50 with an artery occlusion: always ask the giant cell arteritis questions and check ESR/CRP — arteritic disease can take the other eye within days.',
     'CRVO shows haemorrhages everywhere ("blood and thunder"); CRAO shows a pale, bloodless retina with box-carred arterioles.',
   ],

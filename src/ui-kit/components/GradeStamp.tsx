@@ -22,6 +22,8 @@ export interface GradeStampProps {
 
 /** Time from animation start to the stamp hitting the paper (ms). Matches CSS keyframes. */
 export const STAMP_IMPACT_MS = 300;
+/** Circumference of the rim text path (r = 77) minus a hair so the ends don't collide. */
+const RIM_LEN = Math.round(2 * Math.PI * 77) - 6;
 
 /** Rubber-stamp grade that slams onto the page. S is iridescent gold. */
 export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake, rimText = 'LUMEN EYE CLINIC ✦ CASE REVIEW ✦ ', onImpact, class: klass }: GradeStampProps) {
@@ -48,7 +50,7 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
   return (
     <div
       class={cx('lm-stamp', `lm-stamp--${grade}`, anim && 'is-anim', klass)}
-      style={{ width: size, height: size, '--stamp-c': GRADE_COLOR[grade], '--d': `${delay}ms` }}
+      style={{ width: size, '--stamp-c': GRADE_COLOR[grade], '--d': `${delay}ms` }}
       role="img"
       aria-label={`Grade ${grade}: ${GRADE_WORD[grade]}`}
     >
@@ -63,9 +65,9 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
         <defs>
           <filter id={`${uid}-ink`} x="-10%" y="-10%" width="120%" height="120%">
             <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={grade.charCodeAt(0)} result="n" />
-            <feDisplacementMap in="SourceGraphic" in2="n" scale="3" result="d" />
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" result="d" />
             <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="3" seed="11" result="blot" />
-            <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 1.95" result="mask" />
+            <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.75" result="mask" />
             <feComposite in="d" in2="mask" operator="in" />
           </filter>
           <path id={`${uid}-rim`} d="M100 100 m-77 0 a77 77 0 1 1 154 0 a77 77 0 1 1 -154 0" />
@@ -85,7 +87,7 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
           <circle cx="100" cy="100" r="92" stroke-width="6" />
           <circle cx="100" cy="100" r="64" stroke-width="2" />
           <text class="lm-stamp__rim" fill={ink} stroke="none">
-            <textPath href={`#${uid}-rim`} startOffset="0">{rimText.repeat(2)}</textPath>
+            <textPath href={`#${uid}-rim`} startOffset="0" textLength={RIM_LEN} lengthAdjust="spacing">{rimText}</textPath>
           </text>
           <text class="lm-stamp__letter" x="100" y="100" text-anchor="middle" dominant-baseline="central" fill={ink} stroke="none">
             {grade}

@@ -49,7 +49,7 @@ const colourDeficiencyBrownLeaves: ClinicalCase = {
   management:
     'Explain the diagnosis to Kwame and his mother and write to the school so colour-coded materials are labelled and he is not marked down for colour choices. Classify the type and severity with a D-15 or anomaloscope if available. Discuss career implications honestly (aviation, electrical, some transport and military roles have colour standards) while noting that many people with mild deficiencies pass occupational tests. Tinted lenses can change contrast but do not restore normal colour vision.',
   teachingPoints: [
-    'Congenital red-green deficiency is X-linked recessive: about 8% of males of Northern European ancestry, under 1% of females, typically inherited through the maternal grandfather.',
+    'Congenital red-green deficiency is X-linked recessive and typically inherited through the maternal grandfather. It affects about 8% of males of Northern European ancestry but fewer (roughly 2–4%) of males of African ancestry, and under 1% of females.',
     'Congenital = bilateral, symmetric, stable, with normal acuity, pupils and fundus. Acquired = asymmetric, changing, often with reduced acuity or an RAPD.',
     'Ishihara plates screen red-green (protan/deutan) defects only; they do not test tritan (blue-yellow) defects.',
     'Optic neuropathies typically cause acquired red-green loss; many macular and retinal diseases cause blue-yellow loss.',

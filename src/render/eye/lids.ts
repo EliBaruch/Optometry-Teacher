@@ -51,24 +51,28 @@ export function drawSkin(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeSt
   ctx.fill();
   ctx.restore();
   // lid crease
-  ctx.strokeStyle = rgba(shade(tone, 0.5), 0.5);
-  ctx.lineWidth = pxmm * 0.28;
   ctx.lineCap = 'round';
-  ctx.beginPath();
-  smoothOpenPath(ctx, upperTop.slice(3, -3));
-  ctx.stroke();
-  ctx.strokeStyle = rgba(shade(tone, 1.15), 0.35);
+  for (const [wd, al] of [[2.0, 0.07], [0.8, 0.1], [0.22, 0.18]] as const) {
+    ctx.strokeStyle = rgba(shade(tone, 0.5), al);
+    ctx.lineWidth = pxmm * wd;
+    ctx.beginPath();
+    smoothOpenPath(ctx, upperTop.slice(3, -3));
+    ctx.stroke();
+  }
+  ctx.strokeStyle = rgba(shade(tone, 1.12), 0.1);
   ctx.lineWidth = pxmm * 0.35;
   ctx.beginPath();
   smoothOpenPath(ctx, upperTop.slice(4, -4).map(([x, y]) => [x, y + pxmm * 0.55] as [number, number]));
   ctx.stroke();
   // lower lid fold
   const lowFold = g.lower.map(([x, y]) => [x, y + pxmm * (3.4 + swell) * (1 - Math.pow((x - cx) / (pxmm * 17), 2))] as [number, number]);
-  ctx.strokeStyle = rgba(shade(tone, 0.68), 0.28);
-  ctx.lineWidth = pxmm * 0.5;
-  ctx.beginPath();
-  smoothOpenPath(ctx, lowFold.slice(4, -4));
-  ctx.stroke();
+  for (const [wd, al] of [[2.2, 0.06], [0.9, 0.08]] as const) {
+    ctx.strokeStyle = rgba(shade(tone, 0.6), al);
+    ctx.lineWidth = pxmm * wd;
+    ctx.beginPath();
+    smoothOpenPath(ctx, lowFold.slice(5, -5));
+    ctx.stroke();
+  }
   if (swell > 0) {
     const sg = ctx.createRadialGradient(cx, cy, pxmm * 4, cx, cy, pxmm * 14);
     sg.addColorStop(0, `rgba(205,95,95,${0.25 * swell})`);
@@ -155,49 +159,52 @@ export function drawLidMargins(ctx: CanvasRenderingContext2D, g: EyeGeometry, s:
   smoothOpenPath(ctx, g.upper.map(([x, y]) => [x, y - pxmm * 0.2] as [number, number]));
   ctx.stroke();
 
-  // lashes
-  const lash = '#1a110c';
-  const n = 78;
-  const up = g.upper;
+  // lashes — tapered, curled, gently clumped; fanned outward from the centre
   const lerpPt = (pts: [number, number][], u: number): [number, number] => {
-    const f = u * (pts.length - 1);
+    const f = Math.max(0, Math.min(1, u)) * (pts.length - 1);
     const i = Math.min(pts.length - 2, Math.floor(f));
     const k = f - i;
     return [pts[i]![0] + (pts[i + 1]![0] - pts[i]![0]) * k, pts[i]![1] + (pts[i + 1]![1] - pts[i]![1]) * k];
   };
+  const latDir = -g.nasal;
+  const open = 0.35 + 0.65 * Math.min(1, s.lidAperture + 0.2);
+  const up = g.upper;
+  const n = 120;
+  let clumpDx = 0;
   for (let i = 0; i < n; i++) {
-    const u = 0.07 + (0.86 * i) / (n - 1) + rng.float(-0.004, 0.004);
+    const u = 0.06 + (0.88 * i) / (n - 1) + rng.float(-0.005, 0.005);
     const [x, y0] = lerpPt(up, u);
-    const y = y0 - pxmm * 0.25;
-    const hx = (x - g.cx) / (g.pxmm * 15);
-    const latDir = -g.nasal;
-    const L = pxmm * rng.float(2.2, 3.4) * (1 - Math.abs(hx) * 0.3) * (0.35 + 0.65 * Math.min(1, s.lidAperture + 0.2));
-    const dx = (hx * 0.75 + latDir * Math.max(0, hx * latDir) * 0.45) * L;
-    ctx.strokeStyle = lash;
-    ctx.lineWidth = pxmm * rng.float(0.08, 0.13);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.quadraticCurveTo(x + dx * 0.45, y + L * 0.32, x + dx * 0.9, y - L * 0.55);
-    ctx.stroke();
-    if (s.lidMarginRed && i % 3 === 0) {
-      ctx.fillStyle = 'rgba(235,220,170,0.85)';
+    const row = i % 3;
+    const y = y0 - pxmm * (0.15 + row * 0.12);
+    const hx = (x - g.cx) / (pxmm * 15);
+    const medialFade = Math.max(0, hx * g.nasal); // shorter, sparser medially
+    if (medialFade > 0.75 && rng.chance(0.5)) continue;
+    if (i % 4 === 0) clumpDx = rng.float(-0.25, 0.25);
+    const L = pxmm * rng.float(1.9, 3.0) * (1 - medialFade * 0.45) * (1 - Math.abs(hx) * 0.15) * open;
+    const fan = hx * 0.9 + latDir * Math.max(0, hx * latDir) * 0.55 + clumpDx;
+    const root: [number, number] = [x, y];
+    const ctrl: [number, number] = [x + fan * L * 0.35, y + L * 0.42];
+    const tip: [number, number] = [x + fan * L * 0.95, y - L * (0.75 - Math.abs(fan) * 0.2)];
+    taperedLash(ctx, root, ctrl, tip, pxmm * rng.float(0.1, 0.15), `rgba(22,14,10,${rng.float(0.8, 0.98).toFixed(2)})`);
+  }
+  for (let i = 0; i < 40; i++) {
+    const u = 0.12 + (0.76 * i) / 39 + rng.float(-0.006, 0.006);
+    const [x, y] = lerpPt(lowerOuter, u);
+    const hx = (x - g.cx) / (pxmm * 15);
+    if (hx * g.nasal > 0.5 && rng.chance(0.6)) continue;
+    const L = pxmm * rng.float(0.8, 1.4) * (1 - Math.max(0, hx * g.nasal) * 0.4);
+    const fan = hx * 1.1;
+    taperedLash(ctx, [x, y - pxmm * 0.15], [x + fan * L * 0.4, y + L * 0.5], [x + fan * L, y + L * 0.95], pxmm * 0.07, `rgba(30,20,16,${rng.float(0.5, 0.8).toFixed(2)})`);
+  }
+  // blepharitis scurf at lash bases
+  if (s.lidMarginRed) {
+    for (let i = 0; i < 26; i++) {
+      const [x, y] = lerpPt(up, rng.float(0.1, 0.9));
+      ctx.fillStyle = 'rgba(238,224,176,0.9)';
       ctx.beginPath();
-      ctx.arc(x + dx * 0.1, y + L * 0.02, pxmm * 0.16, 0, TAU);
+      ctx.ellipse(x, y - pxmm * 0.35, pxmm * rng.float(0.12, 0.25), pxmm * 0.1, 0, 0, TAU);
       ctx.fill();
     }
-  }
-  const lo = lowerOuter;
-  for (let i = 0; i < 34; i++) {
-    const u = 0.15 + (0.7 * i) / 33 + rng.float(-0.006, 0.006);
-    const [x, y] = lerpPt(lo, u);
-    const L = pxmm * rng.float(1.0, 1.7);
-    const dx = ((x - g.cx) / (g.pxmm * 15)) * 0.9 * L;
-    ctx.strokeStyle = 'rgba(30,20,16,0.85)';
-    ctx.lineWidth = pxmm * 0.07;
-    ctx.beginPath();
-    ctx.moveTo(x, y - pxmm * 0.1);
-    ctx.quadraticCurveTo(x + dx * 0.5, y + L * 0.6, x + dx, y + L);
-    ctx.stroke();
   }
 
   // discharge
@@ -215,7 +222,7 @@ export function drawLidMargins(ctx: CanvasRenderingContext2D, g: EyeGeometry, s:
       ctx.fill();
     }
     for (let i = 0; i < 12; i++) {
-      const [x, y] = lerpPt(lo, rng.float(0.2, 0.8));
+      const [x, y] = lerpPt(lowerOuter, rng.float(0.2, 0.8));
       ctx.fillStyle = 'rgba(235,225,165,0.9)';
       ctx.beginPath();
       ctx.ellipse(x, y + pxmm * 0.4, pxmm * 0.35, pxmm * 0.2, 0, 0, TAU);
@@ -237,4 +244,27 @@ export function drawStringyMucus(ctx: CanvasRenderingContext2D, g: EyeGeometry):
   smoothOpenPath(ctx, pts);
   ctx.stroke();
   ctx.restore();
+}
+
+function taperedLash(ctx: CanvasRenderingContext2D, p0: [number, number], p1: [number, number], p2: [number, number], w: number, color: string): void {
+  const n = 6;
+  ctx.strokeStyle = color;
+  ctx.lineCap = 'round';
+  let px = p0[0];
+  let py = p0[1];
+  for (let i = 1; i <= n; i++) {
+    const u = i / n;
+    const a = (1 - u) * (1 - u);
+    const b = 2 * (1 - u) * u;
+    const c = u * u;
+    const x = a * p0[0] + b * p1[0] + c * p2[0];
+    const y = a * p0[1] + b * p1[1] + c * p2[1];
+    ctx.lineWidth = Math.max(0.35, w * (1 - u * 0.85));
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    px = x;
+    py = y;
+  }
 }

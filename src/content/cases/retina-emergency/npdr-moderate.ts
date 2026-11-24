@@ -26,7 +26,7 @@ const npdrModerate: ClinicalCase = {
     { id: 'bp-lipids', category: 'medical', q: 'Blood pressure or cholesterol problems? Kidneys?', a: "Pressure's borderline, they've got me on lisinopril. Cholesterol pill too. Kidneys fine as far as I know.", relevance: 'helpful' },
     { id: 'meds', category: 'medications', q: 'What medicines do you take?', a: "Metformin twice a day, lisinopril, atorvastatin. They talked about insulin if my numbers don't come down.", relevance: 'helpful' },
     { id: 'family', category: 'family', q: 'Any eye disease in the family?', a: "My mother had diabetes too. She had laser on her eyes in her sixties.", relevance: 'neutral' },
-    { id: 'screen-time', category: 'social', q: 'How many hours a day do you spend driving?', a: "Ten, eleven hours. Night runs mostly. Headlights don't bother me.", relevance: 'red-herring' },
+    { id: 'driving-hours', category: 'social', q: 'How many hours a day do you spend driving?', a: "Ten, eleven hours. Night runs mostly. Headlights don't bother me.", relevance: 'red-herring' },
     { id: 'smoking', category: 'social', q: 'Do you smoke?', a: "Quit six years ago. Chew sunflower seeds instead — the cab's full of shells.", relevance: 'neutral' },
   ],
   findings: buildFindings(52, {

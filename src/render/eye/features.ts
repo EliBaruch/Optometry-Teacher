@@ -24,15 +24,15 @@ export function dendriteBranches(seed: number): Branch[] {
       x += Math.cos(a) * (len / steps);
       y += Math.sin(a) * (len / steps);
       pts.push([x, y]);
-      if (depth < 2 && i > 1 && rng.chance(0.28)) grow(x, y, a + (rng.chance(0.5) ? 1 : -1) * rng.float(0.5, 1.0), len * rng.float(0.35, 0.6), depth + 1);
+      if (depth < 2 && i > 0 && i < steps - 1 && rng.chance(depth === 0 ? 0.5 : 0.3)) grow(x, y, a + (rng.chance(0.5) ? 1 : -1) * rng.float(0.6, 1.1), len * rng.float(0.3, 0.5), depth + 1);
     }
     out.push({ pts, bulb: true });
   };
   const sx = rng.float(-1.2, 0.6);
   const sy = rng.float(-0.8, 1.0);
   const a0 = rng.float(0, Math.PI * 2);
-  grow(sx, sy, a0, rng.float(2.2, 3.2), 0);
-  grow(sx, sy, a0 + Math.PI + rng.float(-0.4, 0.4), rng.float(1.4, 2.4), 0);
+  grow(sx, sy, a0, rng.float(2.6, 3.4), 0);
+  grow(sx, sy, a0 + Math.PI + rng.float(-0.4, 0.4), rng.float(1.8, 2.6), 0);
   return out;
 }
 

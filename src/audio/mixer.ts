@@ -137,16 +137,15 @@ export function glide(p: AudioParam, value: number, t: number, time: number): vo
 }
 
 /**
- * Equal-power fade of an AudioParam from its current value. Falls back to a
- * linear ramp if the browser rejects the curve (overlapping automation).
+ * Equal-power fade of an AudioParam from its current value, as a short chain
+ * of linear ramps. Unlike setValueCurveAtTime, ramps can be cancelled cleanly
+ * mid-fade, so switching tracks rapidly never throws or sticks.
  */
-export function fadeParam(p: AudioParam, to: number, t: number, dur: number): void {
+export function fadeParam(p: AudioParam, to: number, t: number, dur: number, segments = 8): void {
   const from = p.value;
+  const d = Math.max(0.05, dur);
+  const curve = equalPowerCurve(from, to, segments + 1);
   p.cancelScheduledValues(t);
   p.setValueAtTime(from, t);
-  try {
-    p.setValueCurveAtTime(equalPowerCurve(from, to, 48), t + 0.01, Math.max(0.05, dur));
-  } catch {
-    p.linearRampToValueAtTime(to, t + Math.max(0.05, dur));
-  }
+  for (let i = 1; i < curve.length; i++) p.linearRampToValueAtTime(curve[i]!, t + (d * i) / segments);
 }

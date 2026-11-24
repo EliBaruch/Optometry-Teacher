@@ -51,6 +51,7 @@ const myopiaBackRow: ClinicalCase = {
       OS: { k1: 43.5, k2: 44.0, axisK1: 175, mires: 'regular' },
     },
     motility: { near: { horizontal: -3, vertical: 0, type: 'phoria' } },
+    external: { squinting: true },
   }),
   essentialTests: ['visual-acuity', 'retinoscopy'],
   helpfulTests: ['phoropter', 'pinhole', 'keratometry', 'cover-test', 'ophthalmoscopy'],

@@ -81,7 +81,7 @@ export const rewardSfx = {
   }),
 
   sparkle: def({
-    max: 3, cooldown: 0.05, gain: 0.8, verb: 0.4, echo: 0.3, jitter: 3,
+    max: 3, cooldown: 0.05, gain: 1.1, verb: 0.4, echo: 0.3, jitter: 3,
     play(v) {
       let end = v.t;
       for (let i = 0; i < 6; i++) {
@@ -93,7 +93,7 @@ export const rewardSfx = {
   }),
 
   levelup: def({
-    max: 1, cooldown: 0.3, gain: 0.9, verb: 0.35, echo: 0.12, jitter: 0,
+    max: 1, cooldown: 0.3, gain: 0.8, verb: 0.35, echo: 0.12, jitter: 0,
     play(v) {
       const t = v.t;
       boom(v, t, 0.35, 0.6);
@@ -123,7 +123,7 @@ export const rewardSfx = {
   }),
 
   legendary: def({
-    max: 1, cooldown: 0.5, gain: 0.95, verb: 0.5, echo: 0.25, jitter: 0,
+    max: 1, cooldown: 0.5, gain: 0.7, verb: 0.5, echo: 0.25, jitter: 0,
     play(v) {
       const t = v.t;
       // Long riser that "sucks in" before the drop.
@@ -157,7 +157,7 @@ export const rewardSfx = {
   }),
 
   reveal: def({
-    max: 1, cooldown: 0.2, gain: 0.9, verb: 0.45, echo: 0.2, jitter: 0,
+    max: 1, cooldown: 0.2, gain: 0.75, verb: 0.45, echo: 0.2, jitter: 0,
     play(v) {
       noise(v.k, v.out, { t: v.t, kind: 'pink', type: 'lowpass', hz: 300, sweepTo: 5200, sweepTime: 0.45, q: 2, peak: 0.25, attack: 0.44, decay: 0.06 });
       tone(v.k, v.air, { t: v.t, hz: hz(v, 62), glideTo: hz(v, 74), glideTime: 0.45, type: 'triangle', peak: 0.05, attack: 0.4, decay: 0.1 });

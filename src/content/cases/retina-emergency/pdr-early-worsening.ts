@@ -31,8 +31,9 @@ const pdrEarlyWorsening: ClinicalCase = {
   ],
   findings: buildFindings(29, {
     va: {
-      OD: { uncorrected: 0.0, bestCorrected: 0.0, pinhole: 0.0 },
-      OS: { uncorrected: 0.4, bestCorrected: 0.4, pinhole: 0.4 },
+      OD: { uncorrected: 0.0, bestCorrected: 0.0, pinhole: 0.0, nearUncorrected: 0.0 },
+      // The haemorrhage veils near as much as distance: near is no better than BCVA.
+      OS: { uncorrected: 0.4, bestCorrected: 0.4, pinhole: 0.4, nearUncorrected: 0.4 },
     },
     redReflex: { OS: 'dull' },
     retinoscopyReflex: { OS: 'dull' },

@@ -47,7 +47,7 @@ const hzoCase: ClinicalCase = {
       },
     },
     iop: { OD: 19, OS: 15 },
-    external: { rash: 'forehead-dermatomal', redEye: ['OD'], tearing: ['OD'], ptosis: ['OD'], photophobia: true },
+    external: { rash: 'forehead-dermatomal', redEye: ['OD'], tearing: ['OD'], photophobia: true },
   }),
   essentialTests: ['slit-lamp', 'fluorescein'],
   helpfulTests: ['visual-acuity', 'tonometry', 'pupils', 'motility', 'ophthalmoscopy'],

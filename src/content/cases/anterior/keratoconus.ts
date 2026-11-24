@@ -30,8 +30,8 @@ const keratoconusCase: ClinicalCase = {
   ],
   findings: buildFindings(19, {
     va: {
-      OD: { uncorrected: 0.6, bestCorrected: 0.1, pinhole: 0.1 },
-      OS: { uncorrected: 1.0, bestCorrected: 0.3, pinhole: 0.2 },
+      OD: { uncorrected: 1.0, bestCorrected: 0.1, pinhole: 0.1 },
+      OS: { uncorrected: 1.4, bestCorrected: 0.3, pinhole: 0.2 },
     },
     refraction: {
       OD: { sphere: -1.5, cylinder: -2.0, axis: 30 },
@@ -59,7 +59,7 @@ const keratoconusCase: ClinicalCase = {
     'Spectacles cannot correct irregular astigmatism: best-corrected acuity stays reduced, while a pinhole or a rigid lens does better.',
     'Vogt striae are fine vertical stress lines that vanish with gentle pressure on the globe; the Fleischer iron ring is best seen under cobalt blue.',
     'Eye rubbing and atopy drive progression — the most useful thing he can do today is stop rubbing.',
-    'Cross-linking halts progression but does not reverse it, so refer early.',
+    'Stable keratoconus is a routine referral, but documented progression in a young patient is seen within weeks: cross-linking halts it but does not reverse it, so every month of delay is lost cornea.',
   ],
   redFlags: [
     'Sudden pain and a white, oedematous cornea (acute hydrops) — same day.',

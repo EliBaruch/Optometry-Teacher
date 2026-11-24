@@ -6,7 +6,7 @@ import { chordEvents, chordLadder, humanVel, walk } from './util';
 export const title: Composition = {
   id: 'title',
   bpm: 66,
-  level: 0.9,
+  level: 1.25,
   verb: 0.55,
   echo: 0.28,
   harmony: {

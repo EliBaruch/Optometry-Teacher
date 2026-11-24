@@ -8,7 +8,7 @@ const PENTA = [0, 1, 2, 4, 5];
 export const zen: Composition = {
   id: 'zen',
   bpm: 52,
-  level: 0.8,
+  level: 1.6,
   verb: 0.6,
   echo: 0.35,
   harmony: {

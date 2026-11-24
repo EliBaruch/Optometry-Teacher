@@ -46,7 +46,7 @@ export const interfaceSfx = {
   }),
 
   whoosh: def({
-    max: 3, cooldown: 0.05, gain: 0.9, verb: 0.2, jitter: 60,
+    max: 3, cooldown: 0.05, gain: 1.3, verb: 0.2, jitter: 60,
     play(v) {
       noise(v.k, v.out, { t: v.t, kind: 'pink', type: 'lowpass', hz: 180, q: 0.7, peak: 0.12, attack: 0.1, decay: 0.25 });
       return noise(v.k, v.out, {
@@ -57,7 +57,7 @@ export const interfaceSfx = {
   }),
 
   thud: def({
-    max: 3, cooldown: 0.04, gain: 1, verb: 0.12, jitter: 50,
+    max: 3, cooldown: 0.04, gain: 0.75, verb: 0.12, jitter: 50,
     play(v) {
       noise(v.k, v.out, { t: v.t, type: 'lowpass', hz: 320, q: 0.8, peak: 0.35, decay: 0.08 });
       noise(v.k, v.out, { t: v.t, hz: 620, q: 3, peak: 0.12, decay: 0.04 });

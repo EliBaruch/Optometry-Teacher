@@ -37,7 +37,7 @@ export const alertSfx = {
   }),
 
   heartbeat: def({
-    max: 2, cooldown: 0.25, gain: 1, verb: 0.1, jitter: 20,
+    max: 2, cooldown: 0.25, gain: 0.8, verb: 0.1, jitter: 20,
     play(v) {
       const r = v.rate;
       // lub

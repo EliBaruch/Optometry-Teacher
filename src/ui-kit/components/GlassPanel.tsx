@@ -3,7 +3,7 @@ import { Icon, type IconName } from '../icons/Icon';
 import { cx } from '../lib/cx';
 import './GlassPanel.css';
 
-export interface GlassPanelProps extends Omit<JSX.HTMLAttributes<HTMLElement>, 'title' | 'icon'> {
+export interface GlassPanelProps extends Omit<JSX.HTMLAttributes<HTMLDivElement>, 'title' | 'icon' | 'ref'> {
   as?: 'div' | 'section' | 'article' | 'aside';
   /** CSS colour: tints border, header icon and the soft outer glow. */
   accent?: string;
@@ -25,9 +25,10 @@ export interface GlassPanelProps extends Omit<JSX.HTMLAttributes<HTMLElement>, '
 }
 
 export function GlassPanel({
-  as: Tag = 'div', accent, glow = false, title, eyebrow, icon, actions, header, padding = 'md', strong, interactive,
+  as = 'div', accent, glow = false, title, eyebrow, icon, actions, header, padding = 'md', strong, interactive,
   class: klass, style, children, tabIndex, ...rest
 }: GlassPanelProps) {
+  const Tag = as as 'div';
   const hasHeader = header !== undefined || title !== undefined || eyebrow !== undefined || actions !== undefined;
   const accentStyle = accent ? { '--panel-accent': accent } : null;
   return (

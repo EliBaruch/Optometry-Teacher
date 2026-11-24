@@ -60,7 +60,7 @@ const cn3PalsyPupilInvolving: ClinicalCase = {
         upLeft: { OD: 0, OS: -4 },
         downLeft: { OD: 0, OS: -3 },
         down: { OD: 0, OS: -2 },
-        downRight: { OD: 0, OS: -3 },
+        downRight: { OD: 0, OS: -2 },
       },
       npcCm: 30,
       diplopia: 'oblique',
@@ -80,7 +80,7 @@ const cn3PalsyPupilInvolving: ClinicalCase = {
   teachingPoints: [
     'Ptosis + eye "down and out" + a dilated, poorly reactive pupil = pupil-involving CN III palsy: compressive aneurysm until proven otherwise.',
     'Pupillomotor fibres run on the outside of the nerve, so compression hits the pupil early; microvascular ischaemia hits the core and usually spares it.',
-    'Anisocoria greater in bright light means the big pupil is the abnormal one (parasympathetic failure).',
+    'Anisocoria greater in bright light means the big pupil is the abnormal one (parasympathetic failure). Intorsion on attempted down-gaze (watch a conjunctival vessel) confirms CN IV is still working.',
     'Horner gives a SMALL pupil with mild ptosis; myasthenia never involves the pupil; an Adie pupil has no motility deficit.',
     'Sudden "worst headache of my life" with neck stiffness and vomiting suggests a bleed: this is a minutes-to-hours problem.',
   ],

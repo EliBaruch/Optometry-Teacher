@@ -62,10 +62,10 @@ const accommodativeEsotropia: ClinicalCase = {
   management:
     'Prescribe the full cycloplegic hyperopic correction (+4.00 DS OU) for full-time wear and recheck the cover test in glasses at 4–6 weeks; most refractive accommodative esotropias straighten fully. Monitor acuity for amblyopia. If a residual near esotropia persists in glasses (high AC/A), add a bifocal; refer to paediatric ophthalmology for any non-accommodative component.',
   teachingPoints: [
-    'Typical story: onset around age 2–3, moderate hyperopia (mean about +4 D), larger turn at near, worse when tired.',
+    'Typical story: onset at age 2–3, moderate hyperopia (average about +4 D), intermittent at first and worse when tired. In refractive accommodative esotropia the turn is similar at distance and near (here 20Δ vs 25Δ: under 10Δ apart, so the AC/A is normal).',
+    'A near deviation 10Δ or more larger than distance signals a high AC/A (non-refractive) component; if the near turn persists in full plus, a bifocal is added.',
     'Full abduction in both eyes makes it comitant. An abduction deficit with a larger turn at distance would point to a sixth-nerve palsy.',
-    'Cycloplegic retinoscopy is essential: a toddler can accommodate away several dioptres on a dry refraction.',
-    'Alternating fixation lowers amblyopia risk; a constant unilateral turn raises it.',
+    'Cycloplegic retinoscopy is essential: a toddler can accommodate away several dioptres on a dry refraction. Alternating fixation lowers amblyopia risk; a constant unilateral turn raises it.',
     'Proof of diagnosis: the eyes straighten (ortho or small phoria) once the full plus is worn.',
   ],
   redFlags: [

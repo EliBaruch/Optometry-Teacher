@@ -1,3 +1,4 @@
+import type { VNode } from 'preact';
 import { createRng } from '@core';
 import { luminance, mix, shade } from '../../fx/color';
 import { CX, type Side } from '../geometry';
@@ -60,7 +61,7 @@ export function faceDefs(c: PaintCtx) {
 
 function earPath(c: PaintCtx, side: Side): { outer: string; inner: string } {
   const { g } = c;
-  const x0 = CX + side * (g.headW - 3);
+  const x0 = CX + side * (g.headW - 4.5);
   const w = g.earW;
   const t = g.earTop;
   const b = g.earBot;
@@ -112,7 +113,7 @@ export function Head({ c, a }: { c: PaintCtx; a: AttrMap }) {
         {/* cheekbone & temple contour on the shadow side */}
         <ellipse cx={CX - g.cheekW + 4} cy={ey + 16} rx="9" ry="16" fill={skin.deep} opacity="0.16" filter={`url(#${c.id('soft2')})`} />
         {/* under-jaw occlusion */}
-        <path d={headPath(g, 0)} fill="none" stroke={skin.deep} stroke-opacity="0.22" stroke-width="5" filter={`url(#${c.id('soft')})`} />
+        <path d={headPath(g, 0)} fill="none" stroke={skin.deep} stroke-opacity="0.16" stroke-width="5" filter={`url(#${c.id('soft')})`} transform="translate(-2 -1)" />
         {/* forehead sheen from the key light */}
         <ellipse cx={CX + 9} cy={g.hairline + 12} rx="15" ry="7" fill={skin.light} opacity="0.4" filter={`url(#${c.id('soft2')})`} />
         {/* eye sockets */}
@@ -123,6 +124,9 @@ export function Head({ c, a }: { c: PaintCtx; a: AttrMap }) {
           <ellipse cx={CX + 24} cy={ey + 20} rx="10" ry="6.5" fill={`url(#${c.id('blush')})`} opacity={blushO} />
           <ellipse cx={CX + 25} cy={ey + 15} rx="5" ry="2.2" fill={skin.light} opacity="0.35" filter={`url(#${c.id('soft')})`} />
         </g>
+        {/* chin highlight + soft shadow under the lower lip */}
+        <ellipse cx={CX + 2} cy={g.chinY - 7} rx="7" ry="3.2" fill={skin.light} opacity="0.4" filter={`url(#${c.id('soft')})`} />
+        <ellipse cx={CX} cy={g.mouthY + g.lipL * 2 + 3.2} rx={g.mouthW * 0.5} ry="1.7" fill={skin.deep} opacity="0.28" filter={`url(#${c.id('soft')})`} />
         {/* rim light from the gold key */}
         <path d={head} fill="none" stroke={`url(#${c.id('rim')})`} stroke-width="3.2" />
       </g>
@@ -146,12 +150,12 @@ export function Nose({ c }: { c: PaintCtx }) {
       <ellipse cx={CX} cy={ny - 1.2} rx={w * 0.55} ry="3.6" fill={skin.warm} opacity="0.35" />
       <path d={`M${P(CX - w, ny - 2.5)}C${P(CX - w - 2.2, ny + 1)} ${P(CX - w + 1.2, ny + 3.4)} ${P(CX - w * 0.42, ny + 2.6)}`} stroke={dark} stroke-width="1.15" fill="none" stroke-linecap="round" opacity="0.6" />
       <path d={`M${P(CX + w, ny - 2.5)}C${P(CX + w + 2.2, ny + 1)} ${P(CX + w - 1.2, ny + 3.4)} ${P(CX + w * 0.42, ny + 2.6)}`} stroke={dark} stroke-width="1.15" fill="none" stroke-linecap="round" opacity="0.45" />
-      <ellipse cx={CX - w * 0.42} cy={ny + 2.2} rx="1.8" ry="1" fill={shade(dark, -0.35)} opacity="0.65" transform={`rotate(-18 ${CX - w * 0.42} ${ny + 2.2})`} />
-      <ellipse cx={CX + w * 0.42} cy={ny + 2.2} rx="1.8" ry="1" fill={shade(dark, -0.35)} opacity="0.55" transform={`rotate(18 ${CX + w * 0.42} ${ny + 2.2})`} />
+      <ellipse cx={CX - w * 0.42} cy={ny + 2.2} rx="1.5" ry="0.8" fill={shade(dark, -0.3)} opacity="0.42" transform={`rotate(-18 ${CX - w * 0.42} ${ny + 2.2})`} />
+      <ellipse cx={CX + w * 0.42} cy={ny + 2.2} rx="1.5" ry="0.8" fill={shade(dark, -0.3)} opacity="0.34" transform={`rotate(18 ${CX + w * 0.42} ${ny + 2.2})`} />
       <path d={`M${P(CX - w * 0.3, ny + 3.2)}Q${P(CX, ny + 4.4)} ${P(CX + w * 0.3, ny + 3.2)}`} stroke={dark} stroke-width="0.8" fill="none" opacity="0.35" />
       <ellipse cx={CX + 1.2} cy={ny - 3} rx="1.8" ry="1.1" fill="#fff" opacity="0.38" />
       {/* philtrum */}
-      <path d={`M${P(CX - 1.8, ny + 5.5)}L${P(CX - 2.2, g.mouthY - g.lipU - 0.5)}M${P(CX + 1.8, ny + 5.5)}L${P(CX + 2.2, g.mouthY - g.lipU - 0.5)}`} stroke={skin.shadow} stroke-width="0.9" opacity="0.4" />
+      <path d={`M${P(CX - 1.8, ny + 5.5)}L${P(CX - 2.2, g.mouthY - g.lipU - 0.5)}M${P(CX + 1.8, ny + 5.5)}L${P(CX + 2.2, g.mouthY - g.lipU - 0.5)}`} stroke={skin.shadow} stroke-width="1.6" opacity="0.22" filter={`url(#${c.id('soft')})`} />
     </g>
   );
 }
@@ -163,7 +167,7 @@ export function AgeMarks({ c, a }: { c: PaintCtx; a: AttrMap }) {
   const line = skin.deep;
   const ey = g.eyeY;
   const my = g.mouthY;
-  const items: preact.JSX.Element[] = [];
+  const items: VNode[] = [];
   const nl = (side: Side) => `M${P(CX + side * (g.noseW + 2.5), g.noseY - 1)}C${P(CX + side * (g.noseW + 7.5), g.noseY + 6)} ${P(CX + side * (g.mouthW + 5), my - 4)} ${P(CX + side * (g.mouthW + 4), my + 4 + k * 3)}`;
   items.push(
     <g key="nlf" data-r="nlf" {...a.nlf} stroke={line} fill="none" stroke-linecap="round">

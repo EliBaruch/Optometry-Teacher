@@ -30,8 +30,8 @@ const hsvCase: ClinicalCase = {
   ],
   findings: buildFindings(27, {
     va: {
-      OD: { uncorrected: 0.7, bestCorrected: 0.2, pinhole: 0.3 },
-      OS: { uncorrected: 0.7, bestCorrected: -0.1, pinhole: 0.2 },
+      OD: { uncorrected: 0.9, bestCorrected: 0.2, pinhole: 0.3 },
+      OS: { uncorrected: 0.8, bestCorrected: -0.1, pinhole: 0.2 },
     },
     refraction: {
       OD: { sphere: -2.0, cylinder: 0, axis: 180 },

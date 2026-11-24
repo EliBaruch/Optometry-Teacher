@@ -21,6 +21,8 @@ export interface SlitBeam {
   angleDeg: number;
   /** beam height in mm (default 8) */
   height?: number;
+  /** biomicroscope magnification relative to the default framing (default 1). */
+  mag?: number;
 }
 
 const RC = 7.8; // anterior corneal radius of curvature, mm
@@ -47,6 +49,7 @@ export function acDepthAtMm(xn: number, s: Pick<EyeState, 'acDepth' | 'vanHerick
 }
 
 export function drawSlitBeam(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeState, beam: SlitBeam, t: number): void {
+  const mag = Math.max(1, beam.mag ?? 1);
   const { pxmm, ix, iy, irisR } = g;
   const R = irisR;
   const xn = Math.max(-1.15, Math.min(1.15, beam.x));
@@ -68,8 +71,8 @@ export function drawSlitBeam(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: E
   // beam scatter on the conjunctiva / lids outside the cornea (soft, warm)
   const scat = ctx.createLinearGradient(0, iy - halfH, 0, iy + halfH);
   scat.addColorStop(0, 'rgba(255,240,210,0)');
-  scat.addColorStop(0.15, 'rgba(255,240,210,0.22)');
-  scat.addColorStop(0.85, 'rgba(255,240,210,0.22)');
+  scat.addColorStop(0.3, 'rgba(255,240,210,0.1)');
+  scat.addColorStop(0.7, 'rgba(255,240,210,0.1)');
   scat.addColorStop(1, 'rgba(255,240,210,0)');
   ctx.fillStyle = scat;
   ctx.fillRect(bx - bw / 2, iy - halfH, bw, halfH * 2);
@@ -104,14 +107,22 @@ export function drawSlitBeam(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: E
     const c = rgb as [number, number, number];
     const gr = ctx.createLinearGradient(0, y0, 0, y1);
     gr.addColorStop(0, rgba(c, 0));
-    gr.addColorStop(0.12, rgba(c, alpha));
-    gr.addColorStop(0.88, rgba(c, alpha));
+    gr.addColorStop(0.22, rgba(c, alpha));
+    gr.addColorStop(0.78, rgba(c, alpha));
     gr.addColorStop(1, rgba(c, 0));
     return gr;
   };
   const lineW = Math.max(1, pxmm * 0.06);
 
   // 1 · corneal section: stroma glow, bright epithelium/tear film, fainter endothelium
+  if ('filter' in ctx) {
+    ctx.save();
+    ctx.filter = `blur(${(pxmm * 0.25).toFixed(1)}px)`;
+    band((r) => r.e0, (r) => r.e1);
+    ctx.fillStyle = fadeY(0.25 + haze * 0.3, [190, 210, 255]);
+    ctx.fill();
+    ctx.restore();
+  }
   band((r) => r.e0, (r) => r.e1);
   ctx.fillStyle = fadeY(0.3 + haze * 0.45, [200, 215, 235]);
   ctx.fill();
@@ -177,7 +188,7 @@ export function drawSlitBeam(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: E
       const x = row.e1 + (row.i0 - row.e1) * u + Math.sin(t * 1.7 + i) * pxmm * 0.03;
       ctx.fillStyle = `rgba(255,255,250,${rng.float(0.7, 1).toFixed(2)})`;
       ctx.beginPath();
-      ctx.arc(x, yy, Math.max(0.8, pxmm * rng.float(0.03, 0.06)), 0, Math.PI * 2);
+      ctx.arc(x, yy, Math.max(0.5 / mag, pxmm * rng.float(0.018, 0.035)), 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();
@@ -234,6 +245,7 @@ export function drawSlitBeam(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: E
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   ctx.fillStyle = fadeY(0.25, [255, 255, 255]);
-  ctx.fillRect(bx - dir * pxmm * 1.6 - 1, y0, Math.max(1.5, bw * 0.4), y1 - y0);
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(rows[0] ? rows[0].e0 - dir * pxmm * 0.25 : bx, y0, Math.max(1, bw * 0.3), y1 - y0);
   ctx.restore();
 }

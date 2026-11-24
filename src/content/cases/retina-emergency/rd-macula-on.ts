@@ -32,8 +32,8 @@ const rdMaculaOn: ClinicalCase = {
   ],
   findings: buildFindings(58, {
     va: {
-      OD: { uncorrected: 1.3, bestCorrected: 0.0, pinhole: 0.3, nearUncorrected: 0.2 },
-      OS: { uncorrected: 1.3, bestCorrected: 0.1, pinhole: 0.3, nearUncorrected: 0.2 },
+      OD: { uncorrected: 1.7, bestCorrected: 0.0, pinhole: 0.4, nearUncorrected: 1.2 },
+      OS: { uncorrected: 1.7, bestCorrected: 0.1, pinhole: 0.5, nearUncorrected: 1.2 },
     },
     refraction: {
       OD: { sphere: -7.0, cylinder: -0.75, axis: 10, add: 2.5 },
@@ -43,6 +43,8 @@ const rdMaculaOn: ClinicalCase = {
       OD: { k1: 44.0, k2: 44.75, axisK1: 10, mires: 'regular' },
       OS: { k1: 44.0, k2: 44.5, axisK1: 170, mires: 'regular' },
     },
+    // Two detached quadrants: a mild RAPD on the detached side (it scales with the area of retina off).
+    pupils: { rapd: 'OS', rapdGrade: 1 },
     iop: { OD: 15, OS: 11 },
     fields: { OS: 'curtain-inferior' },
     posterior: {
@@ -72,7 +74,7 @@ const rdMaculaOn: ClinicalCase = {
     'A rising shadow from below means a SUPERIOR detachment — the field is inverted — and superior detachments reach the macula fastest under gravity.',
     'Macula-on is the most urgent detachment: central vision is still saveable, so it goes to the surgeon today.',
     'Pigment in the anterior vitreous (Shafer sign, "tobacco dust") means a retinal break until proven otherwise.',
-    'IOP is often a little lower in the eye with a rhegmatogenous detachment.',
+    'The detached eye often has a slightly lower IOP, and two quadrants off can give a mild RAPD: the RAPD grows with the amount of retina detached.',
     'High myopia, lattice and a sibling with a detachment stack the odds; PVD alone has no field defect.',
   ],
   redFlags: ['Progressing curtain', 'Shafer sign', 'Superior bullous detachment near the fovea', 'High myopia with lattice'],

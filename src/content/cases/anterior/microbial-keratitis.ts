@@ -4,7 +4,7 @@ import { buildFindings, type ClinicalCase } from '@core';
 const microbialKeratitisCase: ClinicalCase = {
   id: 'ant-microbial-keratitis-dj',
   difficulty: 4,
-  tags: ['red-eye', 'painful', 'contact-lens', 'corneal', 'infection', 'sight-threatening'],
+  tags: ['red-eye', 'painful', 'contact-lens', 'corneal', 'infection', 'sight-threatening', 'time-critical'],
   patient: {
     name: 'River Coleman',
     age: 22,
@@ -18,7 +18,7 @@ const microbialKeratitisCase: ClinicalCase = {
   },
   chiefComplaint:
     "My right eye is on fire. Light feels like knives, it's blurry, and there's a white spot on it I can see in the mirror. I… might have slept in my contacts after a few gigs. Most gigs.",
-  triageNote: 'Front desk: walked in holding a hand over the right eye; contact lens case in pocket.',
+  triageNote: 'Front desk: walked in holding a hand over the right eye; contact lens case in pocket. Tech photo: white spot ~2.5 mm across, its edge ~2 mm from the centre of the cornea.',
   history: [
     { id: 'cl-habits', category: 'ocular-history', q: 'Tell me about your contact lens habits.', a: 'Monthlies. I sleep in them after gigs, and when the solution runs out I rinse the case with tap water.', relevance: 'key' },
     { id: 'onset', category: 'onset', q: 'When did this start, and how fast is it changing?', a: 'Scratchy yesterday morning. Since then it’s gone off a cliff.', relevance: 'key' },
@@ -32,7 +32,7 @@ const microbialKeratitisCase: ClinicalCase = {
   findings: buildFindings(22, {
     va: {
       OD: { uncorrected: 1.3, bestCorrected: 1.0, pinhole: 1.0 },
-      OS: { uncorrected: 1.0, bestCorrected: -0.1, pinhole: 0.2 },
+      OS: { uncorrected: 1.2, bestCorrected: -0.1, pinhole: 0.2 },
     },
     refraction: {
       OD: { sphere: -3.0, cylinder: 0, axis: 180 },

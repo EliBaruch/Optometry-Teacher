@@ -31,7 +31,7 @@ const wetAmdCarpenter: ClinicalCase = {
   ],
   findings: buildFindings(77, {
     va: {
-      OD: { uncorrected: 0.3, bestCorrected: 0.1, pinhole: 0.1, nearUncorrected: 0.9 },
+      OD: { uncorrected: 0.5, bestCorrected: 0.1, pinhole: 0.2, nearUncorrected: 1.0 },
       OS: { uncorrected: 1.0, bestCorrected: 0.9, pinhole: 0.9, nearUncorrected: 1.2 },
     },
     refraction: {
@@ -70,10 +70,10 @@ const wetAmdCarpenter: ClinicalCase = {
   differentials: ['dry-amd', 'central-serous', 'diabetic-macular-edema', 'brvo'],
   urgency: 'urgent',
   management:
-    'Neovascular (wet) AMD in the left eye: sudden metamorphopsia and central scotoma with subretinal haemorrhage and fluid on a background of drusen. Phone the retina service for a fast-track appointment (ideally within days) for OCT and intravitreal anti-VEGF — every week of delay costs letters. Continue AREDS2, teach daily Amsler monitoring of the right eye, and do not stop his aspirin without his cardiologist.',
+    'Neovascular (wet) AMD in the left eye: sudden metamorphopsia and central scotoma with subretinal haemorrhage and fluid on a background of drusen. Phone the retina service today: he should be seen within 24-48 hours for OCT and intravitreal anti-VEGF, and a large submacular bleed may need displacement within days. Every week of delay costs letters. Continue AREDS2, teach daily Amsler monitoring of the right eye, and do not stop his aspirin without his cardiologist.',
   teachingPoints: [
     'New distortion + grey scotoma + blood under the macula in someone with drusen = wet AMD until proven otherwise. The speed of referral decides the final acuity.',
-    'The Amsler grid is the cheapest early-warning device in optometry: distortion means fluid, missing squares mean scotoma.',
+    'The Amsler grid is the cheapest early-warning device in optometry. He reports both signs: the wavy lines are the fluid, the grey missing patch is the scotoma under the blood.',
     'Dry AMD declines over years; wet AMD changes over days.',
     'Central serous strikes younger, stressed patients and causes a clear serous blister — not haemorrhage.',
     'Cataract dims vision gradually and evenly; it never bends a straight line.',

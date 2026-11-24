@@ -65,9 +65,9 @@ const hornerRollercoaster: ClinicalCase = {
   management:
     'Emergency: an acute, painful Horner syndrome is a carotid artery dissection until proven otherwise, and his transient hand clumsiness was likely a warning event. Send him to the emergency department/stroke team now for CT or MR angiography of the head and neck; antithrombotic treatment is started once dissection is confirmed. Pharmacological confirmation (apraclonidine or cocaine drops) must not delay imaging.',
   teachingPoints: [
-    'Anisocoria greater in the DARK means the small pupil is abnormal (failed dilation, sympathetic loss); both pupils still react briskly to light.',
-    'Horner = mild ptosis (1–2 mm, Müller muscle) + miosis ± anhidrosis. Look for dilation lag of the small pupil in the first seconds of darkness.',
-    'Third-order (post-ganglionic) lesions along the carotid often spare facial sweating, so normal sweating does not exclude a dissection.',
+    'Anisocoria greater in the DARK means the small pupil is abnormal (failed dilation, sympathetic loss); both pupils still react briskly to light, and the small one shows dilation lag in the first seconds of darkness.',
+    'Horner = mild ptosis (1–2 mm, Müller muscle) + miosis ± anhidrosis. Third-order (post-ganglionic) lesions along the carotid often spare facial sweating, so normal sweating does not exclude a dissection.',
+    'Apraclonidine can be falsely negative in the first days to about two weeks of an acute Horner, because denervation supersensitivity has not developed yet: a negative drop test never cancels the scan.',
     'CN III palsy gives a BIG pupil with marked ptosis and a motility deficit; physiological anisocoria is equal in light and dark with no ptosis.',
     'Old photos are a cheap, powerful test: a new Horner with neck pain is an emergency; a lifelong one usually is not.',
   ],

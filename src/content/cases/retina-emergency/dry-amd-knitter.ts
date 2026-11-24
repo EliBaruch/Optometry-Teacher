@@ -17,7 +17,7 @@ const dryAmdKnitter: ClinicalCase = {
     },
   },
   chiefComplaint:
-    "I drop stitches now. I need the big lamp, then a bigger lamp. And the vicar's face at church — I know it's him by the voice, but the middle of him goes missing. It's been creeping up on me for two years, dear.",
+    "I drop stitches now. I need the big lamp, then a bigger lamp. And the choirmaster's face at the community hall — I know it's him by the voice, but the middle of him goes missing. It's been creeping up on me for two years, dear.",
   history: [
     { id: 'onset', category: 'onset', q: 'Did this come on suddenly, or slowly?', a: 'Slowly. Like a tide going out. Nothing sudden at all.', relevance: 'key' },
     { id: 'distortion', category: 'symptoms', q: 'Do straight lines look wavy or bent?', a: "No, not wavy. There are just bits missing beside the middle, as if the moths got at it.", relevance: 'key' },
@@ -31,7 +31,7 @@ const dryAmdKnitter: ClinicalCase = {
   ],
   findings: buildFindings(91, {
     va: {
-      OD: { uncorrected: 0.5, bestCorrected: 0.3, pinhole: 0.3, nearUncorrected: 1.0 },
+      OD: { uncorrected: 0.6, bestCorrected: 0.3, pinhole: 0.3, nearUncorrected: 1.0 },
       OS: { uncorrected: 0.4, bestCorrected: 0.2, pinhole: 0.2, nearUncorrected: 0.9 },
     },
     refraction: {

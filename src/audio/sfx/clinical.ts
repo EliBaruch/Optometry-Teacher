@@ -22,7 +22,7 @@ export const clinicalSfx = {
   }),
 
   dial: def({
-    max: 6, cooldown: 0.018, gain: 0.75, verb: 0.05, jitter: 45,
+    max: 6, cooldown: 0.018, gain: 1, verb: 0.05, jitter: 45,
     play(v) {
       const r = v.rate;
       noise(v.k, v.out, { t: v.t, hz: 5200 * r, q: 3, peak: 0.32, attack: 0.0004, decay: 0.003 });
@@ -32,7 +32,7 @@ export const clinicalSfx = {
   }),
 
   flashlight: def({
-    max: 2, cooldown: 0.1, gain: 0.8, verb: 0.2, echo: 0.05, jitter: 20,
+    max: 2, cooldown: 0.1, gain: 1.3, verb: 0.2, echo: 0.05, jitter: 20,
     play(v) {
       // Penlight switch: press … release.
       noise(v.k, v.out, { t: v.t, hz: 3000, q: 4, peak: 0.32, attack: 0.0005, decay: 0.006 });
@@ -62,7 +62,7 @@ export const clinicalSfx = {
   }),
 
   stamp: def({
-    max: 2, cooldown: 0.15, gain: 1, verb: 0.12, jitter: 25,
+    max: 2, cooldown: 0.15, gain: 0.75, verb: 0.12, jitter: 25,
     play(v) {
       const hit = v.t + 0.05;
       // The swing down.

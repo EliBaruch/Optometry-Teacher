@@ -32,7 +32,7 @@ export function bodyDefs(c: PaintCtx) {
   );
 }
 
-function shoulders(c: PaintCtx): string {
+function shoulders(c: PaintCtx): { fill: string; edge: string } {
   const { g } = c;
   const sy = g.shoulderY;
   const sw = g.shoulderW;
@@ -44,10 +44,10 @@ function shoulders(c: PaintCtx): string {
     [CX - sw * 0.92, sy + 10],
     [CX - sw * 1.08, sy + 34],
   ];
-  const pts: Pt[] = [...left];
   const right = left.map(([x, y]) => [2 * CX - x, y] as Pt).reverse();
-  const top = smooth([...pts, [CX - sw * 1.2, VIEW_H + 10], [CX + sw * 1.2, VIEW_H + 10], ...right], false, 0.9);
-  return top + `L${P(CX + nw, sy - 12)}Z`;
+  const fill = smooth([...left, [CX - sw * 1.2, VIEW_H + 10], [CX + sw * 1.2, VIEW_H + 10], ...right], false, 0.9) + `L${P(CX + nw, sy - 12)}Z`;
+  const edge = smooth(right, false, 0.9);
+  return { fill, edge };
 }
 
 function neckline(c: PaintCtx): { cut: string; trim?: string; collar?: string } {
@@ -85,16 +85,17 @@ export function Body({ c }: { c: PaintCtx }) {
   const nw = g.neckW;
   const top = g.chinY - 28;
   const sy = g.shoulderY;
-  const neck = `M${P(CX - nw, top)}C${P(CX - nw, top + 20)} ${P(CX - nw - 1, sy - 22)} ${P(CX - nw - 5, sy - 6)}L${P(CX + nw + 5, sy - 6)}C${P(CX + nw + 1, sy - 22)} ${P(CX + nw, top + 20)} ${P(CX + nw, top)}Z`;
+  const neck = `M${P(CX - nw, top)}C${P(CX - nw, top + 20)} ${P(CX - nw - 1, sy - 22)} ${P(CX - nw - 8, sy - 6)}L${P(CX - nw - 14, sy + 30)}L${P(CX + nw + 14, sy + 30)}L${P(CX + nw + 8, sy - 6)}C${P(CX + nw + 1, sy - 22)} ${P(CX + nw, top + 20)} ${P(CX + nw, top)}Z`;
   const nl = neckline(c);
-  const body = shoulders(c);
+  const sh = shoulders(c);
+  const body = sh.fill;
   const o = c.spec.outfit;
   const old = Math.max(0, (c.age - 58) / 30);
   return (
     <g>
       <path d={neck} fill={`url(#${c.id('neck')})`} />
       {/* sternocleidomastoid hint + neck rim */}
-      <path d={`M${P(CX - nw + 3, top + 14)}Q${P(CX - 6, sy - 18)} ${P(CX - 3, sy - 8)}`} stroke={skin.deep} stroke-opacity="0.18" stroke-width="1.4" fill="none" stroke-linecap="round" />
+      <path d={`M${P(CX - nw + 4, top + 22)}Q${P(CX - 7, sy - 20)} ${P(CX - 4, sy - 12)}`} stroke={skin.deep} stroke-opacity="0.1" stroke-width="2.2" fill="none" stroke-linecap="round" />
       <path d={`M${P(CX + nw - 1, top + 6)}L${P(CX + nw + 3, sy - 8)}`} stroke={GOLD} stroke-opacity="0.45" stroke-width="1.4" fill="none" stroke-linecap="round" />
       {old > 0 && (
         <g stroke={skin.deep} stroke-opacity={0.22 * Math.min(1, old * 1.5)} stroke-width="0.9" fill="none" stroke-linecap="round">
@@ -109,7 +110,7 @@ export function Body({ c }: { c: PaintCtx }) {
       <g mask={`url(#${c.id('nlMask')})`}>
         <path d={body} fill={`url(#${c.id('cloth')})`} />
         <path d={body} fill={`url(#${c.id('clothSide')})`} />
-        <path d={body} fill="none" stroke={`url(#${c.id('rimBody')})`} stroke-width="2.4" />
+        <path d={sh.edge} fill="none" stroke={`url(#${c.id('rimBody')})`} stroke-width="2.4" />
         {/* soft fabric folds */}
         <path d={`M${P(CX - g.shoulderW * 0.55, sy + 6)}Q${P(CX - g.shoulderW * 0.45, sy + 22)} ${P(CX - g.shoulderW * 0.5, VIEW_H)}`} stroke={shade(o, -0.4)} stroke-opacity="0.35" stroke-width="2" fill="none" />
         <path d={`M${P(CX + g.shoulderW * 0.5, sy + 8)}Q${P(CX + g.shoulderW * 0.42, sy + 22)} ${P(CX + g.shoulderW * 0.46, VIEW_H)}`} stroke={shade(o, 0.25)} stroke-opacity="0.22" stroke-width="1.5" fill="none" />

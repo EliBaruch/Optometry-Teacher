@@ -31,8 +31,8 @@ const dmeDimSum: ClinicalCase = {
   ],
   findings: buildFindings(64, {
     va: {
-      OD: { uncorrected: 0.6, bestCorrected: 0.5, pinhole: 0.5, nearUncorrected: 0.9 },
-      OS: { uncorrected: 0.2, bestCorrected: 0.1, pinhole: 0.1, nearUncorrected: 0.6 },
+      OD: { uncorrected: 0.6, bestCorrected: 0.5, pinhole: 0.5, nearUncorrected: 1.0 },
+      OS: { uncorrected: 0.2, bestCorrected: 0.1, pinhole: 0.1, nearUncorrected: 0.8 },
     },
     refraction: {
       OD: { sphere: 1.0, cylinder: -0.5, axis: 95, add: 2.5 },
@@ -66,7 +66,7 @@ const dmeDimSum: ClinicalCase = {
   differentials: ['npdr', 'cataract', 'wet-amd', 'brvo'],
   urgency: 'soon',
   management:
-    'Centre-involving diabetic macular oedema in the right eye (circinate exudates and thickening at the fovea, 20/63 not improving with pinhole), on a background of moderate NPDR in both eyes. Refer to a retina service within a couple of weeks for OCT and intravitreal anti-VEGF; letter to his GP for glucose, blood pressure and lipid control. Do not just change the reading glasses.',
+    'Centre-involving diabetic macular oedema in the right eye (circinate exudates and thickening at the fovea, 20/63 not improving with pinhole), on a background of moderate NPDR in both eyes. Refer to a retina service to be seen within days to 2 weeks for OCT and intravitreal anti-VEGF; letter to his GP for glucose, blood pressure and lipid control. Do not just change the reading glasses.',
   teachingPoints: [
     'A pinhole that does not improve vision says "not refractive": think macula, media or nerve.',
     'Hard exudates in a ring (circinate) around leaking microaneurysms near the fovea are the classic sign of diabetic macular oedema; confirm thickening on OCT.',
