@@ -18,7 +18,7 @@ export interface CaseXpContext {
   confidence?: 'guessing' | 'fairly-sure' | 'certain';
 }
 
-export type XpLineId = 'performance' | 'grade' | 'difficulty' | 'first' | 'perfect' | 'triage' | 'calibrated' | 'review' | 'lesson';
+export type XpLineId = 'performance' | 'grade' | 'difficulty' | 'first' | 'perfect' | 'triage' | 'calibrated' | 'review' | 'lesson' | 'bonus';
 
 export interface XpLine {
   id: XpLineId;

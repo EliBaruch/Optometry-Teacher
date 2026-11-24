@@ -142,7 +142,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: 'pressure-point', title: 'Pressure Point', description: 'Catch acute angle closure and send it straight to emergency care.', icon: 'tonometry', rarity: 'epic', group: 'triage', progress: (s) => flag(triaged(s, 'acute-angle-closure')) },
   { id: 'curtain-call', title: 'Curtain Call', description: 'Recognise a retinal detachment and triage it as an emergency.', icon: 'eye', rarity: 'epic', group: 'triage', progress: (s) => flag(triaged(s, 'retinal-detachment')) },
   { id: 'temporal-clue', title: 'The Temporal Clue', description: 'Suspect giant cell arteritis and triage it as an emergency.', icon: 'clock', rarity: 'epic', group: 'triage', progress: (s) => flag(triaged(s, 'giant-cell-arteritis')) },
-  { id: 'one-hundred-minutes', title: 'Against the Clock', description: 'Diagnose and triage a central retinal artery occlusion correctly.', icon: 'lightning', rarity: 'epic', group: 'triage', progress: (s) => flag(triaged(s, 'crao')) },
+  { id: 'crao-triage', title: 'Against the Clock', description: 'Diagnose and triage a central retinal artery occlusion correctly.', icon: 'lightning', rarity: 'epic', group: 'triage', progress: (s) => flag(triaged(s, 'crao')) },
 
   // ── Specialty crests ─────────────────────────────────────────────────────
   crest('refractive', 'Crest of Refraction', 'phoropter'),

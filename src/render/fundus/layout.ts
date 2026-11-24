@@ -8,7 +8,8 @@ import { anatomy, inZone, samplePoint, zoneOf, type Anatomy } from './geometry';
 import { U, type FundusMap, type FundusMark, type FundusViewport } from './types';
 import { buildVessels, findCrossings, type VesselTree } from './vessels';
 
-export interface LesionInst extends FundusMark {
+export interface LesionInst extends Omit<FundusMark, 'type'> {
+  type: LesionType;
   /** orientation (radians) */
   a: number;
   /** per-instance seed for shape detail */
