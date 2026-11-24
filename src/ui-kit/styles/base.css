@@ -40,8 +40,9 @@ code, kbd, samp { font-family: var(--lm-font-num); }
 /* Focus: never removed, only made beautiful */
 :focus { outline: none; }
 :focus-visible {
-  outline: none;
-  box-shadow: var(--lm-focus-ring);
+  outline: var(--lm-focus-width) solid var(--lm-focus-color);
+  outline-offset: var(--lm-focus-offset);
+  box-shadow: var(--lm-focus-glow);
   transition: box-shadow var(--lm-dur-fast) var(--lm-ease-out);
 }
 

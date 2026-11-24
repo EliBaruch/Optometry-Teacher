@@ -4,16 +4,18 @@ import { createAudio } from './index';
 import { createAudioEngine, type AudioEnv } from './engine';
 import { SFX } from './sfx';
 import { COMPOSITIONS } from './music/tracks';
-import { FakeAudioContext, fakeDoc, manualTimers } from './testing/fake-context';
+import { FakeAudioContext, fakeDoc, fakeWin, manualTimers } from './testing/fake-context';
 
 function setup() {
   FakeAudioContext.instances = [];
   const timers = manualTimers();
   const doc = fakeDoc();
+  const win = fakeWin();
   let seed = 1;
   const env: AudioEnv = {
     AudioContext: FakeAudioContext as unknown as AudioEnv['AudioContext'],
     doc,
+    win,
     setInterval: timers.setInterval,
     clearInterval: timers.clearInterval,
     random: () => ((seed = (seed * 16807) % 2147483647) / 2147483647),
@@ -28,11 +30,12 @@ function setup() {
       timers.fire();
     }
   };
-  return { audio, env, timers, doc, ctx, flush, run };
+  return { audio, env, timers, doc, win, ctx, flush, run };
 }
 
 afterEach(() => {
   FakeAudioContext.instances = [];
+  FakeAudioContext.allowResume = true;
 });
 
 describe('createAudio without WebAudio', () => {
@@ -145,6 +148,46 @@ describe('audio engine', () => {
     expect(ctx().state).toBe('running');
   });
 
+  it('stops the wake-up timer while hidden and restarts it on return', async () => {
+    const { audio, flush, doc, timers } = setup();
+    audio.unlock();
+    audio.music('hub');
+    await flush();
+    expect(timers.count).toBe(1);
+    doc.setHidden(true);
+    await flush();
+    expect(timers.count).toBe(0);
+    doc.setHidden(false);
+    await flush();
+    expect(timers.count).toBe(1);
+  });
+
+  it('retries a blocked unlock on the next activating gesture (iOS touch pointerdown)', async () => {
+    const { audio, flush, win, ctx } = setup();
+    FakeAudioContext.allowResume = false;
+    audio.music('title');
+    audio.unlock();
+    await flush();
+    expect(audio.status()).toBe('suspended');
+    expect(win.listeners).toBeGreaterThan(0);
+    FakeAudioContext.allowResume = true;
+    win.dispatch('touchend');
+    await flush();
+    expect(ctx().state).toBe('running');
+    expect(audio.track()).toBe('title');
+    expect(win.listeners).toBe(0);
+  });
+
+  it('syncs the echo to each track tempo', async () => {
+    const { audio, flush, ctx } = setup();
+    audio.unlock();
+    await flush();
+    const before = ctx().automations;
+    audio.music('emergency');
+    expect(ctx().automations).toBeGreaterThan(before);
+    expect(ctx().errors).toEqual([]);
+  });
+
   it('ramps volumes smoothly and clamps bad input', async () => {
     const { audio, flush, ctx } = setup();
     audio.setVolumes({ master: 0.5, sfx: 0.5, music: 0.5 });
@@ -155,7 +198,7 @@ describe('audio engine', () => {
   });
 
   it('disposes cleanly', async () => {
-    const { audio, flush, ctx, timers, doc } = setup();
+    const { audio, flush, ctx, timers, doc, win } = setup();
     audio.unlock();
     audio.music('results');
     await flush();
@@ -164,6 +207,7 @@ describe('audio engine', () => {
     expect(ctx().state).toBe('closed');
     expect(timers.count).toBe(0);
     expect(doc.listeners).toBe(0);
+    expect(win.listeners).toBe(0);
     expect(() => audio.play('coin')).not.toThrow();
   });
 });

@@ -50,14 +50,27 @@ export const alertSfx = {
     },
   }),
 
+  /**
+   * High-priority monitor alarm, IEC 60601-1-8 burst shape: 3 + 2 pulses
+   * (pulse 100 ms, spacing 60 ms, the 3rd→4th gap = 2·spacing + pulse).
+   * Each pulse is a harmonically rich FM tone (the standard asks for ≥4
+   * harmonics so it localises), rounded at the edges so it is urgent, not
+   * shrill. Call it repeatedly (e.g. every 2–3 s) for an ongoing emergency.
+   */
   alarm: def({
-    max: 1, cooldown: 0.25, gain: 0.75, verb: 0.15, jitter: 0,
+    max: 1, cooldown: 0.5, gain: 0.72, verb: 0.15, jitter: 0,
     play(v) {
+      const tp = 0.1;
+      const ts = 0.06;
+      const step = tp + ts;
+      const fourth = 2 * step + tp + (2 * ts + tp);
+      const onsets = [0, step, 2 * step, fourth, fourth + step];
+      const n = 81; // A5 — the dominant of D, sits above the score
       let end = v.t;
-      ([[81, 0], [78, 0.17], [81, 0.34]] as const).forEach(([n, dt]) => {
+      onsets.forEach((dt) => {
         const t = v.t + dt;
-        fm(v.k, v.out, { t, hz: hz(v, n), ratio: 1, index: 1.3, indexEnd: 0.9, peak: 0.2, attack: 0.008, hold: 0.09, decay: 0.06 });
-        end = tone(v.k, v.out, { t, hz: hz(v, n + 12), type: 'triangle', peak: 0.04, attack: 0.008, hold: 0.09, decay: 0.05 });
+        fm(v.k, v.out, { t, hz: hz(v, n), ratio: 1, index: 1.4, indexEnd: 0.9, peak: 0.19, attack: 0.012, hold: tp - 0.03, decay: 0.05 });
+        end = tone(v.k, v.out, { t, hz: hz(v, n + 12), type: 'triangle', peak: 0.04, attack: 0.012, hold: tp - 0.03, decay: 0.05 });
       });
       return end;
     },

@@ -2,7 +2,7 @@ import type { VNode } from 'preact';
 import { mix, shade } from '../../fx/color';
 import { CX, VIEW_H, type Side } from '../geometry';
 import { GOLD } from '../palette';
-import { P, jawPath, smooth, type Pt } from '../paths';
+import { P, smooth, type Pt } from '../paths';
 import type { PaintCtx } from './ctx';
 
 const HAT_COLORS = ['#2c3e66', '#7a2f3f', '#2f5b4a', '#3b2f5c', '#8a6a2a', '#1f2937', '#5b3a29'] as const;
@@ -11,27 +11,40 @@ const SCARF_COLORS = ['#6b2d4f', '#2f4f6b', '#7a4a2a', '#3f5f4a', '#5a3a7a', '#8
 // ---------------------------------------------------------------------------
 // Facial hair
 
-function beardShape(c: PaintCtx): string {
+function beardShape(c: PaintCtx, full = true): string {
   const { g } = c;
   const W = g.headW;
   const E = g.eyeY;
-  const outer = jawPath(g, 2.2);
-  const inner: Pt[] = [
-    [CX + W - 2, E + 1],
-    [CX + W - 8, E + 18],
-    [CX + 20, E + 23],
-    [CX + g.mouthW + 5, g.noseY + 4],
-    [CX + 4, g.noseY + 6],
-    [CX - 4, g.noseY + 6],
-    [CX - g.mouthW - 5, g.noseY + 4],
-    [CX - 20, E + 23],
-    [CX - W + 8, E + 18],
-    [CX - W + 2, E + 1],
+  const drop = full ? 4 : 0;
+  // outer: follows the jaw, a little proud of it, rounder below the chin
+  const outer: Pt[] = [
+    [CX - W + 1.5, E - 3],
+    [CX - g.cheekW - 0.5, E + 12],
+    [CX - g.jawW - 3, g.chinY - 24],
+    [CX - g.jawW + 2, g.chinY - 10 + drop * 0.5],
+    [CX - g.chinW - 4, g.chinY - 1 + drop],
+    [CX, g.chinY + 1.5 + drop * 1.4],
+    [CX + g.chinW + 4, g.chinY - 1 + drop],
+    [CX + g.jawW - 2, g.chinY - 10 + drop * 0.5],
+    [CX + g.jawW + 3, g.chinY - 24],
+    [CX + g.cheekW + 0.5, E + 12],
+    [CX + W - 1.5, E - 3],
   ];
-  const back = smooth(inner, false).replace(/^M/, 'L');
+  // inner: a soft cheek line sweeping down to the moustache
+  const inner: Pt[] = [
+    [CX + W - 5.5, E - 2],
+    [CX + W - 9, E + 13],
+    [CX + 19, g.noseY + 1],
+    [CX + g.mouthW + 3, g.noseY + 5.5],
+    [CX, g.noseY + 6.5],
+    [CX - g.mouthW - 3, g.noseY + 5.5],
+    [CX - 19, g.noseY + 1],
+    [CX - W + 9, E + 13],
+    [CX - W + 5.5, E - 2],
+  ];
+  const ring = smooth([...outer, ...inner], true, 0.9);
   const mouthHole = `M${P(CX - g.mouthW - 2.5, g.mouthY)}Q${P(CX, g.mouthY - g.lipU * 2.4)} ${P(CX + g.mouthW + 2.5, g.mouthY)}Q${P(CX, g.mouthY + g.lipL * 3.2 + 3)} ${P(CX - g.mouthW - 2.5, g.mouthY)}Z`;
-  // outer runs left->right along the jaw; return over the cheeks right->left
-  return `${outer}${back}Z${mouthHole}`;
+  return ring + mouthHole;
 }
 
 function moustacheShape(c: PaintCtx): string {
@@ -68,18 +81,12 @@ export function FacialHairUnder({ c }: { c: PaintCtx }) {
   }
   if (kind === 'beard') {
     const d = beardShape(c);
-    const strokes: string[] = [];
-    for (let i = -5; i <= 5; i++) {
-      const x = CX + i * 5.2;
-      const y0 = c.g.chinY - 14 + Math.abs(i) * -1.8;
-      strokes.push(`M${P(x, y0)}q${P(i * 0.3, 5)} ${P(i * 0.2, 9 - Math.abs(i) * 0.5)}`);
-    }
     return (
       <g fill-rule="evenodd">
+        <path d={d} fill={c.hair} opacity="0.6" filter={`url(#${c.id('soft')})`} />
         <path d={d} fill={`url(#${c.id('hair')})`} />
-        <path d={d} fill={`url(#${c.id('stipple')})`} opacity="0.35" />
-        <path d={strokes.join('')} stroke={shade(c.hair, -0.4)} stroke-opacity="0.45" stroke-width="0.8" fill="none" stroke-linecap="round" />
-        <path d={strokes.join('')} stroke={mix(c.hair, GOLD, 0.4)} stroke-opacity="0.25" stroke-width="0.5" fill="none" transform="translate(1.2 0)" />
+        <path d={d} fill={`url(#${c.id('beardTex')})`} opacity="0.6" />
+        <path d={d} fill={`url(#${c.id('rim')})`} opacity="0.35" />
       </g>
     );
   }
@@ -196,10 +203,12 @@ export function ScarfBack({ c }: { c: PaintCtx }) {
       [CX + W + 9, g.headTop + 14],
       [CX + W + 12, g.eyeY + 12],
       [CX + g.jawW + 12, g.chinY + 6],
-      [CX + g.neckW + 26, g.shoulderY],
-      [CX + g.shoulderW * 0.78, VIEW_H + 6],
-      [CX - g.shoulderW * 0.78, VIEW_H + 6],
-      [CX - g.neckW - 26, g.shoulderY],
+      [CX + g.neckW + 30, g.shoulderY - 2],
+      [CX + g.shoulderW * 0.8, g.shoulderY + 16],
+      [CX + g.shoulderW * 0.92, VIEW_H + 6],
+      [CX - g.shoulderW * 0.92, VIEW_H + 6],
+      [CX - g.shoulderW * 0.8, g.shoulderY + 16],
+      [CX - g.neckW - 30, g.shoulderY - 2],
       [CX - g.jawW - 12, g.chinY + 6],
       [CX - W - 12, g.eyeY + 12],
       [CX - W - 9, g.headTop + 14],
@@ -246,10 +255,12 @@ export function Headwear({ c }: { c: PaintCtx }) {
         [CX + W + 8, T + 14],
         [CX + W + 10, g.eyeY + 12],
         [CX + g.jawW + 9, g.chinY + 4],
-        [CX + g.neckW + 20, g.shoulderY + 2],
-        [CX + g.shoulderW * 0.6, VIEW_H + 6],
-        [CX - g.shoulderW * 0.6, VIEW_H + 6],
-        [CX - g.neckW - 20, g.shoulderY + 2],
+        [CX + g.neckW + 26, g.shoulderY - 2],
+        [CX + g.shoulderW * 0.72, g.shoulderY + 14],
+        [CX + g.shoulderW * 0.86, VIEW_H + 6],
+        [CX - g.shoulderW * 0.86, VIEW_H + 6],
+        [CX - g.shoulderW * 0.72, g.shoulderY + 14],
+        [CX - g.neckW - 26, g.shoulderY - 2],
         [CX - g.jawW - 9, g.chinY + 4],
         [CX - W - 10, g.eyeY + 12],
         [CX - W - 8, T + 14],
@@ -265,6 +276,8 @@ export function Headwear({ c }: { c: PaintCtx }) {
         <g stroke={shade(col, -0.4)} stroke-opacity="0.45" stroke-width="1" fill="none" stroke-linecap="round">
           <path d={`M${P(CX + W + 4, g.eyeY + 20)}Q${P(CX + W - 2, g.chinY + 8)} ${P(CX + 12, g.shoulderY + 10)}`} />
           <path d={`M${P(CX - W - 4, g.eyeY + 24)}Q${P(CX - W + 4, g.chinY + 10)} ${P(CX - 18, g.shoulderY + 14)}`} />
+          <path d={`M${P(CX + g.neckW + 18, g.shoulderY + 4)}Q${P(CX + g.shoulderW * 0.5, g.shoulderY + 26)} ${P(CX + g.shoulderW * 0.6, VIEW_H)}`} />
+          <path d={`M${P(CX - g.neckW - 18, g.shoulderY + 4)}Q${P(CX - g.shoulderW * 0.5, g.shoulderY + 26)} ${P(CX - g.shoulderW * 0.55, VIEW_H)}`} />
           <path d={`M${P(CX + 6, T - 4)}Q${P(CX + W, T + 4)} ${P(CX + W + 6, g.eyeY - 4)}`} />
         </g>
         <path d={outer} fill="none" stroke={`url(#${c.id('rimBody')})`} stroke-width="1.6" />

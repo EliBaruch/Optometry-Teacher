@@ -13,6 +13,7 @@ import { Brows, Eyes, Mouth } from './parts/features';
 import { hairDefs, hairLayers } from './parts/hair';
 import { EyePatch, Rash, ShieldHand, TearStreaks, TemporalArtery } from './parts/signs';
 import { lerpRig, rigAttrs, rigDistance, targetRig, type AttrMap, type Expression, type External, type Gaze, type RigParams, type Strabismus } from './rig';
+import { grainDataUrl } from './grain';
 import { ensureAvatarStyles } from './styles';
 import { onTick } from './ticker';
 
@@ -200,8 +201,9 @@ export function AvatarSvg(props: PatientAvatarProps & { variant?: 'portrait' | '
   const hair = c.scarf ? { back: null, front: null, scalp: null } : hairLayers(c);
   const hairClip = c.crownHidden ? `url(#${c.id('belowHat')})` : undefined;
   const bust = variant === 'bust';
-  const bustR = 64;
-  const bcy = (g.headTop + g.chinY) / 2 + 6;
+  const grain = bust ? null : grainDataUrl();
+  const bustR = 72;
+  const bcy = (g.headTop + g.chinY) / 2 + 3;
   const viewBox = bust ? `${CX - bustR} ${bcy - bustR} ${bustR * 2} ${bustR * 2}` : `0 0 ${VIEW_W} ${VIEW_H}`;
   const size = props.size;
   const style = size === undefined ? { width: '100%', height: 'auto' } : typeof size === 'number' ? { width: `${size}px`, height: `${bust ? size : size * 1.2}px` } : { width: size, height: 'auto' };
@@ -231,6 +233,11 @@ export function AvatarSvg(props: PatientAvatarProps & { variant?: 'portrait' | '
           <stop offset="0" stop-color={GOLD} stop-opacity="0.35" />
           <stop offset="1" stop-color={GOLD} stop-opacity="0" />
         </radialGradient>
+        {grain && (
+          <pattern id={c.id('grain')} width="48" height="48" patternUnits="userSpaceOnUse">
+            <image href={grain} width="48" height="48" />
+          </pattern>
+        )}
         {bust && (
           <clipPath id={c.id('bustClip')}>
             <circle cx={CX} cy={bcy} r={bustR - 2} />
@@ -275,6 +282,7 @@ export function AvatarSvg(props: PatientAvatarProps & { variant?: 'portrait' | '
           <Glasses c={c} />
         </g>
         <ShieldHand c={c} />
+        {grain && <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill={`url(#${c.id('grain')})`} opacity={backdrop ? 0.09 : 0.05} style={{ mixBlendMode: 'overlay', pointerEvents: 'none' }} />}
       </g>
       {bust && (
         <>

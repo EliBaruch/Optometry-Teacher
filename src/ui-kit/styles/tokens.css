@@ -144,6 +144,13 @@
   --lm-z-tooltip: 1300;
 
   /* ── Focus ───────────────────────────────────────────────────────────── */
+  /* The ring itself is an outline (box-shadow stacks on components can never
+     erase it); the glow is a shadow that components append to their stack. */
+  --lm-focus-color: var(--lm-gold);
+  --lm-focus-width: 2px;
+  --lm-focus-offset: 3px;
+  --lm-focus-glow: 0 0 0 1px rgba(11, 7, 22, 0.9), 0 0 18px 3px rgba(255, 210, 122, 0.5);
+  /* Legacy full ring as a box-shadow (for custom drawing). */
   --lm-focus-ring: 0 0 0 2px var(--lm-ink-900), 0 0 0 4px var(--lm-gold), 0 0 16px 4px rgba(255, 210, 122, 0.45);
 
   /* ── Layout ──────────────────────────────────────────────────────────── */
@@ -174,6 +181,9 @@ html.high-contrast {
   --lm-hairline: rgba(255, 240, 220, 0.35);
   --lm-glass-blur: none;
   --lm-focus-ring: 0 0 0 2px #000, 0 0 0 5px #fff;
+  --lm-focus-color: #fff;
+  --lm-focus-width: 3px;
+  --lm-focus-glow: 0 0 0 1px #000;
 }
 
 /* ── Reduced motion: the app's setting class or the OS preference ────────── */

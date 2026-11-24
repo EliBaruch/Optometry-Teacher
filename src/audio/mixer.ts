@@ -1,5 +1,5 @@
 import { equalPowerCurve, makeImpulse } from './curves';
-import { sliderToGain } from './theory';
+import { echoTimeFor, sliderToGain } from './theory';
 
 /**
  * Mixer graph:
@@ -30,6 +30,7 @@ export class Mixer {
   readonly music: BusInputs;
   readonly analyser: AnalyserNode;
   private readonly master: GainNode;
+  private readonly delays: DelayNode[];
   private readonly nodes: AudioNode[] = [];
 
   constructor(private ctx: BaseAudioContext, vols: Volumes, rnd: () => number = Math.random) {
@@ -69,6 +70,7 @@ export class Mixer {
     const echoIn = g();
     const dl = this.track(ctx.createDelay(2), (d) => (d.delayTime.value = 0.375));
     const dr = this.track(ctx.createDelay(2), (d) => (d.delayTime.value = 0.375));
+    this.delays = [dl, dr];
     const fb = g(0.42);
     const damp = this.track(ctx.createBiquadFilter(), (f) => {
       f.type = 'lowpass';
@@ -106,6 +108,17 @@ export class Mixer {
     glide(this.master.gain, sliderToGain(v.master), t, ramp);
     for (const n of [this.sfx.dry, this.sfx.verb, this.sfx.echo]) glide(n.gain, sliderToGain(v.sfx), t, ramp);
     for (const n of [this.music.dry, this.music.verb, this.music.echo]) glide(n.gain, sliderToGain(v.music), t, ramp);
+  }
+
+  /**
+   * Glide the ping-pong echo onto a new tempo grid (see echoTimeFor). The glide
+   * is smooth, so repeats already in the line bend gently like tape rather
+   * than clicking.
+   */
+  setEchoTempo(bpm: number, time = 1.5): void {
+    const t = this.ctx.currentTime;
+    const d = echoTimeFor(bpm);
+    for (const n of this.delays) glide(n.delayTime, d, t, Math.max(0.1, time));
   }
 
   dispose(): void {

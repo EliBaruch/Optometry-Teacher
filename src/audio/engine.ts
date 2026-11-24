@@ -16,7 +16,7 @@ interface DocLike {
 }
 interface WinLike {
   addEventListener(type: string, fn: () => void, opts?: AddEventListenerOptions): void;
-  removeEventListener(type: string, fn: () => void): void;
+  removeEventListener(type: string, fn: () => void, opts?: EventListenerOptions): void;
 }
 
 /** Injectable environment so the engine can be tested without a browser. */
@@ -56,6 +56,8 @@ export function browserAudioEnv(): AudioEnv {
 /** Scheduler wake-up period. Notes are timed by the audio clock, not this. */
 const WAKE_MS = 25;
 const SFX_LEAD = 0.004;
+/** Activation-triggering events (HTML spec) used to retry a blocked resume. */
+const GESTURES = ['pointerup', 'touchend', 'click', 'keydown'] as const;
 
 export function createAudioEngine(env: AudioEnv = browserAudioEnv()): AudioEngine {
   let Ctx = env.AudioContext;
@@ -87,7 +89,8 @@ export function createAudioEngine(env: AudioEnv = browserAudioEnv()): AudioEngin
       ctx = new Ctx({ latencyHint: 'interactive' });
       kit = createKit(ctx, env.random);
       mixer = new Mixer(ctx, vols, env.random);
-      music = new MusicEngine(kit, mixer.music, Math.floor(env.random() * 2 ** 31));
+      const mx = mixer;
+      music = new MusicEngine(kit, mixer.music, Math.floor(env.random() * 2 ** 31), (bpm, fade) => mx.setEchoTempo(bpm, fade));
       ctx.addEventListener?.('statechange', onStateChange);
       return true;
     } catch {
@@ -130,6 +133,7 @@ export function createAudioEngine(env: AudioEnv = browserAudioEnv()): AudioEngin
   function onVisibility() {
     if (!ctx || !unlocked) return;
     if (hidden()) {
+      stopTimer(); // nothing to schedule while suspended; restarted by applyMusic()
       if (ctx.state === 'running') {
         pausedForHidden = true;
         safe(() => void ctx!.suspend().catch(() => {}));
@@ -140,21 +144,37 @@ export function createAudioEngine(env: AudioEnv = browserAudioEnv()): AudioEngin
     }
   }
 
-  /** iOS can "interrupt" the context (calls, Siri); re-arm a gesture to resume. */
-  function onStateChange() {
-    if (!ctx || disposed || pausedForHidden || hidden() || ctx.state === 'running' || ctx.state === 'closed') return;
-    if (gestureArmed || !env.win) return;
+  /**
+   * Resume on the next real user activation. Needed when unlock() ran inside a
+   * non-activating event (a touch `pointerdown` on iOS), and when iOS
+   * "interrupts" the context (calls, Siri). `pointerup`/`touchend`/`click`/
+   * `keydown` are all activation-triggering, so one of them will succeed.
+   */
+  function armGesture() {
+    if (gestureArmed || !env.win || disposed) return;
+    const win = env.win;
     gestureArmed = true;
     const again = () => {
       disarm();
-      safe(resume);
+      if (!hidden()) safe(resume);
     };
     const disarm = () => {
       gestureArmed = false;
-      for (const ev of ['pointerdown', 'keydown', 'touchend']) env.win!.removeEventListener(ev, again);
+      cleanupGesture = null;
+      for (const ev of GESTURES) win.removeEventListener(ev, again, { capture: true });
     };
-    for (const ev of ['pointerdown', 'keydown', 'touchend']) env.win.addEventListener(ev, again, { once: true });
+    for (const ev of GESTURES) win.addEventListener(ev, again, { once: true, capture: true, passive: true });
     cleanupGesture = disarm;
+  }
+
+  function onStateChange() {
+    if (!ctx || disposed) return;
+    if (ctx.state === 'running') {
+      cleanupGesture?.(); // no longer needed
+      return;
+    }
+    if (pausedForHidden || hidden() || ctx.state === 'closed' || !unlocked) return;
+    armGesture();
   }
   env.doc?.addEventListener('visibilitychange', onVisibility);
 
@@ -212,7 +232,11 @@ export function createAudioEngine(env: AudioEnv = browserAudioEnv()): AudioEngin
       safe(() => {
         if (disposed || !ensure()) return;
         unlocked = true;
-        if (!hidden()) resume();
+        if (hidden()) return;
+        resume();
+        // If this call was not inside a real activation the context stays
+        // suspended; retry on the next activating gesture.
+        if (ctx && ctx.state !== 'running') armGesture();
       });
     },
     setVolumes(v) {

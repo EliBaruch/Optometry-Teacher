@@ -16,7 +16,16 @@ export class MusicEngine {
   private fading: TrackPlayer[] = [];
   private seed: number;
 
-  constructor(private k: Kit, private bus: BusInputs, seed = Date.now()) {
+  /**
+   * @param onTempo called when a new track starts, so tempo-synced effects
+   *   (the mixer's echo) can glide onto the new grid over the crossfade.
+   */
+  constructor(
+    private k: Kit,
+    private bus: BusInputs,
+    seed = Date.now(),
+    private onTempo?: (bpm: number, glide: number) => void,
+  ) {
     this.seed = seed >>> 0;
   }
 
@@ -41,6 +50,7 @@ export class MusicEngine {
     const comp = track ? COMPOSITIONS[track] : undefined;
     if (!comp) return;
     this.seed = (this.seed * 1664525 + 1013904223) >>> 0;
+    this.onTempo?.(comp.bpm, fade);
     const p = new TrackPlayer(this.k, this.bus, comp, this.seed);
     p.start(now, fade);
     this.current = p;

@@ -35,6 +35,10 @@ export function hairDefs(c: PaintCtx) {
         <path d="M0.6,2.6a1.4,1.4 0 1 1 2.4,1.1M3.2,0.4a1.3,1.3 0 1 0 2,1.3" stroke={shade(h, -0.5)} stroke-width="0.55" fill="none" />
         <path d="M1.2,1.9a1.2,1.2 0 0 1 1.6,-0.4M3.6,3.9a1.1,1.1 0 0 1 1.5,0.2" stroke={shade(h, 0.4)} stroke-width="0.4" fill="none" opacity="0.7" />
       </pattern>
+      <pattern id={c.id('beardTex')} width="6.4" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(4)">
+        <path d="M1,0.5q-0.8,3 0.2,5.5M4.2,3q0.8,3.2 -0.2,6.4M2.6,7.5q-0.7,2.6 0.3,5M5.6,9.4q0.5,1.8 -0.1,3.4" stroke={shade(h, -0.45)} stroke-width="0.5" fill="none" stroke-linecap="round" />
+        <path d="M2.2,1.6q0.5,2.4 -0.1,4.4M5.2,6q-0.6,2 0.1,4M0.6,8.4q0.4,1.8 -0.1,3.4" stroke={shade(h, 0.45)} stroke-width="0.35" fill="none" opacity="0.7" stroke-linecap="round" />
+      </pattern>
       <clipPath id={c.id('belowHat')}>
         <rect x="0" y={c.g.hairline - 4} width={VIEW_W} height={VIEW_H} />
       </clipPath>
@@ -81,6 +85,34 @@ function mass(c: PaintCtx, d: string, key?: string): VNode {
       <path d={d} fill={c.hair} opacity="0.55" filter={`url(#${c.id('soft')})`} />
       <path d={d} fill={`url(#${c.id('hair')})`} />
       <path d={d} fill={`url(#${c.id('strandTex')})`} opacity="0.45" />
+    </g>
+  );
+}
+
+/** Deterministic scatter of tiny coils, clipped by the caller. */
+function coilScatter(c: PaintCtx, cx: number, cy: number, rx: number, ry: number, n: number, seed: number): VNode {
+  const r = createRng(seed);
+  let dark = '';
+  let light = '';
+  for (let i = 0; i < n; i++) {
+    const a = r.float(0, Math.PI * 2);
+    const d = Math.sqrt(r.next());
+    const x = cx + Math.cos(a) * rx * d;
+    const y = cy + Math.sin(a) * ry * d;
+    const rr = r.float(0.9, 1.8);
+    const s0 = r.float(0, Math.PI * 2);
+    const x1 = x + Math.cos(s0) * rr;
+    const y1 = y + Math.sin(s0) * rr;
+    const x2 = x + Math.cos(s0 + 2.6) * rr;
+    const y2 = y + Math.sin(s0 + 2.6) * rr;
+    const seg = `M${P(x1, y1)}A${rr} ${rr} 0 1 1 ${P(x2, y2)}`;
+    if (r.chance(0.35)) light += seg;
+    else dark += seg;
+  }
+  return (
+    <g fill="none" stroke-linecap="round">
+      <path d={dark} stroke={shade(c.hair, -0.45)} stroke-width="0.6" stroke-opacity="0.75" />
+      <path d={light} stroke={shade(c.hair, 0.4)} stroke-width="0.45" stroke-opacity="0.6" />
     </g>
   );
 }
@@ -226,14 +258,16 @@ export function hairLayers(c: PaintCtx): HairLayers {
         back: (
           <g>
             <path d={smooth(blob, true)} fill={fill} />
-            <path d={smooth(blob, true)} fill={`url(#${c.id('coils')})`} opacity="0.75" />
+            <clipPath id={c.id('afroClip')}><path d={smooth(blob, true)} /></clipPath>
+            <g clip-path={`url(#${c.id('afroClip')})`}>{coilScatter(c, CX, cy, rx, ry, 260, seed)}</g>
             {sheen(c, CX + 12, cy - ry * 0.7, 22, -10)}
           </g>
         ),
         front: (
           <g>
             <path d={front} fill={`url(#${c.id('hair')})`} />
-            <path d={front} fill={`url(#${c.id('coils')})`} opacity="0.75" />
+            <clipPath id={c.id('afroFront')}><path d={front} /></clipPath>
+            <g clip-path={`url(#${c.id('afroFront')})`}>{coilScatter(c, CX, T + 10, W + 4, 26, 110, seed + 9)}</g>
           </g>
         ),
       };

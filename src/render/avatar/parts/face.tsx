@@ -125,7 +125,7 @@ export function Head({ c, a }: { c: PaintCtx; a: AttrMap }) {
           <ellipse cx={CX + 25} cy={ey + 15} rx="5" ry="2.2" fill={skin.light} opacity="0.35" filter={`url(#${c.id('soft')})`} />
         </g>
         {/* chin highlight + soft shadow under the lower lip */}
-        <ellipse cx={CX + 2} cy={g.chinY - 7} rx="7" ry="3.2" fill={skin.light} opacity="0.4" filter={`url(#${c.id('soft')})`} />
+        <ellipse cx={CX + 2} cy={g.chinY - 7} rx="7" ry="3.2" fill={skin.light} opacity="0.22" filter={`url(#${c.id('soft')})`} />
         <ellipse cx={CX} cy={g.mouthY + g.lipL * 2 + 3.2} rx={g.mouthW * 0.5} ry="1.7" fill={skin.deep} opacity="0.28" filter={`url(#${c.id('soft')})`} />
         {/* rim light from the gold key */}
         <path d={head} fill="none" stroke={`url(#${c.id('rim')})`} stroke-width="3.2" />

@@ -101,3 +101,14 @@ export function sliderToGain(v: number): number {
 export function dbToGain(db: number): number {
   return 10 ** (db / 20);
 }
+
+/**
+ * Tempo-synced echo time: a dotted 8th (the classic "ping" that fills the gap
+ * between pulses), falling back to an 8th / dotted 16th / 16th so the delay
+ * never exceeds `max` seconds at slow tempi.
+ */
+export function echoTimeFor(bpm: number, max = 0.6): number {
+  const beat = 60 / clamp(Number.isFinite(bpm) ? bpm : 120, 30, 300);
+  for (const f of [0.75, 0.5, 0.375, 0.25]) if (beat * f <= max) return beat * f;
+  return beat * 0.25;
+}

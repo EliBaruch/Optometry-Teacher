@@ -89,6 +89,8 @@ class FakeSource extends FakeNode {
 
 export class FakeAudioContext {
   static instances: FakeAudioContext[] = [];
+  /** When false, resume() leaves the context suspended (a resume outside a user activation on iOS). */
+  static allowResume = true;
   currentTime = 0;
   sampleRate = 8000;
   state: 'suspended' | 'running' | 'closed' = 'suspended';
@@ -124,7 +126,12 @@ export class FakeAudioContext {
     this.sources = this.sources.filter((s) => s.stopAt > this.currentTime);
   }
 
-  resume() { this.state = 'running'; this.emit(); return Promise.resolve(); }
+  resume() {
+    if (!FakeAudioContext.allowResume) return Promise.resolve();
+    this.state = 'running';
+    this.emit();
+    return Promise.resolve();
+  }
   suspend() { this.state = 'suspended'; this.emit(); return Promise.resolve(); }
   close() { this.state = 'closed'; this.emit(); return Promise.resolve(); }
   addEventListener(t: string, fn: () => void) {
@@ -196,5 +203,20 @@ export function fakeDoc() {
     removeEventListener: (_: string, fn: () => void) => fns.delete(fn),
     setHidden(h: boolean) { this.hidden = h; for (const fn of fns) fn(); },
     get listeners() { return fns.size; },
+  };
+}
+
+/** A fake window that records listeners so gesture re-arming can be tested. */
+export function fakeWin() {
+  const fns = new Map<string, Set<() => void>>();
+  return {
+    addEventListener: (t: string, fn: () => void) => {
+      const set = fns.get(t) ?? new Set();
+      set.add(fn);
+      fns.set(t, set);
+    },
+    removeEventListener: (t: string, fn: () => void) => { fns.get(t)?.delete(fn); },
+    dispatch(t: string) { for (const fn of [...(fns.get(t) ?? [])]) fn(); },
+    get listeners() { let n = 0; for (const s of fns.values()) n += s.size; return n; },
   };
 }

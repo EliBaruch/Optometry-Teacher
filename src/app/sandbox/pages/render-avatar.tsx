@@ -178,7 +178,7 @@ function RenderAvatarPage(_: { services: GameServices }) {
               const q = patients[(i * 3 + 4) % patients.length]!;
               return (
                 <div key={hw} class="sbav-bust">
-                  <AvatarBust spec={{ ...q.spec, headwear: hw }} age={Math.max(24, q.age)} sex={hw === 'headscarf' ? 'F' : q.sex} size={64} />
+                  <AvatarBust spec={{ ...q.spec, headwear: hw, facialHair: hw === 'headscarf' ? 'none' : q.spec.facialHair }} age={Math.max(24, q.age)} sex={hw === 'headscarf' ? 'F' : q.sex} size={64} />
                   {hw}
                 </div>
               );

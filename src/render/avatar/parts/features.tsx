@@ -61,6 +61,7 @@ function Eye({ c, a, side }: { c: PaintCtx; a: AttrMap; side: Side }) {
   const lash = mix(c.hair, '#140c0a', 0.75);
   const rashSide = c.ext.rash === 'forehead-dermatomal' && c.signSide === side;
   const lidFill = rashSide ? mix(skin.base, '#d4545a', 0.28) : mix(skin.base, skin.shadow, 0.35);
+  const flick = (c.sex === 'F' ? 1 : 0.75) * (1 - g.child * 0.6);
   const fibres: VNode[] = [];
   for (let i = 0; i < 22; i++) {
     const ang = (i / 22) * Math.PI * 2 + (i % 2) * 0.08;
@@ -97,8 +98,8 @@ function Eye({ c, a, side }: { c: PaintCtx; a: AttrMap; side: Side }) {
         <path data-r={`lid${key}`} {...a[`lid${key}`]} fill={lidFill} />
       </g>
       <path data-r={`low${key}`} {...a[`low${key}`]} fill="none" stroke={skin.deep} stroke-opacity="0.5" stroke-width="0.75" stroke-linecap="round" />
-      <path data-r={`lash${key}`} {...a[`lash${key}`]} fill="none" stroke={lash} stroke-width={c.sex === 'F' ? 1.9 : 1.5} stroke-linecap="round" />
-      <path d={`M${P(ex + side * (g.eyeW - 0.5), ey - 1.1)}q${P(side * 1.9, -0.6)} ${P(side * 2.9, -2.2)}`} fill="none" stroke={lash} stroke-width={c.sex === 'F' ? 1.3 : 0.9} stroke-linecap="round" />
+      <path data-r={`lash${key}`} {...a[`lash${key}`]} fill="none" stroke={lash} stroke-width={(c.sex === 'F' ? 1.9 : 1.5) - g.child * 0.4} stroke-linecap="round" />
+      <path d={`M${P(ex + side * (g.eyeW - 0.5), ey - 1.1)}q${P(side * 1.9 * flick, -0.6 * flick)} ${P(side * 2.9 * flick, -2.2 * flick)}`} fill="none" stroke={lash} stroke-width={c.sex === 'F' ? 1.3 : 0.9} stroke-linecap="round" />
     </g>
   );
 }

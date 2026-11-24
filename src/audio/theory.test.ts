@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  KEY_ROOT, SCALES, centsToRatio, chordMidi, clamp, degreeToMidi, inScale, midiToHz, quantize, scaleRange, sliderToGain, voiceNear,
+  KEY_ROOT, SCALES, centsToRatio, echoTimeFor, chordMidi, clamp, degreeToMidi, inScale, midiToHz, quantize, scaleRange, sliderToGain, voiceNear,
 } from './theory';
 
 describe('theory', () => {
@@ -55,5 +55,12 @@ describe('theory', () => {
     expect(sliderToGain(Number.NaN)).toBe(0);
     expect(clamp(-1, 0, 1)).toBe(0);
     expect(centsToRatio(1200)).toBeCloseTo(2);
+  });
+
+  it('picks a tempo-synced echo time that stays under the cap', () => {
+    expect(echoTimeFor(76)).toBeCloseTo(0.75 * 60 / 76); // dotted 8th
+    expect(echoTimeFor(104)).toBeCloseTo(0.75 * 60 / 104);
+    expect(echoTimeFor(52)).toBeCloseTo(0.5 * 60 / 52); // slow: falls back to an 8th
+    for (const bpm of [30, 52, 66, 88, 200, Number.NaN]) expect(echoTimeFor(bpm)).toBeLessThanOrEqual(0.6);
   });
 });
