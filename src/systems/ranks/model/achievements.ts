@@ -50,7 +50,7 @@ const flag = (b: boolean): [number, number] => [b ? 1 : 0, 1];
 const correctOf = (s: RanksState, id: DiagnosisId) => s.dx[id]?.correct ?? 0;
 const triaged = (s: RanksState, id: DiagnosisId) => s.triaged.includes(id);
 
-function coverage(s: RanksState, ids: DiagnosisId[], pred: (id: DiagnosisId) => boolean): [number, number] {
+function coverage(ids: DiagnosisId[], pred: (id: DiagnosisId) => boolean): [number, number] {
   if (!ids.length) return [0, 1];
   return [ids.filter(pred).length, ids.length];
 }
@@ -63,7 +63,7 @@ function crest(cat: DiagnosisCategory, title: string, icon: string): Achievement
     icon,
     rarity: 'epic',
     group: 'crests',
-    progress: (s, env) => coverage(s, env.diagnoses.filter((d) => d.category === cat).map((d) => d.id), (id) => correctOf(s, id) > 0),
+    progress: (s, env) => coverage(env.diagnoses.filter((d) => d.category === cat).map((d) => d.id), (id) => correctOf(s, id) > 0),
   };
 }
 
@@ -136,7 +136,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   },
   {
     id: 'on-call-ready', title: 'On-Call Ready', description: 'Correctly triage every emergency diagnosis the clinic sees.', icon: 'alert', rarity: 'legendary', group: 'triage',
-    progress: (s, env) => coverage(s, env.emergencyDiagnoses, (id) => triaged(s, id)),
+    progress: (s, env) => coverage(env.emergencyDiagnoses, (id) => triaged(s, id)),
   },
   { id: 'red-flag-radar', title: 'Red Flag Radar', description: 'Set the correct urgency in 25 cases.', icon: 'warning', rarity: 'rare', group: 'triage', progress: (s) => count(s.urgencyCorrect, 25) },
   { id: 'pressure-point', title: 'Pressure Point', description: 'Catch acute angle closure and send it straight to emergency care.', icon: 'tonometry', rarity: 'epic', group: 'triage', progress: (s) => flag(triaged(s, 'acute-angle-closure')) },
@@ -154,11 +154,11 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   crest('neuro', 'Crest of Neuro-ophthalmology', 'visual-fields'),
   {
     id: 'living-atlas', title: 'Living Atlas', description: 'Correctly diagnose every condition in the clinic.', icon: 'book', rarity: 'legendary', group: 'crests',
-    progress: (s, env) => coverage(s, env.diagnoses.map((d) => d.id), (id) => correctOf(s, id) > 0),
+    progress: (s, env) => coverage(env.diagnoses.map((d) => d.id), (id) => correctOf(s, id) > 0),
   },
   {
     id: 'grand-master', title: 'Grand Master', description: 'Three mastery stars on every diagnosis.', icon: 'crown', rarity: 'legendary', group: 'crests', secret: true,
-    progress: (s, env) => coverage(s, env.diagnoses.map((d) => d.id), (id) => env.stars(id) >= 3),
+    progress: (_s, env) => coverage(env.diagnoses.map((d) => d.id), (id) => env.stars(id) >= 3),
   },
 
   // ── Career & modes ───────────────────────────────────────────────────────

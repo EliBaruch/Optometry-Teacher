@@ -34,19 +34,44 @@ export function ToastHost({ bus, position = 'top', max = 4, duration = 3600 }: T
   const source = bus ?? services?.bus;
   const play = useSfx();
   const [items, setItems] = useState<ToastItem[]>([]);
-  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const [paused, setPaused] = useState(false);
+  /** Auto-dismiss clocks; paused while the stack is hovered or focused (WCAG 2.2.1). */
+  const clocks = useRef(new Map<number, { remaining: number; started: number; timer: ReturnType<typeof setTimeout> | null }>());
+  const exits = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const pausedRef = useRef(false);
+  const hover = useRef(false);
+  const focus = useRef(false);
   const seq = useRef(0);
 
-  const later = (fn: () => void, ms: number) => {
-    const t = setTimeout(() => {
-      timers.current.delete(t);
-      fn();
-    }, ms);
-    timers.current.add(t);
-  };
   const dismiss = (id: number) => {
+    const c = clocks.current.get(id);
+    if (c?.timer) clearTimeout(c.timer);
+    clocks.current.delete(id);
     setItems((list) => list.map((x) => (x.id === id ? { ...x, leaving: true } : x)));
-    later(() => setItems((list) => list.filter((x) => x.id !== id)), 320);
+    const t = setTimeout(() => {
+      exits.current.delete(t);
+      setItems((list) => list.filter((x) => x.id !== id));
+    }, 320);
+    exits.current.add(t);
+  };
+  const arm = (id: number) => {
+    const c = clocks.current.get(id);
+    if (!c) return;
+    c.started = Date.now();
+    c.timer = setTimeout(() => dismiss(id), c.remaining);
+  };
+  const syncPause = () => {
+    const next = hover.current || focus.current;
+    if (next === pausedRef.current) return;
+    pausedRef.current = next;
+    setPaused(next);
+    clocks.current.forEach((c, id) => {
+      if (next) {
+        if (c.timer) clearTimeout(c.timer);
+        c.timer = null;
+        c.remaining = Math.max(400, c.remaining - (Date.now() - c.started));
+      } else arm(id);
+    });
   };
 
   useEffect(() => {
@@ -57,19 +82,54 @@ export function ToastHost({ bus, position = 'top', max = 4, duration = 3600 }: T
       play(TONE_SFX[tone], { volume: 0.5 });
       setItems((list) => {
         const next = [...list, { ...p, id, leaving: false }];
-        return next.length > max ? next.slice(next.length - max) : next;
+        if (next.length <= max) return next;
+        const dropped = next.slice(0, next.length - max);
+        for (const d of dropped) {
+          const c = clocks.current.get(d.id);
+          if (c?.timer) clearTimeout(c.timer);
+          clocks.current.delete(d.id);
+        }
+        return next.slice(next.length - max);
       });
-      later(() => dismiss(id), tone === 'epic' ? duration * 1.5 : duration);
+      clocks.current.set(id, { remaining: tone === 'epic' ? duration * 1.5 : duration, started: Date.now(), timer: null });
+      if (!pausedRef.current) arm(id);
     });
     return () => {
       off();
-      timers.current.forEach(clearTimeout);
-      timers.current.clear();
+      clocks.current.forEach((c) => c.timer && clearTimeout(c.timer));
+      clocks.current.clear();
+      exits.current.forEach(clearTimeout);
+      exits.current.clear();
     };
   }, [source]);
 
   return (
-    <div class={cx('lm-toasts', `lm-toasts--${position}`)} role="status" aria-live="polite" aria-relevant="additions">
+    <div
+      class={cx('lm-toasts', `lm-toasts--${position}`, paused && 'is-paused')}
+      role="status"
+      aria-live="polite"
+      aria-relevant="additions"
+      onPointerEnter={(e) => {
+        if (e.pointerType === 'mouse') {
+          hover.current = true;
+          syncPause();
+        }
+      }}
+      onPointerLeave={() => {
+        hover.current = false;
+        syncPause();
+      }}
+      onFocusIn={() => {
+        focus.current = true;
+        syncPause();
+      }}
+      onFocusOut={(e) => {
+        if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) {
+          focus.current = false;
+          syncPause();
+        }
+      }}
+    >
       {items.map((t) => {
         const tone = t.tone ?? 'info';
         return (

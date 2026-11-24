@@ -84,7 +84,7 @@ function grow(g: GenCtx, kind: VesselKind, x: number, y: number, heading: number
   let h = heading;
   const curl = rng.float(-0.03, 0.03);
   const n = Math.max(4, Math.round(len / STEP));
-  let nextBranch = rng.float(0.9, 1.8) * U;
+  let nextBranch = rng.float(1.2, 2.2) * U;
   let s = 0;
   for (let i = 0; i < n; i++) {
     if (toFovea) {
@@ -104,8 +104,9 @@ function grow(g: GenCtx, kind: VesselKind, x: number, y: number, heading: number
     pts.push([x, y]);
     const w = Math.max(g.minW, w0 * (1 - 0.55 * (i / n)));
     ws.push(w);
-    if (depth < 2 && s > nextBranch && w > g.minW * 1.5) {
-      nextBranch = s + rng.float(1.0, 2.2) * U;
+    if (depth < 2 && s > nextBranch && w > g.minW * 1.6) {
+      nextBranch = s + rng.float(1.5, 2.8) * U;
+      if (rng.chance(0.35)) continue;
       const side = rng.chance(0.5) ? 1 : -1;
       g.bif.push({ x, y });
       grow(g, kind, x, y, h + side * rng.float(0.5, 1.1), len * rng.float(0.3, 0.55), w * rng.float(0.55, 0.72), depth + 1, toFovea && rng.chance(0.5));
@@ -118,7 +119,7 @@ function grow(g: GenCtx, kind: VesselKind, x: number, y: number, heading: number
 function arcade(g: GenCtx, kind: VesselKind, ctrlMm: [number, number][], w0: number, seed: number, macularSide: 1 | -1 | 0): void {
   const { a, rng } = g;
   const toWorld = ([tx, ty]: [number, number]): [number, number] => [a.disc.x - a.nasal * tx * U, a.disc.y + ty * U];
-  const jittered = ctrlMm.map(([x, y], i) => (i === 0 ? [x, y] : [x + rng.float(-0.35, 0.35), y + rng.float(-0.3, 0.3)]) as [number, number]);
+  const jittered = ctrlMm.map(([x, y], i) => (i < 2 ? [x, y] : [x + rng.float(-0.35, 0.35), y + rng.float(-0.3, 0.3)]) as [number, number]);
   const base = catmull(jittered.map(toWorld), STEP);
   const amp = (kind === 'vein' ? 0.07 : 0.05) * U * (1 + g.tort * 2.6);
   const pts = wiggle(base, seed, amp, 1 / (1.1 * U));
@@ -126,14 +127,14 @@ function arcade(g: GenCtx, kind: VesselKind, ctrlMm: [number, number][], w0: num
   let s = 0;
   let total = 0;
   for (let i = 1; i < pts.length; i++) total += Math.hypot(pts[i]![0] - pts[i - 1]![0], pts[i]![1] - pts[i - 1]![1]);
-  let nextBranch = rng.float(1.0, 1.6) * U;
+  let nextBranch = rng.float(1.3, 2.0) * U;
   let side = rng.chance(0.5) ? 1 : -1;
   for (let i = 0; i < pts.length; i++) {
     if (i > 0) s += Math.hypot(pts[i]![0] - pts[i - 1]![0], pts[i]![1] - pts[i - 1]![1]);
     const w = Math.max(g.minW, w0 * (1 - 0.5 * (s / total)));
     ws.push(w);
     if (s > nextBranch && i < pts.length - 3) {
-      nextBranch = s + rng.float(1.1, 2.3) * U;
+      nextBranch = s + rng.float(1.6, 2.8) * U;
       side = -side as 1 | -1;
       const p = pts[i]!;
       const q = pts[i + 1]!;
@@ -142,18 +143,20 @@ function arcade(g: GenCtx, kind: VesselKind, ctrlMm: [number, number][], w0: num
       // branches on the macular side head for the fovea (stopping at the FAZ)
       const towardMacula = macularSide !== 0 && Math.cos(hb - Math.atan2(a.fovea.y - p[1], a.fovea.x - p[0])) > 0.35;
       g.bif.push({ x: p[0], y: p[1] });
-      grow(g, kind, p[0], p[1], hb, rng.float(2.2, 4.8) * U, w * rng.float(0.5, 0.7), 1, towardMacula);
+      grow(g, kind, p[0], p[1], hb, rng.float(1.8, 3.8) * U, w * rng.float(0.45, 0.65), 1, towardMacula);
     }
   }
   g.out.push({ kind, pts, w: ws, depth: 0 });
 }
 
 // Control polylines (mm from the disc centre; +x' = temporal, +y' = inferior)
-const ST: [number, number][] = [[0, -0.15], [0.25, -1.3], [1.0, -2.6], [2.7, -3.5], [4.8, -3.8], [7.3, -3.4], [9.8, -2.9], [13, -2.2]];
-const SN: [number, number][] = [[0, -0.15], [-0.4, -1.2], [-1.4, -2.3], [-3.0, -3.3], [-5.0, -4.6], [-7, -6.2]];
-const NAS: [number, number][] = [[0, 0], [-1.2, -0.2], [-3, -0.5], [-6, -0.9]];
-const MAC: [number, number][] = [[0, 0.05], [1.0, 0.0], [2.0, -0.2], [3.0, -0.25]];
-const flipY = (c: [number, number][]) => c.map(([x, y]) => [x, -y + 0.1] as [number, number]);
+// All trunks emerge from the central vessel stem, just nasal to the cup centre (−0.15 mm).
+const O: [number, number] = [-0.15, 0.05];
+const ST: [number, number][] = [O, [-0.12, -0.5], [0.1, -1.3], [0.9, -2.6], [2.7, -3.5], [4.8, -3.8], [7.3, -3.4], [9.8, -2.9], [13, -2.2]];
+const SN: [number, number][] = [O, [-0.2, -0.5], [-0.5, -1.2], [-1.4, -2.3], [-3.0, -3.3], [-5.0, -4.6], [-7, -6.2]];
+const NAS: [number, number][] = [O, [-0.6, -0.05], [-1.4, -0.2], [-3, -0.5], [-6, -0.9]];
+const MAC: [number, number][] = [O, [0.3, -0.05], [0.9, -0.05], [1.7, -0.15], [2.4, -0.2]];
+const flipY = (c: [number, number][]) => c.map(([x, y], i) => (i === 0 ? [x, y] : [x, -y + 0.1]) as [number, number]);
 
 export function buildVessels(a: Anatomy, post: PosteriorSegment, seed: number): VesselTree {
   const v = post.vessels;
@@ -165,7 +168,7 @@ export function buildVessels(a: Anatomy, post: PosteriorSegment, seed: number): 
   const mk = (salt: string, kind: VesselKind): GenCtx => ({
     a, rng: createRng(seed).fork(salt), out, bif: kind === 'artery' ? bif : [], tort: kind === 'vein' ? tort : tort * 0.5, minW: 0.022 * U,
   });
-  const off = (c: [number, number][], dx: number, dy: number) => c.map(([x, y], i) => (i === 0 ? [x + dx * 0.4, y] : [x + dx, y + dy]) as [number, number]);
+  const off = (c: [number, number][], dx: number, dy: number) => c.map(([x, y], i) => (i === 0 ? [x, y] : i === 1 ? [x + dx * 0.5, y] : [x + dx, y + dy]) as [number, number]);
   // veins: slightly nasal in the cup, running beside the arteries
   for (const [name, ctrl, side] of [
     ['st', ST, 1], ['it', flipY(ST), -1], ['sn', SN, 0], ['in', flipY(SN), 0],

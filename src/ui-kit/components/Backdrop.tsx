@@ -139,13 +139,21 @@ export function Backdrop({ variant = 'hub', rain, grain = true, vignette = true,
     let raf = 0;
     let last = -1;
     let visible = true;
+    // Slow drifting light reads perfectly at ~30 fps; rain streaks want a bit
+    // more. Skipping frames lets the compositor idle (and the glass panels'
+    // backdrop blur skip recomputing) on the frames in between.
+    const frameMs = withRain ? 1000 / 45 : 1000 / 30;
     const loop = (now: number) => {
       raf = 0;
       if (!visible || document.hidden) {
         last = -1;
         return;
       }
-      const dt = last < 0 ? 0 : Math.min((now - last) / 1000, 1 / 20);
+      if (last >= 0 && now - last < frameMs - 2) {
+        raf = requestAnimationFrame(loop);
+        return;
+      }
+      const dt = last < 0 ? 0 : Math.min((now - last) / 1000, 1 / 15);
       last = now;
       t += dt;
       stepMotes(motes, dt, w, h, t);

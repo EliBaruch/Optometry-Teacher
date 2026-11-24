@@ -1,0 +1,184 @@
+/* ==========================================================================
+   The Boutique: velvet, brass and glass cases.
+   ========================================================================== */
+.eco-shop { max-width: 1180px; margin: 0 auto; display: grid; gap: var(--lm-sp-5); }
+.eco-shop__closed { text-align: center; color: var(--lm-muted); padding: 80px 0; }
+
+/* ── Hero: velvet curtain + purse ─────────────────────────────────────── */
+.eco-shop__hero {
+  position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: var(--lm-sp-5);
+  padding: clamp(22px, 4vw, 40px) clamp(18px, 4vw, 44px) clamp(30px, 4.5vw, 48px); border-radius: var(--lm-r-xl);
+  box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.25), var(--lm-shadow-3);
+  animation: eco-rise 700ms var(--lm-ease-out-expo) both;
+}
+.eco-shop__curtain {
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(60% 90% at 50% -20%, rgba(255, 210, 122, 0.35), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.32) 0 2px, transparent 10px 34px, rgba(255, 255, 255, 0.05) 42px, rgba(0, 0, 0, 0.25) 56px),
+    linear-gradient(180deg, #6e0f30, #3d0619 55%, #1e020b);
+}
+.eco-shop__curtain::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 14px;
+  background:
+    radial-gradient(circle at 9px -2px, #ffd27a 0 3px, #a86d17 4px, transparent 5px) 0 100% / 18px 12px repeat-x,
+    linear-gradient(180deg, #ffe7a8, #c58a22 50%, #6e420a);
+  background-size: 18px 12px, 100% 5px; background-position: 0 100%, 0 0; background-repeat: repeat-x, no-repeat;
+}
+.eco-shop__intro { max-width: 52ch; }
+.eco-shop__intro .lm-eyebrow { color: var(--lm-gold); }
+.eco-shop__intro h2 {
+  font-size: var(--lm-fs-5xl); font-style: italic; font-weight: 420; letter-spacing: -0.02em; line-height: 1; margin: 6px 0 10px;
+  background: linear-gradient(180deg, #fff8e6 10%, #ffd27a 55%, #c58a22); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 22px rgba(255, 210, 122, 0.25));
+}
+.eco-shop__intro p:last-child { color: #f2d9d9; opacity: 0.85; font-size: var(--lm-fs-md); }
+.eco-shop__purse {
+  flex: none; display: flex; align-items: center; gap: 14px; padding: 14px 22px 14px 16px; border-radius: 20px;
+  background: linear-gradient(160deg, rgba(20, 8, 18, 0.72), rgba(10, 4, 12, 0.82));
+  box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.4), inset 0 1px 0 rgba(255, 240, 210, 0.18), 0 18px 40px -16px #000;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.eco-shop__purse > div { display: grid; gap: 4px; }
+.eco-shop__balance { font-weight: 700; font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.4rem); line-height: 1;
+  background: linear-gradient(180deg, #fff8e6, #ffd27a 55%, #e9a53a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.eco-shop__balance small { font-size: 0.55em; }
+.eco-shop__notes { display: inline-flex; align-items: center; gap: 6px; font-size: var(--lm-fs-xs); color: var(--lm-lounge); }
+
+/* ── Crate shelf ──────────────────────────────────────────────────────── */
+.eco-shelf {
+  position: relative; padding: 18px 20px 26px; border-radius: var(--lm-r-lg);
+  background: radial-gradient(70% 120% at 50% 0%, rgba(255, 210, 122, 0.1), transparent 60%), linear-gradient(180deg, rgba(30, 18, 40, 0.7), rgba(12, 6, 18, 0.8));
+  box-shadow: inset 0 0 0 1px var(--lm-glass-border), var(--lm-shadow-2);
+  animation: eco-rise 700ms var(--lm-ease-out-expo) 80ms both;
+}
+.eco-shelf__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: -8px; }
+.eco-shelf__head h3 { font-size: var(--lm-fs-xl); font-weight: 520; color: var(--lm-ivory); }
+.eco-shelf__row { display: flex; gap: 6px; overflow-x: auto; padding: 8px 4px 0; scroll-snap-type: x mandatory; align-items: flex-end; }
+.eco-shelf__crate {
+  flex: none; display: grid; justify-items: center; gap: 2px; padding: 6px 8px 8px; border-radius: 14px; scroll-snap-align: start;
+  transition: transform var(--lm-dur-ui) var(--lm-ease-spring), background var(--lm-dur-ui);
+  animation: eco-crate-arrive 700ms var(--lm-ease-spring) both; animation-delay: calc(var(--i) * 70ms + 200ms);
+}
+.eco-shelf__crate:hover, .eco-shelf__crate:focus-visible { transform: translateY(-6px); background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--trim) 22%, transparent), transparent 70%); }
+.eco-shelf__crate:hover .eco-crate { --leak: 0.6; }
+.eco-shelf__name { font-size: 11px; color: var(--lm-muted); letter-spacing: 0.04em; }
+.eco-shelf__more { align-self: center; padding: 0 12px; color: var(--lm-gold); font-weight: 700; }
+.eco-shelf__empty { display: flex; align-items: center; gap: 10px; color: var(--lm-muted); font-size: var(--lm-fs-sm); padding: 12px 2px 6px; }
+.eco-shelf__empty svg { color: var(--lm-gold-500); flex: none; }
+.eco-shelf__brass { position: absolute; left: 14px; right: 14px; bottom: 12px; height: 6px; border-radius: 3px;
+  background: linear-gradient(180deg, #ffe7a8, #c58a22 45%, #6e420a); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 210, 122, 0.2); }
+
+/* ── Departments ──────────────────────────────────────────────────────── */
+.eco-shop__tabs { justify-self: center; max-width: 100%; overflow-x: auto; }
+.eco-shop__panel { outline: none; }
+.eco-cases { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--lm-sp-4); }
+
+.eco-case {
+  position: relative; display: flex; flex-direction: column; border-radius: 20px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(40, 24, 60, 0.75), rgba(14, 8, 24, 0.88));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rc) 28%, var(--lm-glass-border)), var(--lm-shadow-2);
+  transition: transform var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-med) var(--lm-ease-out);
+  animation: eco-rise 600ms var(--lm-ease-out-expo) both; animation-delay: calc(var(--i) * 60ms);
+}
+.eco-case:hover { transform: translateY(-4px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rc) 55%, transparent), 0 0 34px -8px color-mix(in srgb, var(--rc) 55%, transparent), var(--lm-shadow-3); }
+.eco-case--legendary::before {
+  content: ''; position: absolute; inset: 0; z-index: 3; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: var(--lm-iridescent); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: eco-hue 6s linear infinite; opacity: 0.85;
+}
+.eco-case.is-equipped { box-shadow: inset 0 0 0 1.5px var(--lm-normal), 0 0 30px -10px var(--lm-normal), var(--lm-shadow-2); }
+.eco-case.is-fresh { animation: eco-bought 1200ms var(--lm-ease-spring) both; }
+@keyframes eco-bought {
+  0% { transform: scale(1); } 20% { transform: scale(1.05) translateY(-6px); box-shadow: inset 0 0 0 2px var(--rc), 0 0 60px 0 color-mix(in srgb, var(--rc) 70%, transparent); }
+  100% { transform: none; }
+}
+.eco-case__vitrine {
+  position: relative; height: 168px; display: grid; place-items: center; overflow: hidden;
+  background:
+    radial-gradient(70% 70% at 50% 100%, color-mix(in srgb, var(--rc) 18%, transparent), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 8px 22px, rgba(255, 255, 255, 0.03) 26px, rgba(0, 0, 0, 0.18) 34px),
+    linear-gradient(180deg, #3a0a22, #1a0410);
+  box-shadow: inset 0 -12px 18px -10px rgba(0, 0, 0, 0.8);
+}
+.eco-case__vitrine::after { /* brass shelf edge */
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: linear-gradient(180deg, #ffe7a8, #c58a22 50%, #6e420a);
+}
+.eco-case__spot { position: absolute; top: -40px; left: 50%; width: 220px; height: 240px; margin-left: -110px; pointer-events: none;
+  background: radial-gradient(50% 60% at 50% 0%, rgba(255, 240, 210, 0.22), transparent 70%);
+  clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%); }
+.eco-case__art { position: relative; z-index: 1; display: grid; place-items: center; width: 100%; height: 100%; padding: 18px 16px 16px;
+  transition: transform var(--lm-dur-med) var(--lm-ease-spring); }
+.eco-case:hover .eco-case__art { transform: scale(1.05) translateY(-2px); }
+.eco-case__art--theme { padding: 30px 18px 14px; }
+.eco-case__art--frame .eco-frame { width: 90%; }
+.eco-case__glass { position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 30%, transparent 31%, transparent 62%, rgba(255, 255, 255, 0.06) 63%, transparent 72%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.eco-case__gem { position: absolute; z-index: 3; top: 10px; left: 10px; padding: 2px 9px 2px 18px; border-radius: 999px;
+  font: 700 9.5px/1.6 var(--lm-font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--rc);
+  background: rgba(6, 3, 14, 0.7); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rc) 45%, transparent); }
+.eco-case__gem::before { content: ''; position: absolute; left: 7px; top: 50%; width: 6px; height: 6px; margin-top: -3px; transform: rotate(45deg);
+  background: var(--rc); box-shadow: 0 0 8px var(--rc); }
+.eco-case__preview { position: absolute; z-index: 3; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 5px; min-height: 28px;
+  padding: 3px 10px; border-radius: 999px; font: 600 11px/1 var(--lm-font-ui); color: var(--lm-ivory-dim);
+  background: rgba(6, 3, 14, 0.7); box-shadow: inset 0 0 0 1px var(--lm-glass-border); transition: all var(--lm-dur-ui) var(--lm-ease-out); }
+.eco-case__preview:hover { color: var(--lm-gold); box-shadow: inset 0 0 0 1px var(--lm-glass-border-hi); }
+.eco-case__preview[aria-pressed='true'] { color: #120a1c; background: var(--lm-gold); box-shadow: 0 0 16px rgba(255, 210, 122, 0.6); }
+.eco-case__plaque { padding: 14px 16px 6px; flex: 1; }
+.eco-case__plaque h4 { font-family: var(--lm-font-display); font-weight: 540; font-size: var(--lm-fs-lg); color: var(--lm-ivory); line-height: 1.2; }
+.eco-case__plaque p { margin-top: 4px; font-size: var(--lm-fs-xs); color: var(--lm-muted); line-height: 1.45; }
+.eco-case__actions { display: flex; align-items: center; gap: 10px; padding: 8px 16px 16px; min-height: 52px; }
+.eco-price { font-family: var(--lm-font-num); font-weight: 700; letter-spacing: 0.02em; }
+.eco-price.is-confirm { animation: eco-confirm 900ms var(--lm-ease-in-out) infinite; }
+@keyframes eco-confirm { 50% { box-shadow: var(--lm-glow-gold); } }
+.eco-case__short { font-size: 11px; color: var(--lm-muted-2); }
+
+/* ── Ledger & odds ────────────────────────────────────────────────────── */
+.eco-ledger { display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--lm-sp-4); align-items: start; }
+.eco-ledger__col { padding: 18px 20px; border-radius: var(--lm-r-lg); background: var(--lm-glass-sheen), var(--lm-glass-bg); box-shadow: inset 0 0 0 1px var(--lm-glass-border); }
+.eco-ledger__col h4 { font-family: var(--lm-font-display); font-weight: 540; font-size: var(--lm-fs-lg); margin-bottom: 10px; color: var(--lm-ivory); }
+.eco-ledger__drops { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.eco-ledger__drops li { display: grid; grid-template-columns: 12px 1fr; column-gap: 10px; align-items: center; padding: 7px 10px; border-radius: 10px; background: rgba(6, 3, 14, 0.35); }
+.eco-ledger__drops i { grid-row: span 2; width: 10px; height: 10px; transform: rotate(45deg); background: var(--rc); box-shadow: 0 0 8px var(--rc); }
+.eco-ledger__drops span { color: var(--lm-ivory); font-size: var(--lm-fs-sm); }
+.eco-ledger__drops small { color: var(--lm-muted-2); font-size: 11px; }
+.eco-ledger__empty { color: var(--lm-muted); font-size: var(--lm-fs-sm); }
+.eco-ledger__rules { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: var(--lm-fs-sm); color: var(--lm-muted); }
+.eco-ledger__rules b { color: var(--lm-gold); font-weight: 600; }
+.eco-ledger__totals { margin-top: 14px; font-size: 11.5px; color: var(--lm-muted-2); }
+.eco-odds { display: grid; gap: 12px; font-size: var(--lm-fs-sm); color: var(--lm-muted); }
+.eco-odds table { width: 100%; border-collapse: collapse; }
+.eco-odds th, .eco-odds td { padding: 8px 6px; text-align: right; border-bottom: 1px solid var(--lm-hairline); }
+.eco-odds thead th { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+.eco-odds tbody th { text-align: left; color: var(--lm-ivory); font-weight: 600; }
+.eco-odds tbody th small { display: block; font-weight: 400; color: var(--lm-muted-2); font-size: 11px; }
+.eco-odds thead th:first-child { text-align: left; color: var(--lm-muted-2); }
+.eco-odds td { color: var(--lm-ivory-dim); }
+.eco-odds__foot { color: var(--lm-normal); font-size: var(--lm-fs-xs); }
+
+@media (max-width: 760px) {
+  .eco-shop__hero { flex-direction: column; align-items: stretch; }
+  .eco-shop__purse { align-self: flex-start; }
+  .eco-ledger { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .eco-cases { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .eco-case__vitrine { height: 124px; }
+  .eco-case__art { padding: 22px 8px 10px; }
+  .eco-case__art--theme { padding: 30px 8px 10px; }
+  .eco-case__plaque { padding: 10px 10px 4px; }
+  .eco-case__plaque p { display: none; }
+  .eco-case__actions { padding: 6px 10px 12px; flex-wrap: wrap; gap: 4px; min-height: 0; }
+  .eco-case__preview { top: 34px; left: 8px; right: auto; padding: 2px 8px; min-height: 24px; }
+  .eco-case__gem { font-size: 8.5px; }
+  .eco-case__art--theme .eco-swatch { min-height: 0; }
+  .eco-case__art--theme .eco-swatch__dots { display: none; }
+  .eco-case__art--theme .eco-swatch__pill { bottom: 6px; font-size: 8.5px; padding: 3px 8px; }
+  .eco-odds th, .eco-odds td { padding: 6px 3px; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eco-shop__hero, .eco-shelf, .eco-shelf__crate, .eco-case, .eco-case--legendary::before, .eco-price.is-confirm { animation: none !important; }
+}
+html.reduced-motion .eco-shop__hero, html.reduced-motion .eco-shelf, html.reduced-motion .eco-shelf__crate, html.reduced-motion .eco-case,
+html.reduced-motion .eco-case--legendary::before, html.reduced-motion .eco-price.is-confirm { animation: none !important; }

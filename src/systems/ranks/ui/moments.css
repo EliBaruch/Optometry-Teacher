@@ -1,0 +1,107 @@
+/* ==========================================================================
+   Career moments: trophy plaques & the promotion ceremony.
+   ========================================================================== */
+.rk-plaques {
+  position: fixed; z-index: var(--lm-z-toast); top: calc(var(--lm-topbar-h) + var(--lm-safe-top) + 10px); right: var(--lm-gutter);
+  display: flex; flex-direction: column; gap: var(--lm-sp-2); width: min(360px, calc(100vw - 32px)); pointer-events: none;
+}
+@media (max-width: 640px) { .rk-plaques { left: 50%; right: auto; transform: translateX(-50%); } }
+
+.rk-toast {
+  --rk-r: var(--lm-rarity-rare);
+  position: relative; overflow: hidden; pointer-events: auto; cursor: pointer;
+  display: flex; align-items: center; gap: var(--lm-sp-3); width: 100%; padding: 12px 16px 12px 12px; border: 0; border-radius: var(--lm-r-lg);
+  font: inherit; text-align: left; color: var(--lm-ivory);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--rk-r) 22%, #1a0f2e), rgba(20, 12, 38, 0.95) 55%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rk-r) 55%, transparent), 0 0 34px -8px var(--rk-r), var(--lm-shadow-3);
+  backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  animation: rk-toast-in 620ms var(--lm-ease-spring-soft) both;
+}
+.rk-toast.is-leaving { animation: rk-toast-out 340ms var(--lm-ease-in-out) both; }
+.rk-toast:focus-visible { outline: none; box-shadow: var(--lm-focus-ring); }
+.rk-toast__medal {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fffaf0;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--rk-r) 70%, white), color-mix(in srgb, var(--rk-r) 35%, #1a0f2e) 75%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rk-r) 60%, #fff6e0), 0 0 20px -2px var(--rk-r), inset 0 2px 4px rgba(255, 255, 255, 0.35);
+  animation: rk-medal-spin 900ms var(--lm-ease-out-expo) both 120ms;
+}
+.rk-toast--legendary .rk-toast__medal { background: var(--lm-iridescent); animation: rk-medal-spin 900ms var(--lm-ease-out-expo) both 120ms, lm-hue 5s linear infinite; }
+.rk-toast__text { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.rk-toast__eyebrow { font-size: 10px; font-weight: 700; letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: var(--rk-r); }
+.rk-toast__title { font-family: var(--lm-font-display); font-size: var(--lm-fs-lg); font-weight: 560; line-height: 1.2; }
+.rk-toast__desc { font-size: var(--lm-fs-xs); color: var(--lm-muted); line-height: 1.4; }
+.rk-toast__shine {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%);
+  transform: translateX(-120%); animation: lm-shimmer 1.4s var(--lm-ease-out) 380ms both;
+}
+@keyframes rk-toast-in { from { opacity: 0; transform: translateX(40px) scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes rk-toast-out { to { opacity: 0; transform: translateX(30px) scale(0.96); } }
+@keyframes rk-medal-spin { from { transform: rotateY(180deg) scale(0.4); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 640px) {
+  @keyframes rk-toast-in { from { opacity: 0; transform: translateY(-24px) scale(0.94); } to { opacity: 1; transform: none; } }
+}
+
+/* ── Promotion ceremony ─────────────────────────────────────────────────── */
+.rk-ceremony {
+  --rk-c: var(--lm-career);
+  position: fixed; inset: 0; z-index: var(--lm-z-modal); display: grid; place-items: center; padding: var(--lm-sp-5);
+  background: radial-gradient(60% 55% at 50% 42%, color-mix(in srgb, var(--rk-c) 30%, rgba(11, 7, 22, 0.75)), rgba(6, 3, 13, 0.94) 70%);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: rk-fade 420ms var(--lm-ease-out) both;
+}
+.rk-ceremony.is-leaving { animation: rk-fade-out 420ms var(--lm-ease-in-out) both; }
+.rk-ceremony__rays {
+  position: absolute; left: 50%; top: 42%; width: 160vmax; height: 160vmax; margin: -80vmax 0 0 -80vmax; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rk-c) 16%, transparent) 0deg 5deg, transparent 5deg 15deg);
+  mask-image: radial-gradient(circle, #000 0%, transparent 42%); -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 42%);
+  animation: rk-spin 40s linear infinite, rk-fade 1.2s var(--lm-ease-out) both 300ms;
+}
+.rk-ceremony__card { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--lm-sp-2); max-width: 560px; }
+.rk-ceremony__crest { position: relative; display: grid; place-items: center; margin-bottom: var(--lm-sp-3); animation: rk-crest-in 1100ms var(--lm-ease-spring-soft) both 200ms; }
+.rk-ceremony__crest .rk-crest { filter: drop-shadow(0 0 30px color-mix(in srgb, var(--rk-c) 70%, transparent)); }
+.rk-ceremony__ring {
+  position: absolute; inset: -18%; border-radius: 50%; pointer-events: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rk-c2) 70%, transparent), 0 0 60px 10px color-mix(in srgb, var(--rk-c) 45%, transparent);
+  animation: rk-ring 1400ms var(--lm-ease-out-expo) both 650ms;
+}
+.rk-ceremony__eyebrow {
+  font-size: var(--lm-fs-xs); font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rk-c2);
+  animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 700ms;
+}
+.rk-ceremony__title {
+  margin: 0; font-family: var(--lm-font-display); font-weight: 520; font-size: var(--lm-fs-5xl); line-height: 1.02; letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #fffaf0 0%, var(--lm-gold) 55%, #c98a26 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 30px rgba(255, 210, 122, 0.45));
+  animation: rk-title-in 900ms var(--lm-ease-out-expo) both 800ms;
+}
+.rk-ceremony.is-rank .rk-ceremony__title { background: linear-gradient(180deg, #fffaf0 0%, var(--rk-c2) 35%, var(--lm-gold) 70%, #c98a26 100%); -webkit-background-clip: text; background-clip: text; }
+.rk-ceremony__from {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 10px;
+  font-size: var(--lm-fs-sm); color: var(--lm-muted); animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 1100ms;
+}
+.rk-ceremony__to { color: var(--lm-ivory); font-weight: 600; }
+.rk-ceremony__arrow { color: var(--lm-gold); }
+.rk-ceremony__lv { padding: 1px 9px; border-radius: var(--lm-r-pill); color: var(--lm-text-on-gold); font-weight: 700; font-size: var(--lm-fs-xs); background: linear-gradient(180deg, var(--lm-gold-200), var(--lm-gold-500)); }
+.rk-ceremony__motto {
+  margin: var(--lm-sp-2) 0 var(--lm-sp-4); font-family: var(--lm-font-display); font-style: italic; font-size: var(--lm-fs-lg); color: var(--lm-ivory-dim);
+  animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 1250ms;
+}
+.rk-ceremony__btn { animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 1450ms; }
+
+@keyframes rk-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rk-fade-out { to { opacity: 0; } }
+@keyframes rk-crest-in { 0% { opacity: 0; transform: scale(0.2) rotate(-25deg); } 60% { opacity: 1; } 100% { transform: none; } }
+@keyframes rk-ring { 0% { opacity: 0; transform: scale(0.5); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
+@keyframes rk-title-in { from { opacity: 0; transform: translateY(16px) scale(0.96); letter-spacing: 0.08em; } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-toast, .rk-toast.is-leaving, .rk-toast__medal, .rk-toast__shine, .rk-ceremony, .rk-ceremony.is-leaving, .rk-ceremony__rays,
+  .rk-ceremony__crest, .rk-ceremony__ring, .rk-ceremony__eyebrow, .rk-ceremony__title, .rk-ceremony__from, .rk-ceremony__motto, .rk-ceremony__btn { animation: none; }
+  .rk-ceremony__ring { opacity: 0; }
+}
+html.reduced-motion .rk-toast, html.reduced-motion .rk-toast__medal, html.reduced-motion .rk-toast__shine, html.reduced-motion .rk-ceremony,
+html.reduced-motion .rk-ceremony__rays, html.reduced-motion .rk-ceremony__crest, html.reduced-motion .rk-ceremony__ring,
+html.reduced-motion .rk-ceremony__eyebrow, html.reduced-motion .rk-ceremony__title, html.reduced-motion .rk-ceremony__from,
+html.reduced-motion .rk-ceremony__motto, html.reduced-motion .rk-ceremony__btn { animation: none; }
+html.reduced-motion .rk-ceremony__ring { opacity: 0; }

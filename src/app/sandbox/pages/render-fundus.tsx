@@ -58,6 +58,13 @@ function postFor(p: Preset): PosteriorSegment {
   return buildFindings(p.age ?? 55, { posterior: { [eye]: p.post ?? {} } as never }).posterior[eye];
 }
 
+function initialView(lens: boolean, map: FundusMap | null): FundusViewport {
+  const q = new URLSearchParams(location.search);
+  const z = Number(q.get('zoom'));
+  if (z > 0) return { cx: Number(q.get('cx') ?? map?.disc.x ?? 0.5), cy: Number(q.get('cy') ?? map?.disc.y ?? 0.5), zoom: z };
+  return { cx: lens ? (map?.disc.x ?? 0.5) : 0.5, cy: 0.5, zoom: lens ? 2.6 : 1 };
+}
+
 function useVw(): number {
   const [w, setW] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
   useEffect(() => {
@@ -79,7 +86,7 @@ function Thumb(props: { post: PosteriorSegment; eye: Eye; seed: number; size: nu
     c.height = props.size * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     paintFundus(ctx, props.size, props.size, props.post, { eye: props.eye, seed: props.seed });
-  }, [props.post, props.size]);
+  }, [props.post, props.size, props.seed]);
   return <canvas ref={ref} style={{ width: `${props.size}px`, height: `${props.size}px`, display: 'block' }} />;
 }
 
@@ -90,7 +97,8 @@ function RenderFundusPage({ services }: { services: GameServices }) {
     return PRESETS.some((p) => p.id === q) ? q! : 'normal-od';
   });
   const preset = PRESETS.find((p) => p.id === id)!;
-  const post = useMemo(() => postFor(preset), [id]);
+  const thumbPosts = useMemo(() => Object.fromEntries(PRESETS.map((p) => [p.id, postFor(p)])), []);
+  const post = thumbPosts[id]!;
   const eye = preset.eye ?? 'OD';
   const [seed, setSeed] = useState(7);
   const [lens, setLens] = useState(() => new URLSearchParams(location.search).has('lens'));
@@ -98,7 +106,7 @@ function RenderFundusPage({ services }: { services: GameServices }) {
   const [inverted, setInverted] = useState(false);
   const [showMap, setShowMap] = useState(() => new URLSearchParams(location.search).has('map'));
   const [map, setMap] = useState<FundusMap | null>(null);
-  const [view, setView] = useState<FundusViewport>({ cx: 0.5, cy: 0.5, zoom: lens ? 2.6 : 1 });
+  const [view, setView] = useState<FundusViewport>(() => initialView(lens, null));
   const [tapped, setTapped] = useState<FundusMark[] | null>(null);
   const wide = vw > 980;
   const size = Math.max(280, Math.min(640, wide ? vw - 460 : vw - 32));
@@ -123,7 +131,7 @@ function RenderFundusPage({ services }: { services: GameServices }) {
             key={`${id}-${lens}`}
             post={post} eye={eye} seed={seed} width={size} height={size}
             lensView={lens ? { radius: 0.3 } : false} redFree={redFree} inverted={inverted}
-            initialView={{ cx: lens ? (map?.disc.x ?? 0.5) : 0.5, cy: 0.5, zoom: lens ? 2.6 : 1 }} maxZoom={7}
+            initialView={initialView(lens, map)} maxZoom={7}
             onMap={setMap} onViewChange={setView}
             onTap={(e) => { setTapped(e.marks); services.audio.play(e.marks.length ? 'sparkle' : 'click'); }}
             class="rf-canvas"
@@ -170,7 +178,7 @@ function RenderFundusPage({ services }: { services: GameServices }) {
       <div class="rf-grid">
         {PRESETS.map((p) => (
           <button key={p.id} class={`rf-card ${p.id === id ? 'on' : ''}`} onClick={() => choose(p.id)} data-preset={p.id}>
-            <Thumb post={postFor(p)} eye={p.eye ?? 'OD'} seed={seed} size={thumb} />
+            <Thumb post={thumbPosts[p.id]!} eye={p.eye ?? 'OD'} seed={seed} size={thumb} />
             <span>{p.title}</span>
           </button>
         ))}

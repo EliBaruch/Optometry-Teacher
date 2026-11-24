@@ -11,14 +11,15 @@ export function Jar(props: { fill: number; size?: number; class?: string }) {
   const size = props.size ?? 120;
   // interior spans y=46..118; coins stack from the bottom
   const top = 118 - fill * 70;
-  const rows = Math.round(fill * 12);
-  const coins: { x: number; y: number; r: number; tilt: number }[] = [];
+  const rows = Math.round(fill * 15);
+  const coins: { x: number; y: number; tilt: number }[] = [];
   for (let row = 0; row < rows; row++) {
-    const y = 114 - row * 5.8;
-    const n = 4 + (row % 2);
+    const y = 116 - row * 4.7;
+    const odd = row % 2 === 1;
+    const n = odd ? 5 : 6;
     for (let i = 0; i < n; i++) {
-      const x = 38 + ((i + (row % 2 ? 0.5 : 0)) * 44) / n + ((row * 7 + i * 13) % 5) - 2;
-      coins.push({ x, y, r: 6.2, tilt: ((row * 31 + i * 17) % 40) - 20 });
+      const x = 27 + (odd ? 6.5 : 0) + i * 13 + (((row * 7 + i * 13) % 5) - 2) * 0.6;
+      coins.push({ x, y, tilt: (((row * 31 + i * 17) % 24) - 12) });
     }
   }
   return (
@@ -54,8 +55,9 @@ export function Jar(props: { fill: number; size?: number; class?: string }) {
         <rect x="18" y={top} width="84" height={124 - top} fill="#ffd27a" opacity={fill > 0 ? 0.06 : 0} />
         {coins.map((c, i) => (
           <g key={i} transform={`translate(${c.x} ${c.y}) rotate(${c.tilt})`}>
-            <ellipse rx={c.r} ry={c.r * 0.42} fill={`url(#${id}-coin)`} stroke="#8a5a12" stroke-width="0.6" />
-            <ellipse rx={c.r * 0.55} ry={c.r * 0.22} fill="none" stroke="#fff4da" stroke-width="0.5" opacity="0.6" />
+            <ellipse cy="1.6" rx="7.4" ry="3.3" fill="#8a5a12" />
+            <ellipse rx="7.4" ry="3.3" fill={`url(#${id}-coin)`} stroke="#a86d17" stroke-width="0.5" />
+            <ellipse rx="4.6" ry="1.9" fill="none" stroke="#fff4da" stroke-width="0.6" opacity="0.55" />
           </g>
         ))}
       </g>

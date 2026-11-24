@@ -168,6 +168,10 @@
 @media (max-width: 640px) {
   :root { --lm-topbar-h: 56px; }
 }
+/* Phones and tablets: a smaller blur radius costs far less to composite. */
+@media (max-width: 640px), (pointer: coarse) {
+  :root { --lm-glass-blur: blur(12px) saturate(135%); }
+}
 
 /* ── High contrast: opaque surfaces, brighter text & borders ─────────────── */
 html.high-contrast {

@@ -14,7 +14,7 @@ const CSS = `
 .uk-hero { text-align: center; padding: 36px 8px 8px; display: grid; justify-items: center; gap: 14px; }
 .uk-hero h2 { font-size: var(--lm-fs-5xl); font-weight: 480; letter-spacing: -0.02em; line-height: 1; }
 .uk-hero p { max-width: 620px; color: var(--lm-text-muted); font-size: var(--lm-fs-lg); }
-.uk-grid { display: grid; gap: 22px; grid-template-columns: repeat(12, 1fr); }
+.uk-grid { display: grid; gap: 22px; grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
 .uk-c12 { grid-column: span 12; } .uk-c8 { grid-column: span 8; } .uk-c7 { grid-column: span 7; } .uk-c6 { grid-column: span 6; }
 .uk-c5 { grid-column: span 5; } .uk-c4 { grid-column: span 4; }
 @media (max-width: 980px) { .uk-c8, .uk-c7, .uk-c6, .uk-c5, .uk-c4 { grid-column: span 12; } }
@@ -35,7 +35,7 @@ const CSS = `
 .uk-ring-val { font-family: var(--lm-font-num); font-size: 24px; font-weight: 700; color: var(--lm-ivory); }
 .uk-ring-lbl { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--lm-muted); margin-top: 3px; }
 .uk-big { font-size: 46px; font-weight: 700; color: var(--lm-gold); text-shadow: var(--lm-text-glow); }
-.uk-stamps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; justify-items: center; align-items: center; padding: 18px 0 6px; }
+.uk-stamps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; justify-items: center; align-items: center; padding: 26px 0 30px; }
 @media (max-width: 760px) { .uk-stamps { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 26px; padding: 18px 8px 6px; } }
 .uk-rewards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
 .uk-patient { display: grid; grid-template-columns: 84px 1fr; gap: 18px; align-items: start; }

@@ -138,9 +138,19 @@ export function AvatarSvg(props: PatientAvatarProps & { variant?: 'portrait' | '
     const seed = (traits.seed % 1000) / 10;
     const cache = new Map<string, string>();
     let settled = 0;
-    return onTick((t, dt) => {
+    // Tiny portraits (list tiles) skip sub-pixel breathing/sway: blinks and
+    // glances only, so a full waiting room costs almost nothing per frame.
+    let micro = false;
+    const measure = () => {
+      const w = svgRef.current?.getBoundingClientRect().width ?? 999;
+      micro = w > 0 && w < 170;
+    };
+    measure();
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null;
+    if (ro && svgRef.current) ro.observe(svgRef.current);
+    const off = onTick((t, dt) => {
       const L = live.current;
-      const rm = L.reducedMotion;
+      const rm = L.reducedMotion || micro;
       // expression easing
       const k = 1 - Math.exp(-dt * 11);
       const moving = rigDistance(s.params, L.target) > 0.002;
@@ -194,6 +204,10 @@ export function AvatarSvg(props: PatientAvatarProps & { variant?: 'portrait' | '
         }
       }
     });
+    return () => {
+      off();
+      ro?.disconnect();
+    };
   }, [animated, traits.seed]);
 
   const c = ctx;

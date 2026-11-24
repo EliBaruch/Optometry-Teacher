@@ -35,6 +35,16 @@ ${sel} body {
     linear-gradient(180deg, var(--lm-ink-900), var(--lm-aubergine-700));
 }
 ${sel} ::selection { background: rgba(${a}, 0.32); }
+${sel} .lm-btn--primary {
+  background: linear-gradient(180deg, ${p.pale} 0%, color-mix(in srgb, ${p.pale} 30%, ${p.accent}) 30%, ${p.deep} 78%, color-mix(in srgb, ${p.deep} 70%, ${p.shade}) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -2px 0 rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(${a}, 0.75),
+    0 10px 26px -8px rgba(${d}, 0.7), 0 2px 5px rgba(10, 4, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(${rgb(p.pale)}, 0.6);
+}
+${sel} .lm-btn--primary:hover:not(:disabled) {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -2px 0 rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(${a}, 0.95), 0 0 26px rgba(${a}, 0.45);
+}
+${sel} .lm-screen__bar::after { background: linear-gradient(90deg, transparent, rgba(${a}, 0.24) 30%, rgba(${a}, 0.24) 70%, transparent); }
 `;
 }
 

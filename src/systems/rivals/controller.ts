@@ -102,7 +102,9 @@ export function bindRivals(services: GameServices): () => void {
     bus.emit('toast', {
       message: top
         ? `Last week's board is closed — you finished top of ${lw.field}. A fresh week begins.`
-        : `Last week's board is closed — you finished #${lw.rank} of ${lw.field}. A fresh week begins.`,
+        : lw.rank <= 3
+          ? `Last week's board is closed — you finished #${lw.rank} of ${lw.field}. A fresh week begins.`
+          : `Last week's board is closed — ${lw.cases} patients and ${lw.points.toLocaleString('en')} pts of good work. A fresh week begins.`,
       icon: top ? 'crown' : 'users',
       tone: top ? 'epic' : 'good',
     });

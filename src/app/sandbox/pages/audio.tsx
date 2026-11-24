@@ -16,7 +16,8 @@ const TRACKS: TrackInfo[] = [
   { id: 'zen', name: 'Stillness', mode: 'D lydian', colour: '#38bdf8', mood: 'Distant bells', backdrop: 'calm' },
 ];
 
-interface Pad { id: SfxId; label: string; icon?: string }
+/** `tier` marks the escalating fanfares (rare < level up < legendary). */
+interface Pad { id: SfxId; label: string; icon?: string; tier?: 1 | 2 | 3 }
 interface Family { name: string; blurb: string; colour: string; wide?: boolean; pads: Pad[] }
 const FAMILIES: Family[] = [
   {
@@ -44,8 +45,8 @@ const FAMILIES: Family[] = [
       { id: 'sparkle', label: 'Sparkle', icon: 'sparkle' }, { id: 'streak-fire', label: 'Streak fire', icon: 'flame' },
       { id: 'unlock', label: 'Unlock', icon: 'unlock' }, { id: 'drumroll', label: 'Drumroll', icon: 'stats' },
       { id: 'reveal', label: 'Reveal', icon: 'eye' }, { id: 'chest-open', label: 'Chest', icon: 'crate' },
-      { id: 'rare', label: 'Rare', icon: 'gem' }, { id: 'levelup', label: 'Level up', icon: 'trophy' },
-      { id: 'legendary', label: 'Legendary', icon: 'crown' },
+      { id: 'rare', label: 'Rare find', icon: 'gem', tier: 1 }, { id: 'levelup', label: 'Level up', icon: 'trophy', tier: 2 },
+      { id: 'legendary', label: 'Legendary', icon: 'crown', tier: 3 },
     ],
   },
   {
@@ -424,7 +425,7 @@ function AudioStudio({ services }: { services: GameServices }) {
                 <p>{f.blurb}</p>
               </div>
               <div class="sbau-pads">
-                {f.pads.map((p) => (
+                {f.pads.filter((p) => !p.tier).map((p) => (
                   <button key={p.id} type="button" class={`sbau-pad ${last === p.id ? 'is-last' : ''}`}
                     onClick={(e) => playSfx(p.id, e)} onPointerEnter={hoverPad}>
                     <span class="sbau-pad-flash" aria-hidden="true" />
@@ -437,6 +438,23 @@ function AudioStudio({ services }: { services: GameServices }) {
                   </button>
                 ))}
               </div>
+              {f.pads.some((p) => p.tier) && (
+                <div class="sbau-ladder" role="group" aria-label="Fanfares, from smallest to grandest">
+                  {f.pads.filter((p) => p.tier).map((p) => (
+                    <button key={p.id} type="button" class={`sbau-pad sbau-fanfare ${last === p.id ? 'is-last' : ''}`}
+                      style={{ '--tier': p.tier }} onClick={(e) => playSfx(p.id, e)} onPointerEnter={hoverPad}>
+                      <span class="sbau-pad-flash" aria-hidden="true" />
+                      <span class="sbau-pad-ring" aria-hidden="true" />
+                      <span class="sbau-pad-icon" aria-hidden="true">
+                        {p.icon && isIconName(p.icon) ? <Icon name={p.icon} size={22} /> : <Icon name="play" size={18} />}
+                      </span>
+                      <span class="sbau-pad-label">{p.label}</span>
+                      <span class="sbau-pad-id">{p.id}</span>
+                      <span class="sbau-pips" aria-hidden="true">{[1, 2, 3].map((n) => <i key={n} class={n <= p.tier! ? 'is-on' : ''} />)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </section>
@@ -528,9 +546,25 @@ const CSS = `
 .sbau-trackbtn.is-on .sbau-eq i:nth-child(2) { animation-delay: -.35s; } .sbau-trackbtn.is-on .sbau-eq i:nth-child(3) { animation-delay: -.7s; } .sbau-trackbtn.is-on .sbau-eq i:nth-child(4) { animation-delay: -.2s; }
 @keyframes sbau-eq { 0%,100% { height: 4px; } 50% { height: 16px; } }
 
-.sbau-families { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.sbau-families { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .sbau-family.is-wide { grid-column: 1 / -1; order: -1; }
+.sbau-family.is-wide .sbau-pads { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .sbau-family:not(.is-wide) .sbau-pads { grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); }
+.sbau-ladder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.sbau-fanfare { --g: calc(var(--tier) * 1); min-height: 68px; padding: 13px 14px; column-gap: 12px; grid-template-columns: auto 1fr auto;
+  border-color: color-mix(in srgb, var(--fc) calc(18% + var(--tier) * 14%), transparent);
+  background: linear-gradient(115deg, color-mix(in srgb, var(--fc) calc(4% + var(--tier) * 6%), transparent), #ffffff04 60%),
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, #f472b6 calc(var(--tier) * 7%), transparent), transparent 60%);
+  box-shadow: inset 0 1px 0 #ffffff1a, 0 6px 20px #0005, 0 0 calc(var(--tier) * 10px) color-mix(in srgb, var(--fc) calc(var(--tier) * 8%), transparent); }
+.sbau-fanfare .sbau-pad-icon { width: 40px; height: 40px; border-radius: 12px;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--fc) 40%, transparent), color-mix(in srgb, var(--fc) 10%, transparent)); }
+.sbau-fanfare .sbau-pad-label { font-family: var(--lm-font-display, Georgia, serif); font-weight: 500; font-size: 16px; color: #fff4da; }
+.sbau-fanfare:nth-child(3) .sbau-pad-label { background: linear-gradient(90deg, #fff4da, #ffd27a 50%, #f472b6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sbau-fanfare .sbau-pad-icon { grid-column: 1; grid-row: 1 / span 2; }
+.sbau-fanfare .sbau-pad-label, .sbau-fanfare .sbau-pad-id { grid-column: 2; }
+.sbau-pips { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 4px; position: relative; z-index: 1; }
+.sbau-pips i { width: 6px; height: 6px; border-radius: 50%; background: #ffffff1f; }
+.sbau-pips i.is-on { background: var(--fc); box-shadow: 0 0 8px var(--fc); }
 .sbau-family { border-color: color-mix(in srgb, var(--fc) 22%, #ffffff17); }
 .sbau-family .sbau-sec-head h2 { color: color-mix(in srgb, var(--fc) 55%, #fff4da); }
 .sbau-pads { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; }
@@ -561,15 +595,18 @@ const CSS = `
   .sbau-tracks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sbau-families { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sbau-family:first-child { grid-column: 1 / -1; }
+  .sbau-family:first-child .sbau-pads { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 720px) {
   .sbau-families { grid-template-columns: 1fr; }
+  .sbau-family.is-wide .sbau-pads, .sbau-family:first-child .sbau-pads { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
   .sbau-inner { gap: 14px; padding-left: 12px; padding-right: 12px; }
   .sbau-panel { padding: 14px; border-radius: 18px; }
   .sbau-tracks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .sbau-pads { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sbau-pads, .sbau-family.is-wide .sbau-pads, .sbau-family:first-child .sbau-pads { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sbau-ladder { grid-template-columns: 1fr; gap: 8px; }
   .sbau-fader { width: auto; flex: 1; }
   .sbau-track { height: 130px; }
   .sbau-track input { height: 108px; }

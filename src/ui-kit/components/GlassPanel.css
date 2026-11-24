@@ -55,3 +55,11 @@
 .lm-panel__title { font-size: var(--lm-fs-xl); font-weight: 540; color: var(--lm-ivory); }
 .lm-panel__actions { display: flex; align-items: center; gap: var(--lm-sp-2); }
 html.high-contrast .lm-panel { box-shadow: inset 0 0 0 1.5px var(--lm-glass-border), var(--lm-shadow-2); }
+
+.lm-panel--interactive:focus-visible {
+  box-shadow:
+    var(--lm-glass-highlight),
+    inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 55%, transparent),
+    var(--lm-focus-glow),
+    var(--lm-shadow-2);
+}

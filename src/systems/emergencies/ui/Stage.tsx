@@ -62,6 +62,27 @@ export function ArrivalBanner({ info, onDone }: { info: ArrivalInfo; onDone: () 
   );
 }
 
+/** Candle-gold light rays fading from the centre (rotated as one composited layer). */
+function Rays() {
+  const wedges = Array.from({ length: 24 }, (_, i) => {
+    const a0 = (i / 24) * Math.PI * 2;
+    const a1 = a0 + (Math.PI * 2) / 24 / 2.6;
+    return `M0,0 L${Math.cos(a0) * 100},${Math.sin(a0) * 100} L${Math.cos(a1) * 100},${Math.sin(a1) * 100}Z`;
+  });
+  return (
+    <svg viewBox="-100 -100 200 200">
+      <defs>
+        <radialGradient id="cr-rays-fade" r="100" cx="0" cy="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#ffd27a" stop-opacity="0.26" />
+          <stop offset="0.35" stop-color="#ffd27a" stop-opacity="0.1" />
+          <stop offset="1" stop-color="#ffd27a" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <path d={wedges.join(' ')} fill="url(#cr-rays-fade)" />
+    </svg>
+  );
+}
+
 export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => void }) {
   const leaving = useLifecycle(SAVED_MS, onDone);
   const p = info.kase?.patient;
@@ -69,7 +90,9 @@ export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => vo
   return (
     <div class={`cr-saved${leaving ? ' is-leaving' : ''}${info.reduced ? ' is-still' : ''}`} role="status" aria-live="polite">
       <div class="cr-saved__veil" aria-hidden="true" />
-      <div class="cr-saved__rays" aria-hidden="true" />
+      <div class="cr-saved__rays" aria-hidden="true">
+        <Rays />
+      </div>
       <div class="cr-saved__card">
         <div class="cr-saved__emblem">
           <EyeJewel uid="saved" size={180} class="cr-eye" />

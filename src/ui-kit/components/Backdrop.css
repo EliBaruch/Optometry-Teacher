@@ -22,19 +22,16 @@
     radial-gradient(38% 30% at 22% 34%, var(--bd-c), transparent 70%),
     radial-gradient(34% 28% at 78% 62%, var(--bd-d), transparent 70%),
     radial-gradient(26% 20% at 62% 22%, var(--bd-c), transparent 70%);
-  filter: blur(20px);
-  animation: lm-bd-drift 46s var(--lm-ease-in-out) infinite alternate;
-  will-change: transform;
-}
-@keyframes lm-bd-drift {
-  0% { transform: translate3d(-3%, -2%, 0) rotate(0deg) scale(1); }
-  100% { transform: translate3d(3%, 2%, 0) rotate(6deg) scale(1.06); }
+  /* Static on purpose: the canvas motes carry the motion. A continuously
+     transforming full-screen layer would force every glass panel above it
+     to re-blur its backdrop on every frame. */
+  transform: rotate(-4deg);
 }
 .lm-backdrop__canvas { display: block; }
 .lm-backdrop__grain {
   inset: -50%; width: 200%; height: 200%; opacity: 0.075; mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -0.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  animation: lm-bd-grain 0.9s steps(6) infinite;
+  animation: lm-bd-grain 1.2s steps(6) infinite;
 }
 @keyframes lm-bd-grain {
   0% { transform: translate(0, 0); } 17% { transform: translate(-6%, 4%); } 33% { transform: translate(5%, -7%); }
@@ -44,7 +41,7 @@
   background:
     radial-gradient(ellipse 120% 90% at 50% 45%, transparent 52%, rgba(3, 1, 8, 0.55) 82%, rgba(3, 1, 8, 0.9) 100%);
 }
-.lm-backdrop.is-static .lm-backdrop__nebula, .lm-backdrop.is-static .lm-backdrop__grain { animation: none; }
+.lm-backdrop.is-static .lm-backdrop__grain { animation: none; }
 
 /* ── variants ─────────────────────────────────────────────────────────── */
 .lm-backdrop--title {
@@ -80,8 +77,10 @@
   content: ''; position: absolute; left: 50%; top: -30%; width: 160%; aspect-ratio: 1; transform: translateX(-50%);
   background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 220, 150, 0.06) 0deg 6deg, transparent 6deg 18deg);
   -webkit-mask: radial-gradient(circle, #000 5%, transparent 55%); mask: radial-gradient(circle, #000 5%, transparent 55%);
-  animation: lm-spin 120s linear infinite;
+  animation: lm-bd-sunburst 120s steps(3600) infinite;
 }
+@keyframes lm-bd-sunburst { from { transform: translateX(-50%) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg); } }
+.lm-backdrop.is-static .lm-backdrop__sky::after { animation: none; }
 .lm-backdrop--calm {
   --bd-a: rgba(56, 130, 200, 0.32); --bd-b: rgba(165, 243, 252, 0.08);
   --bd-c: rgba(56, 189, 248, 0.08); --bd-d: rgba(196, 181, 253, 0.1);

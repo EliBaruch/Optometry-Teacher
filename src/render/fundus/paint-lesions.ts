@@ -54,27 +54,37 @@ function dotBlot(ctx: Ctx, l: LesionInst, S: number): void {
   ctx.fill();
 }
 
-function flame(ctx: Ctx, l: LesionInst): void {
-  // feathery streak in the nerve fibre layer, frayed at both ends along the fibres
-  const rng = createRng(l.seed);
+/** Spindle (flame-shaped) splinter haemorrhage along the nerve fibres. */
+function splinter(ctx: Ctx, x: number, y: number, ang: number, L: number, W: number, seed: number, alpha = 1): void {
+  const rng = createRng(seed);
   ctx.save();
-  ctx.translate(l.x, l.y);
-  ctx.rotate(l.a);
-  const L = l.r;
-  const W = L * rng.float(0.22, 0.32);
-  for (let i = 0; i < 16; i++) {
-    const oy = rng.float(-W, W);
-    const len = L * rng.float(0.6, 1.0) * (1 - Math.abs(oy) / (W * 1.6));
-    const ox = rng.float(-L * 0.15, L * 0.15);
-    ctx.strokeStyle = `rgba(${rng.int(150, 185)},${rng.int(12, 30)},${rng.int(18, 30)},${rng.float(0.45, 0.8).toFixed(2)})`;
-    ctx.lineWidth = W * rng.float(0.35, 0.7);
-    ctx.lineCap = 'round';
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  // feathered body: a tapered spindle, frayed toward both ends
+  const body = (w: number, a: number) => {
     ctx.beginPath();
-    ctx.moveTo(ox - len, oy * 0.7);
-    ctx.quadraticCurveTo(ox, oy, ox + len, oy * 0.7);
+    ctx.moveTo(-L, 0);
+    ctx.bezierCurveTo(-L * 0.4, -w, L * 0.3, -w * 0.9, L, rng.float(-0.1, 0.1) * w);
+    ctx.bezierCurveTo(L * 0.3, w * 0.9, -L * 0.4, w, -L, 0);
+    ctx.fillStyle = `rgba(${rng.int(150, 175)},${rng.int(14, 26)},${rng.int(20, 30)},${(a * alpha).toFixed(2)})`;
+    ctx.fill();
+  };
+  body(W * 1.25, 0.35);
+  body(W, 0.85);
+  ctx.strokeStyle = `rgba(120,8,16,${(0.35 * alpha).toFixed(2)})`;
+  ctx.lineWidth = W * 0.12;
+  for (let i = 0; i < 6; i++) {
+    const oy = rng.float(-0.6, 0.6) * W;
+    ctx.beginPath();
+    ctx.moveTo(-L * rng.float(0.5, 1.15), oy * 0.6);
+    ctx.lineTo(L * rng.float(0.5, 1.15), oy);
     ctx.stroke();
   }
   ctx.restore();
+}
+
+function flame(ctx: Ctx, l: LesionInst): void {
+  splinter(ctx, l.x, l.y, l.a, l.r, l.r * 0.3, l.seed);
 }
 
 function cottonWool(ctx: Ctx, l: LesionInst): void {
@@ -82,19 +92,21 @@ function cottonWool(ctx: Ctx, l: LesionInst): void {
   ctx.save();
   ctx.translate(l.x, l.y);
   ctx.rotate(l.a + Math.PI / 2);
-  // fluffy, fibrillated white patch with feathery margins
-  for (let i = 0; i < 14; i++) {
-    const ox = rng.float(-0.6, 0.6) * l.r;
-    const oy = rng.float(-0.35, 0.35) * l.r;
-    softDot(ctx, ox, oy, l.r * rng.float(0.35, 0.6), 'rgba(250,246,236,0.55)', 'rgba(245,240,230,0)', 0.2);
+  // fluffy, fibrillated, greyish-white patch with feathery, indistinct margins
+  softDot(ctx, 0, 0, l.r * 1.25, 'rgba(240,230,220,0.28)', 'rgba(240,230,220,0)', 0.2);
+  for (let i = 0; i < 22; i++) {
+    const ox = rng.float(-0.75, 0.75) * l.r;
+    const oy = rng.float(-0.45, 0.45) * l.r;
+    softDot(ctx, ox, oy, l.r * rng.float(0.22, 0.45), 'rgba(250,246,238,0.42)', 'rgba(245,240,230,0)', 0.15);
   }
-  ctx.strokeStyle = 'rgba(255,252,245,0.35)';
-  ctx.lineWidth = l.r * 0.06;
-  for (let i = 0; i < 10; i++) {
-    const ox = rng.float(-0.7, 0.7) * l.r;
+  ctx.strokeStyle = 'rgba(255,252,245,0.18)';
+  ctx.lineWidth = l.r * 0.05;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 8; i++) {
+    const ox = rng.float(-0.6, 0.6) * l.r;
     ctx.beginPath();
-    ctx.moveTo(ox, -l.r * 0.55);
-    ctx.lineTo(ox + rng.float(-0.1, 0.1) * l.r, l.r * 0.55);
+    ctx.moveTo(ox, -l.r * 0.5);
+    ctx.quadraticCurveTo(ox + rng.float(-0.15, 0.15) * l.r, 0, ox + rng.float(-0.1, 0.1) * l.r, l.r * 0.5);
     ctx.stroke();
   }
   ctx.restore();
@@ -161,13 +173,14 @@ function drusen(ctx: Ctx, l: LesionInst, S: number): void {
 
 function choroidalVesselsIn(ctx: Ctx, rng: Rng, x: number, y: number, r: number, alpha: number): void {
   ctx.lineCap = 'round';
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 9; i++) {
     const a = rng.float(0, TAU);
     ctx.strokeStyle = `rgba(214,110,60,${alpha.toFixed(2)})`;
-    ctx.lineWidth = rng.float(0.1, 0.22) * U;
+    ctx.lineWidth = rng.float(0.16, 0.3) * U;
     ctx.beginPath();
-    ctx.moveTo(x + Math.cos(a) * r * 1.2, y + Math.sin(a) * r * 1.2);
-    ctx.bezierCurveTo(x + rng.float(-r, r), y + rng.float(-r, r), x + rng.float(-r, r), y + rng.float(-r, r), x + Math.cos(a + 2.5) * r * 1.2, y + Math.sin(a + 2.5) * r * 1.2);
+    const b = a + rng.float(2.2, 3.4);
+    ctx.moveTo(x + Math.cos(a) * r * 1.3, y + Math.sin(a) * r * 1.3);
+    ctx.quadraticCurveTo(x + Math.cos(a + 1.6) * r * 0.5, y + Math.sin(a + 1.6) * r * 0.5, x + Math.cos(b) * r * 1.3, y + Math.sin(b) * r * 1.3);
     ctx.stroke();
   }
 }
@@ -176,11 +189,11 @@ function geographicAtrophy(ctx: Ctx, l: LesionInst): void {
   const rng = createRng(l.seed);
   // multilobular, sharply demarcated RPE loss exposing large choroidal vessels
   const pts: [number, number][] = [];
-  const lobes = 4 + rng.int(0, 3);
-  const ph = rng.float(0, TAU);
-  for (let i = 0; i < 40; i++) {
-    const a = (i / 40) * TAU;
-    const k = 1 + 0.18 * Math.cos(a * lobes + ph) + rng.float(-0.05, 0.05);
+  const harm = [1, 2, 3, 5].map((f) => ({ f, amp: rng.float(0.04, 0.16) / Math.sqrt(f), ph: rng.float(0, TAU) }));
+  for (let i = 0; i < 48; i++) {
+    const a = (i / 48) * TAU;
+    let k = 1 + rng.float(-0.03, 0.03);
+    for (const h of harm) k += h.amp * Math.cos(a * h.f + h.ph);
     pts.push([l.x + Math.cos(a) * l.r * k, l.y + Math.sin(a) * l.r * k * 0.85]);
   }
   ctx.save();
@@ -192,7 +205,9 @@ function geographicAtrophy(ctx: Ctx, l: LesionInst): void {
   ctx.fillStyle = g;
   ctx.fill();
   ctx.clip();
-  choroidalVesselsIn(ctx, rng, l.x, l.y, l.r, 0.55);
+  if ('filter' in ctx) ctx.filter = 'blur(0.6px)';
+  choroidalVesselsIn(ctx, rng, l.x, l.y, l.r, 0.32);
+  if ('filter' in ctx) ctx.filter = 'none';
   ctx.restore();
   // hyperpigmented border
   ctx.strokeStyle = 'rgba(80,35,15,0.45)';
@@ -301,12 +316,12 @@ function lattice(ctx: Ctx, l: LesionInst): void {
   const W = L * 0.28;
   ctx.beginPath();
   ctx.ellipse(0, 0, L, W, 0, 0, TAU);
-  ctx.fillStyle = 'rgba(165,55,35,0.55)';
+  ctx.fillStyle = 'rgba(160,60,40,0.4)';
   ctx.fill();
   ctx.clip();
   // white sclerosed vessels in a criss-cross lattice
-  ctx.strokeStyle = 'rgba(245,240,230,0.85)';
-  ctx.lineWidth = 0.04 * U;
+  ctx.strokeStyle = 'rgba(240,232,222,0.55)';
+  ctx.lineWidth = 0.03 * U;
   for (let i = 0; i < 9; i++) {
     const x0 = rng.float(-L, L);
     ctx.beginPath();
@@ -351,10 +366,15 @@ function nevus(ctx: Ctx, l: LesionInst): void {
 function pigment(ctx: Ctx, l: LesionInst, S: number): void {
   const rng = createRng(l.seed);
   const r = Math.max(l.r, minPx(S, 1.2));
-  ctx.beginPath();
-  smoothClosedPath(ctx, blob(rng, l.x, l.y, r, 9, 0.45, 0.6, l.a));
-  ctx.fillStyle = 'rgba(28,14,8,0.88)';
-  ctx.fill();
+  // irregular hyperpigmentation: a few small brown-black flecks, soft-edged
+  for (let i = 0; i < 4; i++) {
+    const ox = rng.float(-0.6, 0.6) * r;
+    const oy = rng.float(-0.6, 0.6) * r;
+    ctx.beginPath();
+    smoothClosedPath(ctx, blob(rng, l.x + ox, l.y + oy, r * rng.float(0.3, 0.6), 8, 0.4, rng.float(0.5, 1), l.a));
+    ctx.fillStyle = `rgba(${rng.int(40, 70)},${rng.int(20, 32)},12,${rng.float(0.55, 0.8).toFixed(2)})`;
+    ctx.fill();
+  }
 }
 
 function laserScar(ctx: Ctx, l: LesionInst, S: number): void {
@@ -425,22 +445,20 @@ function cherryRed(ctx: Ctx, l: LesionInst): void {
 
 function macularEdema(ctx: Ctx, l: LesionInst): void {
   const rng = createRng(l.seed);
-  // thickened, greyish, glistening retina; cystoid petals around the fovea
-  softDot(ctx, l.x, l.y, l.r, 'rgba(225,205,190,0.32)', 'rgba(225,205,190,0)', 0.35);
-  for (let i = 0; i < 9; i++) {
-    const a = (i / 9) * TAU + rng.float(-0.1, 0.1);
-    const d = l.r * 0.32;
-    ctx.fillStyle = 'rgba(240,225,210,0.22)';
-    ctx.beginPath();
-    ctx.ellipse(l.x + Math.cos(a) * d, l.y + Math.sin(a) * d, l.r * 0.22, l.r * 0.1, a, 0, TAU);
-    ctx.fill();
+  // thickened, greyish, glistening retina with loss of the foveal reflex;
+  // faint cystoid spaces around the fovea and irregular sheen
+  softDot(ctx, l.x, l.y, l.r, 'rgba(222,200,186,0.26)', 'rgba(222,200,186,0)', 0.3);
+  for (let i = 0; i < 12; i++) {
+    const a = rng.float(0, TAU);
+    const d = l.r * rng.float(0.15, 0.45);
+    softDot(ctx, l.x + Math.cos(a) * d, l.y + Math.sin(a) * d, l.r * rng.float(0.08, 0.16), 'rgba(238,222,206,0.16)', 'rgba(238,222,206,0)', 0.4);
   }
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-  ctx.lineWidth = 0.03 * U;
-  for (let i = 0; i < 8; i++) {
+  ctx.strokeStyle = 'rgba(255,250,240,0.09)';
+  ctx.lineWidth = 0.04 * U;
+  for (let i = 0; i < 6; i++) {
     const a = rng.float(0, TAU);
     ctx.beginPath();
-    ctx.arc(l.x, l.y, l.r * rng.float(0.5, 0.9), a, a + rng.float(0.3, 0.8));
+    ctx.arc(l.x + rng.float(-0.1, 0.1) * l.r, l.y + rng.float(-0.1, 0.1) * l.r, l.r * rng.float(0.5, 0.95), a, a + rng.float(0.2, 0.5));
     ctx.stroke();
   }
 }
@@ -482,22 +500,8 @@ function macularHole(ctx: Ctx, l: LesionInst): void {
 }
 
 function discHeme(ctx: Ctx, l: LesionInst): void {
-  // Drance haemorrhage: splinter crossing the disc margin radially
-  const rng = createRng(l.seed);
-  ctx.save();
-  ctx.translate(l.x, l.y);
-  ctx.rotate(l.a);
-  for (let i = 0; i < 7; i++) {
-    ctx.strokeStyle = `rgba(${rng.int(160, 190)},18,24,${rng.float(0.6, 0.9).toFixed(2)})`;
-    ctx.lineWidth = l.r * rng.float(0.15, 0.3);
-    ctx.lineCap = 'round';
-    const oy = rng.float(-0.15, 0.15) * l.r;
-    ctx.beginPath();
-    ctx.moveTo(-l.r * 0.8, oy);
-    ctx.lineTo(l.r * rng.float(0.7, 1.1), oy * 1.4);
-    ctx.stroke();
-  }
-  ctx.restore();
+  // Drance haemorrhage: a splinter crossing the disc margin radially
+  splinter(ctx, l.x, l.y, l.a, l.r, l.r * 0.22, l.seed);
 }
 
 /** Painted beneath the retinal vessels (outer retina / RPE / choroid). */

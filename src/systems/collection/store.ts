@@ -6,9 +6,9 @@ import {
   createRng, hashString, signal,
   type Diagnosis, type GameEvents, type GameServices, type Signal,
 } from '@core';
-import { newlyCompletedSets, orderedDiagnoses, setReward, wingOf } from './catalog';
+import { newlyCompletedSets, orderedDiagnoses, wingOf } from './catalog';
 import {
-  FRAME_LABEL, FRAME_TIERS, FRAME_XP, INITIAL_STATE, acquire, glimpse, markAllSeen, markSeen, newMilestones, oddsFor, rollRarity,
+  FRAME_LABEL, FRAME_TIERS, FRAME_XP, INITIAL_STATE, acquire, setReward, glimpse, markAllSeen, markSeen, newMilestones, oddsFor, rollRarity,
   type CollectionState, type Pull,
 } from './model';
 

@@ -200,8 +200,10 @@ export function SettingsScene({ services }: SceneProps) {
 
           <GlassPanel as="section" class="settings-panel lm-enter" style={d(4)} icon="book" eyebrow="Records" title="Your progress" accent="#f5b942">
             <p class="settings-note">
-              Progress lives only in this browser —{' '}
-              <span class="lm-num">{exportInfo.records}</span> records, <span class="lm-num">{sizeLabel(exportInfo.bytes)}</span>.
+              Progress lives only in this browser
+              {exportInfo.records > 0 ? (
+                <> — <span class="lm-num">{exportInfo.records}</span> records, <span class="lm-num">{sizeLabel(exportInfo.bytes)}</span>. </>
+              ) : '. '}
               Keep a copy, or carry it to another device.
             </p>
             <div class="settings-actions">

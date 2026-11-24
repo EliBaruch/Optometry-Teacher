@@ -6,6 +6,7 @@ import { useSfx } from '../hooks/useSfx';
 import { Icon, type IconName } from '../icons/Icon';
 import { IconButton } from './IconButton';
 import { cx } from '../lib/cx';
+import { isolate } from '../lib/isolate';
 import './Modal.css';
 
 export interface ModalProps {
@@ -63,12 +64,24 @@ export function Modal({
     return () => clearTimeout(t);
   }, [open]);
 
-  useFocusTrap(panel, mounted && !closing, initialFocus);
+  // While open: everything outside the dialog is inert and the scroll
+  // containers holding it stop scrolling (wheel on the scrim would otherwise
+  // chain into the scene behind).
+  const root = useRef<HTMLDivElement>(null);
+  const isOpen = mounted && !closing;
+  useEffect(() => {
+    const el = root.current;
+    if (!isOpen || !el) return;
+    return isolate(el);
+  }, [isOpen]);
+  // Declared after isolation so its cleanup (restoring focus to the opener)
+  // runs once the opener is no longer inert.
+  useFocusTrap(panel, isOpen, initialFocus);
 
   if (!mounted) return null;
   const close = () => dismissible && onClose();
   return (
-    <div class={cx('lm-modal', closing ? 'is-closing' : 'is-open', klass)} style={accent ? { '--modal-c': accent } : undefined}>
+    <div ref={root} class={cx('lm-modal', closing ? 'is-closing' : 'is-open', klass)} style={accent ? { '--modal-c': accent } : undefined}>
       <div class="lm-modal__scrim" onClick={() => closeOnBackdrop && close()} aria-hidden="true" />
       <div
         ref={panel}

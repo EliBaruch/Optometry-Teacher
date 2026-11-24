@@ -1,5 +1,5 @@
 import type { ComponentChildren } from 'preact';
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useId, useMemo, useRef, useState } from 'preact/hooks';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useSfx } from '../hooks/useSfx';
 import { buildSchedule, totalDuration, visibleChars } from '../lib/typewriter';
@@ -38,6 +38,7 @@ export function SpeechBubble({ text, speaker, speed = 48, delay = 0, tail = 'lef
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
   const typing = count < text.length;
+  const textId = 'lm-speech-' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
   useEffect(() => {
     skipped.current = false;
@@ -91,12 +92,16 @@ export function SpeechBubble({ text, speaker, speed = 48, delay = 0, tail = 'lef
           skip();
         }
       }}
-      tabIndex={typing ? 0 : undefined}
-      aria-label={typing ? 'Speech — press Enter to skip' : undefined}
+      // While typing it acts as a "show the whole line" button. Afterwards it
+      // leaves the tab order but keeps focus if it had it (tabIndex -1).
+      role={typing ? 'button' : undefined}
+      tabIndex={typing ? 0 : -1}
+      aria-label={typing ? 'Show the whole line' : undefined}
+      aria-describedby={typing ? textId : undefined}
     >
       {speaker && <div class="lm-speech__speaker">{speaker}</div>}
       <p class="lm-speech__text">
-        <span class="lm-sr-only">{text}</span>
+        <span class="lm-sr-only" id={textId}>{text}</span>
         <span aria-hidden="true">
           {text.slice(0, count)}
           {typing && <span class="lm-speech__caret" />}

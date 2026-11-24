@@ -130,7 +130,11 @@ export function EntryCard(props: {
           <span class="lm-num codex-card__pct">{Math.round(props.mastery * 100)}</span>
         </RingMeter>
       )}
-      {unlocked && !props.seen && <span class="codex-card__new" title="Not yet met in clinic">Study</span>}
+      {unlocked && !props.seen && (
+        <span class="codex-card__new" title="Not yet met in clinic">
+          <Icon name="eye" size={16} />
+        </span>
+      )}
     </button>
   );
 }

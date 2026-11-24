@@ -21,8 +21,16 @@
 .lm-chip.is-selected .lm-chip__icon { color: color-mix(in srgb, var(--chip-c) 70%, white); }
 .lm-chip.is-disabled { opacity: 0.45; }
 .lm-chip__remove {
-  display: grid; place-items: center; width: 20px; height: 20px; margin-right: -6px; border-radius: 50%; color: var(--lm-muted);
-  transition: background var(--lm-dur-fast), color var(--lm-dur-fast);
+  position: relative; display: grid; place-items: center; width: 24px; height: 24px; margin: 0 -8px 0 -2px; border-radius: 50%; color: var(--lm-muted);
+  transition: background var(--lm-dur-fast), color var(--lm-dur-fast), transform var(--lm-dur-fast) var(--lm-ease-out);
 }
+/* invisible 44px touch target around the 24px glyph */
+.lm-chip__remove::before { content: ''; position: absolute; inset: -10px; border-radius: 50%; }
+.lm-chip__remove:active { transform: scale(0.88); }
 .lm-chip__remove svg { width: 14px; height: 14px; }
 .lm-chip__remove:hover { background: rgba(255, 255, 255, 0.1); color: var(--lm-ivory); }
+
+/* keyboard focus: outline ring from base.css + glow that keeps the chip border */
+.lm-chip:focus-visible { color: var(--lm-ivory); box-shadow: inset 0 0 0 1px var(--lm-glass-border-hi), var(--lm-focus-glow); }
+.lm-chip.is-selected:focus-visible { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chip-c) 65%, transparent), var(--lm-focus-glow); }
+.lm-chip__remove:focus-visible { --lm-focus-offset: 1px; }

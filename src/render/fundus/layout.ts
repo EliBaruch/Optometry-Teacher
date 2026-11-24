@@ -4,7 +4,7 @@
  * instances, detachment outline. Painting and hit-testing both read this.
  */
 import { createRng, type Eye, type LesionType, type PosteriorSegment, type Rng, type Zone } from '@core';
-import { anatomy, inZone, samplePoint, zoneOf, type Anatomy } from './geometry';
+import { anatomy, inZone, samplePoint, type Anatomy } from './geometry';
 import { U, type FundusMap, type FundusMark, type FundusViewport } from './types';
 import { buildVessels, findCrossings, type VesselTree } from './vessels';
 
@@ -119,7 +119,7 @@ function placeLesions(a: Anatomy, post: PosteriorSegment, tree: VesselTree, seed
         for (let i = 0; i < n; i++) { const [x, y] = pt(); push(x, y, rng.float(0.035, 0.06)); }
         break;
       case 'dot-blot-hemorrhage':
-        for (let i = 0; i < n; i++) { const [x, y] = pt(); push(x, y, rng.float(0.08, 0.22)); }
+        for (let i = 0; i < n; i++) { const [x, y] = pt(); push(x, y, rng.float(0.07, 0.17)); }
         break;
       case 'flame-hemorrhage':
         for (let i = 0; i < n; i++) { const [x, y] = pt(); push(x, y, rng.float(0.25, 0.55), { a: nflAngle(x, y) }); }
@@ -128,7 +128,7 @@ function placeLesions(a: Anatomy, post: PosteriorSegment, tree: VesselTree, seed
         for (let i = 0; i < n; i++) {
           // CWS cluster along the arcades / around the disc
           const [x, y] = pt((px, py) => Math.hypot(px - a.disc.x, py - a.disc.y) < 6 * U);
-          push(x, y, rng.float(0.16, 0.32), { a: nflAngle(x, y) });
+          push(x, y, rng.float(0.24, 0.42), { a: nflAngle(x, y) });
         }
         break;
       case 'hard-exudate': {
@@ -260,7 +260,9 @@ function placeLesions(a: Anatomy, post: PosteriorSegment, tree: VesselTree, seed
       case 'disc-hemorrhage':
         for (let i = 0; i < n; i++) {
           // splinter haemorrhage crossing the rim, classically inferotemporal
-          const inferior = i === 0 ? rng.chance(0.75) : rng.chance(0.5);
+          // at the thinned rim if there is one; classically inferotemporal
+          const thin = post.disc.rimThinning;
+          const inferior = i === 0 ? thin !== 'superior' : !(thin !== 'superior');
           const ang = Math.atan2(inferior ? 0.85 : -0.85, -a.nasal * 0.55) + rng.float(-0.25, 0.25);
           const rr = 1.02;
           push(a.disc.x + Math.cos(ang) * a.disc.rx * rr, a.disc.y + Math.sin(ang) * a.disc.ry * rr, 0.22, { a: ang, zone: 'disc' });
@@ -284,70 +286,70 @@ function placeLesions(a: Anatomy, post: PosteriorSegment, tree: VesselTree, seed
   return { lesions, beads };
 }
 
-function detachmentPolygon(a: Anatomy, zones: Zone[], maculaOff: boolean, seed: number): [number, number][] {
+/**
+ * Boundary of the still-ATTACHED retina, as a closed polar curve around the
+ * world centre. Retina outside this curve is detached. Detached quadrants pull
+ * the boundary inward with smooth edges; macula-off sends a tongue through the
+ * fovea.
+ */
+export function detachmentBoundary(a: Anatomy, zones: Zone[], maculaOff: boolean, seed: number): [number, number][] {
   const rng = createRng(seed ^ 0x7d7d);
-  const sectors: [number, number][] = [];
-  // image angles (+y down): superior = negative sin; temporal = cos·nasal < 0
-  const T = a.nasal > 0 ? Math.PI : 0; // temporal direction angle
+  const T = a.nasal > 0 ? Math.PI : 0; // temporal direction
   const N = a.nasal > 0 ? 0 : Math.PI;
-  const addQuad = (vert: number, horiz: number) => {
-    const mid = Math.atan2(vert, Math.cos(horiz)) ;
-    sectors.push([mid - Math.PI / 4 - 0.25, mid + Math.PI / 4 + 0.25]);
-  };
+  const centres: number[] = [];
+  let total = false;
   for (const z of zones) {
-    if (z === 'superotemporal') addQuad(-1, T);
-    else if (z === 'inferotemporal') addQuad(1, T);
-    else if (z === 'superonasal') addQuad(-1, N);
-    else if (z === 'inferonasal') addQuad(1, N);
-    else if (z === 'diffuse' || z === 'periphery') sectors.push([-Math.PI, Math.PI]);
-    else if (z === 'macula') sectors.push([T - 0.9, T + 0.9]);
+    if (z === 'superotemporal') centres.push(Math.atan2(-1, Math.cos(T)));
+    else if (z === 'inferotemporal') centres.push(Math.atan2(1, Math.cos(T)));
+    else if (z === 'superonasal') centres.push(Math.atan2(-1, Math.cos(N)));
+    else if (z === 'inferonasal') centres.push(Math.atan2(1, Math.cos(N)));
+    else if (z === 'macula') centres.push(T);
+    else total = true; // diffuse / periphery → total detachment
   }
-  if (!sectors.length) sectors.push([-Math.PI / 2 - 0.9, -Math.PI / 2 + 0.9]);
-  const total = sectors.some(([s0, s1]) => s1 - s0 >= Math.PI * 1.99);
-  let a0 = Math.min(...sectors.map((s) => s[0]));
-  let a1 = Math.max(...sectors.map((s) => s[1]));
-  if (total) { a0 = -Math.PI; a1 = Math.PI; }
+  if (!centres.length && !total) centres.push(-Math.PI / 2);
+  const angDist = (x: number, y: number) => {
+    let d = Math.abs(x - y) % (Math.PI * 2);
+    return d > Math.PI ? Math.PI * 2 - d : d;
+  };
+  const smoothstep = (e0: number, e1: number, x: number) => {
+    const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
+    return t * t * (3 - 2 * t);
+  };
   const fovAng = Math.atan2(a.fovea.y - 0.5, a.fovea.x - 0.5);
   const fovR = Math.hypot(a.fovea.x - 0.5, a.fovea.y - 0.5);
-  if (maculaOff && !total) {
-    // extend the sector so it reaches the fovea
-    let fa = fovAng;
-    while (fa < a0) fa += Math.PI * 2;
-    if (fa > a1) a1 = Math.max(a1, fa + 0.5);
-  }
+  const ph = rng.float(0, 6.28);
   const pts: [number, number][] = [];
-  const steps = 64;
-  const ph = rng.float(0, 6);
-  const inner = (ang: number) => {
-    let r = total ? 0.16 : 0.27 + 0.04 * Math.sin(ang * 3 + ph);
+  const steps = 96;
+  for (let i = 0; i < steps; i++) {
+    const ang = (i / steps) * Math.PI * 2 - Math.PI;
+    // membership: 1 inside a detached quadrant (±45°), falling off smoothly beyond
+    let m = total ? 1 : 0;
+    for (const c of centres) m = Math.max(m, 1 - smoothstep(0.75, 1.35, angDist(ang, c)));
+    const rDet = (total ? 0.15 : 0.25) + 0.025 * Math.sin(ang * 3 + ph) + 0.012 * Math.sin(ang * 7 + ph * 2);
+    let r = 0.8 + (rDet - 0.8) * m;
     if (maculaOff) {
-      let dd = Math.abs(ang - fovAng);
-      if (dd > Math.PI) dd = Math.PI * 2 - dd;
-      r = Math.min(r, fovR - 0.07 + dd * 0.25);
+      // the detachment balloons through the macula: a broad lobe past the fovea
+      const lobe = 1 - smoothstep(0.45, 1.5, angDist(ang, fovAng));
+      r = Math.min(r, r + (fovR - 0.085 - r) * lobe);
     } else {
-      // macula-on: boundary stays outside the fovea
-      r = Math.max(r, Math.min(0.3, fovR + 0.12 + 0 * ang));
+      // macula-on: keep the boundary clear of the fovea
+      const near = 1 - smoothstep(0.2, 0.9, angDist(ang, fovAng));
+      r = Math.max(r, (fovR + 0.08) * near);
     }
-    return Math.max(0.03, r);
-  };
-  if (total) {
-    for (let i = 0; i < steps; i++) {
-      const ang = (i / steps) * Math.PI * 2;
-      const r = inner(ang);
-      pts.push([0.5 + Math.cos(ang) * r, 0.5 + Math.sin(ang) * r]);
-    }
-    return pts; // inner boundary only — everything outside it is detached
-  }
-  for (let i = 0; i <= steps; i++) {
-    const ang = a0 + ((a1 - a0) * i) / steps;
-    pts.push([0.5 + Math.cos(ang) * 0.75, 0.5 + Math.sin(ang) * 0.75]);
-  }
-  for (let i = steps; i >= 0; i--) {
-    const ang = a0 + ((a1 - a0) * i) / steps;
-    const r = inner(ang);
-    pts.push([0.5 + Math.cos(ang) * r, 0.5 + Math.sin(ang) * r]);
+    pts.push([0.5 + Math.cos(ang) * Math.max(0.04, r), 0.5 + Math.sin(ang) * Math.max(0.04, r)]);
   }
   return pts;
+}
+
+/** Point-in-polygon (even-odd). */
+export function pointInPolygon(poly: ReadonlyArray<readonly [number, number]>, x: number, y: number): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i]!;
+    const [xj, yj] = poly[j]!;
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
 }
 
 export function computeFundusLayout(post: PosteriorSegment, eye: Eye, seed: number): FundusLayout {
@@ -362,7 +364,7 @@ export function computeFundusLayout(post: PosteriorSegment, eye: Eye, seed: numb
     a, post, seed, swelling,
     cup: cupProfile(post, a.nasal),
     tree, lesions, beads,
-    detachment: det && det.zones.length ? { zones: det.zones, maculaOff: det.maculaOff, polygon: detachmentPolygon(a, totalLike ? ['diffuse'] : det.zones, det.maculaOff, seed) } : undefined,
+    detachment: det && det.zones.length ? { zones: det.zones, maculaOff: det.maculaOff, polygon: detachmentBoundary(a, totalLike ? ['diffuse'] : det.zones, det.maculaOff, seed) } : undefined,
   };
 }
 
@@ -377,11 +379,17 @@ export function layoutToMap(L: FundusLayout, view: FundusViewport): FundusMap {
   const right = cup.r(0);
   const cx = a.disc.x + ((right - left) / 2) * a.disc.rx;
   const cy = a.disc.y + ((bottom - top) / 2) * a.disc.ry;
-  const marks: FundusMark[] = L.lesions.map(({ type, zone, x, y, r: rr, source }) => ({ type, zone: zone === 'diffuse' ? zoneOf(a, x, y) === 'disc' ? 'diffuse' : zone : zone, x, y, r: rr, source }));
+  const marks: FundusMark[] = L.lesions.map(({ type, zone, x, y, r: rr, source }) => ({ type, zone, x, y, r: rr, source }));
   if (L.detachment) {
     const poly = L.detachment.polygon;
-    const c = poly.reduce((acc, p) => [acc[0] + p[0] / poly.length, acc[1] + p[1] / poly.length], [0, 0]);
-    marks.push({ type: 'retinal-detachment', zone: L.detachment.zones[0] ?? 'periphery', x: c[0], y: c[1], r: 0.18, source: -1 });
+    let sx = 0;
+    let sy = 0;
+    let n = 0;
+    for (let gy = 0.05; gy < 1; gy += 0.05) for (let gx = 0.05; gx < 1; gx += 0.05) {
+      if (Math.hypot(gx - 0.5, gy - 0.5) > 0.48 || pointInPolygon(poly, gx, gy)) continue;
+      sx += gx; sy += gy; n++;
+    }
+    if (n) marks.push({ type: 'retinal-detachment', zone: L.detachment.zones[0] ?? 'periphery', x: sx / n, y: sy / n, r: Math.min(0.4, Math.sqrt(n * 0.0025 / Math.PI)), source: -1 });
   }
   if (L.post.vitreous === 'hemorrhage') marks.push({ type: 'vitreous-hemorrhage', zone: 'diffuse', x: 0.5, y: 0.6, r: 0.35, source: -1 });
   if (L.post.vitreous === 'weiss-ring') marks.push({ type: 'weiss-ring', zone: 'disc', x: a.disc.x - a.nasal * 0.04, y: a.disc.y - 0.03, r: 0.05, source: -1 });
@@ -397,4 +405,9 @@ export function layoutToMap(L: FundusLayout, view: FundusViewport): FundusMap {
     detachment: L.detachment ? { ...L.detachment } : undefined,
     view,
   };
+}
+
+/** True when the world point lies on detached retina in this map. */
+export function isDetachedAt(map: Pick<FundusMap, 'detachment'>, x: number, y: number): boolean {
+  return !!map.detachment && !pointInPolygon(map.detachment.polygon, x, y);
 }

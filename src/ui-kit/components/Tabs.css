@@ -4,6 +4,15 @@
   overflow-x: auto; scrollbar-width: none;
 }
 .lm-tabs::-webkit-scrollbar { display: none; }
+/* edge fades tell the player there are more tabs off-screen */
+.lm-tabs.fade-start, .lm-tabs.fade-end {
+  --fade-a: 0px; --fade-b: 0px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade-a), #000 calc(100% - var(--fade-b)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade-a), #000 calc(100% - var(--fade-b)), transparent 100%);
+  scroll-behavior: smooth;
+}
+.lm-tabs.fade-start { --fade-a: 36px; }
+.lm-tabs.fade-end { --fade-b: 36px; }
 .lm-tabs--block { display: flex; }
 .lm-tabs--block .lm-tabs__tab { flex: 1; justify-content: center; }
 .lm-tabs--pill {
@@ -41,4 +50,11 @@
   background: var(--tabs-c); box-shadow: 0 0 12px var(--tabs-c);
 }
 .lm-tabpanel { animation: lm-fade-up var(--lm-dur-med) var(--lm-ease-out-expo) both; }
-.lm-tabpanel:focus-visible { box-shadow: none; }
+.lm-tabpanel:focus-visible { --lm-focus-offset: 4px; border-radius: var(--lm-r-sm); }
+/* the tablist scrolls, so the ring sits inside the tab and is never clipped */
+.lm-tabs__tab:focus-visible { --lm-focus-offset: -3px; box-shadow: none; color: var(--lm-ivory); }
+.lm-tabs__tab.is-active:focus-visible { --lm-focus-color: var(--lm-ink-900); color: var(--lm-text-on-gold); }
+.lm-tabs--underline .lm-tabs__tab:focus-visible { --lm-focus-offset: -2px; border-radius: 6px; }
+html.high-contrast .lm-tabs__tab.is-active:focus-visible { --lm-focus-color: #000; }
+.lm-tabs--underline .lm-tabs__tab.is-active:focus-visible { --lm-focus-color: var(--tabs-c); color: var(--lm-ivory); }
+html.high-contrast .lm-tabs--underline .lm-tabs__tab.is-active:focus-visible { --lm-focus-color: #fff; }

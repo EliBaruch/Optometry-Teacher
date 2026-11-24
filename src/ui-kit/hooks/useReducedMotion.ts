@@ -39,6 +39,14 @@ export function useReducedMotion(): boolean {
     return () => mq.removeEventListener?.('change', on);
   }, []);
 
+  // The app (or a test harness) may toggle html.reduced-motion at any time.
+  useEffect(() => {
+    if (typeof MutationObserver === 'undefined' || typeof document === 'undefined') return;
+    const mo = new MutationObserver(() => setOsPref(prefersReducedMotion()));
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => mo.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!services) return;
     setSetting(services.settings.get().reducedMotion);

@@ -93,7 +93,7 @@ function Eye({ c, a, side }: { c: PaintCtx; a: AttrMap; side: Side }) {
           <ellipse cx={ex + 1.9} cy={ey - 1.9} rx={1.45 + g.child * 0.4} ry={1.2 + g.child * 0.35} fill="#fffaf0" opacity="0.95" />
           <circle cx={ex - 1.6} cy={ey + 1.8} r="0.55" fill="#fff" opacity="0.6" />
         </g>
-        <path data-r={`shade${key}`} {...a[`shade${key}`]} fill="none" stroke={skin.deep} stroke-opacity="0.38" stroke-width="3.4" filter={`url(#${c.id('soft')})`} />
+        <path data-r={`shade${key}`} {...a[`shade${key}`]} fill="none" stroke={skin.deep} stroke-opacity="0.2" stroke-width="3.6" />
         {tear && <path data-r={`tear${key}`} {...a[`tear${key}`]} fill="none" stroke="#e9f6ff" stroke-opacity="0.9" stroke-width="1.3" />}
         <path data-r={`lid${key}`} {...a[`lid${key}`]} fill={lidFill} />
       </g>

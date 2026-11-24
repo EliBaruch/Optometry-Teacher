@@ -55,7 +55,10 @@ export function Chip({ children, icon, accent, selected, disabled, onClick, onRe
     <span class={classes} style={style} title={title}>
       {body}
       {onRemove && (
-        <button type="button" class="lm-chip__remove" aria-label={`Remove ${typeof children === 'string' ? children : ''}`.trim()} onClick={onRemove}>
+        <button type="button" class="lm-chip__remove" aria-label={`Remove ${typeof children === 'string' ? children : ''}`.trim()} onClick={() => {
+            play('back', { volume: 0.6 });
+            onRemove();
+          }}>
           <Icon name="close" />
         </button>
       )}

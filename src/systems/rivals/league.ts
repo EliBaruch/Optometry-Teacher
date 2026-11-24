@@ -5,7 +5,7 @@
 import type { ScoreBreakdown } from '@core';
 import { ROSTER, type Rival, type RivalId } from './roster';
 import type { RivalCaseResult } from './sim';
-import { boardPointsAt, dayKey, weekEnd, weekKey } from './week';
+import { boardPointsAt, dayKey, sampleTimes, weekEnd, weekKey, weekStart } from './week';
 
 export const PLAYER_ID = 'you';
 export type EntrantId = RivalId | typeof PLAYER_ID;
@@ -143,7 +143,7 @@ export function overtaken(before: Standing[], after: Standing[]): Rival[] {
 /** Next week's field strength: follows the player's level, smoothly and within bounds. */
 export function nextScale(prev: RivalsState): number {
   if (prev.cases === 0) return Math.max(0.45, prev.scale * 0.85);
-  const target = Math.min(1.4, Math.max(0.45, prev.points / 2200));
+  const target = Math.min(2.2, Math.max(0.45, prev.points / 2300));
   return Math.round((prev.scale * 0.5 + target * 0.5) * 1000) / 1000;
 }
 
@@ -275,4 +275,25 @@ export function checkSlipped(
     passedBy: above,
     gap: above ? above.points - state.points : undefined,
   };
+}
+
+export interface BoardSeries {
+  id: EntrantId;
+  color: string;
+  points: { t: number; p: number }[];
+}
+
+/** Everyone's points through the week so far (player's line steps up at each finished case). */
+export function boardSeries(state: RivalsState, now: number, roster: readonly Rival[] = ROSTER, samples = 42): BoardSeries[] {
+  const times = sampleTimes(now, samples);
+  const out: BoardSeries[] = roster.map((r) => ({
+    id: r.id,
+    color: r.color,
+    points: times.map((t) => ({ t, p: boardPointsAt(r, t, state.scale, state.joinedAt) })),
+  }));
+  const you: { t: number; p: number }[] = [{ t: weekStart(now), p: 0 }];
+  for (const e of state.log) if (e.t <= now) you.push({ t: e.t, p: e.p });
+  you.push({ t: now, p: state.points });
+  out.push({ id: PLAYER_ID, color: '#ffd27a', points: you });
+  return out;
 }

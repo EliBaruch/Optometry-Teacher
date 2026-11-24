@@ -1,0 +1,55 @@
+import type { ComponentChildren } from 'preact';
+import { useSignal } from '@ui-kit';
+import { unseenCount } from '../model';
+import { GALLERY_COLOR, SYSTEM_ID, type CollectionStore } from '../store';
+import { GalleryScene } from './GalleryScene';
+import { LatestCard } from './LatestCard';
+import { PackReveal } from './PackReveal';
+
+/** Gate: render nothing once the system has been uninstalled (registries cannot unregister). */
+function Active(props: { store: CollectionStore; children: () => ComponentChildren }) {
+  const on = useSignal(props.store.active);
+  return on ? <>{props.children()}</> : null;
+}
+
+export function registerUi(store: CollectionStore): void {
+  const { registries } = store.services;
+
+  registries.scenes.register({
+    id: 'gallery',
+    music: 'zen',
+    component: (p) => <GalleryScene store={store} services={p.services} />,
+  });
+
+  registries.hub.register({
+    id: 'gallery',
+    title: 'Gallery',
+    subtitle: 'Holographic iris cards',
+    icon: 'gem',
+    accent: GALLERY_COLOR,
+    order: 50,
+    system: SYSTEM_ID,
+    sceneId: 'gallery',
+    badge: () => {
+      if (!store.active.get()) return undefined;
+      const n = unseenCount(store.state.get());
+      return n ? `${n} NEW` : undefined;
+    },
+  });
+
+  registries.hud.register({
+    id: 'collection:reveal',
+    slot: 'results-extra',
+    order: 40,
+    system: SYSTEM_ID,
+    component: () => <Active store={store}>{() => <PackReveal store={store} />}</Active>,
+  });
+
+  registries.hud.register({
+    id: 'collection:latest',
+    slot: 'hub-sidebar',
+    order: 40,
+    system: SYSTEM_ID,
+    component: () => <Active store={store}>{() => <LatestCard store={store} />}</Active>,
+  });
+}

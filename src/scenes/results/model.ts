@@ -1,7 +1,7 @@
 import {
   TEST_CATALOG, URGENCIES,
   type CaseSession, type ClinicalCase, type Confidence, type Diagnosis, type DiagnosisId, type HistoryCategory,
-  type RevealedFinding, type ScoreBreakdown, type TestId, type Urgency,
+  type Eye, type PatientFindings, type RevealedFinding, type ScoreBreakdown, type TestId, type Urgency,
 } from '@core';
 
 /**
@@ -231,4 +231,13 @@ export function buildReview({ kase, session, diagnosis, timeout }: ReviewInput):
 export function clockText(sec: number): string {
   const s = Math.max(0, Math.round(sec));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/** The eye to portrait on the verdict card: the red one, else the one with worse best-corrected acuity. */
+export function affectedEye(f: PatientFindings): Eye {
+  const red = f.external?.redEye;
+  if (red?.length === 1) return red[0]!;
+  const od = f.va.OD.bestCorrected;
+  const os = f.va.OS.bestCorrected;
+  return os > od + 0.05 ? 'OS' : 'OD';
 }

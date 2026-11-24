@@ -38,6 +38,7 @@ export interface FundusMap {
   macula: { x: number; y: number; r: number };
   fovea: { x: number; y: number; r: number };
   lesions: FundusMark[];
+  /** `polygon` bounds the still-ATTACHED retina: points outside it are detached (see isDetachedAt). */
   detachment?: { zones: Zone[]; maculaOff: boolean; polygon: [number, number][] };
   view: FundusViewport;
 }

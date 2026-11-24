@@ -1,0 +1,209 @@
+/* ==========================================================================
+   Lounge (system 'comfort') — banner, gift box, calendar, jar, modals.
+   ========================================================================== */
+
+/* ── Gift box ─────────────────────────────────────────────────────────── */
+.cf-gift { overflow: visible; }
+.cf-gift__halo, .cf-gift__rays, .cf-gift__inner { opacity: 0; transition: opacity var(--lm-dur-med) var(--lm-ease-out); }
+.cf-gift__box, .cf-gift__lid { transform-box: fill-box; }
+.cf-gift__box { transform-origin: 50% 100%; }
+.cf-gift__lid { transform-origin: 50% 100%; transition: transform var(--lm-dur-reveal) var(--lm-ease-spring); }
+.cf-gift__rays { transform-origin: 60px 58px; }
+
+.cf-gift--ready .cf-gift__halo { opacity: 0.55; animation: cf-breathe 2.6s var(--lm-ease-in-out) infinite; }
+.cf-gift--ready .cf-gift__box { animation: cf-bob 2.6s var(--lm-ease-in-out) infinite; }
+.cf-gift--ready .cf-gift__lid { animation: cf-lid-peek 2.6s var(--lm-ease-in-out) infinite; }
+.cf-gift--shaking .cf-gift__box { animation: cf-wobble 0.3s var(--lm-ease-in-out) infinite; }
+.cf-gift--shaking .cf-gift__halo { opacity: 0.8; }
+.cf-gift--open .cf-gift__lid { transform: translate(-10%, -78%) rotate(-24deg); }
+.cf-gift--open .cf-gift__halo { opacity: 1; }
+.cf-gift--open .cf-gift__inner { opacity: 1; }
+.cf-gift--open .cf-gift__rays { opacity: 0.9; animation: cf-spin 14s linear infinite; }
+.cf-gift--idle { filter: saturate(0.7) brightness(0.85); }
+.cf-gift--grand .cf-gift__halo { opacity: 0.4; }
+
+@keyframes cf-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4%); } }
+@keyframes cf-lid-peek { 0%, 70%, 100% { transform: none; } 80% { transform: translateY(-6%) rotate(-3deg); } 90% { transform: translateY(-1%) rotate(1deg); } }
+@keyframes cf-wobble { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-6deg) scale(1.03); } 75% { transform: rotate(6deg) scale(1.03); } }
+@keyframes cf-spin { to { transform: rotate(360deg); } }
+@keyframes cf-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.75; } }
+
+/* ── Calendar ─────────────────────────────────────────────────────────── */
+.cf-cal { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr) 1.35fr; gap: 6px; }
+.cf-cal__day {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-height: 70px; padding: 8px 2px; border-radius: var(--lm-r-sm);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.06), rgba(56, 189, 248, 0.015));
+  border: 1px solid rgba(186, 230, 253, 0.12); color: var(--lm-muted);
+  animation: lm-fade-up var(--lm-dur-reveal) var(--lm-ease-out-expo) both; animation-delay: calc(var(--i) * 45ms);
+}
+.cf-cal__n { font-size: var(--lm-fs-2xs); letter-spacing: 0.08em; opacity: 0.8; }
+.cf-cal__icon { color: #bae6fd; opacity: 0.75; line-height: 0; }
+.cf-cal__amt { font-size: var(--lm-fs-xs); color: var(--lm-ivory-dim); }
+.cf-cal__amt em { font-style: normal; color: var(--lm-gold); margin-left: 1px; }
+.cf-cal__day.is-done { background: rgba(94, 234, 212, 0.07); border-color: rgba(94, 234, 212, 0.25); }
+.cf-cal__day.is-done .cf-cal__icon { color: var(--lm-normal); opacity: 1; }
+.cf-cal__day.is-done .cf-cal__amt { opacity: 0.55; text-decoration: line-through; text-decoration-color: rgba(94, 234, 212, 0.5); }
+.cf-cal__day.is-today { border-color: rgba(125, 211, 252, 0.55); color: var(--lm-ivory); }
+.cf-cal__day.is-ready {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.26), rgba(56, 189, 248, 0.08));
+  box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.5), 0 0 22px rgba(56, 189, 248, 0.35);
+}
+.cf-cal__day.is-ready::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%) -150% 0 / 250% 100% no-repeat;
+  animation: cf-sheen 2.8s var(--lm-ease-in-out) infinite;
+}
+.cf-cal__day.is-ready .cf-cal__icon { color: #e0f2fe; opacity: 1; }
+.cf-cal__day.is-grand { border-color: rgba(255, 210, 122, 0.3); background: linear-gradient(180deg, rgba(255, 210, 122, 0.1), rgba(255, 210, 122, 0.02)); }
+.cf-cal__day.is-grand .cf-cal__icon { color: var(--lm-gold); }
+.cf-cal__day.is-grand.is-ready { box-shadow: 0 0 0 1px rgba(255, 210, 122, 0.6), 0 0 26px rgba(255, 210, 122, 0.4); }
+@keyframes cf-sheen { 0% { background-position: -150% 0; } 60%, 100% { background-position: 150% 0; } }
+
+.cf-cal--compact { grid-template-columns: repeat(7, auto); justify-content: start; gap: 5px; }
+.cf-cal--compact .cf-cal__day { min-height: 0; width: 22px; height: 22px; padding: 0; border-radius: 50%; }
+.cf-cal--compact .cf-cal__day.is-grand { width: 26px; height: 26px; margin-top: -2px; }
+.cf-cal--compact .cf-cal__n { font-size: 10px; opacity: 1; }
+.cf-cal--compact .cf-cal__day.is-done { background: rgba(94, 234, 212, 0.22); color: #d5fff7; }
+
+/* ── Banner (hub) ─────────────────────────────────────────────────────── */
+.cf-banner {
+  --cf-accent: #38bdf8;
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--lm-sp-5);
+  padding: var(--lm-sp-4) var(--lm-sp-6) var(--lm-sp-4) var(--lm-sp-4);
+  border-radius: var(--lm-r-lg);
+  background:
+    radial-gradient(120% 140% at 0% 50%, rgba(56, 189, 248, 0.2), transparent 55%),
+    radial-gradient(80% 120% at 100% 0%, rgba(255, 210, 122, 0.12), transparent 60%),
+    var(--lm-glass-bg);
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  box-shadow: var(--lm-glass-highlight), var(--lm-shadow-2), 0 0 40px -10px rgba(56, 189, 248, 0.35);
+  backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  animation: lm-fade-up var(--lm-dur-reveal) var(--lm-ease-out-expo) both;
+}
+.cf-banner::before {
+  /* fine rain sliding across the glass */
+  content: ''; position: absolute; inset: -40px 0 0; z-index: -1; pointer-events: none; opacity: 0.55;
+  background-image: repeating-linear-gradient(100deg, transparent 0 22px, rgba(186, 230, 253, 0.07) 22px 23px, transparent 23px 47px);
+  animation: cf-banner-rain 3.2s linear infinite;
+}
+.cf-banner__glow {
+  position: absolute; z-index: -1; left: -40px; top: 50%; width: 220px; height: 220px; transform: translateY(-50%);
+  border-radius: 50%; background: radial-gradient(circle, rgba(56, 189, 248, 0.32), transparent 65%);
+  animation: cf-breathe 4s var(--lm-ease-in-out) infinite; pointer-events: none;
+}
+@keyframes cf-banner-rain { from { transform: translateY(0); } to { transform: translateY(40px); } }
+
+.cf-banner__gift {
+  position: relative; display: grid; place-items: center; width: 92px; height: 92px; border-radius: 50%;
+  transition: transform var(--lm-dur-ui) var(--lm-ease-spring);
+}
+.cf-banner__gift:hover { transform: scale(1.06) rotate(-2deg); }
+.cf-banner__gift:active { transform: scale(0.96); }
+.cf-banner__ping {
+  position: absolute; top: 10px; right: 10px; width: 12px; height: 12px; border-radius: 50%;
+  background: #7dd3fc; box-shadow: 0 0 0 0 rgba(125, 211, 252, 0.7); animation: cf-ping 1.8s var(--lm-ease-out) infinite;
+}
+@keyframes cf-ping { 0% { box-shadow: 0 0 0 0 rgba(125, 211, 252, 0.7); } 100% { box-shadow: 0 0 0 14px rgba(125, 211, 252, 0); } }
+
+.cf-banner__text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.cf-banner__eyebrow { color: #7dd3fc; display: inline-flex; align-items: center; gap: 6px; }
+.cf-banner__title { font-size: var(--lm-fs-xl); color: var(--lm-ivory); text-shadow: 0 0 24px rgba(56, 189, 248, 0.3); }
+.cf-banner__sub { color: var(--lm-muted); font-size: var(--lm-fs-sm); margin-bottom: 4px; }
+
+.cf-banner__cta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.cf-banner__continue { min-width: 220px; }
+.cf-banner__cta-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.cf-banner__cta-k { font-size: 10px; letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; opacity: 0.75; font-weight: 700; }
+.cf-banner__cta-v { font-family: var(--lm-font-display); font-size: var(--lm-fs-lg); font-weight: 560; }
+.cf-banner__cta-detail { font-size: var(--lm-fs-xs); color: var(--lm-muted); }
+
+@media (max-width: 720px) {
+  .cf-banner { grid-template-columns: auto 1fr; gap: var(--lm-sp-3); padding: var(--lm-sp-3); }
+  .cf-banner__gift { width: 72px; height: 72px; }
+  .cf-banner__gift .cf-gift { width: 64px; height: 64px; }
+  .cf-banner__title { font-size: var(--lm-fs-lg); }
+  .cf-banner__cta { grid-column: 1 / -1; align-items: stretch; }
+  .cf-banner__continue { width: 100%; min-width: 0; }
+  .cf-banner__cta-detail { text-align: center; }
+}
+
+/* ── Jar ──────────────────────────────────────────────────────────────── */
+.cf-jar { overflow: visible; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45)); }
+.cf-jar__warm { animation: cf-breathe 3.6s var(--lm-ease-in-out) infinite; }
+
+/* ── Gift reveal modal ────────────────────────────────────────────────── */
+.cf-reveal .lm-modal__body { display: flex; flex-direction: column; gap: var(--lm-sp-4); align-items: stretch; }
+.cf-reveal__stage { display: flex; flex-direction: column; align-items: center; gap: var(--lm-sp-3); text-align: center; }
+.cf-reveal__box {
+  border-radius: 50%; padding: 6px; transition: transform var(--lm-dur-ui) var(--lm-ease-spring);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.14), transparent 70%);
+}
+.cf-reveal__box:not(:disabled):hover { transform: scale(1.05); }
+.cf-reveal__box:disabled { cursor: default; }
+.cf-reveal__loot { display: flex; flex-direction: column; align-items: center; gap: var(--lm-sp-2); animation: cf-pop var(--lm-dur-reveal) var(--lm-ease-spring) both; }
+.cf-reveal__coins { display: flex; align-items: baseline; gap: 8px; }
+.cf-reveal__glyph { color: var(--lm-gold); font-size: 28px; text-shadow: var(--lm-text-glow); }
+.cf-reveal__num { font-size: 52px; font-weight: 700; line-height: 1; color: #fff4da; text-shadow: var(--lm-text-glow); }
+.cf-reveal__unit { color: var(--lm-muted); font-size: var(--lm-fs-sm); }
+.cf-reveal__satchel {
+  --rc: #cbd5e1;
+  display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px; border-radius: var(--lm-r-pill);
+  color: var(--rc); border: 1px solid color-mix(in srgb, var(--rc) 55%, transparent);
+  background: color-mix(in srgb, var(--rc) 14%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--rc) 40%, transparent);
+  font-weight: 650; font-size: var(--lm-fs-sm);
+  animation: cf-pop var(--lm-dur-reveal) var(--lm-ease-spring) 0.9s both;
+}
+.cf-reveal__satchel strong { color: var(--lm-ivory); }
+.cf-reveal__note { color: var(--lm-muted); font-size: var(--lm-fs-xs); max-width: 30ch; }
+.cf-reveal__preview p { color: var(--lm-ivory-dim); }
+.cf-reveal__preview strong { color: var(--lm-gold); font-size: var(--lm-fs-lg); }
+.cf-reveal__odds { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; margin-top: 6px; font-size: var(--lm-fs-xs); }
+.cf-reveal__odds em { flex-basis: 100%; color: var(--lm-muted); font-style: normal; }
+.cf-reveal .cf-cal--compact { justify-content: center; }
+@keyframes cf-pop { from { opacity: 0; transform: scale(0.6) translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ── Welcome back modal ───────────────────────────────────────────────── */
+.cf-welcome__body { display: flex; flex-direction: column; gap: var(--lm-sp-4); }
+.cf-welcome__line { font-family: var(--lm-font-display); font-size: var(--lm-fs-lg); font-style: italic; color: var(--lm-ivory-dim); }
+.cf-welcome__grid { display: grid; grid-template-columns: auto 1fr; gap: var(--lm-sp-5); align-items: center; }
+.cf-welcome__jar { animation: cf-pop var(--lm-dur-slow) var(--lm-ease-spring) both; }
+.cf-welcome__earn { display: flex; flex-direction: column; gap: 4px; }
+.cf-welcome__coins { display: flex; align-items: baseline; gap: 8px; }
+.cf-welcome__glyph { color: var(--lm-gold); font-size: 26px; }
+.cf-welcome__num { font-size: 48px; font-weight: 700; line-height: 1; color: #fff4da; text-shadow: var(--lm-text-glow); }
+.cf-welcome__rate { font-size: var(--lm-fs-xs); }
+.cf-welcome__bonus {
+  margin-top: 6px; padding: 8px 12px; border-radius: var(--lm-r-sm); font-size: var(--lm-fs-sm);
+  background: linear-gradient(90deg, rgba(244, 114, 182, 0.16), rgba(255, 210, 122, 0.1));
+  border: 1px solid rgba(244, 114, 182, 0.3); color: var(--lm-ivory-dim);
+  animation: cf-pop var(--lm-dur-reveal) var(--lm-ease-spring) 0.6s both;
+}
+.cf-welcome__bonus strong { color: var(--lm-gold); font-family: var(--lm-font-num); font-size: var(--lm-fs-lg); margin-right: 4px; }
+.cf-welcome__flag {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--lm-sp-3); flex-wrap: wrap;
+  padding: 10px 14px; border-radius: var(--lm-r-md); font-size: var(--lm-fs-sm); color: var(--lm-ivory-dim);
+  background: rgba(167, 139, 250, 0.1); border: 1px solid rgba(167, 139, 250, 0.28);
+}
+.cf-welcome__flag strong { color: var(--lm-career); }
+.cf-welcome__actions { display: flex; justify-content: flex-end; gap: var(--lm-sp-2); flex-wrap: wrap; width: 100%; }
+@media (max-width: 480px) {
+  .cf-welcome__line { font-size: var(--lm-fs-md); }
+  .cf-welcome__grid { gap: var(--lm-sp-3); }
+  .cf-welcome__jar .cf-jar { width: 84px; height: auto; }
+  .cf-welcome__num { font-size: 38px; }
+  .cf-welcome__actions { flex-direction: column-reverse; }
+  .cf-welcome__actions > * { flex: 1 1 auto; width: 100%; }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────── */
+html.reduced-motion .cf-banner::before, html.reduced-motion .cf-banner__glow, html.reduced-motion .cf-banner__ping,
+html.reduced-motion .cf-gift *, html.reduced-motion .cf-cal__day, html.reduced-motion .cf-cal__day::after,
+html.reduced-motion .cf-jar__warm, html.reduced-motion .cf-reveal__loot, html.reduced-motion .cf-reveal__satchel,
+html.reduced-motion .cf-welcome__jar, html.reduced-motion .cf-welcome__bonus, html.reduced-motion .cf-banner { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .cf-banner::before, .cf-banner__glow, .cf-banner__ping, .cf-gift *, .cf-cal__day, .cf-cal__day::after, .cf-jar__warm,
+  .cf-reveal__loot, .cf-reveal__satchel, .cf-welcome__jar, .cf-welcome__bonus, .cf-banner { animation: none !important; }
+}

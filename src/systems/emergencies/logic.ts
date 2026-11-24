@@ -5,7 +5,7 @@
  *  - the deterministic weekly Grand Rounds pick,
  *  - persisted stats reducer.
  */
-import { hashString, type ClinicalCase, type ScoreBreakdown, type Urgency } from '@core';
+import { createRng, type ClinicalCase, type ScoreBreakdown, type Urgency } from '@core';
 
 // ── Clock ────────────────────────────────────────────────────────────────
 
@@ -21,6 +21,12 @@ export function formatClock(sec: number): string {
   const s = Math.max(0, sec);
   if (s < 10) return (Math.floor(s * 10) / 10).toFixed(1);
   const whole = Math.ceil(s);
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
+}
+
+/** Always minutes:seconds, e.g. "0:07", "1:42" (for elapsed times). */
+export function formatMSS(sec: number): string {
+  const whole = Math.max(0, Math.round(sec));
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
 }
 
@@ -107,12 +113,14 @@ export function rescueReward(score: ScoreBreakdown, elapsedSec: number, limitSec
   const coins = Math.round(25 + 55 * quality + 20 * timeLeft);
   const xp = Math.round(40 + 80 * quality + 30 * timeLeft);
   const rarity: Rarity = score.perfect ? 'legendary' : quality >= 0.8 ? 'epic' : 'rare';
-  const k = 0.5 + 0.5 * quality;
-  return {
-    coins, xp, rarity, quality, timeLeft,
-    grandCoins: grandRounds ? Math.round(150 * k) : 0,
-    grandXp: grandRounds ? Math.round(250 * k) : 0,
-  };
+  const grand = grandRounds ? grandRoundsBonus(quality) : { coins: 0, xp: 0 };
+  return { coins, xp, rarity, quality, timeLeft, grandCoins: grand.coins, grandXp: grand.xp };
+}
+
+/** Weekly Grand Rounds bonus: half for any save, the rest earned by work-up quality. */
+export function grandRoundsBonus(quality: number): { coins: number; xp: number } {
+  const k = 0.5 + 0.5 * clamp01(quality);
+  return { coins: Math.round(150 * k), xp: Math.round(250 * k) };
 }
 
 const URGENCY_LINE: Record<Urgency, string> = {
@@ -185,17 +193,40 @@ export function grandRoundsPool(cases: readonly ClinicalCase[]): ClinicalCase[] 
   return cases.filter((c) => (c.emergency?.timeLimitSec ?? 0) > 0).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
-function pickIndex(week: string, n: number): number {
-  return hashString(`lumen|grand-rounds|${week}`) % n;
+/** Whole weeks since Monday 1 Jan 2024 (local), DST-safe. */
+export function weekIndex(ms: number): number {
+  return Math.round((weekStart(ms) - new Date(2024, 0, 1).getTime()) / (7 * DAY));
 }
 
-/** Deterministic weekly feature case — the same for every player, never the same two weeks running. */
+const mod = (a: number, n: number) => ((a % n) + n) % n;
+
+/** A seeded "shuffle bag" of pool positions for one cycle of n weeks. */
+function bag(cycle: number, n: number): number[] {
+  const order = Array.from({ length: n }, (_, i) => i);
+  const rng = createRng(`lumen|grand-rounds|${cycle}`);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(rng.next() * (i + 1));
+    [order[i], order[j]] = [order[j]!, order[i]!];
+  }
+  return order;
+}
+
+/**
+ * Deterministic weekly feature case — the same for every player. Every timed
+ * emergency is featured once per cycle (shuffle bag) and never two weeks running.
+ */
 export function grandRoundsCase(cases: readonly ClinicalCase[], now: number): ClinicalCase | undefined {
   const pool = grandRoundsPool(cases);
-  if (!pool.length) return undefined;
-  let i = pickIndex(weekKey(now), pool.length);
-  if (pool.length > 1 && i === pickIndex(weekKey(now - 7 * DAY), pool.length)) i = (i + 1) % pool.length;
-  return pool[i];
+  const n = pool.length;
+  if (!n) return undefined;
+  const w = weekIndex(now);
+  if (n < 3) return pool[mod(w, n)];
+  const cycle = Math.floor(w / n);
+  const order = bag(cycle, n);
+  // Seam between cycles: don't repeat last cycle's final case (only positions 0/1 move, so the
+  // previous bag's last entry is never affected by its own fix).
+  if (order[0] === bag(cycle - 1, n)[n - 1]) [order[0], order[1]] = [order[1]!, order[0]!];
+  return pool[order[mod(w, n)]!];
 }
 
 // ── Persisted stats ──────────────────────────────────────────────────────

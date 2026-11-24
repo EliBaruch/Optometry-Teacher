@@ -75,12 +75,11 @@
   animation: cr-wash 500ms var(--lm-ease-out) both;
 }
 .cr-saved__rays {
-  position: absolute; left: 50%; top: 42%; width: min(160vmin, 1400px); aspect-ratio: 1; translate: -50% -50%;
-  background: repeating-conic-gradient(from 0deg, rgba(255, 210, 122, 0.16) 0deg 4deg, transparent 4deg 15deg);
-  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.5) 30%, transparent 62%);
-  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.5) 30%, transparent 62%);
+  position: absolute; left: 50%; top: 42%; width: min(130vmin, 1100px); aspect-ratio: 1; translate: -50% -50%;
+  will-change: transform, opacity; contain: strict;
   animation: cr-rays-in 900ms var(--lm-ease-out-expo) both, cr-spin 26s linear infinite;
 }
+.cr-saved__rays svg { display: block; width: 100%; height: 100%; }
 .cr-saved__card { position: relative; display: grid; justify-items: center; gap: 4px; text-align: center; padding: 0 var(--lm-gutter); margin-top: -6vh; }
 .cr-saved__emblem { position: relative; filter: drop-shadow(0 0 28px rgba(255, 210, 122, 0.55)); animation: cr-emblem 900ms var(--lm-ease-spring-soft) both; }
 .cr-eye { display: block; width: clamp(130px, 22vw, 190px); height: auto; overflow: visible; }
@@ -116,7 +115,8 @@
 @keyframes cr-title { 0% { opacity: 0; transform: translateY(18px) scale(0.86); letter-spacing: 0.12em; } 100% { opacity: 1; transform: none; letter-spacing: -0.01em; } }
 
 @media (max-width: 480px) {
-  .cr-arrival__title { letter-spacing: 0.04em; }
+  .cr-arrival__title { letter-spacing: 0.04em; font-size: clamp(2.2rem, 13vw, 3rem); }
+  .cr-arrival__glyph { display: none; }
   .cr-arrival__stripes { width: 18vw; }
   .cr-arrival__sub { font-size: var(--lm-fs-sm); }
 }

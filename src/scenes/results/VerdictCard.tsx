@@ -1,6 +1,7 @@
-import { AvatarBust } from '@render';
+import { useMemo } from 'preact/hooks';
+import { AvatarBust, EyeCanvas, eyeStateFromFindings } from '@render';
 import { Badge, Icon, cx } from '@ui-kit';
-import { CONFIDENCE_LABEL, URGENCY_LABEL, type ReviewModel } from './model';
+import { CONFIDENCE_LABEL, URGENCY_LABEL, affectedEye, type ReviewModel } from './model';
 
 const VERDICT_TITLE: Record<ReviewModel['verdict'], string> = {
   correct: 'Correct diagnosis',
@@ -40,18 +41,28 @@ export interface VerdictCardProps {
   /** Verdict impact has landed (glow / crossed-out reveal). */
   landed: boolean;
   reduced: boolean;
+  /** The flip has finished: the card follows the pointer gently. */
+  settled?: boolean;
   cardRef?: (el: HTMLDivElement | null) => void;
 }
 
 /** The diagnosis card: face-down with the player's call, flips to the verdict. */
-export function VerdictCard({ review, flipped, landed, reduced, cardRef }: VerdictCardProps) {
+export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef }: VerdictCardProps) {
   const { verdict, kase, correctDx, urgency } = review;
   const p = kase.patient;
   const isWrong = verdict === 'wrong';
+  const eye = useMemo(() => {
+    const e = affectedEye(kase.findings);
+    try {
+      return { e, state: eyeStateFromFindings(kase.findings, e) };
+    } catch {
+      return null;
+    }
+  }, [kase]);
   return (
     <div
       ref={cardRef}
-      class={cx('rs-card', `rs-card--${verdict}`, flipped && 'is-flipped', landed && 'is-landed', reduced && 'is-reduced')}
+      class={cx('rs-card', `rs-card--${verdict}`, flipped && 'is-flipped', landed && 'is-landed', settled && 'is-settled', reduced && 'is-reduced')}
       aria-live="polite"
     >
       <div class="rs-card__inner">
@@ -80,6 +91,13 @@ export function VerdictCard({ review, flipped, landed, reduced, cardRef }: Verdi
               </span>
             </div>
           </div>
+
+          {eye && (
+            <div class="rs-card__eye" aria-hidden="true">
+              <EyeCanvas state={eye.state} width={300} height={150} animate={flipped && !reduced} blink={false} reducedMotion={reduced} />
+              <span class="rs-card__eye-tag">{eye.e}</span>
+            </div>
+          )}
 
           <div class="rs-card__dx">
             <span class="lm-eyebrow">{verdict === 'correct' ? CATEGORY_LABEL[correctDx?.category ?? ''] ?? 'Diagnosis' : 'The answer was'}</span>

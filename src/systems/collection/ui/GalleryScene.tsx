@@ -1,0 +1,197 @@
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import type { DiagnosisCategory, GameServices } from '@core';
+import { Button, Chip, CountUp, Icon, RingMeter, Screen, cx, useRegistry, useSfx, useSignal } from '@ui-kit';
+import { orderedDiagnoses, setProgress } from '../catalog';
+import { CARD_RARITIES, frameFor, setReward, type CardRarity } from '../model';
+import { GALLERY_COLOR, RARITY_HEX, RARITY_NAME, type CollectionStore } from '../store';
+import { CardInspect } from './CardInspect';
+import { GhostCard, IrisCard, type CardView } from './IrisCard';
+import { OddsModal } from './OddsModal';
+import { viewFor } from './views';
+import './gallery.css';
+
+type WingFilter = 'all' | DiagnosisCategory;
+type RarityFilter = 'all' | CardRarity;
+
+export function GalleryScene({ store, services }: { store: CollectionStore; services: GameServices }) {
+  const state = useSignal(store.state);
+  const active = useSignal(store.active);
+  const diagnoses = useRegistry(services.registries.diagnoses);
+  const catalog = useMemo(() => orderedDiagnoses(diagnoses), [diagnoses]);
+  const sets = useMemo(() => setProgress(state, catalog), [state, catalog]);
+  const play = useSfx();
+
+  const [wing, setWing] = useState<WingFilter>('all');
+  const [rarity, setRarity] = useState<RarityFilter>('all');
+  const [ownedOnly, setOwnedOnly] = useState(false);
+  const [study, setStudy] = useState(false);
+  const [inspect, setInspect] = useState<string | null>(null);
+  const [odds, setOdds] = useState(false);
+  // NEW ribbons are frozen for this visit, then cleared when the player leaves.
+  const [fresh] = useState(() => new Set(Object.values(store.state.get().cards).filter((c) => !c.seen).map((c) => c.dx)));
+  useEffect(() => () => store.markAllSeen(), []);
+
+  const owned = Object.keys(state.cards).filter((id) => catalog.some((d) => d.id === id)).length;
+  const total = catalog.length;
+  const tally = CARD_RARITIES.map((r) => ({ r, n: Object.values(state.cards).filter((c) => c.rarity === r).length }));
+  const polished = Object.values(state.cards).filter((c) => frameFor(c.shine) !== 'bronze').length;
+
+  const visibleSets = sets.filter((s) => wing === 'all' || s.category === wing);
+  const showCard = (id: string) => {
+    const c = state.cards[id];
+    if (!c) return !ownedOnly && rarity === 'all';
+    return rarity === 'all' || c.rarity === rarity;
+  };
+  /** Owned cards in the current filter, in wall order — inspector navigates these. */
+  const inspectList: CardView[] = visibleSets.flatMap((s) =>
+    catalog.filter((d) => d.category === s.category && state.cards[d.id] && showCard(d.id)).map((d) => viewFor(state, catalog, d.id)!),
+  );
+
+  if (!active) return null;
+  let cellIndex = 0;
+
+  return (
+    <Screen
+      title="The Gallery"
+      eyebrow="Iris collection"
+      backdrop="calm"
+      onBack={() => services.router.back()}
+      escToBack={!inspect && !odds}
+      class="gs-screen"
+      contentClass="gs-content"
+    >
+      <div class="gs-lights" aria-hidden="true">
+        {[0, 1, 2, 3, 4].map((i) => <span key={i} style={{ '--i': i }} />)}
+      </div>
+
+      <section class="gs-hero">
+        <RingMeter value={total ? owned / total : 0} size={128} thickness={7} accent={GALLERY_COLOR} accent2="#ffd27a" ariaLabel={`${owned} of ${total} cards collected`}>
+          <div class="gs-ring">
+            <CountUp value={owned} class="gs-ring__n" />
+            <span class="gs-ring__of">of {total}</span>
+          </div>
+        </RingMeter>
+        <div class="gs-hero__text">
+          <h2 class="gs-hero__title">Every iris tells a story</h2>
+          <p class="gs-hero__sub">
+            Each patient you diagnose correctly leaves their iris behind as a card. Sharper work-ups paint rarer cards; diagnosing a condition again polishes its frame.
+            Flip any card to study its teaching pearl.
+          </p>
+          <div class="gs-hero__actions">
+            <Button size="sm" variant="ghost" icon="info" onClick={() => setOdds(true)}>How cards are earned</Button>
+          </div>
+        </div>
+        <ul class="gs-tally" aria-label="Collection by rarity">
+          {tally.slice().reverse().map(({ r, n }) => (
+            <li key={r} style={{ '--c': RARITY_HEX[r] }}>
+              <i class="gs-tally__gem" />
+              <span class="gs-tally__n lm-num">{n}</span>
+              <span class="gs-tally__l">{RARITY_NAME[r]}</span>
+            </li>
+          ))}
+          <li style={{ '--c': '#dfe6f2' }}>
+            <Icon name="sparkle" class="gs-tally__icon" />
+            <span class="gs-tally__n lm-num">{polished}</span>
+            <span class="gs-tally__l">Polished</span>
+          </li>
+        </ul>
+      </section>
+
+      <nav class="gs-wings" aria-label="Gallery wings">
+        <button type="button" class={cx('gs-wing', wing === 'all' && 'is-on')} aria-pressed={wing === 'all'} onClick={() => { play('select'); setWing('all'); }}>
+          <span class="gs-wing__name">All wings</span>
+          <span class="gs-wing__count lm-num">{owned}/{total}</span>
+          <span class="gs-wing__bar"><i style={{ width: `${total ? (owned / total) * 100 : 0}%` }} /></span>
+        </button>
+        {sets.map((s) => (
+          <button
+            type="button"
+            key={s.category}
+            class={cx('gs-wing', wing === s.category && 'is-on', s.complete && 'is-complete')}
+            style={{ '--c': s.info.color }}
+            aria-pressed={wing === s.category}
+            onClick={() => { play('select'); setWing(s.category); }}
+          >
+            <span class="gs-wing__name">{s.complete && <Icon name="check" class="gs-wing__check" />}{s.info.label}</span>
+            <span class="gs-wing__count lm-num">{s.owned}/{s.total}</span>
+            <span class="gs-wing__bar"><i style={{ width: `${(s.owned / s.total) * 100}%` }} /></span>
+          </button>
+        ))}
+      </nav>
+
+      <div class="gs-tools">
+        <div class="gs-tools__group" role="group" aria-label="Filter by rarity">
+          <Chip size="sm" selected={rarity === 'all'} onClick={() => setRarity('all')}>Any rarity</Chip>
+          {CARD_RARITIES.map((r) => (
+            <Chip key={r} size="sm" accent={RARITY_HEX[r]} selected={rarity === r} onClick={() => setRarity(rarity === r ? 'all' : r)}>{RARITY_NAME[r]}</Chip>
+          ))}
+        </div>
+        <div class="gs-tools__group">
+          <Chip size="sm" icon="eye" selected={ownedOnly} onClick={() => setOwnedOnly(!ownedOnly)}>Collected only</Chip>
+          <Chip size="sm" icon="book" accent="#ffd27a" selected={study} onClick={() => setStudy(!study)}>Flash-card mode</Chip>
+        </div>
+      </div>
+
+      {owned === 0 && (
+        <div class="gs-empty">
+          <Icon name="gem" />
+          <div>
+            <strong>Your first card awaits.</strong> Diagnose a patient correctly and their iris joins the Gallery — an S grade gives the best odds of a rare painting.
+          </div>
+        </div>
+      )}
+
+      {visibleSets.map((s) => {
+        const members = catalog.filter((d) => d.category === s.category && showCard(d.id));
+        if (!members.length) return null;
+        const reward = setReward(s.total);
+        return (
+          <section key={s.category} class={cx('gs-room', s.complete && 'is-complete')} style={{ '--c': s.info.color }} aria-label={s.info.wing}>
+            <header class="gs-room__head">
+              <h3 class="gs-room__title">{s.info.wing}</h3>
+              <span class="gs-room__count lm-num">{s.owned} / {s.total}</span>
+              <span class="gs-room__seal" title={s.complete ? 'Set complete' : `Complete the set: +${reward.xp} XP, +${reward.coins} coins`}>
+                {s.complete ? <><Icon name="trophy" /> Complete</> : <>Set reward · {reward.xp} XP</>}
+              </span>
+            </header>
+            <div class="gs-wall">
+              {members.map((d) => {
+                const i = cellIndex++;
+                const view = viewFor(state, catalog, d.id);
+                const no = catalog.indexOf(d) + 1;
+                return (
+                  <div class="gs-cell" key={d.id} style={{ '--i': Math.min(i, 24) }}>
+                    {view ? (
+                      <IrisCard
+                        view={view}
+                        size="sm"
+                        study={study}
+                        ribbon={fresh.has(d.id) ? 'NEW' : undefined}
+                        onActivate={() => {
+                          play('reveal', { volume: 0.6 });
+                          setInspect(d.id);
+                        }}
+                      />
+                    ) : (
+                      <GhostCard number={no} total={total} category={d.category} glimpsedName={state.glimpsed.includes(d.id) ? d.name : undefined} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+
+      <CardInspect
+        store={store}
+        list={inspectList}
+        current={inspect}
+        study={study}
+        onNavigate={setInspect}
+        onClose={() => setInspect(null)}
+      />
+      <OddsModal open={odds} onClose={() => setOdds(false)} />
+    </Screen>
+  );
+}

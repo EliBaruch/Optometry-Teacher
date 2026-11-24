@@ -22,8 +22,10 @@
   font-size: var(--lm-fs-xl); font-weight: 520; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   color: var(--lm-ivory); text-shadow: 0 0 24px rgba(255, 210, 122, 0.25);
 }
+/* No z-index here on purpose: the content must NOT form its own stacking
+   context, so a Modal / ToastHost rendered inside it can rise above the bar. */
 .lm-screen__content {
-  position: relative; z-index: var(--lm-z-scene); flex: 1; min-height: 0;
+  position: relative; flex: 1; min-height: 0;
   overflow-y: auto; overflow-x: hidden;
   padding: var(--lm-sp-5) var(--lm-gutter) calc(var(--lm-sp-7) + var(--lm-safe-bottom));
 }

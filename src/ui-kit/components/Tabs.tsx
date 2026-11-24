@@ -30,6 +30,7 @@ export interface TabsProps {
 export function Tabs({ items, value, onChange, id, label, variant = 'pill', accent, block, class: klass }: TabsProps) {
   const listRef = useRef<HTMLDivElement>(null);
   const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
+  const [edges, setEdges] = useState({ start: false, end: false });
   const play = useSfx();
 
   useLayoutEffect(() => {
@@ -38,12 +39,25 @@ export function Tabs({ items, value, onChange, id, label, variant = 'pill', acce
     const measure = () => {
       const el = list.querySelector<HTMLElement>(`[data-tab="${CSS.escape(value)}"]`);
       if (el) setInd({ x: el.offsetLeft, w: el.offsetWidth });
+      const max = list.scrollWidth - list.clientWidth;
+      setEdges({ start: list.scrollLeft > 2, end: max > 2 && list.scrollLeft < max - 2 });
     };
+    // Keep the active tab in view on narrow screens (without scrolling the page).
+    const el = list.querySelector<HTMLElement>(`[data-tab="${CSS.escape(value)}"]`);
+    if (el && list.scrollWidth > list.clientWidth) {
+      const left = el.offsetLeft - 24;
+      const right = el.offsetLeft + el.offsetWidth + 24 - list.clientWidth;
+      if (list.scrollLeft > left) list.scrollLeft = Math.max(0, left);
+      else if (list.scrollLeft < right) list.scrollLeft = right;
+    }
     measure();
-    if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(list);
-    return () => ro.disconnect();
+    list.addEventListener('scroll', measure, { passive: true });
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    ro?.observe(list);
+    return () => {
+      list.removeEventListener('scroll', measure);
+      ro?.disconnect();
+    };
   }, [value, items.length]);
 
   const enabled = items.filter((t) => !t.disabled);
@@ -72,7 +86,7 @@ export function Tabs({ items, value, onChange, id, label, variant = 'pill', acce
       ref={listRef}
       role="tablist"
       aria-label={label}
-      class={cx('lm-tabs', `lm-tabs--${variant}`, block && 'lm-tabs--block', klass)}
+      class={cx('lm-tabs', `lm-tabs--${variant}`, block && 'lm-tabs--block', edges.start && 'fade-start', edges.end && 'fade-end', klass)}
       style={accent ? { '--tabs-c': accent } : undefined}
       onKeyDown={onKey}
     >

@@ -52,7 +52,7 @@ export function caseFee(input: FeeInput): FeeResult {
   const quality = Math.pow(ratio, 1.6);
   const gm = GRADE_MULT[score.grade] ?? 1;
   const consult = Math.max(1, Math.round(base * quality * Math.min(gm, 1)));
-  const lines: FeeLine[] = [{ id: 'consult', label: `Consultation fee · level ${difficulty}`, amount: consult }];
+  const lines: FeeLine[] = [{ id: 'consult', label: `Base fee · difficulty ${difficulty}`, amount: consult }];
   if (gm > 1) lines.push({ id: 'grade', label: `Grade ${score.grade} bonus`, amount: Math.round(base * quality * (gm - 1)) });
   const momentumMult = score.diagnosisCorrect ? momentumMultiplier(input.priorStreak ?? 0) : 1;
   if (momentumMult > 1) {
@@ -72,7 +72,8 @@ export function caseFee(input: FeeInput): FeeResult {
 /** Negative adjustment for the part of a fee above today's full-rate allowance. */
 export function lateShiftAdjust(fee: number, earnedToday: number, cap = DAILY_FULL_RATE): number {
   const over = Math.max(0, earnedToday + fee - Math.max(cap, earnedToday));
-  return -Math.floor(Math.min(over, fee) / 2);
+  const cut = Math.floor(Math.min(over, fee) / 2);
+  return cut > 0 ? -cut : 0;
 }
 
 /** Arcade practice pays a little for technique, capped per day. */

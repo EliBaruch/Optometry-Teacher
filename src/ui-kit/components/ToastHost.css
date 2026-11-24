@@ -43,3 +43,11 @@
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   animation: lm-hue 3s linear infinite;
 }
+
+.lm-toast:focus-visible {
+  --lm-focus-color: color-mix(in srgb, var(--toast-c) 70%, white);
+  box-shadow: inset 0 1px 0 rgba(255, 245, 230, 0.1), inset 0 0 0 1px color-mix(in srgb, var(--toast-c) 55%, transparent), 0 0 0 1px rgba(11, 7, 22, 0.9), 0 0 24px 2px color-mix(in srgb, var(--toast-c) 50%, transparent), var(--lm-shadow-2);
+}
+html.high-contrast .lm-toast:focus-visible { --lm-focus-color: #fff; }
+/* hovering or focusing the stack pauses auto-dismiss (and the timer bar) */
+.lm-toasts.is-paused .lm-toast__timer { animation-play-state: paused; opacity: 0.45; }

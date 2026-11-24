@@ -74,7 +74,7 @@ export function FacialHairUnder({ c }: { c: PaintCtx }) {
     const d = beardShape(c);
     return (
       <g fill-rule="evenodd" clip-path={`url(#${c.id('headClip')})`}>
-        <path d={d} fill={mix(c.hair, c.skin.deep, 0.5)} opacity="0.22" filter={`url(#${c.id('soft')})`} />
+        <path d={d} fill={mix(c.hair, c.skin.deep, 0.5)} opacity="0.16" />
         <path d={d} fill={`url(#${c.id('stubble')})`} opacity="0.5" />
       </g>
     );
@@ -83,7 +83,7 @@ export function FacialHairUnder({ c }: { c: PaintCtx }) {
     const d = beardShape(c);
     return (
       <g fill-rule="evenodd">
-        <path d={d} fill={c.hair} opacity="0.6" filter={`url(#${c.id('soft')})`} />
+        <path d={d} fill="none" stroke={c.hair} stroke-opacity="0.45" stroke-width="2.2" stroke-linejoin="round" />
         <path d={d} fill={`url(#${c.id('hair')})`} />
         <path d={d} fill={`url(#${c.id('beardTex')})`} opacity="0.6" />
         <path d={d} fill={`url(#${c.id('rim')})`} opacity="0.35" />
@@ -301,13 +301,13 @@ export function Headwear({ c }: { c: PaintCtx }) {
         <path d={dome} fill={`url(#${gid})`} />
         <path d={`M${P(CX - 4, T - 12)}Q${P(CX, T - 16)} ${P(CX + 4, T - 12)}L${P(CX + 5, H)}L${P(CX - 5, H)}Z`} fill={shade(col, 0.2)} opacity="0.9" />
         <path d={`M${P(CX - W - 9, H + 2)}Q${P(CX, H + 10)} ${P(CX + W + 9, H + 2)}Q${P(CX, H - 2)} ${P(CX - W - 9, H + 2)}Z`} fill={shade(col, -0.15)} />
-        <ellipse cx={CX + 10} cy={T - 4} rx="10" ry="4" fill="#fff" opacity="0.35" filter={`url(#${c.id('soft')})`} />
+        <ellipse cx={CX + 10} cy={T - 4} rx={(10) * 1.45} ry={(4) * 1.45} fill={`url(#${c.id('gWhite')})`} opacity="0.35"/>
       </g>
     );
   }
   if (kind === 'beanie') {
     const col = headwearColor(c);
-    const dome = smooth([[CX - W - 2.5, H + 3], [CX - W - 1, T + 6], [CX - W * 0.5, T - 9], [CX + W * 0.5, T - 9], [CX + W + 1, T + 6], [CX + W + 2.5, H + 3]], false) + 'Z';
+    const dome = smooth([[CX - W - 2.5, H + 3], [CX - W - 2, T + 3], [CX - W * 0.6, T - 12], [CX + W * 0.1, T - 16], [CX + W * 0.7, T - 11], [CX + W + 2, T + 3], [CX + W + 2.5, H + 3]], false) + 'Z';
     const ribs: string[] = [];
     for (let i = -8; i <= 8; i++) ribs.push(`M${P(CX + i * 4.4, H - 6)}L${P(CX + i * 4.6, H + 5)}`);
     return (
@@ -317,7 +317,7 @@ export function Headwear({ c }: { c: PaintCtx }) {
         <path d={`M${P(CX - W - 3.5, H - 6)}Q${P(CX, H - 10)} ${P(CX + W + 3.5, H - 6)}L${P(CX + W + 3, H + 5)}Q${P(CX, H + 2)} ${P(CX - W - 3, H + 5)}Z`} fill={shade(col, -0.12)} />
         <path d={ribs.join('')} stroke={shade(col, -0.4)} stroke-opacity="0.5" stroke-width="0.9" />
         {g.child > 0.3 && <circle cx={CX} cy={T - 10} r="7" fill={shade(col, 0.3)} />}
-        <ellipse cx={CX + 10} cy={T + 2} rx="11" ry="4" fill="#fff" opacity="0.18" filter={`url(#${c.id('soft')})`} />
+        <ellipse cx={CX + 10} cy={T + 2} rx={(11) * 1.45} ry={(4) * 1.45} fill={`url(#${c.id('gWhite')})`} opacity="0.18"/>
       </g>
     );
   }
@@ -330,10 +330,10 @@ export function Headwear({ c }: { c: PaintCtx }) {
       <path d={crown} fill={`url(#${gid})`} />
       <path d={`M${P(CX, T - 7)}Q${P(CX - 2, H - 6)} ${P(CX - 1, H + 2)}M${P(CX - W * 0.55, T - 2)}Q${P(CX - W * 0.6, H - 6)} ${P(CX - W * 0.68, H + 2)}M${P(CX + W * 0.55, T - 2)}Q${P(CX + W * 0.6, H - 6)} ${P(CX + W * 0.68, H + 2)}`} stroke={shade(col, -0.4)} stroke-opacity="0.5" stroke-width="0.8" fill="none" />
       <circle cx={CX} cy={T - 7} r="2" fill={shade(col, -0.2)} />
-      <ellipse cx={CX} cy={H + 6} rx={W * 0.9} ry="3" fill="#000" opacity="0.25" filter={`url(#${c.id('soft')})`} />
+      <ellipse cx={CX} cy={H + 6} rx={(W * 0.9) * 1.45} ry={(3) * 1.45} fill={`url(#${c.id('gBlack')})`} opacity="0.25"/>
       <path d={`M${P(CX - W - 2, H + 2)}Q${P(CX, H + 15)} ${P(CX + W + 2, H + 2)}Q${P(CX, H + 6)} ${P(CX - W - 2, H + 2)}Z`} fill={shade(col, -0.2)} />
       <path d={`M${P(CX - W - 2, H + 2)}Q${P(CX, H + 15)} ${P(CX + W + 2, H + 2)}`} stroke={shade(col, 0.25)} stroke-width="0.7" fill="none" />
-      <ellipse cx={CX + 10} cy={T + 2} rx="10" ry="4" fill="#fff" opacity="0.2" filter={`url(#${c.id('soft')})`} />
+      <ellipse cx={CX + 10} cy={T + 2} rx={(10) * 1.45} ry={(4) * 1.45} fill={`url(#${c.id('gWhite')})`} opacity="0.2"/>
     </g>
   );
 }

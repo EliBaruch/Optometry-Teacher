@@ -5,5 +5,5 @@
 export * from './types';
 export { paintFundus, fundusMap } from './paint';
 export { fundusToCanvas, canvasToFundus, hitTestFundus, anatomy as fundusAnatomy, zoneOf as fundusZoneOf } from './geometry';
-export { computeFundusLayout, type FundusLayout, type LesionInst } from './layout';
+export { computeFundusLayout, isDetachedAt, type FundusLayout, type LesionInst } from './layout';
 export { FundusView, type FundusViewProps } from './FundusView';

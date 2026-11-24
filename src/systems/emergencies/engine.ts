@@ -199,9 +199,9 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
       safe(() => fx.flash('#fff1d6', 460));
       if (!r && typeof window !== 'undefined') {
         const x = window.innerWidth / 2;
-        const y = window.innerHeight * 0.42;
+        const y = window.innerHeight * 0.36; // the finale's eye emblem
         safe(() => fx.burst(x, y, { kind: 'sparks', count: 90, color: '#ffd27a' }));
-        later(() => safe(() => fx.burst(x, y, { kind: 'embers', count: 40, color: ACCENT })), 120);
+        later(() => safe(() => fx.burst(x, y, { kind: 'stars', count: 28, color: '#fff1c2' })), 140);
       }
       safe(() => stage?.saved({ kase, dxName: dxName(score.correctDiagnosisId), sec, reward, reduced: r }));
     }, r ? 0 : 150);

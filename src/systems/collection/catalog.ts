@@ -21,9 +21,9 @@ export interface WingInfo {
 export const WINGS: Record<DiagnosisCategory, WingInfo> = {
   refractive: { label: 'Refractive', wing: 'Hall of Lenses', color: '#38bdf8' },
   binocular: { label: 'Binocular', wing: 'Binocular Gallery', color: '#a78bfa' },
-  anterior: { label: 'Lids & Conjunctiva', wing: 'Anterior Arcade', color: '#f472b6' },
+  anterior: { label: 'Anterior Segment', wing: 'Anterior Arcade', color: '#f472b6' },
   cornea: { label: 'Cornea', wing: 'Corneal Rotunda', color: '#5eead4' },
-  glaucoma: { label: 'Glaucoma & Uvea', wing: 'Pressure Chamber', color: '#4ade80' },
+  glaucoma: { label: 'Glaucoma', wing: 'Pressure Chamber', color: '#4ade80' },
   lens: { label: 'Lens', wing: 'Crystal Room', color: '#fde68a' },
   retina: { label: 'Retina', wing: 'Retina Nave', color: '#fb7185' },
   neuro: { label: 'Neuro-ophthalmic', wing: 'Neuro Observatory', color: '#c084fc' },

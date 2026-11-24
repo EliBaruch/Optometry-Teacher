@@ -2,7 +2,6 @@ import type { VNode } from 'preact';
 import { createRng } from '@core';
 import { mix, shade } from '../../fx/color';
 import { CX, VIEW_H, VIEW_W, type Geo } from '../geometry';
-import { GOLD } from '../palette';
 import { P, smooth, type Pt } from '../paths';
 import type { PaintCtx } from './ctx';
 
@@ -82,7 +81,7 @@ export function capPath(g: Geo, o: CapOpts): string {
 function mass(c: PaintCtx, d: string, key?: string): VNode {
   return (
     <g key={key}>
-      <path d={d} fill={c.hair} opacity="0.55" filter={`url(#${c.id('soft')})`} />
+      <path d={d} fill="none" stroke={c.hair} stroke-opacity="0.4" stroke-width="1.8" stroke-linejoin="round" />
       <path d={d} fill={`url(#${c.id('hair')})`} />
       <path d={d} fill={`url(#${c.id('strandTex')})`} opacity="0.45" />
     </g>
@@ -129,7 +128,7 @@ function strands(c: PaintCtx, from: Pt[], to: Pt[], o = 0.3): VNode {
 
 function sheen(c: PaintCtx, x: number, y: number, w: number, rot = -12): VNode {
   return (
-    <ellipse cx={x} cy={y} rx={w} ry={w * 0.22} transform={`rotate(${rot} ${x} ${y})`} fill={mix(c.hair, GOLD, 0.35)} opacity="0.5" filter={`url(#${c.id('soft')})`} />
+    <ellipse cx={x} cy={y} rx={(w) * 1.45} ry={(w * 0.22) * 1.45} transform={`rotate(${rot} ${x} ${y})`} fill={`url(#${c.id('gSheen')})`} opacity="0.5"/>
   );
 }
 
@@ -182,7 +181,7 @@ export function hairLayers(c: PaintCtx): HairLayers {
           </g>
         ) : null,
         front: null,
-        scalp: <ellipse cx={CX + 8} cy={T + 11} rx="14" ry="6" fill="#fff" opacity="0.2" filter={`url(#${c.id('soft2')})`} />,
+        scalp: <ellipse cx={CX + 8} cy={T + 11} rx={(14) * 1.45} ry={(6) * 1.45} fill={`url(#${c.id('gWhite')})`} opacity="0.2"/>,
       };
     }
     case 'buzz': {

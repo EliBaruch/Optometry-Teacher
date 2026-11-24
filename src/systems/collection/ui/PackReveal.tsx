@@ -1,0 +1,166 @@
+import { useEffect, useRef, useState } from 'preact/hooks';
+import type { SfxId } from '@core';
+import { Button, ProgressBar, cx, useReducedMotion, useSignal } from '@ui-kit';
+import { WINGS } from '../catalog';
+import { CARD_RARITIES, FRAME_LABEL, nextFrame, rarityRank, setReward, type CardRarity, type Pull } from '../model';
+import { GALLERY_COLOR, RARITY_HEX, RARITY_NAME, type CollectionStore } from '../store';
+import { EyeGlyph, GhostCard, IrisCard } from './IrisCard';
+import { viewFor } from './views';
+import './reveal.css';
+
+type Phase = 'sealed' | 'charging' | 'open';
+
+const AUTO_OPEN_MS = 2600;
+const CHARGE_STEP_MS = 260;
+const SFX: Record<CardRarity, SfxId> = { common: 'reveal', rare: 'rare', epic: 'rare', legendary: 'legendary' };
+const BURST: Record<CardRarity, 'sparks' | 'stars' | 'confetti'> = { common: 'sparks', rare: 'sparks', epic: 'stars', legendary: 'confetti' };
+
+export function headline(p: Pull): string {
+  if (p.isNew) return 'New card!';
+  if (p.frameAfter !== p.frameBefore) return `${FRAME_LABEL[p.frameAfter]} frame!`;
+  if (p.rarityUp) return `Upgraded to ${RARITY_NAME[p.rarity]}!`;
+  return 'Card polished';
+}
+
+/** Results screen: the sealed card sleeve that bursts open into this patient's iris card. */
+export function PackReveal({ store }: { store: CollectionStore }) {
+  const { services } = store;
+  const session = useSignal(services.session.state);
+  const state = useSignal(store.state);
+  const pull = state.lastPull && session && state.lastPull.caseId === session.caseId && state.lastPull.at >= session.startedAt ? state.lastPull : null;
+  const glimpse = !pull && state.lastGlimpse && session && state.lastGlimpse.caseId === session.caseId && state.lastGlimpse.at >= session.startedAt ? state.lastGlimpse : null;
+
+  if (pull) return <Reveal key={`${pull.caseId}:${pull.at}`} store={store} pull={pull} />;
+  if (glimpse) return <Glimpse store={store} dx={glimpse.dx} />;
+  return null;
+}
+
+function Reveal({ store, pull }: { store: CollectionStore; pull: Pull }) {
+  const { services } = store;
+  const reduced = useReducedMotion();
+  const state = useSignal(store.state);
+  const catalog = store.catalog();
+  const view = viewFor(state, catalog, pull.dx);
+  const [phase, setPhase] = useState<Phase>(reduced ? 'open' : 'sealed');
+  const [charge, setCharge] = useState<CardRarity>('common');
+  const [flipped, setFlipped] = useState(!reduced);
+  const root = useRef<HTMLDivElement>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const later = (fn: () => void, ms: number) => void timers.current.push(setTimeout(fn, ms));
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  const open = () => {
+    if (phase !== 'sealed') return;
+    const { audio, fx } = services;
+    setPhase('charging');
+    audio.play('drumroll', { volume: 0.5 });
+    // Colour climb: the sleeve's glow steps up through each tier it reaches.
+    const steps = CARD_RARITIES.slice(0, rarityRank(pull.rarity) + 1);
+    steps.forEach((r, i) => later(() => {
+      setCharge(r);
+      if (i > 0) audio.play('sparkle', { volume: 0.5, pitch: 1 + i * 0.15 });
+    }, i * CHARGE_STEP_MS));
+    later(() => {
+      setPhase('open');
+      audio.play('chest-open');
+      later(() => audio.play(SFX[pull.rarity]), 120);
+      const r = root.current?.querySelector('.gp-stage')?.getBoundingClientRect();
+      if (r) fx.burst(r.left + r.width / 2, r.top + r.height * 0.45, { kind: BURST[pull.rarity], count: 24 + rarityRank(pull.rarity) * 22, color: RARITY_HEX[pull.rarity] });
+      if (pull.rarity === 'legendary') {
+        fx.flash('#ffd27a', 260);
+        fx.hitstop(90);
+      } else if (pull.rarity === 'epic') fx.flash('#c084fc', 160);
+      later(() => setFlipped(false), 380);
+    }, steps.length * CHARGE_STEP_MS + 220);
+  };
+
+  useEffect(() => {
+    if (phase !== 'sealed') return;
+    const t = setTimeout(open, AUTO_OPEN_MS);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  if (!view) return null;
+  const name = view.dx?.name ?? pull.dx;
+  const next = nextFrame(view.card.shine);
+  const set = pull.setCompleted ? WINGS[pull.setCompleted as keyof typeof WINGS] : undefined;
+  const setSize = pull.setCompleted ? catalog.filter((d) => d.category === pull.setCompleted).length : 0;
+  const isOpen = phase === 'open';
+
+  return (
+    <section
+      ref={root}
+      class={cx('gp', `gp--${phase}`, `gp-charge-${charge}`)}
+      style={{ '--rar': RARITY_HEX[pull.rarity], '--charge': RARITY_HEX[charge] }}
+      aria-label="Gallery card reward"
+    >
+      <div class="gp-stage">
+        <div class="gp-rays" aria-hidden="true" />
+        <div class="gp-card-wrap">
+          <IrisCard view={view} size="md" flipped={flipped} sway={isOpen && !flipped} onActivate={isOpen ? () => { services.audio.play('whoosh', { volume: 0.6 }); setFlipped((f) => !f); } : undefined} />
+        </div>
+        {!isOpen && (
+          <button type="button" class="gp-sleeve" onClick={open} aria-label="Open your new iris card">
+            <span class="gp-sleeve__half gp-sleeve__half--top" aria-hidden="true" />
+            <span class="gp-sleeve__half gp-sleeve__half--bottom" aria-hidden="true" />
+            <span class="gp-seal" aria-hidden="true"><EyeGlyph /></span>
+            <span class="gp-sleeve__brand" aria-hidden="true">Lumen · Iris Card</span>
+          </button>
+        )}
+      </div>
+      <div class="gp-copy" aria-live="polite">
+        <div class="lm-eyebrow gp-eyebrow">Gallery</div>
+        {isOpen ? (
+          <>
+            <h3 class="gp-title">{headline(pull)}</h3>
+            <p class="gp-name">{name}</p>
+            <p class="gp-rarity"><i class="gp-gem" />{RARITY_NAME[pull.rarity]} pull{pull.isNew ? '' : ` · +${pull.shineGained} shine`}</p>
+            {!pull.isNew && next && (
+              <ProgressBar value={view.card.shine - next.from} max={next.to - next.from} label={`Polish to ${FRAME_LABEL[next.tier]}`} valueText={`${view.card.shine} / ${next.to}`} size="sm" accent={GALLERY_COLOR} />
+            )}
+            {set && (
+              <p class="gp-set" style={{ '--c': set.color }}>
+                Set complete · {set.wing} <span class="lm-num">+{setReward(setSize).xp} XP</span>
+              </p>
+            )}
+            <p class="gp-hint">Flip it for a teaching pearl — every card is a flash-card.</p>
+            <div class="gp-actions">
+              <Button size="sm" icon="refresh" onClick={() => setFlipped((f) => !f)} sfx="whoosh">Flip</Button>
+              <Button size="sm" variant="ghost" trailingIcon="arrow-right" onClick={() => services.router.go('gallery')}>Open Gallery</Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3 class="gp-title">A patient left you something</h3>
+            <p class="gp-hint">Their iris, painted as a collectible card.</p>
+            <div class="gp-actions">
+              <Button size="sm" variant="primary" icon="gem" onClick={open} sfx={false} disabled={phase !== 'sealed'}>
+                {phase === 'charging' ? 'Opening…' : 'Open card'}
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Glimpse({ store, dx }: { store: CollectionStore; dx: string }) {
+  const catalog = store.catalog();
+  const d = catalog.find((x) => x.id === dx);
+  const no = catalog.indexOf(d!) + 1;
+  return (
+    <section class="gp gp--glimpse" aria-label="Gallery">
+      <div class="gp-stage gp-stage--small">
+        <GhostCard number={no} total={catalog.length} category={d?.category} glimpsedName={d?.name ?? dx} />
+      </div>
+      <div class="gp-copy">
+        <div class="lm-eyebrow gp-eyebrow">Gallery</div>
+        <h3 class="gp-title">A silhouette appears</h3>
+        <p class="gp-hint">
+          The Gallery holds a card for <strong>{d?.name ?? dx}</strong>. Diagnose it correctly next time and this patient's iris is yours — nothing lost, just one to come back for.
+        </p>
+      </div>
+    </section>
+  );
+}

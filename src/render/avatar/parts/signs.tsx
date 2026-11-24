@@ -131,7 +131,7 @@ export function EyePatch({ c }: { c: PaintCtx }) {
           <stop offset="1" stop-color="#e4d6c0" />
         </radialGradient>
       </defs>
-      <ellipse cx={x + 0.6} cy={y + 1.2} rx="14" ry="11.5" fill="#000" opacity="0.18" filter={`url(#${c.id('soft')})`} />
+      <ellipse cx={x + 0.6} cy={y + 1.2} rx={(14) * 1.45} ry={(11.5) * 1.45} fill={`url(#${c.id('gBlack')})`} opacity="0.18"/>
       <ellipse cx={x} cy={y} rx="14.5" ry="12" fill="#efe3cf" stroke="#d6c4a8" stroke-width="0.6" />
       <ellipse cx={x} cy={y} rx="10.5" ry="8.4" fill={`url(#${pad})`} />
       <ellipse cx={x} cy={y} rx="12.3" ry="10.2" fill="none" stroke="#cdb894" stroke-width="0.4" stroke-dasharray="1 0.9" />

@@ -7,6 +7,17 @@ import { P, headPath, smooth, type Pt } from '../paths';
 import type { AttrMap } from '../rig';
 import type { PaintCtx } from './ctx';
 
+/** Soft radial falloff — a cheap stand-in for a blurred ellipse. */
+function softGrad(c: PaintCtx, name: string, color: string) {
+  return (
+    <radialGradient id={c.id(name)}>
+      <stop offset="0" stop-color={color} stop-opacity="1" />
+      <stop offset="0.45" stop-color={color} stop-opacity="0.7" />
+      <stop offset="1" stop-color={color} stop-opacity="0" />
+    </radialGradient>
+  );
+}
+
 export function faceDefs(c: PaintCtx) {
   const { skin, g } = c;
   return (
@@ -46,6 +57,12 @@ export function faceDefs(c: PaintCtx) {
         <stop offset="0.75" stop-color={c.spec.irisColor} />
         <stop offset="1" stop-color={shade(c.spec.irisColor, -0.55)} />
       </radialGradient>
+      {softGrad(c, 'gDeep', skin.deep)}
+      {softGrad(c, 'gShadow', skin.shadow)}
+      {softGrad(c, 'gLight', skin.light)}
+      {softGrad(c, 'gWhite', '#ffffff')}
+      {softGrad(c, 'gBlack', '#000000')}
+      {softGrad(c, 'gSheen', mix(c.hair, GOLD, 0.35))}
       <filter id={c.id('soft')} x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="1.1" />
       </filter>
@@ -111,22 +128,23 @@ export function Head({ c, a }: { c: PaintCtx; a: AttrMap }) {
       <g clip-path={`url(#${c.id('headClip')})`}>
         <path d={head} fill={`url(#${c.id('skinSide')})`} />
         {/* cheekbone & temple contour on the shadow side */}
-        <ellipse cx={CX - g.cheekW + 4} cy={ey + 16} rx="9" ry="16" fill={skin.deep} opacity="0.16" filter={`url(#${c.id('soft2')})`} />
+        <ellipse cx={CX - g.cheekW + 4} cy={ey + 16} rx={(9) * 1.45} ry={(16) * 1.45} fill={`url(#${c.id('gDeep')})`} opacity="0.16"/>
         {/* under-jaw occlusion */}
-        <path d={headPath(g, 0)} fill="none" stroke={skin.deep} stroke-opacity="0.16" stroke-width="5" filter={`url(#${c.id('soft')})`} transform="translate(-2 -1)" />
+        <path d={headPath(g, 0)} fill="none" stroke={skin.deep} stroke-opacity="0.08" stroke-width="6" transform="translate(-2 -1)" />
+        <path d={headPath(g, 0)} fill="none" stroke={skin.deep} stroke-opacity="0.08" stroke-width="3" transform="translate(-2 -1)" />
         {/* forehead sheen from the key light */}
-        <ellipse cx={CX + 9} cy={g.hairline + 12} rx="15" ry="7" fill={skin.light} opacity="0.4" filter={`url(#${c.id('soft2')})`} />
+        <ellipse cx={CX + 9} cy={g.hairline + 12} rx={(15) * 1.45} ry={(7) * 1.45} fill={`url(#${c.id('gLight')})`} opacity="0.4"/>
         {/* eye sockets */}
-        <ellipse cx={CX - g.eyeDX} cy={ey - 1} rx={g.eyeW + 3.5} ry={g.eyeH + 3.2} fill={skin.shadow} opacity="0.32" filter={`url(#${c.id('soft')})`} />
-        <ellipse cx={CX + g.eyeDX} cy={ey - 1} rx={g.eyeW + 3.5} ry={g.eyeH + 3.2} fill={skin.shadow} opacity="0.24" filter={`url(#${c.id('soft')})`} />
+        <ellipse cx={CX - g.eyeDX} cy={ey - 1} rx={(g.eyeW + 3.5) * 1.45} ry={(g.eyeH + 3.2) * 1.45} fill={`url(#${c.id('gShadow')})`} opacity="0.32"/>
+        <ellipse cx={CX + g.eyeDX} cy={ey - 1} rx={(g.eyeW + 3.5) * 1.45} ry={(g.eyeH + 3.2) * 1.45} fill={`url(#${c.id('gShadow')})`} opacity="0.24"/>
         <g data-r="cheeks" {...a.cheeks}>
           <ellipse cx={CX - 24} cy={ey + 20} rx="10" ry="6.5" fill={`url(#${c.id('blush')})`} opacity={blushO} />
           <ellipse cx={CX + 24} cy={ey + 20} rx="10" ry="6.5" fill={`url(#${c.id('blush')})`} opacity={blushO} />
-          <ellipse cx={CX + 25} cy={ey + 15} rx="5" ry="2.2" fill={skin.light} opacity="0.35" filter={`url(#${c.id('soft')})`} />
+          <ellipse cx={CX + 25} cy={ey + 15} rx={(5) * 1.45} ry={(2.2) * 1.45} fill={`url(#${c.id('gLight')})`} opacity="0.35"/>
         </g>
         {/* chin highlight + soft shadow under the lower lip */}
-        <ellipse cx={CX + 2} cy={g.chinY - 7} rx="7" ry="3.2" fill={skin.light} opacity="0.22" filter={`url(#${c.id('soft')})`} />
-        <ellipse cx={CX} cy={g.mouthY + g.lipL * 2 + 3.2} rx={g.mouthW * 0.5} ry="1.7" fill={skin.deep} opacity="0.28" filter={`url(#${c.id('soft')})`} />
+        <ellipse cx={CX + 2} cy={g.chinY - 7} rx={(7) * 1.45} ry={(3.2) * 1.45} fill={`url(#${c.id('gLight')})`} opacity="0.22"/>
+        <ellipse cx={CX} cy={g.mouthY + g.lipL * 2 + 3.2} rx={(g.mouthW * 0.5) * 1.45} ry={(1.7) * 1.45} fill={`url(#${c.id('gDeep')})`} opacity="0.28"/>
         {/* rim light from the gold key */}
         <path d={head} fill="none" stroke={`url(#${c.id('rim')})`} stroke-width="3.2" />
       </g>
@@ -143,9 +161,9 @@ export function Nose({ c }: { c: PaintCtx }) {
   return (
     <g>
       {/* bridge shadow on the far side */}
-      <path d={`M${P(CX - 4.2, top)}C${P(CX - 5, top + 10)} ${P(CX - 6.5, ny - 10)} ${P(CX - w + 0.5, ny - 3)}`} stroke={skin.shadow} stroke-width="3.2" fill="none" opacity="0.5" stroke-linecap="round" filter={`url(#${c.id('soft')})`} />
+      <path d={`M${P(CX - 4.2, top)}C${P(CX - 5, top + 10)} ${P(CX - 6.5, ny - 10)} ${P(CX - w + 0.5, ny - 3)}`} stroke={skin.shadow} stroke-width="3.2" fill="none" opacity="0.28" stroke-linecap="round" />
       {/* bridge highlight */}
-      <path d={`M${P(CX + 1.2, top + 6)}L${P(CX + 1.8, ny - 6)}`} stroke={skin.light} stroke-width="2.2" stroke-linecap="round" opacity="0.5" filter={`url(#${c.id('soft')})`} />
+      <path d={`M${P(CX + 1.2, top + 6)}L${P(CX + 1.8, ny - 6)}`} stroke={skin.light} stroke-width="2" stroke-linecap="round" opacity="0.3" />
       {/* tip + alae */}
       <ellipse cx={CX} cy={ny - 1.2} rx={w * 0.55} ry="3.6" fill={skin.warm} opacity="0.35" />
       <path d={`M${P(CX - w, ny - 2.5)}C${P(CX - w - 2.2, ny + 1)} ${P(CX - w + 1.2, ny + 3.4)} ${P(CX - w * 0.42, ny + 2.6)}`} stroke={dark} stroke-width="1.15" fill="none" stroke-linecap="round" opacity="0.6" />
@@ -155,7 +173,7 @@ export function Nose({ c }: { c: PaintCtx }) {
       <path d={`M${P(CX - w * 0.3, ny + 3.2)}Q${P(CX, ny + 4.4)} ${P(CX + w * 0.3, ny + 3.2)}`} stroke={dark} stroke-width="0.8" fill="none" opacity="0.35" />
       <ellipse cx={CX + 1.2} cy={ny - 3} rx="1.8" ry="1.1" fill="#fff" opacity="0.38" />
       {/* philtrum */}
-      <path d={`M${P(CX - 1.8, ny + 5.5)}L${P(CX - 2.2, g.mouthY - g.lipU - 0.5)}M${P(CX + 1.8, ny + 5.5)}L${P(CX + 2.2, g.mouthY - g.lipU - 0.5)}`} stroke={skin.shadow} stroke-width="1.6" opacity="0.22" filter={`url(#${c.id('soft')})`} />
+      <path d={`M${P(CX - 1.8, ny + 5.5)}L${P(CX - 2.2, g.mouthY - g.lipU - 0.5)}M${P(CX + 1.8, ny + 5.5)}L${P(CX + 2.2, g.mouthY - g.lipU - 0.5)}`} stroke={skin.shadow} stroke-width="1.4" opacity="0.14" />
     </g>
   );
 }

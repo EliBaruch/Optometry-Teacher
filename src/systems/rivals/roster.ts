@@ -86,7 +86,7 @@ export const ROSTER: readonly Rival[] = [
     accuracy: 0.9,
     speed: 1.3,
     thoroughness: 0.6,
-    technique: 0.9,
+    technique: 0.86,
     signature: ['pupils', 'visual-fields', 'color-vision'],
     signatureLabel: 'Neuro sleuth',
     slip: 'skips-basics',
@@ -112,12 +112,12 @@ export const ROSTER: readonly Rival[] = [
     color: '#60a5fa',
     avatar: {
       seed: 'rival:okafor', age: 52, sex: 'F',
-      look: { skin: 5, hair: 'braids', hairColor: '#17110d', irisColor: '#4a2f1d', glasses: 'cat-eye', outfit: '#23365e', accessory: 'earrings' },
+      look: { skin: 5, hair: 'braids', hairColor: '#17110d', irisColor: '#4a2f1d', glasses: 'cat-eye', outfit: '#23365e', accessory: 'earrings', facialHair: 'none' },
     },
     accuracy: 0.95,
     speed: 0.72,
     thoroughness: 0.98,
-    technique: 0.95,
+    technique: 0.9,
     signature: ['tonometry', 'ophthalmoscopy', 'visual-fields'],
     signatureLabel: 'Pressure & fundus',
     slip: 'over-tests',
@@ -143,12 +143,12 @@ export const ROSTER: readonly Rival[] = [
     color: '#facc15',
     avatar: {
       seed: 'rival:mori', age: 29, sex: 'M',
-      look: { skin: 1, hair: 'short', hairColor: '#0f0d0c', irisColor: '#2b1d14', glasses: 'round', outfit: '#4a3a12' },
+      look: { skin: 1, hair: 'short', hairColor: '#0f0d0c', irisColor: '#2b1d14', glasses: 'round', outfit: '#4a3a12', facialHair: 'none' },
     },
     accuracy: 0.85,
     speed: 1.6,
     thoroughness: 0.55,
-    technique: 0.93,
+    technique: 0.88,
     signature: ['retinoscopy', 'phoropter', 'cover-test'],
     signatureLabel: 'Lightning refraction',
     slip: 'rushes-posterior',
@@ -174,12 +174,12 @@ export const ROSTER: readonly Rival[] = [
     color: '#f472b6',
     avatar: {
       seed: 'rival:reyes', age: 46, sex: 'F',
-      look: { skin: 2, hair: 'bun', hairColor: '#3a2418', irisColor: '#5a3a22', glasses: 'half-rim', outfit: '#5b2343', accessory: 'necklace' },
+      look: { skin: 2, hair: 'long', hairColor: '#3a2418', irisColor: '#5a3a22', glasses: 'half-rim', outfit: '#5b2343', accessory: 'earrings', facialHair: 'none' },
     },
     accuracy: 0.92,
     speed: 0.95,
     thoroughness: 0.88,
-    technique: 0.9,
+    technique: 0.84,
     signature: ['slit-lamp', 'fluorescein', 'visual-acuity'],
     signatureLabel: 'Slit-lamp artist',
     slip: 'under-triages',
@@ -205,12 +205,12 @@ export const ROSTER: readonly Rival[] = [
     color: '#67e8f9',
     avatar: {
       seed: 'rival:lindqvist', age: 26, sex: 'M',
-      look: { skin: 0, hair: 'curly', hairColor: '#b98a52', irisColor: '#4f7da6', glasses: 'square', outfit: '#1d4a57' },
+      look: { skin: 0, hair: 'curly', hairColor: '#b98a52', irisColor: '#4f7da6', glasses: 'square', outfit: '#1d4a57', facialHair: 'none' },
     },
     accuracy: 0.74,
     speed: 0.9,
     thoroughness: 0.8,
-    technique: 0.78,
+    technique: 0.74,
     signature: ['visual-acuity', 'amsler', 'motility'],
     signatureLabel: 'Careful history',
     slip: 'anchors',
@@ -230,9 +230,17 @@ export const ROSTER: readonly Rival[] = [
 
 export const RIVAL_BY_ID: Record<RivalId, Rival> = Object.fromEntries(ROSTER.map((r) => [r.id, r])) as Record<RivalId, Rival>;
 
-export const URGENCY_PHRASE: Record<Urgency, string> = {
+/** How a booking sounds ("booked it as …"). */
+export const URGENCY_BOOKED: Record<Urgency, string> = {
   routine: 'a routine appointment',
-  soon: 'within a few days',
-  urgent: 'same-day urgent',
-  emergency: 'an immediate emergency',
+  soon: 'a visit within a few days',
+  urgent: 'a same-day urgent visit',
+  emergency: 'an emergency referral',
+};
+/** What the patient actually needed ("this patient needed …"). */
+export const URGENCY_NEEDED: Record<Urgency, string> = {
+  routine: 'a routine appointment',
+  soon: 'to be seen within days',
+  urgent: 'to be seen the same day',
+  emergency: 'immediate emergency care',
 };

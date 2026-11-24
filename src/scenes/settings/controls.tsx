@@ -152,7 +152,11 @@ export function HoldButton(props: { label: string; holdMs?: number; onConfirm: (
       class={cx('settings-hold', progress > 0 && 'is-holding')}
       style={{ '--p': progress }}
       onPointerDown={(e) => {
-        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+        try {
+          (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+        } catch {
+          /* synthetic / already-released pointer */
+        }
         start();
       }}
       onPointerUp={stop}

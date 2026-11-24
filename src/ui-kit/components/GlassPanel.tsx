@@ -1,4 +1,6 @@
 import type { ComponentChildren, JSX } from 'preact';
+import type { SfxId } from '@core';
+import { useSfx } from '../hooks/useSfx';
 import { Icon, type IconName } from '../icons/Icon';
 import { cx } from '../lib/cx';
 import './GlassPanel.css';
@@ -19,23 +21,43 @@ export interface GlassPanelProps extends Omit<JSX.HTMLAttributes<HTMLDivElement>
   padding?: 'none' | 'sm' | 'md' | 'lg';
   /** Opaque-ish glass for dense text. */
   strong?: boolean;
-  /** Hover lift + pointer — for clickable cards. */
+  /** Hover lift + pointer — for clickable cards. With onClick it becomes a keyboard-operable button. */
   interactive?: boolean;
+  /** Click sound for interactive cards (default 'click'; false = silent). */
+  sfx?: SfxId | false;
   children?: ComponentChildren;
 }
 
 export function GlassPanel({
-  as = 'div', accent, glow = false, title, eyebrow, icon, actions, header, padding = 'md', strong, interactive,
-  class: klass, style, children, tabIndex, ...rest
+  as = 'div', accent, glow = false, title, eyebrow, icon, actions, header, padding = 'md', strong, interactive, sfx = 'click',
+  class: klass, style, children, tabIndex, role, onClick, onKeyDown, ...rest
 }: GlassPanelProps) {
   const Tag = as as 'div';
+  const play = useSfx();
   const hasHeader = header !== undefined || title !== undefined || eyebrow !== undefined || actions !== undefined;
   const accentStyle = accent ? { '--panel-accent': accent } : null;
+  const asButton = !!(interactive && onClick);
+  const activate = (e: JSX.TargetedMouseEvent<HTMLDivElement>) => {
+    if (asButton && sfx) play(sfx);
+    (onClick as ((e: JSX.TargetedMouseEvent<HTMLDivElement>) => void) | undefined)?.(e);
+  };
+  const handleKey = (e: JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
+    (onKeyDown as ((e: JSX.TargetedKeyboardEvent<HTMLDivElement>) => void) | undefined)?.(e);
+    // Only the card itself, not buttons/inputs nested inside it.
+    if (!asButton || e.defaultPrevented || e.target !== e.currentTarget) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.currentTarget.click();
+    }
+  };
   return (
     <Tag
       class={cx('lm-panel', `lm-panel--pad-${padding}`, glow && 'lm-panel--glow', strong && 'lm-panel--strong', interactive && 'lm-panel--interactive', accent && 'lm-panel--accent', klass as string)}
       style={accentStyle ? { ...accentStyle, ...(typeof style === 'object' ? (style as object) : {}) } : style}
-      tabIndex={interactive && rest.onClick && tabIndex === undefined ? 0 : tabIndex}
+      tabIndex={asButton && tabIndex === undefined ? 0 : tabIndex}
+      role={role ?? (asButton ? 'button' : undefined)}
+      onClick={onClick ? activate : undefined}
+      onKeyDown={asButton || onKeyDown ? handleKey : undefined}
       {...rest}
     >
       {hasHeader && (

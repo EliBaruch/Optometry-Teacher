@@ -7,7 +7,7 @@ import {
   ALL_TESTS, TEST_CATALOG, URGENCIES, createRng, gradeFor, parTimeSec, scoreCase,
   type ClinicalCase, type DiagnosisId, type Grade, type MiniGameResult, type Rng, type TestId, type Urgency,
 } from '@core';
-import { URGENCY_PHRASE, type Rival, type SlipKind } from './roster';
+import { URGENCY_BOOKED, URGENCY_NEEDED, type Rival, type SlipKind } from './roster';
 
 export interface RivalSlip {
   kind: SlipKind;
@@ -37,14 +37,23 @@ export interface SimContext {
 
 const testName = (t: TestId) => TEST_CATALOG[t]?.name ?? t;
 
-/** "acute-angle-closure" → "acute angle closure" (fallback when the diagnosis registry is empty). */
+/** "acute-angle-closure" → "Acute Angle Closure" (fallback when the diagnosis registry is empty). */
 export function humanizeId(id: string): string {
-  return id.replace(/-/g, ' ');
+  return id.split('-').map((w) => (w ? w[0]!.toUpperCase() + w.slice(1) : w)).join(' ');
 }
 
-function lowerFirst(s: string): string {
-  return /^[A-Z][a-z]/.test(s) ? s[0]!.toLowerCase() + s.slice(1) : s;
-}
+/** How a clinician would say they skipped a test. */
+const SKIP_PHRASE: Partial<Record<TestId, string>> = {
+  'tonometry': 'the pressure check',
+  'visual-acuity': 'the acuity check',
+  'pinhole': 'the pinhole test',
+  'amsler': 'the Amsler grid',
+  'pupils': 'the pupil exam',
+  'visual-fields': 'the visual fields',
+  'ophthalmoscopy': 'the dilated fundus exam',
+  'slit-lamp': 'the slit-lamp exam',
+};
+const skipPhrase = (t: TestId) => SKIP_PHRASE[t] ?? testName(t).toLowerCase();
 
 function listNames(names: string[]): string {
   if (names.length <= 1) return names[0] ?? '';
@@ -79,7 +88,7 @@ function mimic(kase: ClinicalCase, rng: Rng): DiagnosisId {
 /** Simulate one colleague on one real case. */
 export function simulateRival(rival: Rival, kase: ClinicalCase, ctx: SimContext): RivalCaseResult {
   const rng = createRng(`rivals:case:${rival.id}:${kase.id}`);
-  const dxName = (id: DiagnosisId) => lowerFirst(ctx.diagnosisName(id));
+  const dxName = (id: DiagnosisId) => ctx.diagnosisName(id);
   const difficulty = kase.difficulty;
 
   // Baseline plan: every essential test, most helpful ones (by thoroughness).
@@ -102,7 +111,7 @@ export function simulateRival(rival: Rival, kase: ClinicalCase, ctx: SimContext)
           diagnosisId = mimic(kase, rng);
           slip = {
             kind: rival.slip,
-            text: `Skipped ${testName(skipped).toLowerCase()}, called it ${dxName(diagnosisId)} and missed the ${dxName(kase.diagnosis)}.`,
+            text: `Skipped ${skipPhrase(skipped)}, called it ${dxName(diagnosisId)} and missed the ${dxName(kase.diagnosis)}.`,
             lesson: `${testName(skipped)} was essential for this patient.`,
           };
           timeFactor = 0.85;
@@ -129,7 +138,7 @@ export function simulateRival(rival: Rival, kase: ClinicalCase, ctx: SimContext)
           urgency = URGENCIES[idx - 1]!;
           slip = {
             kind: 'under-triages',
-            text: `Right diagnosis, but booked it as ${URGENCY_PHRASE[urgency]} — this patient needed ${URGENCY_PHRASE[kase.urgency]} care.`,
+            text: `Right diagnosis, but booked it as ${URGENCY_BOOKED[urgency]} — this patient needed ${URGENCY_NEEDED[kase.urgency]}.`,
             lesson: 'Urgency is part of the diagnosis.',
           };
         }
@@ -156,9 +165,16 @@ export function simulateRival(rival: Rival, kase: ClinicalCase, ctx: SimContext)
     if (rng.chance(miss)) diagnosisId = mimic(kase, rng);
   }
 
+  // Everyone occasionally orders one test the case didn't need (less often the more focused they are).
+  if (!slip && rng.chance(0.35 * (1 - rival.thoroughness * 0.5))) {
+    const relevant = new Set<TestId>([...kase.essentialTests, ...kase.helpfulTests]);
+    const spare = ALL_TESTS.filter((t) => !relevant.has(t));
+    if (spare.length) tests.add(rng.pick(spare));
+  }
+
   const testsDone: Partial<Record<TestId, MiniGameResult>> = {};
   for (const t of tests) testsDone[t] = fakeResult(t, rival.technique + rng.float(-0.08, 0.06));
-  const asked = kase.history.filter((h) => h.relevance === 'key' && rng.chance(0.4 + rival.thoroughness * 0.6)).map((h) => h.id);
+  const asked = kase.history.filter((h) => h.relevance === 'key' && rng.chance(0.3 + rival.thoroughness * 0.6)).map((h) => h.id);
   const par = parTimeSec(kase);
   const timeSec = Math.max(15, Math.round((par * rng.float(0.62, 1.05) * timeFactor) / rival.speed));
 
