@@ -8,6 +8,8 @@ import { signal, type ReadSignal } from './signal';
 import { TEST_CATALOG } from './tests';
 
 /** Live state of the case currently on the exam chair. */
+export type Confidence = 'guessing' | 'fairly-sure' | 'certain';
+
 export interface CaseSession {
   caseId: string;
   modeId: string;
@@ -19,7 +21,7 @@ export interface CaseSession {
   /** In-game clinic minutes consumed */
   clinicMinutes: number;
   timeLimitSec?: number;
-  submitted?: { diagnosisId: DiagnosisId; urgency: Urgency; score: ScoreBreakdown };
+  submitted?: { diagnosisId: DiagnosisId; urgency: Urgency; score: ScoreBreakdown; confidence?: Confidence };
   /** Every 'reward:granted' emitted while this case is active (incl. synchronously on completion). */
   rewards: RewardGrant[];
   failed?: 'timeout' | 'abandoned';
@@ -31,7 +33,8 @@ export interface CaseSessionController {
   ask(questionId: string): void;
   recordTest(result: MiniGameResult): void;
   useHint(): void;
-  submit(diagnosisId: DiagnosisId, urgency: Urgency): ScoreBreakdown;
+  /** confidence: the player's self-rated certainty (metacognition; confident-but-wrong is flagged for review) */
+  submit(diagnosisId: DiagnosisId, urgency: Urgency, confidence?: Confidence): ScoreBreakdown;
   fail(reason: 'timeout' | 'abandoned'): void;
   elapsedSec(): number;
   clear(): void;
@@ -85,16 +88,16 @@ export function createCaseSession(
       const s = need();
       state.set({ ...s, hintsUsed: s.hintsUsed + 1 });
     },
-    submit(diagnosisId, urgency) {
+    submit(diagnosisId, urgency, confidence) {
       const s = need();
       const kase = cases.require(s.caseId);
       const score = scoreCase({
         kase, diagnosisId, urgency, testsDone: s.testsDone, askedQuestions: s.askedQuestions,
         elapsedSec: ctl.elapsedSec(), hintsUsed: s.hintsUsed,
       });
-      state.set({ ...s, submitted: { diagnosisId, urgency, score } });
+      state.set({ ...s, submitted: { diagnosisId, urgency, score, confidence } });
       bus.emit('diagnosis:submitted', {
-        caseId: s.caseId, diagnosisId, correct: score.diagnosisCorrect, urgency, urgencyCorrect: score.urgencyCorrect,
+        caseId: s.caseId, diagnosisId, correct: score.diagnosisCorrect, urgency, urgencyCorrect: score.urgencyCorrect, confidence,
       });
       bus.emit('case:completed', { caseId: s.caseId, modeId: s.modeId, score });
       return score;

@@ -39,6 +39,7 @@ export interface GameEvents {
     correct: boolean;
     urgency: Urgency;
     urgencyCorrect: boolean;
+    confidence?: 'guessing' | 'fairly-sure' | 'certain';
   };
   'case:completed': { caseId: string; modeId: string; score: ScoreBreakdown };
   'case:failed': { caseId: string; modeId: string; reason: 'timeout' | 'abandoned' };
