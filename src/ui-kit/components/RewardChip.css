@@ -1,0 +1,62 @@
+.lm-reward {
+  --rw-c: var(--lm-rarity-common); --rw-r: var(--lm-rarity-common);
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; gap: 12px; max-width: 100%;
+  min-height: 56px; padding: 8px 16px 8px 8px; border-radius: 18px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--rw-c) 14%, #1d1236), #150c28 70%);
+  box-shadow: inset 0 1px 0 rgba(255, 245, 230, 0.1), inset 0 0 0 1px color-mix(in srgb, var(--rw-r) 30%, transparent), var(--lm-shadow-1);
+}
+.lm-reward.is-anim { animation: lm-reward-in 640ms var(--lm-ease-spring) var(--d) both; }
+@keyframes lm-reward-in {
+  0% { opacity: 0; transform: translateY(22px) scale(0.7); filter: blur(4px); }
+  60% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: none; }
+}
+.lm-reward__icon {
+  display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 12px;
+  color: color-mix(in srgb, var(--rw-c) 85%, white); font-size: 20px;
+  background: radial-gradient(circle at 50% 25%, color-mix(in srgb, var(--rw-c) 40%, transparent), color-mix(in srgb, var(--rw-c) 10%, transparent) 75%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rw-c) 50%, transparent), 0 0 18px -4px var(--rw-c);
+}
+.lm-reward__icon svg { width: 22px; height: 22px; }
+.lm-reward__text { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
+.lm-reward__value { font-size: var(--lm-fs-xl); font-weight: 700; color: color-mix(in srgb, var(--rw-c) 60%, white); text-shadow: 0 0 14px color-mix(in srgb, var(--rw-c) 50%, transparent); }
+.lm-reward__label { font-size: var(--lm-fs-xs); font-weight: 560; color: var(--lm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lm-reward__rarity {
+  margin-left: auto; padding: 3px 8px; border-radius: 999px;
+  font: 700 9.5px/1 var(--lm-font-ui); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--rw-r); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rw-r) 55%, transparent);
+}
+
+/* rare: cool glow */
+.lm-reward--rare { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 0 1px color-mix(in srgb, var(--rw-r) 55%, transparent), 0 0 22px -6px var(--rw-r), var(--lm-shadow-1); }
+/* epic: violet glow, breathing */
+.lm-reward--epic {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 1px color-mix(in srgb, var(--rw-r) 70%, transparent), 0 0 30px -6px var(--rw-r), var(--lm-shadow-2);
+}
+.lm-reward--epic::after {
+  content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit;
+  box-shadow: 0 0 26px 2px color-mix(in srgb, var(--rw-r) 45%, transparent);
+  animation: lm-reward-breathe 2.4s var(--lm-ease-in-out) infinite;
+}
+@keyframes lm-reward-breathe { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+/* legendary: rotating iridescent rim + gold aura */
+.lm-reward--legendary { background: linear-gradient(100deg, rgba(255, 210, 122, 0.22), #1c1030 70%); box-shadow: inset 0 1px 0 rgba(255, 245, 220, 0.2), 0 0 36px -6px rgba(255, 210, 122, 0.75), var(--lm-shadow-2); }
+.lm-reward--legendary::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; z-index: 1; pointer-events: none;
+  background: var(--lm-iridescent);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: lm-hue 2.6s linear infinite;
+}
+.lm-reward--legendary .lm-reward__value {
+  background: linear-gradient(180deg, #fff8e4, #ffd27a 55%, #f0a432); -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: none; filter: drop-shadow(0 0 8px rgba(255, 200, 100, 0.55));
+}
+.lm-reward--legendary .lm-reward__rarity { color: #1e1203; background: linear-gradient(180deg, #fff0c9, #ffd27a); box-shadow: 0 0 12px rgba(255, 210, 122, 0.6); }
+.lm-reward__shine { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
+.lm-reward__shine::before {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  animation: lm-shimmer 3.2s var(--lm-ease-in-out) calc(var(--d) + 600ms) infinite;
+}

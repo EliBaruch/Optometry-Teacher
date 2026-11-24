@@ -1,0 +1,38 @@
+.lm-speech {
+  --speech-c: var(--lm-gold);
+  --speech-bg: #f8f1e5;
+  position: relative; max-width: 100%;
+  padding: 14px 18px 16px; border-radius: 20px;
+  color: #2a1a33;
+  background: linear-gradient(180deg, #fffaf1, var(--speech-bg) 60%, #efe3cf);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -2px 0 rgba(120, 80, 40, 0.12), 0 0 0 1px rgba(255, 230, 190, 0.6), 0 14px 34px -10px rgba(0, 0, 0, 0.65), 0 0 40px -12px rgba(255, 210, 122, 0.45);
+  animation: lm-speech-in 480ms var(--lm-ease-spring-soft) both;
+  transform-origin: left center;
+}
+.lm-speech.is-typing { cursor: pointer; }
+.lm-speech:focus-visible { box-shadow: var(--lm-focus-ring), 0 14px 34px -10px rgba(0, 0, 0, 0.65); }
+@keyframes lm-speech-in { from { opacity: 0; transform: scale(0.85) translateY(6px); } to { opacity: 1; transform: none; } }
+.lm-speech--tail-right { transform-origin: right center; }
+.lm-speech--tail-bottom { transform-origin: 30% bottom; }
+.lm-speech--tail-top { transform-origin: 30% top; }
+.lm-speech::after {
+  content: ''; position: absolute; width: 18px; height: 18px; background: var(--speech-bg);
+  border-radius: 0 0 0 4px;
+}
+.lm-speech--tail-none::after { display: none; }
+.lm-speech--tail-left::after { left: -7px; top: 22px; transform: rotate(45deg) skew(8deg, 8deg); box-shadow: -1px 1px 0 rgba(255, 230, 190, 0.6); background: #fcf5ea; }
+.lm-speech--tail-right::after { right: -7px; top: 22px; transform: rotate(-135deg) skew(8deg, 8deg); background: #fcf5ea; }
+.lm-speech--tail-bottom::after { left: 28px; bottom: -7px; transform: rotate(-45deg) skew(8deg, 8deg); background: #f0e5d2; }
+.lm-speech--tail-top::after { left: 28px; top: -7px; transform: rotate(135deg) skew(8deg, 8deg); background: #fdf8ef; }
+.lm-speech__speaker {
+  margin-bottom: 4px;
+  font: 700 var(--lm-fs-2xs)/1.2 var(--lm-font-ui); letter-spacing: 0.12em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--speech-c) 45%, #6a3b0c);
+}
+.lm-speech__text { position: relative; font-family: var(--lm-font-display); font-size: var(--lm-fs-lg); line-height: 1.45; font-weight: 420; font-variation-settings: 'opsz' 24; }
+.lm-speech__ghost { visibility: hidden; }
+.lm-speech__caret {
+  display: inline-block; width: 2px; height: 1.05em; margin: 0 1px -0.15em; border-radius: 1px;
+  background: #8a5a1c; animation: lm-speech-caret 0.9s steps(1) infinite;
+}
+@keyframes lm-speech-caret { 50% { opacity: 0; } }

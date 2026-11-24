@@ -1,0 +1,12 @@
+.lm-scroll {
+  --fade-a: 0px; --fade-b: 0px;
+  position: relative; overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(var(--fade-dir, 180deg), transparent 0, #000 var(--fade-a), #000 calc(100% - var(--fade-b)), transparent 100%);
+  mask-image: linear-gradient(var(--fade-dir, 180deg), transparent 0, #000 var(--fade-a), #000 calc(100% - var(--fade-b)), transparent 100%);
+}
+.lm-scroll--vertical { overflow-y: auto; overflow-x: hidden; height: 100%; }
+.lm-scroll--horizontal { --fade-dir: 90deg; overflow-x: auto; overflow-y: hidden; }
+.lm-scroll.fade-start { --fade-a: 28px; }
+.lm-scroll.fade-end { --fade-b: 28px; }
+.lm-scroll:focus-visible { box-shadow: inset 0 0 0 2px rgba(255, 210, 122, 0.6); border-radius: var(--lm-r-sm); }
+.lm-scroll--horizontal .lm-scroll__content { width: max-content; }

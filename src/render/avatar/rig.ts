@@ -210,7 +210,7 @@ export function mouthShape(g: Geo, p: RigParams): MouthShape {
   const teeth =
     th > 0.05
       ? `M${P(lx - 1, cy - 6)}L${P(rx + 1, cy - 6)}L${P(rx + 1, cy + th)}Q${P(CX, upInner * 2 - cy + th)} ${P(lx - 1, cy + th)}Z` +
-        (lowerTeeth > 0 ? `M${P(lx - 1, cy + 12)}L${P(rx + 1, cy + 12)}L${P(rx + 1, cy - lowerTeeth + o)}Q${P(CX, loInner * 2 - cy - lowerTeeth * 2)} ${P(lx - 1, cy - lowerTeeth + o)}Z` : '')
+        (lowerTeeth > 0 ? `M${P(lx - 1, cy + 14)}L${P(rx + 1, cy + 14)}L${P(rx + 1, cy - lowerTeeth)}Q${P(CX, loInner * 2 - cy - lowerTeeth)} ${P(lx - 1, cy - lowerTeeth)}Z` : '')
       : '';
 
   // Upper lip with cupid's bow

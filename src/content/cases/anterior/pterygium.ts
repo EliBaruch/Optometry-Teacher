@@ -10,7 +10,7 @@ const pterygiumCase: ClinicalCase = {
     age: 47,
     sex: 'M',
     occupation: 'Surf instructor',
-    personality: 'Calls everyone “cuz”; measures time in tides.',
+    personality: 'Measures time in tides and explains everything with his hands.',
     avatar: {
       skin: 3, hair: 'long', hairColor: '#7a5a36', irisColor: '#3b2a1a',
       facialHair: 'stubble', accessory: 'necklace', outfit: '#1f8a8a',
