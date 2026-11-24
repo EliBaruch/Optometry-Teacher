@@ -1,5 +1,5 @@
 import type { ClinicalCase, DiagnosisId, Urgency } from './case';
-import type { EventBus } from './events';
+import type { EventBus, RewardGrant } from './events';
 import type { MiniGameResult, RevealedFinding, TestId } from './minigame';
 import type { ModeModule, RunSnapshot } from './mode';
 import type { Registry } from './registry';
@@ -20,6 +20,9 @@ export interface CaseSession {
   clinicMinutes: number;
   timeLimitSec?: number;
   submitted?: { diagnosisId: DiagnosisId; urgency: Urgency; score: ScoreBreakdown };
+  /** Every 'reward:granted' emitted while this case is active (incl. synchronously on completion). */
+  rewards: RewardGrant[];
+  failed?: 'timeout' | 'abandoned';
 }
 
 export interface CaseSessionController {
@@ -45,13 +48,17 @@ export function createCaseSession(
     if (!s) throw new Error('No active case');
     return s;
   };
+  bus.on('reward:granted', (r) => {
+    const s = state.get();
+    if (s) state.set({ ...s, rewards: [...s.rewards, r] });
+  });
   const ctl: CaseSessionController = {
     state,
     start(kase, modeId, timeLimitSec) {
       const limit = timeLimitSec ?? kase.emergency?.timeLimitSec;
       state.set({
         caseId: kase.id, modeId, startedAt: now(), askedQuestions: [], testsDone: {}, chart: [],
-        hintsUsed: 0, clinicMinutes: 0, timeLimitSec: limit,
+        hintsUsed: 0, clinicMinutes: 0, timeLimitSec: limit, rewards: [],
       });
       bus.emit('case:started', { caseId: kase.id, modeId, emergency: !!limit, timeLimitSec: limit });
     },
@@ -94,6 +101,7 @@ export function createCaseSession(
     },
     fail(reason) {
       const s = need();
+      state.set({ ...s, failed: reason });
       bus.emit('case:failed', { caseId: s.caseId, modeId: s.modeId, reason });
     },
     elapsedSec() {

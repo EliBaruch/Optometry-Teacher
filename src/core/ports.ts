@@ -48,6 +48,8 @@ export interface LearningPort {
   record(diagnosisId: DiagnosisId, quality: number): void;
   /** Diagnoses due for review, most overdue first */
   due(limit?: number): DiagnosisId[];
+  /** Has the player ever met this diagnosis (as answer or confusion)? */
+  seen(diagnosisId: DiagnosisId): boolean;
   /** 0..1 mastery estimate */
   mastery(diagnosisId: DiagnosisId): number;
   stats(): MasteryStats;
@@ -58,6 +60,7 @@ export const nullFx: FxPort = { shake() {}, flash() {}, burst() {}, floatText() 
 export const nullLearning: LearningPort = {
   record() {},
   due: () => [],
+  seen: () => false,
   mastery: () => 0,
   stats: () => ({ seen: 0, mastered: 0, due: 0 }),
 };

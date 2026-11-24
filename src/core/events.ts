@@ -50,6 +50,19 @@ export interface GameEvents {
   'toast': { message: string; icon?: string; tone?: 'info' | 'good' | 'bad' | 'epic' };
 
   'learning:reviewed': { diagnosisId: DiagnosisId; quality: number };
+
+  /** Any module may ask the economy to pay coins (e.g. daily gift). The economy system owns the balance. */
+  'currency:grant': { amount: number; reason: string };
+  /** Emitted by the economy system whenever the balance changes. */
+  'currency:changed': { balance: number; delta: number };
+  /** Any module may award XP; the career/ranks system owns XP & rank. */
+  'xp:grant': { amount: number; reason: string };
+  /** Emitted by the ranks system on rank-up. */
+  'rank:changed': { level: number; title: string };
+  /** The player asked for a hint in the exam room. */
+  'hint:used': { caseId: string };
+  /** Run flow: the next patient is about to enter (scenes may animate a door). */
+  'patient:arriving': { caseId: string; modeId: string };
 }
 
 export type EventName = keyof GameEvents;
