@@ -38,8 +38,8 @@ const presbyopiaMenu: ClinicalCase = {
   ],
   findings: buildFindings(46, {
     va: {
-      OD: { uncorrected: 0, bestCorrected: -0.1, pinhole: 0, nearUncorrected: 0.4 },
-      OS: { uncorrected: 0, bestCorrected: -0.1, pinhole: 0, nearUncorrected: 0.4 },
+      OD: { uncorrected: 0, bestCorrected: -0.1, pinhole: 0, nearUncorrected: 0.2 },
+      OS: { uncorrected: 0, bestCorrected: -0.1, pinhole: 0, nearUncorrected: 0.2 },
     },
     refraction: {
       OD: { sphere: 0.25, cylinder: 0, axis: 180, add: 1.25 },
@@ -58,7 +58,7 @@ const presbyopiaMenu: ClinicalCase = {
     'Prescribe a near addition of +1.25 D (single-vision readers, or progressives/occupational lenses for the kitchen pass and menu distance). Demonstrate the working distances he actually needs. Explain the add will increase over the next decade; complete a full eye-health check including IOP and dilated fundus as he is over 40. Recall in 1–2 years.',
   teachingPoints: [
     'His measured amplitude is 3.5 D (Hofstetter minimum at 46 = 15 − 0.25 × 46 = 3.5 D). Holding half in reserve leaves about 1.75 D for sustained work: 0.75 D short at 40 cm (2.5 D) and 1.25 D short for the phone at 33 cm (3.0 D), which is where the +1.25 add comes from. Refine it with NRA/PRA balance.',
-    'Distance 20/20, near 20/50 that clears fully with a plus add: a purely optical, bilateral, symmetric problem.',
+    'Distance 20/20; at 40 cm he can just read 20/32 with effort but cannot sustain it, and it clears fully and comfortably with the +1.25 add: a purely optical, bilateral, symmetric problem.',
     'Starting adds are individual, roughly +1.00 to +1.25 in the mid-40s, rising to +2.00 to +2.50 by about 60.',
     'Uncorrected hyperopes notice near blur earlier; a cycloplegic refraction tells the two apart.',
     'Sudden or one-sided near blur in a young adult is not presbyopia: think tonic pupil, third-nerve palsy, drugs or diabetes.',
