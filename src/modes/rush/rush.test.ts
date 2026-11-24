@@ -66,6 +66,13 @@ describe('rush mode', () => {
     for (let i = 0; i < 10; i++) expect(rush.pickNext(s, snap(['a', 'b'], [], 0, `r${i}`))!.id).toBe('a');
   });
 
+  it('after a full lap, draws from the patients seen least recently', () => {
+    const s = svc(['a', 'b', 'c', 'd'].map((id) => mk(id, 1)));
+    for (let i = 0; i < 10; i++) {
+      expect(['a', 'b']).toContain(rush.pickNext(s, snap(['a', 'b', 'c', 'd'], [], 0, `lap${i}`))!.id);
+    }
+  });
+
   it('documents a capped combo multiplier', () => {
     expect(rushComboMultiplier(0)).toBe(1);
     expect(rushComboMultiplier(5)).toBeCloseTo(1.5);

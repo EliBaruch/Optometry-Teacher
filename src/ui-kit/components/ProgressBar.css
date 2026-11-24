@@ -1,0 +1,28 @@
+.lm-progress { --prog-c: var(--lm-gold); --prog-h: 10px; width: 100%; }
+.lm-progress--sm { --prog-h: 6px; }
+.lm-progress--lg { --prog-h: 14px; }
+.lm-progress__row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--lm-sp-3); margin-bottom: 7px; }
+.lm-progress__label { font-size: var(--lm-fs-sm); font-weight: 560; color: var(--lm-ivory-dim); }
+.lm-progress__value { font-size: var(--lm-fs-sm); color: color-mix(in srgb, var(--prog-c) 75%, white); }
+.lm-progress__track {
+  position: relative; height: var(--prog-h); border-radius: 999px; overflow: hidden;
+  background: rgba(6, 3, 14, 0.6);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 236, 210, 0.08), 0 1px 0 rgba(255, 245, 230, 0.05);
+}
+.lm-progress__fill {
+  position: absolute; left: 0; top: 0; bottom: 0; min-width: var(--prog-h); border-radius: inherit;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--prog-c) 55%, white) 0%, var(--prog-c) 50%, color-mix(in srgb, var(--prog-c) 75%, black) 100%);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--prog-c) 55%, transparent);
+  transition: width 900ms var(--lm-ease-out-expo), opacity var(--lm-dur-ui);
+}
+.lm-progress__fill.is-empty { opacity: 0; }
+.lm-progress__tip {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 16px; border-radius: inherit;
+  background: radial-gradient(ellipse at right center, rgba(255, 255, 255, 0.9), transparent 72%);
+}
+.lm-progress__fill.is-shimmer { overflow: hidden; }
+.lm-progress__fill.is-shimmer::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  animation: lm-shimmer 2.2s var(--lm-ease-in-out) infinite;
+}

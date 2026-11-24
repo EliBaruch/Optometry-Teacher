@@ -25,8 +25,13 @@ function pickNext(services: GameServices, run: RunSnapshot): ClinicalCase | null
     ? fresh.filter((c) => c.urgency === 'emergency' || !!c.emergency)
     : fresh.filter((c) => c.urgency === 'urgent' && !c.emergency);
   const tier = want.length ? want : fresh;
-  const min = Math.min(5, 1 + index);
-  return pickCase(tier, rng, { minDifficulty: Math.max(1, min - 1), maxDifficulty: Math.min(5, min + 1) });
+  // Difficulty ramps patient by patient: 1–2, 1–3, 2–4, 3–5 (nearest available if none fit).
+  const centre = Math.min(5, 1 + index);
+  const min = Math.max(1, centre - 1);
+  const max = Math.min(5, centre + 1);
+  const dist = (c: ClinicalCase) => (c.difficulty < min ? min - c.difficulty : c.difficulty > max ? c.difficulty - max : 0);
+  const best = Math.min(...tier.map(dist));
+  return pickCase(tier.filter((c) => dist(c) === best), rng);
 }
 
 const codeRed: ModeModule = {

@@ -34,10 +34,13 @@ function pickNext(services: GameServices, run: RunSnapshot): ClinicalCase | null
   const fresh = pool.filter((c) => !used.has(c.id));
 
   if (!fresh.length) {
-    // Endless: once every patient has been seen, the waiting room refills —
-    // but never the patient who just left.
-    const last = [...run.completed, ...run.failed].slice(-1);
-    return pickCase(pool, rng, { exclude: pool.length > 1 ? last : [] });
+    // Endless: once every patient has been seen the waiting room refills, drawing
+    // from the patients seen least recently (never the one who just left).
+    // (RunSnapshot keeps completed/failed separately, so "recent" = the tail of each.)
+    const k = Math.max(1, Math.floor(pool.length / 2));
+    const recent = new Set([...run.completed.slice(-k), ...run.failed.slice(-k)]);
+    const rested = pool.filter((c) => !recent.has(c.id));
+    return pickCase(rested.length ? rested : pool, rng);
   }
 
   const cap = rushCap(run);

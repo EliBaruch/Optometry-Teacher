@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildFindings, createServices, nullLearning, type ClinicalCase, type GameServices, type RunSnapshot } from '@core';
-import shift, { shiftWindow, slotRange } from './index';
+import shift, { nearestDifficulty, shiftWindow, slotRange } from './index';
 import { SHIFT_SLOT } from './experience';
 
 const BANNED = /\b(sins?|deadly|vices?|pride|greed|envy|gluttony|lust|wrath|sloth|confess\w*|holy)\b/i;
@@ -71,6 +71,12 @@ describe('shift mode', () => {
   it('skips cases already failed in this run too', () => {
     const s = svc([mk('a', 1), mk('b', 1)]);
     expect(shift.pickNext(s, snap([], ['a']))?.id).toBe('b');
+  });
+
+  it('falls back to the nearest difficulty when the window is empty', () => {
+    const s = svc([mk('a', 1), mk('b', 3), mk('c', 5)]);
+    expect(shift.pickNext(s, snap(['a']))?.id).toBe('b');
+    expect(nearestDifficulty([mk('x', 4), mk('y', 5)], 1, 2).map((c) => c.id)).toEqual(['x']);
   });
 
   it('allows a repeat only once the whole pool is exhausted', () => {

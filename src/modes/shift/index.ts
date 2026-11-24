@@ -41,7 +41,18 @@ function pickNext(services: GameServices, run: RunSnapshot): ClinicalCase | null
   const varied = fresh.filter((c) => !usedDx.has(c.diagnosis));
   // Mid-shift, a diagnosis that is due for review gets priority (spaced retrieval).
   const prefer = index === 2 ? services.learning.due(5) : undefined;
-  return pickCase(varied.length ? varied : fresh, rng, { minDifficulty: min, maxDifficulty: max, prefer });
+  const candidates = nearestDifficulty(varied.length ? varied : fresh, min, max);
+  return pickCase(candidates, rng, { minDifficulty: min, maxDifficulty: max, prefer });
+}
+
+/**
+ * Cases inside [min, max]; if none, those closest to the window — so a small
+ * pool degrades gracefully (a 3 rather than a 5 when a 1–2 was wanted).
+ */
+export function nearestDifficulty(cases: readonly ClinicalCase[], min: number, max: number): ClinicalCase[] {
+  const dist = (c: ClinicalCase) => (c.difficulty < min ? min - c.difficulty : c.difficulty > max ? c.difficulty - max : 0);
+  const best = Math.min(...cases.map(dist));
+  return cases.filter((c) => dist(c) === best);
 }
 
 const shift: ModeModule = {

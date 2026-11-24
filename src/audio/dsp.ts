@@ -31,8 +31,6 @@ export function createKit(ctx: BaseAudioContext, rnd: () => number = Math.random
   return { ctx, white, pink };
 }
 
-const EPS = 0.0001;
-
 /** Percussive envelope: attack → optional hold → exponential-ish decay. Returns end time. */
 export function perc(param: AudioParam, t: number, peak: number, attack: number, decay: number, hold = 0): number {
   const a = Math.max(0.0015, attack);

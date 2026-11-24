@@ -1,0 +1,44 @@
+.lm-tabs {
+  --tabs-c: var(--lm-gold);
+  position: relative; display: inline-flex; align-items: center; gap: 2px; max-width: 100%;
+  overflow-x: auto; scrollbar-width: none;
+}
+.lm-tabs::-webkit-scrollbar { display: none; }
+.lm-tabs--block { display: flex; }
+.lm-tabs--block .lm-tabs__tab { flex: 1; justify-content: center; }
+.lm-tabs--pill {
+  padding: 4px; border-radius: 999px;
+  background: rgba(10, 5, 22, 0.45);
+  box-shadow: inset 0 0 0 1px var(--lm-glass-border), inset 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.lm-tabs__tab {
+  position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; flex: none;
+  height: 36px; padding: 0 16px; border-radius: 999px;
+  font: 600 var(--lm-fs-sm)/1 var(--lm-font-ui); color: var(--lm-muted); white-space: nowrap;
+  transition: color var(--lm-dur-ui) var(--lm-ease-out);
+}
+.lm-tabs__tab:hover:not(:disabled) { color: var(--lm-ivory); }
+.lm-tabs__tab.is-active { color: var(--lm-text-on-gold); }
+.lm-tabs__tab:disabled { opacity: 0.4; }
+.lm-tabs__icon { width: 1.1em; height: 1.1em; }
+.lm-tabs__badge {
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center;
+  font-size: 10px; font-weight: 700; color: var(--lm-ivory); background: rgba(255, 255, 255, 0.12);
+}
+.lm-tabs__tab.is-active .lm-tabs__badge { background: rgba(40, 20, 0, 0.18); color: var(--lm-text-on-gold); }
+.lm-tabs__ind {
+  position: absolute; z-index: 0; left: 0; top: 4px; bottom: 4px; border-radius: 999px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tabs-c) 55%, white), var(--tabs-c) 55%, color-mix(in srgb, var(--tabs-c) 80%, #8a4b00));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 18px -2px color-mix(in srgb, var(--tabs-c) 60%, transparent), 0 4px 12px -4px rgba(0, 0, 0, 0.6);
+  transition: transform var(--lm-dur-med) var(--lm-ease-spring-soft), width var(--lm-dur-med) var(--lm-ease-spring-soft);
+}
+/* underline variant */
+.lm-tabs--underline { gap: var(--lm-sp-4); border-bottom: 1px solid var(--lm-hairline); }
+.lm-tabs--underline .lm-tabs__tab { padding: 0 2px; height: 42px; border-radius: 0; }
+.lm-tabs--underline .lm-tabs__tab.is-active { color: var(--lm-ivory); }
+.lm-tabs--underline .lm-tabs__ind {
+  top: auto; bottom: -1px; height: 2px; border-radius: 2px;
+  background: var(--tabs-c); box-shadow: 0 0 12px var(--tabs-c);
+}
+.lm-tabpanel { animation: lm-fade-up var(--lm-dur-med) var(--lm-ease-out-expo) both; }
+.lm-tabpanel:focus-visible { box-shadow: none; }
