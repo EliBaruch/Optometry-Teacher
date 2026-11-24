@@ -1,0 +1,8 @@
+/* App-shell only. Design tokens & components live in src/ui-kit. */
+html, body { margin: 0; height: 100%; overflow: hidden; }
+#app { position: fixed; inset: 0; }
+#fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 9000; }
+.scene-host { position: absolute; inset: 0; transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease; }
+.scene-host--out { opacity: 0; transform: scale(0.985); filter: blur(4px); }
+.scene-host--in { opacity: 1; transform: none; filter: none; }
+.missing-scene { padding: 48px; font-family: system-ui; color: #eee; background: #111; height: 100%; }

@@ -1,0 +1,9 @@
+body.sandbox { background: #0b0716; color: #eee; font-family: Inter Variable, system-ui, sans-serif; }
+.sb-error { padding: 40px; color: #f87171; }
+.sb-index { padding: 32px; overflow: auto; height: 100%; box-sizing: border-box; }
+.sb-index a { color: #ffd27a; }
+.sb-harness { display: grid; grid-template-columns: 1fr 300px; height: 100%; }
+.sb-stage { position: relative; overflow: hidden; }
+.sb-panel { padding: 16px; background: #150d26; overflow: auto; font-size: 13px; }
+.sb-panel pre { white-space: pre-wrap; font-size: 11px; background: #0003; padding: 8px; }
+@media (max-width: 800px) { .sb-harness { grid-template-columns: 1fr; grid-template-rows: 1fr auto; } .sb-panel { max-height: 30vh; } }
