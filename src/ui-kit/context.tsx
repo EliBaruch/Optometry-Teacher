@@ -8,6 +8,11 @@ export function ServicesProvider(props: { services: GameServices; children: Comp
   return <ServicesContext.Provider value={props.services}>{props.children}</ServicesContext.Provider>;
 }
 
+/** Services if rendered inside a <ServicesProvider>, otherwise null (never throws). */
+export function useOptionalServices(): GameServices | null {
+  return useContext(ServicesContext);
+}
+
 export function useServices(): GameServices {
   const s = useContext(ServicesContext);
   if (!s) throw new Error('useServices() outside <ServicesProvider>');

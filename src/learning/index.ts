@@ -1,12 +1,13 @@
-import type { GameServices, LearningPort, SaveService } from '@core';
-import { nullLearning } from '@core';
-
-/** Placeholder — replaced by the learning builder. */
-export function createLearning(_save: SaveService, _now: () => number): LearningPort {
-  return nullLearning;
-}
-
-/** Wires the learning port to game events. Returns an uninstall function. */
-export function attachLearning(_services: GameServices): () => void {
-  return () => {};
-}
+/**
+ * Learning adapter: SM-2-style spaced repetition per diagnosis.
+ * The composition root does `services.learning = createLearning(save, now)` and
+ * `attachLearning(services)`; everything else talks to the core LearningPort.
+ */
+export { createLearning, isLumenLearning, LEARNING_SLOT, MASTERED_AT } from './learning';
+export type { CardView, LearningState, LumenLearning } from './learning';
+export { attachLearning, CONFUSION_QUALITY, TIMEOUT_QUALITY } from './attach';
+export {
+  DAY, MINUTE, DEFAULT_EASE, MIN_EASE, LAPSE_DELAY_MS, CONFUSION_DELAY_MS, MASTERY_REPS,
+  masteryOf, review, confuse, newCard, nextEase, isOnTime,
+} from './sm2';
+export type { Card } from './sm2';
