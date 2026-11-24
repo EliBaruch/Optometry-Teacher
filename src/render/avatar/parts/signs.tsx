@@ -6,7 +6,7 @@ import type { VNode } from 'preact';
 import { createRng } from '@core';
 import { mix, shade } from '../../fx/color';
 import { CX, VIEW_H, VIEW_W, type Side } from '../geometry';
-import { P, smooth, type Pt } from '../paths';
+import { P, ribbon, smooth, type Pt } from '../paths';
 import type { PaintCtx } from './ctx';
 
 const sideOf = (eye: 'OD' | 'OS'): Side => (eye === 'OD' ? -1 : 1);
@@ -150,50 +150,70 @@ export function EyePatch({ c }: { c: PaintCtx }) {
 export function ShieldHand({ c }: { c: PaintCtx }) {
   if (!c.ext.photophobia) return null;
   const { g, skin } = c;
-  const by = g.browY - 6;
+  const by = g.browY - 8;
   const W = g.headW;
   const hand = c.id('hand');
-  const palm = smooth(
+  const kx = CX + 8; // knuckle line
+  const back = smooth(
     [
-      [CX + W + 12, by - 8],
-      [CX + 20, by - 13],
-      [CX - 2, by - 13.5],
-      [CX - 13, by - 10],
-      [CX - 15, by - 6.5],
-      [CX - 10, by - 4],
-      [CX + 8, by - 2.5],
-      [CX + 26, by + 1.5],
+      [CX + W + 12, by - 7],
+      [CX + 26, by - 10],
+      [kx, by - 11],
+      [kx - 2, by - 3],
+      [CX + 24, by + 2],
       [CX + W + 10, by + 7],
     ],
     true,
   );
-  const thumb = smooth([[CX + 34, by], [CX + 26, by + 5.5], [CX + 18, by + 8], [CX + 16, by + 6], [CX + 24, by + 1.5]], true);
-  const arm = `M${P(CX + W + 10, by - 8)}C${P(CX + W + 26, by + 10)} ${P(VIEW_W, by + 60)} ${P(VIEW_W + 12, VIEW_H)}L${P(VIEW_W - 14, VIEW_H)}C${P(CX + W + 18, by + 70)} ${P(CX + W + 6, by + 22)} ${P(CX + W + 8, by + 6)}Z`;
-  const sleeve = `M${P(VIEW_W - 26, by + 74)}L${P(VIEW_W + 12, by + 52)}L${P(VIEW_W + 12, VIEW_H)}L${P(VIEW_W - 22, VIEW_H)}Z`;
+  const fingers: VNode[] = [];
+  const lens = [24, 27, 25, 20];
+  for (let i = 3; i >= 0; i--) {
+    const y0 = by - 9.6 + i * 2.5;
+    const len = lens[i]!;
+    const tip = kx - len;
+    const d = quadRibbonClosed([kx + 3, y0], [kx - len * 0.5, y0 - 1.2 + i * 0.3], [tip, y0 + 0.8 + i * 0.6], 3.4 - i * 0.15);
+    fingers.push(
+      <g key={i}>
+        <path d={d} fill={`url(#${hand})`} stroke={skin.deep} stroke-opacity="0.35" stroke-width="0.55" />
+        <path d={`M${P(kx - len * 0.45, y0 - 1)}q1 0.9 0 1.8`} stroke={skin.deep} stroke-opacity="0.3" stroke-width="0.45" fill="none" />
+      </g>,
+    );
+  }
+  const thumb = smooth([[CX + 34, by + 1], [CX + 26, by + 5], [CX + 17, by + 8.5], [CX + 14.5, by + 7], [CX + 22, by + 1.5]], true);
+  const arm = `M${P(CX + W + 10, by - 7)}C${P(CX + W + 26, by + 10)} ${P(VIEW_W, by + 60)} ${P(VIEW_W + 12, VIEW_H)}L${P(VIEW_W - 16, VIEW_H)}C${P(CX + W + 16, by + 70)} ${P(CX + W + 4, by + 22)} ${P(CX + W + 8, by + 7)}Z`;
+  const sleeve = `M${P(VIEW_W - 30, by + 78)}L${P(VIEW_W + 12, by + 54)}L${P(VIEW_W + 12, VIEW_H)}L${P(VIEW_W - 26, VIEW_H)}Z`;
   return (
     <g>
       <defs>
         <linearGradient id={hand} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color={skin.light} />
-          <stop offset="0.6" stop-color={skin.base} />
+          <stop offset="0" stop-color={mix(skin.light, skin.base, 0.3)} />
+          <stop offset="0.65" stop-color={skin.base} />
           <stop offset="1" stop-color={skin.shadow} />
         </linearGradient>
       </defs>
       {/* shade cast over the eyes */}
       <g clip-path={`url(#${c.id('headClip')})`}>
-        <rect x="0" y={by + 2} width={VIEW_W} height="20" fill={skin.deep} opacity="0.2" filter={`url(#${c.id('soft2')})`} />
+        <rect x="0" y={by + 4} width={VIEW_W} height="20" fill={skin.deep} opacity="0.22" filter={`url(#${c.id('soft2')})`} />
       </g>
       <path d={arm} fill={`url(#${hand})`} />
+      <path d={arm} fill="none" stroke={skin.deep} stroke-opacity="0.25" stroke-width="0.6" />
       <path d={sleeve} fill={c.spec.outfit} />
-      <path d={palm} fill={`url(#${hand})`} />
-      <path d={palm} fill="none" stroke={skin.deep} stroke-opacity="0.35" stroke-width="0.7" />
-      <path d={thumb} fill={skin.base} stroke={skin.deep} stroke-opacity="0.35" stroke-width="0.6" />
-      <g stroke={skin.deep} stroke-opacity="0.4" stroke-width="0.7" fill="none" stroke-linecap="round">
-        <path d={`M${P(CX + 12, by - 8.5)}L${P(CX - 10, by - 8)}`} />
-        <path d={`M${P(CX + 12, by - 5.5)}L${P(CX - 6, by - 5)}`} />
-        <path d={`M${P(CX + 12, by - 11)}L${P(CX - 6, by - 11.6)}`} />
-      </g>
-      <path d={`M${P(CX + 20, by - 12.5)}Q${P(CX + 2, by - 14.5)} ${P(CX - 10, by - 10.5)}`} stroke={shade(skin.light, 0.2)} stroke-opacity="0.6" stroke-width="0.8" fill="none" />
+      <path d={sleeve} fill="#000" opacity="0.15" />
+      <path d={back} fill={`url(#${hand})`} stroke={skin.deep} stroke-opacity="0.3" stroke-width="0.6" />
+      {fingers}
+      <path d={thumb} fill={skin.base} stroke={skin.deep} stroke-opacity="0.35" stroke-width="0.55" />
+      <path d={`M${P(CX + 30, by - 9.5)}Q${P(CX + 16, by - 12)} ${P(kx - 18, by - 11.6)}`} stroke={shade(skin.light, 0.25)} stroke-opacity="0.55" stroke-width="0.8" fill="none" stroke-linecap="round" />
     </g>
   );
+}
+
+/** Closed tapered capsule along a quadratic curve (fingers). */
+function quadRibbonClosed(p0: Pt, ctrl: Pt, p2: Pt, w: number): string {
+  const pts: [number, number, number][] = [];
+  for (let i = 0; i <= 8; i++) {
+    const t = i / 8;
+    const u = 1 - t;
+    pts.push([u * u * p0[0] + 2 * u * t * ctrl[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * ctrl[1] + t * t * p2[1], w * (1 - t * 0.18)]);
+  }
+  return ribbon(pts);
 }
