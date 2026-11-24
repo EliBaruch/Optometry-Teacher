@@ -62,7 +62,7 @@ const shift: ModeModule = {
   icon: '🌙',
   accent: '#ffd27a',
   order: 10,
-  drive: 'pride',
+  // Design note (internal): the craft of a well-run clinic — visible competence growing shift by shift.
   rules: { length: SHIFT_LENGTH, scoreMultiplier: 1, hints: true, autoRun: true },
   pickNext,
   locked(services) {

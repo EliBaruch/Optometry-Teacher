@@ -152,7 +152,8 @@ export function createRunController(bus: EventBus, getServices: () => import('./
       const s = state.get();
       if (!s) throw new Error('No active run');
       const ok = !!score?.diagnosisCorrect;
-      const mult = mode?.rules.scoreMultiplier ?? 1;
+      const comboMult = ok && mode?.rules.comboMultiplier ? mode.rules.comboMultiplier(s.combo) : 1;
+      const mult = (mode?.rules.scoreMultiplier ?? 1) * comboMult;
       const next: RunSnapshot = {
         ...s,
         completed: ok ? [...s.completed, caseId] : s.completed,

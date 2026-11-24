@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildFindings, createServices, dayKey, type ClinicalCase, type GameServices, type RunSnapshot } from '@core';
-import daily, { dailyCaseIds, dailyCases, runDay } from './index';
+import daily, { dailyCaseIds, dailyCases, dailyRecord, runDay } from './index';
+import { previousDay } from './attempts';
 
 const BANNED = /\b(sins?|deadly|vices?|pride|greed|envy|gluttony|lust|wrath|sloth|confess\w*|holy)\b/i;
 const findings = buildFindings(40);
@@ -23,6 +24,7 @@ describe('daily mode', () => {
   it('has neutral copy and 3 patients', () => {
     expect(daily.rules.length).toBe(3);
     expect(`${daily.title} ${daily.tagline}`).not.toMatch(BANNED);
+    expect(daily.drive).toBeUndefined(); // no internal design labels ship to the client
   });
 
   it('is the same for everyone on the same day, whatever the registry order', () => {
@@ -71,5 +73,52 @@ describe('daily mode', () => {
     expect(daily.pickNext(svc([]), snap())).toBeNull();
     expect(daily.locked!(svc([]))).toBeTruthy();
     expect(daily.locked!(s)).toBeUndefined();
+  });
+
+  it('locks after one scored round per day, tracks the best score and a daily streak', () => {
+    let now = NOV_24;
+    const s = createServices({ now: () => now });
+    pool.forEach((c) => s.registries.cases.register(c));
+    s.registries.modes.register(daily);
+    const playRound = (score: number) => {
+      expect(daily.locked!(s)).toBeUndefined();
+      s.run.start(daily, `daily:${now}`);
+      for (let k = s.run.next(); k; k = s.run.next()) {
+        s.bus.emit('case:completed', { caseId: k.id, modeId: 'daily', score: {} as never });
+        s.run.report(k.id, { diagnosisCorrect: true, total: score / 3 } as never);
+      }
+      s.run.end();
+    };
+
+    playRound(900);
+    const reason = daily.locked!(s)!;
+    expect(reason).toMatch(/done/);
+    expect(reason).toMatch(/midnight/);
+    expect(reason).not.toMatch(BANNED);
+    expect(dailyRecord(s)).toMatchObject({ doneToday: true, bestToday: 900, streak: 1 });
+
+    now += 86_400_000; // next day: open again, streak continues
+    expect(dailyRecord(s)).toMatchObject({ doneToday: false, bestToday: 0, streak: 1 });
+    playRound(600);
+    expect(dailyRecord(s).streak).toBe(2);
+    expect(daily.locked!(s)).toMatch(/2 days running/);
+
+    now += 3 * 86_400_000; // skipped days: streak lapses
+    expect(dailyRecord(s).streak).toBe(0);
+  });
+
+  it('does not lock for a round abandoned before any patient, or for other modes', () => {
+    const s = svc(pool);
+    s.run.start(daily, `daily:${NOV_24}`);
+    daily.locked!(s);
+    s.run.end();
+    s.bus.emit('case:completed', { caseId: 'x', modeId: 'shift', score: {} as never });
+    s.bus.emit('mode:ended', { modeId: 'shift', casesCompleted: 1, totalScore: 10 });
+    expect(daily.locked!(s)).toBeUndefined();
+  });
+
+  it('steps day keys back across month and year ends', () => {
+    expect(previousDay('2026-03-01')).toBe('2026-02-28');
+    expect(previousDay('2027-01-01')).toBe('2026-12-31');
   });
 });

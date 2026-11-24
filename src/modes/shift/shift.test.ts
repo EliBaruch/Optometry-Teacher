@@ -37,6 +37,7 @@ describe('shift mode', () => {
   it('has player-facing copy without any internal-lens vocabulary', () => {
     expect(shift.title).toBe('Clinic Shift');
     expect(`${shift.title} ${shift.tagline}`).not.toMatch(BANNED);
+    expect(shift.drive).toBeUndefined(); // no internal design labels ship to the client
     expect(shift.rules.length).toBe(5);
   });
 

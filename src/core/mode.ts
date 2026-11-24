@@ -6,7 +6,7 @@ export interface ModeRules {
   length: number | 'endless';
   /** Wrong diagnoses allowed before the run ends (endless modes) */
   lives?: number;
-  /** Overrides each case's own timer, seconds */
+  /** Fallback timer (seconds) for cases that have no emergency timer of their own */
   timeLimitSec?: number;
   /** Multiplier applied to case scores for this mode */
   scoreMultiplier?: number;
@@ -14,6 +14,8 @@ export interface ModeRules {
   hints?: boolean;
   /** Whether "let the tech do it" auto-run is allowed */
   autoRun?: boolean;
+  /** Score multiplier as a function of the current combo (applied by RunController.report) */
+  comboMultiplier?: (combo: number) => number;
 }
 
 export interface RunSnapshot {
@@ -40,4 +42,6 @@ export interface ModeModule {
   pickNext(services: GameServices, run: RunSnapshot): ClinicalCase | null;
   /** Optional gate: return a reason string when locked */
   locked?(services: GameServices): string | undefined;
+  /** Optional: subscribe to events / set up state once at boot. Returns uninstall. */
+  install?(services: GameServices): () => void;
 }

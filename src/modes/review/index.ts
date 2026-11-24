@@ -40,10 +40,14 @@ const review: ModeModule = {
   icon: '🔍',
   accent: '#a78bfa',
   order: 50,
-  drive: 'sloth',
+  // Design note (internal): low-effort, high-value return visits — the game does the remembering.
   rules: { length: REVIEW_LENGTH, scoreMultiplier: 1, hints: true, autoRun: true },
   pickNext,
   locked(services) {
+    // Two notions of "met", on purpose: the unlock gate counts diagnoses the player
+    // has actually worked up (stats().seen, cases completed), whereas pickNext's
+    // ranking uses learning.seen(id), which per the LearningPort contract also
+    // includes diagnoses only ever *chosen by mistake*, so confusions come back too.
     const seen = services.learning.stats().seen;
     if (seen < REVIEW_UNLOCK_SEEN) {
       const left = REVIEW_UNLOCK_SEEN - seen;

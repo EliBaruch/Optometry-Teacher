@@ -1,4 +1,7 @@
 import { createRng, dayKey, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
+import { dailyRecord, ensureDailyTracking } from './attempts';
+
+export { dailyRecord, DAILY_SLOT, type DailyRecord } from './attempts';
 
 export const DAILY_LENGTH = 3;
 const DAY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -53,6 +56,7 @@ export function dailyCaseIds(services: GameServices, key = dayKey(services.clock
 }
 
 function pickNext(services: GameServices, run: RunSnapshot): ClinicalCase | null {
+  ensureDailyTracking(services);
   const used = new Set([...run.completed, ...run.failed]);
   return dailyCases(services.registries.cases.all(), runDay(services, run)).find((c) => !used.has(c.id)) ?? null;
 }
@@ -64,12 +68,19 @@ const daily: ModeModule = {
   icon: '🗓️',
   accent: '#4ade80',
   order: 20,
-  drive: 'envy',
+  // Design note (internal): a fair, shared daily set to compare against colleagues.
   // No hints or auto-run: everyone plays the same patients on equal terms.
   rules: { length: DAILY_LENGTH, scoreMultiplier: 1, hints: false, autoRun: false },
   pickNext,
   locked(services) {
-    return services.registries.cases.all().length ? undefined : 'Today’s patients are still on their way in.';
+    if (!services.registries.cases.all().length) return 'Today’s patients are still on their way in.';
+    // One scored round per day keeps the board fair: everyone gets one attempt at the same three.
+    const rec = dailyRecord(services);
+    if (rec.doneToday) {
+      const streak = rec.streak > 1 ? ` ${rec.streak} days running.` : '';
+      return `Today’s rounds are done.${streak} New patients at midnight.`;
+    }
+    return undefined;
   },
 };
 

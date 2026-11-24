@@ -38,6 +38,7 @@ describe('review mode', () => {
     expect(review.title).toBe('Second Opinion');
     expect(review.rules.length).toBe(4);
     expect(`${review.title} ${review.tagline}`).not.toMatch(BANNED);
+    expect(review.drive).toBeUndefined(); // no internal design labels ship to the client
   });
 
   it('is locked until two diagnoses have been met', () => {

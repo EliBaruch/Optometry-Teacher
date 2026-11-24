@@ -93,6 +93,38 @@ describe('sm2 maths', () => {
     expect(ms[3]!).toBeGreaterThanOrEqual(0.95);
   });
 
+  it('mastery is exactly 0 for a diagnosis that was only ever missed', () => {
+    const c = clock();
+    let card = newCard(c.now());
+    for (const q of [0, 1, 2, 1]) {
+      card = review(card, q, c.now());
+      expect(masteryOf(card, c.now())).toBe(0);
+      c.advance(LAPSE_DELAY_MS);
+    }
+    expect(card.lapses).toBe(4);
+    // A confusion on top of misses still earns nothing.
+    expect(masteryOf(confuse(card, c.now()), c.now())).toBe(0);
+  });
+
+  it('one on-time success reads at most ~20%, even with a perfect answer', () => {
+    const c = clock();
+    const one = review(newCard(c.now()), 5, c.now());
+    expect(masteryOf(one, c.now())).toBeGreaterThan(0);
+    expect(masteryOf(one, c.now())).toBeLessThanOrEqual(0.2);
+  });
+
+  it('a miss after successes resets mastery to 0 until earned back', () => {
+    const c = clock();
+    let card = newCard(c.now());
+    for (let i = 0; i < 3; i++) { c.set(card.due); card = review(card, 5, c.now()); }
+    expect(masteryOf(card, c.now())).toBeGreaterThan(0.4);
+    card = review(card, 1, c.now());
+    expect(masteryOf(card, c.now())).toBe(0);
+    c.set(card.due);
+    card = review(card, 4, c.now());
+    expect(masteryOf(card, c.now())).toBeGreaterThan(0);
+  });
+
   it('mastery fades when long overdue but never collapses to zero', () => {
     const c = clock();
     let card = newCard(c.now());

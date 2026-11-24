@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { beginRun, buildFindings, createServices, nullLearning, type ClinicalCase, type GameServices, type RunSnapshot, type Urgency } from '@core';
-import codeRed, { CODE_RED_FALLBACK_SEC, isCodeRed } from './index';
+import codeRed, { CODE_RED_FALLBACK_SEC, finaleCase, isCodeRed, isTrueEmergency } from './index';
 
 const BANNED = /\b(sins?|deadly|vices?|pride|greed|envy|gluttony|lust|wrath|sloth|confess\w*|holy)\b/i;
 const findings = buildFindings(60);
@@ -69,6 +69,60 @@ describe('code-red mode', () => {
       expect(picked[3]!.urgency).toBe('emergency');
       expect(picked[0]!.urgency).toBe('urgent');
     }
+  });
+
+  function play(cases: ClinicalCase[], seed: string): ClinicalCase[] {
+    const s = svc(cases, 5);
+    s.run.start(codeRed, seed);
+    const picked: ClinicalCase[] = [];
+    for (let k = s.run.next(); k; k = s.run.next()) {
+      picked.push(k);
+      s.run.report(k.id, { diagnosisCorrect: true, total: 800 } as never);
+    }
+    return picked;
+  }
+
+  it('fills at least 3 of 4 slots with true emergencies whenever 3+ exist', () => {
+    const many = [
+      ...board,
+      mk('gca', 'emergency', 4, 120), mk('cn3', 'emergency', 3, 120), mk('keratitis', 'urgent', 4, 150),
+      mk('stroke', 'emergency', 4, 150), mk('horner', 'emergency', 5, 150), mk('pvd', 'urgent', 2), mk('wet-amd', 'urgent', 3),
+    ];
+    for (let i = 0; i < 40; i++) {
+      const picked = play(many, `seed-${i}`);
+      expect(picked).toHaveLength(4);
+      // 9 true emergencies on the board: no urgent warm-up needed at all.
+      expect(picked.every(isTrueEmergency)).toBe(true);
+      expect(picked[3]!.id).toBe('horner'); // the hardest emergency is the finale
+      const small = play(board, `seed-${i}`);
+      expect(small.filter(isTrueEmergency).length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('counts a case with its own emergency timer as a true emergency', () => {
+    const k = mk('keratitis', 'urgent', 4, 150);
+    expect(isTrueEmergency(k)).toBe(true);
+    expect(isTrueEmergency(mk('pvd', 'urgent', 2))).toBe(false);
+  });
+
+  it('uses urgent cases only as filler once the emergencies run out', () => {
+    const two = [mk('crao', 'emergency', 3, 120), mk('aac', 'emergency', 4, 120), mk('ulcer', 'urgent', 2), mk('pvd', 'urgent', 2), mk('cn6', 'urgent', 3)];
+    for (const seed of ['a', 'b', 'c', 'd']) {
+      const picked = play(two, seed);
+      expect(picked).toHaveLength(4);
+      expect(picked.filter(isTrueEmergency)).toHaveLength(2);
+      expect(picked[3]!.id).toBe('aac');
+    }
+  });
+
+  it('picks a stable finale even when several share the top difficulty', () => {
+    const tied = [mk('a', 'emergency', 4, 120), mk('b', 'emergency', 4, 120), mk('c', 'emergency', 4, 120)];
+    const f = finaleCase(tied, 'seed')!;
+    expect(finaleCase(tied.filter((c) => c === f || c.id !== tied.find((x) => x !== f)!.id), 'seed')).toBe(f);
+  });
+
+  it('carries no internal design label', () => {
+    expect(codeRed.drive).toBeUndefined();
   });
 
   it('ends early (null) when the emergency board is clear, and with no cases', () => {

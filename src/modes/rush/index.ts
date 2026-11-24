@@ -5,9 +5,9 @@ export const RUSH_LIVES = 3;
 /**
  * Combo multiplier for Rush Hour. RunController already tracks `run.combo`
  * (consecutive correct diagnoses, reset to 0 on a miss) and applies
- * `rules.scoreMultiplier` (1.0 here). The streak/results layer should multiply
- * each case score by `rushComboMultiplier(combo before this case)`:
- *   ×1.0 at no streak, +0.1 per patient in the streak, capped at ×2.0 (10 in a row).
+ * `rules.comboMultiplier` — RunController.report multiplies each correct case's score by
+ * rushComboMultiplier(combo before this case): ×1.0 at no streak, +0.1 per patient in the
+ * streak, capped at ×2.0 (10 in a row).
  */
 export function rushComboMultiplier(combo: number): number {
   return 1 + 0.1 * Math.max(0, Math.min(10, Math.floor(combo)));
@@ -59,8 +59,8 @@ const rush: ModeModule = {
   icon: '⚡',
   accent: '#fb923c',
   order: 30,
-  drive: 'gluttony',
-  rules: { length: 'endless', lives: RUSH_LIVES, scoreMultiplier: 1, hints: false, autoRun: true },
+  // Design note (internal): 'one more patient' momentum — the streak multiplier is the pull.
+  rules: { length: 'endless', lives: RUSH_LIVES, scoreMultiplier: 1, hints: false, autoRun: true, comboMultiplier: rushComboMultiplier },
   pickNext,
 };
 

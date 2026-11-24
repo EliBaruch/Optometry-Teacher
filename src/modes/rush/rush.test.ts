@@ -25,6 +25,7 @@ describe('rush mode', () => {
     expect(rush.rules.lives).toBe(3);
     expect(rush.rules.scoreMultiplier).toBe(1);
     expect(`${rush.title} ${rush.tagline}`).not.toMatch(BANNED);
+    expect(rush.drive).toBeUndefined(); // no internal design labels ship to the client
   });
 
   it('returns null with an empty pool', () => {

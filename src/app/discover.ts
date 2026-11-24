@@ -87,8 +87,13 @@ export async function discoverPlugins(services: GameServices, opts: DiscoverOpti
   cs.forEach(({ key, item }) => safely(key, () => r.cases.register(item)));
   mg.forEach(({ key, item }) => safely(key, () => r.minigames.register(item)));
   sc.forEach(({ key, item }) => safely(key, () => r.scenes.register(item)));
-  md.forEach(({ key, item }) => safely(key, () => r.modes.register(item)));
   const uninstalls: (() => void)[] = [];
+  md.forEach(({ key, item }) =>
+    safely(key, () => {
+      r.modes.register(item);
+      if (item.install) uninstalls.push(item.install(services));
+    }),
+  );
   sn.forEach(({ key, item }) =>
     safely(key, () => {
       r.systems.register(item);

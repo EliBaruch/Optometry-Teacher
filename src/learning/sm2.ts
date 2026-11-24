@@ -127,16 +127,20 @@ const EASE_CEIL = 2.8;
  * 0..1 mastery estimate: a blend of consecutive spaced successes, the length of
  * the interval earned, and ease — scaled down when the card is overdue (memory
  * fades). Reaches 1 only after ~4 successful reviews spaced over weeks.
+ *
+ * Earned only: with no current spaced success (reps === 0, e.g. only ever
+ * missed, or a miss reset the streak) mastery is exactly 0, and the ease term
+ * is weighted by the repetitions term so a single success stays below ~0.2.
  */
 export function masteryOf(c: Card | undefined, now: number): number {
-  if (!c || c.seen === 0) return 0;
+  if (!c || c.seen === 0 || c.reps <= 0) return 0;
   const r = Math.min(1, c.reps / MASTERY_REPS);
   const i = Math.min(1, c.intervalDays / MASTERY_INTERVAL_DAYS);
   const e = Math.max(0, Math.min(1, (c.ease - MIN_EASE) / (EASE_CEIL - MIN_EASE)));
   const stability = Math.max(1, c.intervalDays) * DAY;
   const overdue = Math.max(0, now - c.due);
   const recency = 0.5 + 0.5 * Math.pow(0.5, overdue / stability);
-  const m = (0.45 * r + 0.3 * i + 0.25 * e) * recency;
+  const m = (0.45 * r + 0.3 * i + 0.25 * e * r) * recency;
   return Math.max(0, Math.min(1, +m.toFixed(4)));
 }
 
