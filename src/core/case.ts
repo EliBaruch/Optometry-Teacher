@@ -73,7 +73,7 @@ export interface ClinicalCase {
   management: string;
   teachingPoints: string[];
   redFlags?: string[];
-  /** Wrath: emergency cases run against a clock */
+  /** Code Red: emergency cases run against a clock */
   emergency?: { timeLimitSec: number };
   sources?: string[];
 }

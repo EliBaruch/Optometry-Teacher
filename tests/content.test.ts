@@ -11,8 +11,8 @@ const load = <T>(glob: Record<string, Mod>): { file: string; item: T }[] =>
     .filter(([f]) => !f.includes('.test.'))
     .flatMap(([file, m]) => (m.default === undefined ? [] : (Array.isArray(m.default) ? m.default : [m.default]).map((item) => ({ file, item: item as T }))));
 
-const diagnoses = load<Diagnosis>(import.meta.glob('../src/content/diagnoses/**/*.ts', { eager: true }));
-const cases = load<ClinicalCase>(import.meta.glob('../src/content/cases/**/*.ts', { eager: true }));
+const diagnoses = load<Diagnosis>(import.meta.glob(['../src/content/diagnoses/**/*.ts', '!**/*.test.ts'], { eager: true }));
+const cases = load<ClinicalCase>(import.meta.glob(['../src/content/cases/**/*.ts', '!**/*.test.ts'], { eager: true }));
 
 /** Canonical ids from docs/GAME_DESIGN.md §8 */
 export const CANONICAL_DIAGNOSES = [

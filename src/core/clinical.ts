@@ -87,13 +87,15 @@ export type ConjSign =
 export type CorneaSign =
   | 'clear' | 'punctate-keratitis' | 'abrasion' | 'dendrite' | 'ulcer' | 'infiltrate' | 'edema'
   | 'cone-thinning' | 'vogt-striae' | 'fleischer-ring' | 'keratic-precipitates' | 'foreign-body'
-  | 'pannus' | 'reduced-tbut';
+  | 'pannus' | 'reduced-tbut' | 'rust-ring' | 'pseudodendrite';
 export type LensSign =
   | 'clear' | 'nuclear-sclerosis' | 'cortical-cataract' | 'posterior-subcapsular' | 'iol' | 'phacodonesis';
 export type IrisSign = 'normal' | 'posterior-synechiae' | 'neovascularization' | 'transillumination' | 'heterochromia' | 'nevus';
 export type StainPattern =
   | 'none' | 'inferior-punctate' | 'diffuse-punctate' | 'linear-abrasion' | 'dendritic'
-  | 'round-ulcer' | 'vertical-linear-scratches' | 'interpalpebral';
+  | 'round-ulcer' | 'vertical-linear-scratches' | 'interpalpebral'
+  /** small round stain around an embedded foreign body */
+  | 'focal';
 
 export interface AnteriorChamber {
   depth: 'deep' | 'normal' | 'shallow' | 'flat';
@@ -118,6 +120,8 @@ export interface AnteriorSegment {
   fluorescein: StainPattern;
   /** Tear break-up time in seconds (normal >= 10) */
   tbutSec?: number;
+  /** Corneal sensation — reduced in HSV/HZO/neurotrophic keratitis */
+  cornealSensation?: 'normal' | 'reduced' | 'absent';
 }
 
 // ───────────────────────── Posterior segment (fundus)
@@ -128,7 +132,7 @@ export type LesionType =
   | 'drusen-small' | 'drusen-large' | 'geographic-atrophy' | 'subretinal-hemorrhage' | 'neovascularization'
   | 'retinal-tear' | 'lattice' | 'nevus' | 'pigment-clumping' | 'laser-scars' | 'hollenhorst-plaque'
   | 'retinal-whitening' | 'cherry-red-spot' | 'macular-edema' | 'epiretinal-membrane' | 'macular-hole'
-  | 'disc-hemorrhage' | 'venous-beading';
+  | 'disc-hemorrhage' | 'venous-beading' | 'irma' | 'preretinal-hemorrhage';
 
 export interface RetinalLesion {
   type: LesionType;
@@ -167,7 +171,12 @@ export interface PosteriorSegment {
   disc: OpticDisc;
   vessels: Vessels;
   lesions: RetinalLesion[];
-  detachment?: { zones: Zone[]; maculaOff: boolean };
+  detachment?: {
+    zones: Zone[];
+    maculaOff: boolean;
+    /** default 'rhegmatogenous'; 'serous' = smooth dome without breaks (e.g. central serous) */
+    kind?: 'rhegmatogenous' | 'serous' | 'tractional';
+  };
   /** background colour hint: fair skin -> orange-red, darker -> deeper; 'tigroid' for myopes */
   fundusTone?: 'light' | 'medium' | 'dark' | 'tigroid';
 }
@@ -189,11 +198,14 @@ export type FieldDefect =
   | 'left-hemianopia' | 'right-hemianopia'
   | 'left-superior-quadrantanopia' | 'right-superior-quadrantanopia'
   | 'left-inferior-quadrantanopia' | 'right-inferior-quadrantanopia'
-  | 'curtain-superior' | 'curtain-inferior' | 'curtain-temporal' | 'curtain-nasal';
+  | 'curtain-superior' | 'curtain-inferior' | 'curtain-temporal' | 'curtain-nasal'
+  /** near-total loss with only a small temporal island (e.g. CRAO without cilioretinal sparing) */
+  | 'temporal-island';
 
 export interface AmslerFinding {
   result: 'normal' | 'metamorphopsia' | 'central-scotoma' | 'paracentral-scotoma';
-  /** position of the defect in the 20x20 grid, centre = (0,0), range -10..10 */
+  /** position of the defect in the 20x20 grid, centre = (0,0), range -10..10;
+   *  x positive = patient's right as viewed on the card, y positive = UP (superior) */
   center?: { x: number; y: number };
   radius?: number;
 }

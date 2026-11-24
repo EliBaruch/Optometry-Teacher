@@ -125,7 +125,7 @@ describe.runIf(RUN_HERE)('retina & emergency case group', () => {
   it('keeps hallmark signs clinically consistent', () => {
     const crao = byDx('crao').findings;
     expect(crao.pupils.rapd).toBe('OD');
-    expect(crao.fields.OD).toBe('central-scotoma'); // CF acuity without cilioretinal sparing: no central island
+    expect(crao.fields.OD).toBe('temporal-island'); // CF acuity without cilioretinal sparing: only a temporal island remains
     expect(crao.posterior.OD.lesions.map((l) => l.type)).toEqual(expect.arrayContaining(['cherry-red-spot', 'retinal-whitening']));
     expect(crao.posterior.OS.lesions).toEqual([]);
 

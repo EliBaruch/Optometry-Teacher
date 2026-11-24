@@ -48,7 +48,9 @@ const convergenceInsufficiency: ClinicalCase = {
       distance: { horizontal: -1, vertical: 0, type: 'phoria' },
       near: { horizontal: -10, vertical: 0, type: 'phoria' },
       npcCm: 12,
-      diplopia: 'none',
+      // Reported symptom: intermittent horizontal diplopia at near after sustained reading
+      // (the exophoria decompensates); she fuses at the moment of the cover test.
+      diplopia: 'horizontal',
     },
     accommodation: { amplitudeD: { OD: 13.5, OS: 13.5 }, facilityCpm: 5 },
   }),

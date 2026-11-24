@@ -78,6 +78,8 @@ const hornerRollercoaster: ClinicalCase = {
   emergency: { timeLimitSec: 150 },
   sources: [
     'https://eyewiki.aao.org/Horner_Syndrome',
+    'https://www.ncbi.nlm.nih.gov/books/NBK500000/',
+    'https://www.ncbi.nlm.nih.gov/books/NBK430835/',
   ],
 };
 

@@ -46,7 +46,6 @@ const hyperopiaLatentTranslator: ClinicalCase = {
     },
     motility: { near: { horizontal: 4, vertical: 0, type: 'phoria' }, npcCm: 5 },
     accommodation: { amplitudeD: { OD: 7.5, OS: 7.5 }, facilityCpm: 7 },
-    external: { squinting: true },
   }),
   essentialTests: ['visual-acuity', 'retinoscopy'],
   helpfulTests: ['phoropter', 'cover-test', 'convergence', 'slit-lamp'],

@@ -35,9 +35,9 @@ const foreignBodyCase: ClinicalCase = {
         conjunctiva: ['diffuse-injection'],
         // Embedded iron fragment with its brown rust halo, plus the epithelial defect from
         // ~20 h of rubbing and the tissue-corner removal attempt — it lights up under cobalt.
-        cornea: ['foreign-body', 'abrasion'],
+        cornea: ['foreign-body', 'rust-ring'],
         anteriorChamber: { cells: 0.5 },
-        fluorescein: 'linear-abrasion',
+        fluorescein: 'focal',
       },
     },
     external: { redEye: ['OS'], tearing: ['OS'], photophobia: true },

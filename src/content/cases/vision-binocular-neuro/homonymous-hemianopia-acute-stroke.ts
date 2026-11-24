@@ -61,7 +61,7 @@ const homonymousStroke: ClinicalCase = {
   teachingPoints: [
     'A homonymous hemianopia affects the same side of the visual field in BOTH eyes: the lesion is behind the chiasm (optic tract, radiations or occipital cortex).',
     'Patients often blame the eye on the side of the defect; covering each eye in turn reveals both eyes share the missing half.',
-    'Pupils are normal and there is no RAPD with an occipital lesion; acuity is typically preserved because the macula is often spared. An optic-tract lesion instead gives a small contralateral RAPD and, later, band atrophy of the opposite disc.',
+    'Pupils are normal and there is no RAPD with an occipital lesion. Acuity is normal in a unilateral retrochiasmal lesion even when the macula is split (the intact half of each fovea still resolves the letters), so reduced VA means bilateral disease or a second cause. An optic-tract lesion instead gives a small contralateral RAPD and, later, band atrophy of the opposite disc.',
     'Sudden onset, vascular risk factors and stopped anticoagulation make this a stroke: the time of onset is the single most important fact you collect.',
     'CRAO and retinal detachment cause monocular loss; a pituitary lesion causes a bitemporal, gradual defect.',
   ],

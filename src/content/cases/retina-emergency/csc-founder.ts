@@ -43,11 +43,8 @@ const cscFounder: ClinicalCase = {
     posterior: {
       OS: {
         lesions: [{ type: 'pigment-clumping', zone: 'macula', density: 1 }],
-        // NOTE for painters / urgency hints: this is a SEROUS neurosensory detachment (a clear dome of
-        // subretinal fluid, no break), NOT a rhegmatogenous RD. The contract has no serous lesion type or
-        // detachment kind yet (core request filed); draw it as a smooth translucent macular blister and
-        // never score it as an emergency. Switch to the serous encoding as soon as core adds it.
-        detachment: { zones: ['macula'], maculaOff: true },
+        // SEROUS neurosensory detachment: a clear dome of subretinal fluid, no break — not a rhegmatogenous RD.
+        detachment: { zones: ['macula'], maculaOff: true, kind: 'serous' },
       },
     },
   }),

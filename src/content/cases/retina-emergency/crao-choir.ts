@@ -41,7 +41,7 @@ const craoChoir: ClinicalCase = {
     },
     pupils: { rapd: 'OD', rapdGrade: 3, reactivity: { OD: 'sluggish', OS: 'brisk' } },
     // No cilioretinal sparing: dense central / near-total loss with only a residual temporal island.
-    fields: { OD: 'central-scotoma' },
+    fields: { OD: 'temporal-island' },
     amsler: { OD: { result: 'central-scotoma', center: { x: 0, y: 0 }, radius: 10 } },
     colorVision: { OD: { type: 'acquired-red-green', severity: 'severe' } },
     posterior: {

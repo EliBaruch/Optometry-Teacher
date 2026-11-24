@@ -49,7 +49,7 @@ const cn6PalsyTrucker: ClinicalCase = {
     },
     motility: {
       distance: { horizontal: 20, vertical: 0, type: 'tropia', deviatingEye: 'OS' },
-      near: { horizontal: 8, vertical: 0, type: 'tropia', deviatingEye: 'OS' },
+      near: { horizontal: 8, vertical: 0, type: 'intermittent-tropia', deviatingEye: 'OS' },
       versions: {
         left: { OD: 0, OS: -3 },
         upLeft: { OD: 0, OS: -2 },

@@ -215,8 +215,28 @@ describe('vision-binocular-neuro cases: review regressions', () => {
     expect(v?.OS ?? 0).toBeGreaterThanOrEqual(-2);
   });
 
-  it('refractive blur cases show squinting on the avatar', () => {
+  it('myopia squints on the avatar; the latent hyperope (0.0 unaided) does not', () => {
     expect(f('myopia').external?.squinting).toBe(true);
-    expect(f('hyperopia').external?.squinting).toBe(true);
+    expect(f('hyperopia').external?.squinting ?? false).toBe(false);
+  });
+
+  it('homonymous hemianopia pearl does not credit macular sparing for preserved acuity', () => {
+    const pearls = byDx('homonymous-hemianopia').teachingPoints.join(' ');
+    expect(pearls).not.toMatch(/because the macula is often spared/i);
+    expect(pearls).toMatch(/even when the macula is split/i);
+  });
+
+  it('presbyope amplitude is at or above the Hofstetter minimum for age', () => {
+    const c = byDx('presbyopia');
+    const min = 15 - 0.25 * c.patient.age;
+    expect(f('presbyopia').accommodation.amplitudeD.OD).toBeGreaterThanOrEqual(min - 0.01);
+  });
+
+  it('CI reports near diplopia consistent with the complaint', () => {
+    expect(f('convergence-insufficiency').motility.diplopia).toBe('horizontal');
+  });
+
+  it('Horner cites at least two sources', () => {
+    expect(byDx('horner-syndrome').sources?.length ?? 0).toBeGreaterThanOrEqual(2);
   });
 });
