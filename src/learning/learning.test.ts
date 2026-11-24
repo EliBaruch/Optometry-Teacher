@@ -175,6 +175,15 @@ describe('createLearning', () => {
     expect(learning.due()).toEqual(['anterior-uveitis']);
   });
 
+  it('seen() covers answers and confusions', () => {
+    const { learning } = setup();
+    learning.record('poag', 4);
+    learning.confuse('ocular-hypertension');
+    expect(learning.seen('poag')).toBe(true);
+    expect(learning.seen('ocular-hypertension')).toBe(true);
+    expect(learning.seen('cataract')).toBe(false);
+  });
+
   it('clamps silly qualities', () => {
     const { learning } = setup();
     learning.record('a', 99);

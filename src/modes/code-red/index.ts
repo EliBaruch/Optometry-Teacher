@@ -39,8 +39,8 @@ const codeRed: ModeModule = {
   drive: 'wrath',
   rules: {
     length: CODE_RED_LENGTH,
-    // Intended as a FALLBACK for cases without their own emergency timer; see coreRequests
-    // (CaseSessionController.start currently treats it as an override).
+    // A FALLBACK for urgent cases without their own emergency timer: core's advanceRun()
+    // starts each case with `kase.emergency?.timeLimitSec ?? rules.timeLimitSec`.
     timeLimitSec: CODE_RED_FALLBACK_SEC,
     scoreMultiplier: 1.5,
     hints: false,

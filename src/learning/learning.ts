@@ -80,6 +80,9 @@ export function createLearning(save: SaveService, now: () => number): LumenLearn
       const ids = due.map(([id]) => id);
       return limit === undefined ? ids : ids.slice(0, Math.max(0, limit));
     },
+    seen(id) {
+      return !!id && !!slot.get().cards[id];
+    },
     mastery(id) {
       return masteryOf(slot.get().cards[id], now());
     },

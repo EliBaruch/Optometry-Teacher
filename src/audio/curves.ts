@@ -79,14 +79,3 @@ export function equalPowerCurve(from: number, to: number, points = 64): Float32A
   c[n - 1] = to;
   return c;
 }
-
-/** Soft-clip shaper for the master bus (tanh), keeping peaks warm instead of crackly. */
-export function softClipCurve(points = 1024, drive = 1.4): Float32Array {
-  const c = new Float32Array(points);
-  const norm = Math.tanh(drive);
-  for (let i = 0; i < points; i++) {
-    const x = (i / (points - 1)) * 2 - 1;
-    c[i] = Math.tanh(x * drive) / norm;
-  }
-  return c;
-}

@@ -25,9 +25,9 @@ function pickNext(services: GameServices, run: RunSnapshot): ClinicalCase | null
 
   const ranked = [...available]
     .filter((d) => !usedDx.has(d))
-    .map((d) => ({ d, m: services.learning.mastery(d) }))
+    .map((d) => ({ d, m: services.learning.mastery(d), met: services.learning.seen(d) }))
     .sort((a, b) => a.m - b.m || (a.d < b.d ? -1 : 1));
-  const met = ranked.filter((r) => r.m > 0);
+  const met = ranked.filter((r) => r.met);
   const target = (met.length ? met : ranked)[0]?.d;
   if (target) return pickCase(fresh.filter((c) => c.diagnosis === target), rng);
   return pickCase(fresh, rng);

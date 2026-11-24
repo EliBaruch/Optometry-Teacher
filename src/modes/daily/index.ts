@@ -35,9 +35,16 @@ export function dailyCases(pool: readonly ClinicalCase[], key: string): Clinical
   return picks.map((c, i) => ({ c, i })).sort((a, b) => a.c.difficulty - b.c.difficulty || a.i - b.i).map(({ c }) => c);
 }
 
-/** The day this run belongs to: the run seed if it is a day key, else today. */
+/**
+ * The day this run belongs to, so a round that straddles midnight keeps its
+ * patients: a seed that is a day key ("2026-11-24"), or one ending in the start
+ * timestamp (core's beginRun uses "daily:<ms>"); otherwise today.
+ */
 export function runDay(services: GameServices, run?: Pick<RunSnapshot, 'seed'>): string {
-  return run && DAY_KEY_RE.test(run.seed) ? run.seed : dayKey(services.clock.now());
+  const seed = run?.seed ?? '';
+  if (DAY_KEY_RE.test(seed)) return seed;
+  const ms = /:(\d{10,})$/.exec(seed)?.[1];
+  return dayKey(ms ? Number(ms) : services.clock.now());
 }
 
 /** Case ids for a day (for previews, rival boards, the hub card). */
