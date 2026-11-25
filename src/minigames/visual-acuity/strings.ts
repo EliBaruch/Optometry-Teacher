@@ -8,11 +8,8 @@ import { useContext } from 'preact/hooks';
 import { defineStrings, pickStrings, type Locale } from '@core';
 import type { LowVision } from './notation';
 
-/** Hebrew count of chart lines: שורה אחת / שתי שורות / 3 שורות. */
-const linesHe = (n: number) => (n === 1 ? 'שורה אחת' : n === 2 ? 'שתי שורות' : `${n} שורות`);
-/** Count plus an agreeing feminine adjective: שורה אחת טובה / שתי שורות גרועות. */
-const linesAdjHe = (n: number, better: boolean) =>
-  `${linesHe(n)} ${n === 1 ? (better ? 'טובה' : 'גרועה') : better ? 'טובות' : 'גרועות'}`;
+/** "By N lines": בשורה אחת / בשתי שורות / ב־3 שורות (maqaf before a digit). */
+const linesInHe = (n: number) => (n === 1 ? 'בשורה אחת' : n === 2 ? 'בשתי שורות' : `ב־${n} שורות`);
 
 export const S = defineStrings({
   en: {
@@ -273,8 +270,8 @@ export const S = defineStrings({
     verdictWord: { improves: 'יש שיפור', 'no-improvement': 'NI', 'not-needed': 'לא נדרש' },
     noteWrongCall: (eye: string, word: string) => `${eye}: ההכרעה הנכונה הייתה “${word}”.`,
     noteNoPinhole: (eye: string) => `${eye}: השורה הזאת נקראה בלי החריר.`,
-    noteNotRead: (eye: string) => `${eye}: את השורה שנרשמה אף אחד לא קרא דרך החריר.`,
-    noteOff: (eye: string, n: number) => `${eye}: שורת החריר רחוקה ${linesHe(n)} מהאמת.`,
+    noteNotRead: (eye: string) => `${eye}: השורה שנרשמה לא נקראה מעולם דרך החריר.`,
+    noteOff: (eye: string, n: number) => `${eye}: שורת החריר סטתה ${linesInHe(n)} מהערך האמיתי.`,
     lowVision: { CF: 'ספירת אצבעות', HM: 'תנועת יד', LP: 'תפיסת אור', NLP: 'אין תפיסת אור' } as Record<LowVision, string>,
     lowVisionShort: { CF: 'ספירת אצבעות', HM: 'תנועת יד', LP: 'תפיסת אור', NLP: 'אין תפיסת אור' } as Record<LowVision, string>,
     lvDist: { CF: 'אצבעות במרחק מטר', HM: 'מנופפת במרחק מטר', LP: 'פנס כיס, החדר מוחשך', NLP: 'האור החזק ביותר, חדר חשוך' } as Record<LowVision, string>,
@@ -282,11 +279,11 @@ export const S = defineStrings({
     umPrefix: 'אממ… ',
     maybeSuffix: ' אולי?',
     cannot: [
-      'אי אפשר לזהות את זה — רק כתמים אפורים.',
+      'אני לא מזהה את זה — רק כתמים אפורים.',
       'בכנות? אלה סתם כתמים מטושטשים.',
-      'לא. יש שם משהו, זה כל מה שאפשר להגיד.',
+      'לא. יש שם משהו, וזהו.',
     ],
-    cannotChild: ['לא ברור לי… הכול מטושטש!', 'קטן מדי! אני לא מצליח לראות את זה.'],
+    cannotChild: ['לא ברור לי… הכול מטושטש!', 'קטן מדי! אני לא רואה את זה.'],
     spoken: { apple: 'תפוח', house: 'בית', circle: 'כדור', square: 'קופסה', right: '→', left: '←', up: '↑', down: '↓' } as Record<string, string>,
     bothCovered: 'אממ… אני לא רואה כלום. שתי העיניים מכוסות!',
     needsPictures: 'עוד לא למדתי את כל האותיות… אפשר עם התמונות?',
@@ -294,14 +291,14 @@ export const S = defineStrings({
     ladderDark: 'הכול חשוך — שתי העיניים שלי מכוסות.',
     fingerWords: ['אפס', 'אחת', 'שתיים', 'שלוש', 'ארבע', 'חמש'],
     fingersSaid: (_word: string, n: number) => ['', 'אצבע אחת.', 'שתי אצבעות.', 'שלוש אצבעות.', 'ארבע אצבעות.', 'חמש אצבעות.'][n] ?? `${n} אצבעות.`,
-    cfSeesHand: 'אני רואה שמשהו זז… אבל אי אפשר לספור את האצבעות.',
+    cfSeesHand: 'אני רואה שמשהו זז… אבל מספר האצבעות לא ברור לי.',
     cfNothing: 'היד שלך? אני לא רואה אותה בכלל.',
     hmYes: 'כן — משהו מנופף שם. זו היד שלך?',
-    hmNo: 'זז? אי אפשר להבחין. אולי יש יותר אור בצד אחד?',
+    hmNo: 'זז? לא ברור לי. אולי יש יותר אור בצד אחד?',
     lpYes: ['כן — אני רואה את האור.', 'הנה! נדלק.'],
     lpNo: 'לא… כלום. חושך מוחלט.',
     noteExact: 'שורת הסף המדויקת.',
-    noteSteps: (n: number, better: boolean) => `${linesAdjHe(n, better)} יותר מהסף האמיתי.`,
+    noteSteps: (n: number, better: boolean) => `הסף שנרשם ${better ? 'טוב' : 'גרוע'} מהסף האמיתי ${linesInHe(n)}.`,
     noteCovered: (tested: string) => `העין ${tested} הייתה מכוסה — הקריאה הזו שייכת לעין השנייה.`,
     noteBinocular: (fellow: string) => `העין ${fellow} לא הייתה מכוסה, אז הקריאה הייתה דו־עינית.`,
     noteNeverPassed: 'נרשמה שורה שהמטופל לא עבר בפועל.',

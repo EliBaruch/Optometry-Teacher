@@ -90,7 +90,7 @@ export function Debrief(p: { assessment: Assessment; practice: boolean; challeng
         <p class="rt-eyebrow">{t.dbEyebrow}</p>
         <div class="rt-db__head">
           <h3 id="rt-db-title" class="rt-card__title">{a.perfect ? t.dbPerfect : a.accuracy >= 0.75 ? t.dbWell : a.accuracy >= 0.45 ? t.dbClose : t.dbKeep}</h3>
-          <span class="rt-db__pct rt-num"><CountUp value={Math.round(a.accuracy * 100)} />%</span>
+          <span class="rt-db__pct rt-num"><bdi dir="ltr"><CountUp value={Math.round(a.accuracy * 100)} />%</bdi></span>
         </div>
         {p.challengeCorrect !== null && (
           <p class={`rt-db__q ${p.challengeCorrect ? 'is-right' : 'is-wrong'}`}>
