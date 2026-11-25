@@ -8,7 +8,13 @@ import { LivingEye } from './LivingEye';
 import { RainGlass } from './RainGlass';
 import './title.css';
 
-const ZOOM_MS = 1150;
+const ZOOM_MS = 1500;
+
+const MOTES = Array.from({ length: 22 }, (_, i) => {
+  const r = (k: number) => { const x = Math.sin((i + 1) * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+  const big = r(5) > 0.7;
+  return { '--x': `${(r(1) * 100).toFixed(1)}%`, '--y': `${(30 + r(2) * 70).toFixed(1)}%`, '--s': `${big ? 22 + r(3) * 26 : 5 + r(3) * 8}px`, '--b': big ? '3px' : '0px', '--o': (big ? 0.35 : 0.8).toFixed(2), '--d': `${(9 + r(4) * 10).toFixed(1)}s`, '--dl': `-${(r(6) * 14).toFixed(1)}s`, '--dx': `${((r(7) - 0.5) * 80).toFixed(0)}px` };
+});
 
 function useViewport() {
   const read = () => ({ w: window.innerWidth, h: window.innerHeight });
@@ -130,6 +136,9 @@ export function TitleScene({ services }: SceneProps) {
       <div class="ttl__layer ttl__lattice ttl__lattice--far" aria-hidden="true" style={{ '--depth': 8 } as never}><Lattice cols={11} rows={9} seed={7} strong={false} /></div>
       <div class="ttl__layer ttl__lattice ttl__lattice--mid" aria-hidden="true" style={{ '--depth': 16 } as never}><Lattice cols={5} rows={4} seed={23} strong /></div>
       <div class="ttl__layer ttl__stars" aria-hidden="true" style={{ '--depth': 14 } as never} />
+      <div class="ttl__motes" aria-hidden="true" style={{ '--depth': 26 } as never}>
+        {MOTES.map((m, i) => <i key={i} style={m as never} />)}
+      </div>
       <div class="ttl__layer ttl__halo" aria-hidden="true" style={{ '--depth': 22 } as never} />
 
       <div class="ttl__stage" {...(phase === 'intro' ? ({ inert: true, 'aria-hidden': true } as object) : {})}>

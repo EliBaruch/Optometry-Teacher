@@ -37,8 +37,8 @@ function usePrintSize(ref: { current: HTMLElement | null }, phase: Phase): numbe
     if (!el) return;
     const measure = () => {
       const r = el.getBoundingClientRect();
-      if (phase === 'test') setS(Math.max(150, Math.min(220, Math.floor(r.width - 64))));
-      else setS(Math.max(130, Math.min(290, Math.floor(r.width / 2 - 60), Math.floor(r.height - 120))));
+      if (phase === 'test') setS(Math.max(130, Math.min(r.width < 520 ? 160 : 220, Math.floor(r.width - 64))));
+      else setS(Math.max(130, Math.min(290, Math.floor(r.width / 2 - 88), Math.floor(r.height - 120))));
     };
     measure();
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null;
@@ -109,6 +109,11 @@ export function Game({ ctx, finish }: GameProps) {
     timers.current.forEach((t) => clearTimeout(t));
     runner.cancel();
   }, []);
+
+  useEffect(() => {
+    const b = rootRef.current?.querySelector('.vf__body');
+    if (b) b.scrollTop = 0;
+  }, [phase]);
 
   const truthLoc = useMemo(
     () => localise(patternOf(fieldOf(ctx.findings, 'OD'), 'OD'), patternOf(fieldOf(ctx.findings, 'OS'), 'OS')),
@@ -387,7 +392,7 @@ export function Game({ ctx, finish }: GameProps) {
       {phase === 'test' && (
         <div class="vf-tabs" role="tablist" aria-label="View">
           {(['bowl', 'plot'] as const).map((t) => (
-            <button key={t} type="button" role="tab" aria-selected={tab === t} class={tab === t ? 'is-on' : ''} data-testid={`vf-tab-${t}`} onClick={() => { setTab(t); play('click'); }}>
+            <button key={t} type="button" role="tab" aria-selected={tab === t} class={tab === t ? 'is-on' : ''} data-testid={`vf-tab-${t}`} onClick={() => { setTab(t); play('click'); requestAnimationFrame(() => { const b = rootRef.current?.querySelector('.vf__body'); if (b) b.scrollTop = 0; }); }}>
               {t === 'bowl' ? 'Bowl' : `Plot & controls · ${counts[eye]} pts`}
             </button>
           ))}

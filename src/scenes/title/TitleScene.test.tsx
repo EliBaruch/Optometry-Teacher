@@ -48,4 +48,26 @@ describe('TitleScene flow', () => {
     expect(services.settings.get().onboarded).toBe(true);
     expect(go).toHaveBeenCalledTimes(1);
   });
+
+  it('unlocks audio on start and ignores Enter while zooming', async () => {
+    vi.useFakeTimers();
+    const { services, go } = await mount(true);
+    const unlock = vi.spyOn(services.audio, 'unlock');
+    await act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); });
+    expect(unlock).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('.ttl.is-zoom')).not.toBeNull();
+    await act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); });
+    expect(unlock).toHaveBeenCalledTimes(1);
+    await act(() => { vi.advanceTimersByTime(3000); });
+    expect(go).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores Enter while the credits modal is open', async () => {
+    vi.useFakeTimers();
+    const { go } = await mount(true);
+    await act(() => { document.querySelectorAll<HTMLButtonElement>('.ttl-link')[1]!.click(); });
+    await act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); });
+    await act(() => { vi.advanceTimersByTime(3000); });
+    expect(go).not.toHaveBeenCalled();
+  });
 });

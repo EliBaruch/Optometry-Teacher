@@ -8,7 +8,7 @@ export interface LivingEyeProps {
   reduced: boolean;
   /** When true the gaze returns to centre (zoom transition) and blinking stops. */
   focusCentre: boolean;
-  /** Reports normalised pointer offset (-1..1) for parallax. */
+  /** Reports the light-sweep phase (0..1) each frame so the flare can follow the beam. */
   onSweep?: (phase: number) => void;
 }
 
