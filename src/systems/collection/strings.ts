@@ -156,7 +156,7 @@ export const S = defineStrings({
     noMark: 'מס׳',
     hubTitle: 'הגלריה',
     hubSubtitle: 'כרטיסי קשתית הולוגרפיים',
-    newBadge: (n: number) => `${n} חדשים`,
+    newBadge: (n: number) => (n === 1 ? 'חדש' : `${n} חדשים`),
     newRibbon: 'חדש',
     rarity: { common: 'נפוץ', rare: 'נדיר', epic: 'אפי', legendary: 'אגדי' },
     frame: { bronze: 'ארד', silver: 'כסף', gold: 'זהב', prismatic: 'פריזמטית' },

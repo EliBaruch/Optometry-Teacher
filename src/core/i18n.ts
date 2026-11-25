@@ -60,7 +60,7 @@ const PDI = '\u2069';
 /** A left-to-right run inside RTL text: measurements, signs, units, Latin terms ("−6.00 D", "40–80 mmHg", "RAPD"). */
 // A leading sign belongs to the number only when it is not a Hebrew prefix hyphen ("ל-40").
 const SIGN = '(?:(?<![\\u0590-\\u05FF])[+\\-−±≈~<>≤≥])?';
-const LTR_RUN = new RegExp(`${SIGN}[0-9A-Za-z][0-9A-Za-z.,:/%°×–\\-−+±'’Δ²³µ ]*[0-9A-Za-z%°Δ²³µ]|${SIGN}[0-9A-Za-z]`, 'g');
+const LTR_RUN = new RegExp(`${SIGN}[0-9A-Za-z][0-9A-Za-z.,:/%°×–\\-−+±'’Δ²³µ ]*[0-9A-Za-z%°Δ²³µ](?:\\+(?![0-9A-Za-z]))?|${SIGN}[0-9A-Za-z]\\+?`, 'g');
 
 /**
  * Wrap each left-to-right run of a right-to-left string in Unicode isolates (LRI…PDI) so signs,
@@ -70,6 +70,11 @@ const LTR_RUN = new RegExp(`${SIGN}[0-9A-Za-z][0-9A-Za-z.,:/%°×–\\-−+±'�
 export function isolateLtrRuns(text: string): string {
   if (!/[\u0590-\u05FF]/.test(text) || text.includes(LRI)) return text;
   return text.replace(LTR_RUN, (run) => `${LRI}${run}${PDI}`);
+}
+
+/** Always isolate a whole left-to-right value (readings like "44.25 @ 005", "0.25 D WTR") for RTL display. */
+export function isolateLtr(text: string): string {
+  return text.includes(LRI) ? text : `${LRI}${text}${PDI}`;
 }
 
 const iso = isolateLtrRuns;

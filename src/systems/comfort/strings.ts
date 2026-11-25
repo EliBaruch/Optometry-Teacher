@@ -82,6 +82,7 @@ export const S = defineStrings({
     bonusLabel: ' welcome back gift',
     chairWarm: ' — we kept your chair warm.',
     dueA: 'Your team set aside ',
+    dueCount: (n: number) => String(n),
     dueB: (n: number) => ` ${n === 1 ? 'diagnosis' : 'diagnoses'} for a second look — a short review now makes them stick.`,
     // gift reveal
     eveningOf: (d: number, n: number) => `Evening ${d} of ${n}`,
@@ -189,7 +190,7 @@ export const S = defineStrings({
     } as Record<string, { title: string; description: string }>,
     backToPatient: 'חזרה למטופל שלכם',
     nextPatient: 'המטופל הבא',
-    seenSuffix: (title: string, n: number) => `${title} · ${n} נבדקו`,
+    seenSuffix: (title: string, n: number) => `${title} · ${n === 1 ? 'נבדק מטופל אחד' : `נבדקו ${n} מטופלים`}`,
     dailyWaiting: 'המטופלים של היום מחכים',
     shiftReady: 'המשמרת הבאה שלכם מוכנה',
     doctor: 'דוקטור',
@@ -221,7 +222,9 @@ export const S = defineStrings({
     bonusLabel: ' מתנת ברוכים השבים',
     chairWarm: ' — שמרנו לכם את המקום.',
     dueA: 'הצוות שלכם הניח בצד ',
-    dueB: (n: number) => ` ${n === 1 ? 'אבחנה' : 'אבחנות'} לעוד מבט. חזרה קצרה עכשיו תעזור להן להיקלט.`,
+    /** Hebrew puts 'אחת' after the noun: the bold count disappears for 1 and dueB says 'אבחנה אחת'. */
+    dueCount: (n: number) => (n === 1 ? '' : String(n)),
+    dueB: (n: number) => (n === 1 ? 'אבחנה אחת לעוד מבט. חזרה קצרה עכשיו תעזור לה להיקלט.' : ' אבחנות לעוד מבט. חזרה קצרה עכשיו תעזור להן להיקלט.'),
     eveningOf: (d: number, n: number) => `ערב ${d} מתוך ${n}`,
     tonightGift: 'המתנה של הערב',
     giftWaiting: 'מחכה לכם מתנה',

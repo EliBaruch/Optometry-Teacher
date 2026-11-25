@@ -118,3 +118,8 @@ bdi, .lm-ltr { unicode-bidi: isolate; }
 :root:lang(he) { --lm-tracking-caps: 0; }
 :lang(he) .lm-eyebrow, :lang(he) .lm-badge, :lang(he) .lm-reward__rarity, :lang(he) .lm-speech__speaker { letter-spacing: 0; text-transform: none; }
 :lang(he) .lm-reward__rarity { font-size: 11px; }
+
+/* Hebrew edition: a number element may hold a Hebrew phrase ("1 שנ׳", "בעוד 4 ימים", "✦ 4.0 בשעה").
+   plaintext picks the direction from the first strong character, so pure numbers/units stay LTR
+   ("−6.00 D", "+71") while Hebrew phrases read right-to-left. */
+:root:lang(he) .lm-num:not([dir]) { unicode-bidi: plaintext; }

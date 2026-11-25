@@ -190,7 +190,7 @@ export const S = defineStrings({
     gateAmp: 'מדדו משרעת בשיטת push-up בשתי העיניים.',
     hintBreak: 'החזיקו ← כדי לקרב את המטרה לאף. ברגע שעין אחת סוטה החוצה, לחצו ״שבירה״ (B).',
     hintRecover: 'החזיקו → והתרחקו לאט עד ששתי העיניים מתיישרות, ואז לחצו ״התאוששות״ (B).',
-    hintAmp: (covered: string) => `push-up כשה-${covered} מכוסה: קרבו את האותיות עד שהן נשארות מטושטשות, ואז לחצו ״מטושטש״.`,
+    hintAmp: (covered: string) => `בשיטת push-up, כשעין ${covered} מכוסה: קרבו את האותיות עד שהן נשארות מטושטשות, ואז לחצו ״מטושטש״.`,
     lblBreak: 'שבירה!', lblRecovered: 'התאוששות', lblBlurry: 'מטושטש',
     eyeUnderTest: 'העין הנבדקת',
     rulerAria: 'סרגל',

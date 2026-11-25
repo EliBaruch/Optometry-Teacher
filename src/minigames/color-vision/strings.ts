@@ -215,7 +215,7 @@ export const S = defineStrings({
     capTitle: 'השוואת המכסה האדום',
     capSub: 'הציגו את המכסה האדום לכל עין בתורה. אם עין אחת רואה אותו עמום יותר, סובבו את הגלגל עד שהדוגמית תתאים למה שהעין הזו רואה.',
     showTo: (e: string) => `הציגו ל-${e}`,
-    reference: 'מקור',
+    reference: 'להשוואה',
     dullerEye: 'העין העמומה ·',
     dialLabel: 'רוויית האדום בעין העמומה',
     percent: (n: number) => `${n} אחוז`,

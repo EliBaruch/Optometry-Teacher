@@ -121,7 +121,7 @@ export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }
           {due > 0 && (
             <div class="cf-welcome__flag">
               <span>
-                {t.dueA}<strong>{due}</strong>{t.dueB(due)}
+                {t.dueA}<strong>{t.dueCount(due)}</strong>{t.dueB(due)}
               </span>
               {reviewOpen && (
                 <Button variant="glass" icon="refresh" onClick={() => finish(() => beginRun(services, 'review'))}>
