@@ -316,13 +316,13 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             onStep={onFocus} disabled={busy || locked}
           />
           <Drum
-            id="kr-h" label={`Horizontal · ${axis}°`} kind="scale" accent="gold"
+            id="kr-h" label={`Horizontal · ${axis}°`} shortLabel={`Horiz ${axis}°`} kind="scale" accent="gold"
             display={`${cur.ins.pH.toFixed(2)} D`} sub={`r ${radiusMm(cur.ins.pH).toFixed(2)} mm`}
             value={cur.ins.pH} min={DRUM.min} max={DRUM.max} step={DRUM.step} ppu={44}
             onStep={onDrum('pH')} disabled={busy || locked}
           />
           <Drum
-            id="kr-v" label={`Vertical · ${axisV}°`} kind="scale" accent="ice"
+            id="kr-v" label={`Vertical · ${axisV}°`} shortLabel={`Vert ${axisV}°`} kind="scale" accent="ice"
             display={`${cur.ins.pV.toFixed(2)} D`} sub={`r ${radiusMm(cur.ins.pV).toFixed(2)} mm`}
             value={cur.ins.pV} min={DRUM.min} max={DRUM.max} step={DRUM.step} ppu={44}
             onStep={onDrum('pV')} disabled={busy || locked}

@@ -10,6 +10,8 @@ import { useEffect, useRef } from 'preact/hooks';
 export interface DrumProps {
   id: string;
   label: string;
+  /** compact label for narrow layouts */
+  shortLabel?: string;
   /** big readout, e.g. "43.25 D" */
   display: string;
   sub?: string;
@@ -115,7 +117,7 @@ export function Drum(p: DrumProps) {
   return (
     <div class={`kr-drum kr-drum--${p.accent}${p.disabled ? ' is-disabled' : ''}${p.fused ? ' is-fused' : ''}`}>
       <div class="kr-drum__meta">
-        <label class="kr-drum__label" for={p.id}>{p.label}</label>
+        <label class="kr-drum__label" for={p.id} aria-label={p.label}>{p.shortLabel ? <><span class="kr-lbl-l">{p.label}</span><span class="kr-lbl-s">{p.shortLabel}</span></> : p.label}</label>
         <output class="kr-drum__value kr-num" for={p.id}>{p.display}</output>
         {p.sub && <span class="kr-drum__sub kr-num">{p.sub}</span>}
       </div>

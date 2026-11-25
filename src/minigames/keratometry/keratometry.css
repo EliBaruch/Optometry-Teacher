@@ -167,7 +167,8 @@
   background-image: repeating-linear-gradient(115deg, rgba(20, 10, 30, 0.55) 0 2px, transparent 2px 7px);
   background-size: auto; background-position: var(--kr-off) 0;
 }
-.kr-drum__nums { position: absolute; inset: 0 0 auto; height: 58%; }
+.kr-drum__nums { position: absolute; inset: 0 0 auto; height: 58%; -webkit-mask-image: linear-gradient(90deg, transparent 6%, #000 24%, #000 76%, transparent 94%); mask-image: linear-gradient(90deg, transparent 6%, #000 24%, #000 76%, transparent 94%); }
+.kr-lbl-s { display: none; }
 .kr-drum__n {
   position: absolute; left: 50%; top: 3px; width: 30px; margin-left: -15px; text-align: center;
   font: 700 0.8rem/1.4 var(--lm-font-num, sans-serif); color: rgba(36, 20, 4, 0.92); text-shadow: 0 1px 0 rgba(255, 240, 200, 0.5);
@@ -344,11 +345,14 @@
   .kr-head__hint { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; font-size: 0.76rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .kr-head__title { margin-right: auto; }
   .kr-stage { display: flex; flex-direction: column; gap: 6px; padding: 6px 10px; overflow: hidden; min-height: 0; }
-  .kr-scope { flex: 1 1 0; min-height: 150px; width: 100%; }
-  .kr-eyepiece { width: min(100cqw - 150px, 100cqh - 14px); }
-  .kr-eyepiece__axis { left: auto; right: calc(100% + 10px); bottom: auto; top: calc(50% + 22px); transform: none; flex-direction: column; align-items: flex-start; gap: 2px; padding: 4px 9px; border-radius: 10px; }
-  .kr-scope__eye { left: 12px; top: calc(50% - 40px); transform: none; }
-  .kr-mini { display: flex; flex-direction: column; gap: 4px; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 62px; }
+  .kr-scope { flex: 1 1 0; min-height: 200px; width: 100%; }
+  .kr-eyepiece { width: min(100cqw - 12px, 100cqh - 8px); }
+  .kr-scope { container-type: size; }
+  .kr-eyepiece__axis { left: -4px; right: auto; bottom: -4px; top: auto; transform: none; padding: 3px 8px; border-radius: 10px; z-index: 2; }
+  .kr-scope__eye { left: 10px; top: 8px; z-index: 2; }
+  .kr-lbl-l { display: none; }
+  .kr-lbl-s { display: inline; }
+  .kr-mini { display: flex; flex-direction: column; gap: 3px; position: absolute; right: 6px; top: 6px; width: 58px; z-index: 2; }
   .kr-mini > div { display: flex; flex-direction: column; padding: 4px 6px; border-radius: 8px; background: #0b0614; box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); }
   .kr-mini .is-cyl { background: #1c1206; box-shadow: inset 0 0 0 1px rgba(255, 214, 140, 0.4); }
   .kr-mini span { font: 700 0.5rem/1 var(--lm-font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--lm-muted); }
@@ -356,11 +360,13 @@
   .kr-mini .is-cyl b { color: var(--kr-gold); }
   .kr-scope__eye { font-size: 1.3rem; }
   .kr-note, .kr-readout { display: none; }
-  .kr-panel { flex: none; overflow: visible; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; padding: 8px 10px; }
+  .kr-panel { flex: none; overflow: visible; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; padding: 6px 10px; }
   .kr-panel > .kr-drum { grid-column: 1 / -1; }
   .kr-drum { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 8px; }
   .kr-drum__meta { flex-direction: column; align-items: flex-start; gap: 2px; }
-  .kr-drum__value { margin-left: 0; font-size: 0.86rem; }
+  .kr-drum__value { margin-left: 0; font-size: 0.8rem; line-height: 1; }
+  .kr-drum__meta { gap: 3px !important; }
+  .kr-drum__barrel { height: 30px; }
   .kr-drum__sub { display: none; }
   .kr-drum__label { font-size: 0.58rem; letter-spacing: 0.08em; }
   .kr-mires { gap: 6px; flex-wrap: nowrap; }
@@ -380,7 +386,6 @@
   .kr-readout em { font-size: 0.64rem; }
   .kr-readout span { flex-basis: 100%; font-size: 0.54rem; }
   .kr-cylbar { display: none; }
-  .kr-drum__barrel { height: 28px; }
   .kr-drum__label { white-space: nowrap; }
   .kr-foot { gap: 10px; padding: 8px 10px; padding-bottom: max(8px, var(--lm-safe-bottom, 0px)); }
   .kr-progress { gap: 6px; flex-wrap: nowrap; }
