@@ -23,9 +23,9 @@ export const RS = defineStrings({
     // The label stays neutral about the patient's sex: "הבעה" is feminine, so every expression is a feminine adjective.
     portrait: (expression: Expr | string, signs: string[]) => {
       const word: Record<string, string> = {
-        neutral: 'רגועה', worried: 'מודאגת', pain: 'כואבת', happy: 'שמחה', relieved: 'של הקלה', squint: 'של כיווץ עיניים', surprised: 'מופתעת',
+        neutral: 'רגועה', worried: 'מודאגת', pain: 'כואבת', happy: 'שמחה', relieved: 'של הקלה', squint: 'מצמצמת', surprised: 'מופתעת',
       };
-      return `דיוקן המטופל: הבעה ${word[expression] ?? word.neutral}${signs.length ? `; ${signs.join(', ')}` : ''}`;
+      return `דיוקן: הבעה ${word[expression] ?? word.neutral}${signs.length ? `; ${signs.join(', ')}` : ''}`;
     },
     eyeCloseup: (eye: Eye) => `תקריב של העין ה${eye === 'OD' ? 'ימנית' : 'שמאלית'}`,
     fundus: (eye: Eye) => `קרקעית העין ה${eye === 'OD' ? 'ימנית' : 'שמאלית'}. גררו או השתמשו במקשי החצים כדי להזיז את המבט, ובמקשי פלוס ומינוס כדי לקרב ולהרחיק.`,

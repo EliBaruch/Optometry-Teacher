@@ -287,7 +287,7 @@ export const S = defineStrings({
     dArcuate: (anat: string) => `פגם ארקואטי ${anat} — נעצר בקו האמצע האופקי`,
     dAltitudinal: (anat: string) => `פגם אלטיטודינלי ${anat} — נעצר בקו האמצע האופקי`,
     dHemianopia: (side: 'left' | 'right', anat: string) => `המיאנופסיה ${side === 'left' ? 'שמאלית' : 'ימנית'} (${anat.replace(/י$/, 'ית')}) — נעצרת בקו האמצע האנכי`,
-    dQuadrant: (sideLabel: string, anat: string) => `קוודרנטנופסיה ${sideLabel.replace('שמאל', 'שמאלית').replace('ימין', 'ימנית').replace('עליון', 'עליונה').replace('תחתון', 'תחתונה')} (${anat})`,
+    dQuadrant: (sideLabel: string, anat: string) => `קוודרנטנופסיה ${sideLabel.replace('שמאל', 'שמאלית').replace('ימין', 'ימנית').replace('עליון', 'עליונה').replace('תחתון', 'תחתונה')} (${anat.replace(/י$/, 'ית')})`,
     dCurtain: (anat: string) => `אובדן היקפי ${anat} — הקיבוע נשמר`,
     hints: {
       arcuate: 'שכבת סיבי העצב בדיסקה (דפוס גלאוקומטי, או חסימת ענף ורידי)',
@@ -312,7 +312,7 @@ export const S = defineStrings({
     },
     lineChiasm: (what: string) => `כיאזמה — ${what}; להפנות להדמיה של אזור יותרת המוח`,
     retroWhat: { hemi: 'המיאנופסיה הומונימית', superior: 'קוודרנטנופסיה הומונימית עליונה', inferior: 'קוודרנטנופסיה הומונימית תחתונה' },
-    retroWhere: { general: 'טרקט אופטי, קרינה אופטית או קליפת העורף', temporal: 'האונה הטמפורלית, לולאת Meyer', parietal: 'הקרינה בעבר האונה הפריאטלית' },
+    retroWhere: { general: 'טרקט אופטי, קרינה אופטית או קליפת העורף', temporal: 'האונה הטמפורלית, לולאת Meyer', parietal: 'הקרינה האופטית באונה הפריאטלית' },
     lineRetro: (brain: 'right' | 'left', field: 'right' | 'left', what: string, where: string) =>
       `אחורי לכיאזמה, צד ${brain === 'right' ? 'ימין' : 'שמאל'} — ${what} ${field === 'right' ? 'ימנית' : 'שמאלית'} (${where})`,
     linePapilloedema: 'לפני הכיאזמה בשתי העיניים — כתמים עיוורים מוגדלים דו-צדדית: לבדוק בצקת בדיסקה (פפילאדמה)',
@@ -323,7 +323,7 @@ export const S = defineStrings({
       {
         icon: 'visual-fields',
         title: 'המבט על האור הענבר',
-        body: 'עין אחת מכוסה, הסנטר על התומך, והמבט נעול על אור הקיבוע. כל נקודה שתבחרו מציגה גירוי לבן זעיר, והמטופל לוחץ על הכפתור ברגע שהגירוי נראה לו.',
+        body: 'עין אחת מכוסה, הסנטר במשענת, והמבט נעול על אור הקיבוע. כל נקודה שתבחרו מציגה גירוי לבן זעיר, והמטופל לוחץ על הכפתור ברגע שהגירוי נראה לו.',
       },
       {
         icon: 'target',
@@ -332,7 +332,7 @@ export const S = defineStrings({
       },
       {
         icon: 'eye',
-        title: 'קוראים את ההדפס',
+        title: 'קוראים את התדפיס',
         body: 'ריבועים כהים הם רגישות שאבדה. סווגו את הדפוס של כל עין, ואז חברו את שתיהן: איזה קו אמצע הפגם מכבד, ואיפה לאורך המסלול נמצאת הפגיעה?',
       },
     ],
@@ -361,7 +361,7 @@ export const S = defineStrings({
     btnInterpret: 'לפירוש השדות', btnRecord: 'תיעוד ממצאים', btnFinish: 'סיום', btnAdd: 'הוספה לתיק',
     floatOk: 'נכון', floatNo: 'לא בדיוק',
 
-    printView: 'תצוגת ההדפס', grey: 'גווני אפור', numeric: 'ערכי dB',
+    printView: 'תצוגת התדפיס', grey: 'גווני אפור', numeric: 'ערכי dB',
     patternOf: (eye: string, eyeName: string) => `${eye} — דפוס ב${eyeName}`,
     nextEye: (eye: string) => `הבא: ${eye}`,
     challenge: 'אתגר — ',
@@ -433,7 +433,7 @@ export const PRACTICE_HE = {
   ] as [string, string][],
   causes: {
     healthy: 'מסלולי ראייה תקינים — רק הכתם העיוור הפיזיולוגי, ב-15° טמפורלית בכל עין',
-    poag: 'גלאוקומה עם זווית פתוחה ראשונית — אובדן ארקואטי בצרור סיבי העצב, מול האזור שבו ה-rim של הדיסקה התדלדל',
+    poag: 'גלאוקומה עם זווית פתוחה ראשונית — אובדן ארקואטי בצרור סיבי העצב, מול האזור שבו שולי הדיסקה התדלדלו',
     pituitary: 'מקרואדנומה של יותרת המוח הלוחצת על הכיאזמה מלמטה — הסיבים הנזאליים החוצים (השדות הטמפורליים) נפגעים ראשונים, מלמעלה',
     stroke: 'שבץ בעורק המוח האחורי — המיאנופסיה הומונימית בצד הנגדי לפגיעה',
     'optic-neuritis': 'דלקת בעצב הראייה על רקע דה-מיילינציה — סקוטומה מרכזית עם RAPD וחוסר רוויה של אדום באותה עין',
