@@ -189,7 +189,7 @@ const CSS = `
 .crsb-label { font: 600 10px/1 var(--lm-font-num); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-muted-2); margin-bottom: 8px; }
 .crsb-label span { text-transform: none; letter-spacing: 0; }
 .crsb-exam { position: relative; min-height: 190px; border-radius: 20px; padding: 16px; background: rgba(6,3,13,.35); box-shadow: inset 0 0 0 1px var(--lm-hairline); }
-.crsb-overlay { position: absolute; top: 14px; right: 14px; }
+.crsb-overlay { position: absolute; top: 36px; right: 14px; }
 .crsb-room { padding-top: 70px; color: var(--lm-ivory-dim); }
 .crsb-two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
 .crsb-hint { font-size: 13px; }

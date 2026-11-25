@@ -17,9 +17,6 @@ function patientFor(rng: Rng, age: number): PatientProfile {
     avatar: { ...generateAvatar(rng, { age, sex }), glasses: 'none' },
   };
 }
-const other = (e: Eye): Eye => (e === 'OD' ? 'OS' : 'OD');
-const side = (e: Eye) => (e === 'OD' ? 'right' : 'left');
-const mirrorOf = (e: Eye, g: Gaze): Gaze => g; // grades are stored per eye; gazes are patient-frame already
 
 // ───────────────────────── motility
 export type MotKind = 'normal' | 'cn6' | 'cn4' | 'cn3' | 'restrictive' | 'pain';
@@ -183,4 +180,3 @@ export function convergenceChallenge(f: PatientFindings, age: number, rng: Rng):
   const opts = shuffle(rng, kinds);
   return { question: 'Which statement best fits these two measurements?', options: opts.map((k) => CONV_LABEL[k]), correct: opts.indexOf(kind), explain: CONV_TEACH[kind] };
 }
-export { other as otherEye, side as sideWord, mirrorOf };

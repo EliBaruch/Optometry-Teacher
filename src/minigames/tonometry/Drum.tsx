@@ -100,8 +100,7 @@ export function Drum({ value, onChange, disabled, label = 'Measuring drum' }: Dr
       const rt = major ? 57 : 62;
       ticks.push(
         <text key={`t${k}`} x={100 + Math.cos(a) * rt} y={100 + Math.sin(a) * rt} fill={major ? '#ffe3a0' : '#c9a35a'}
-          font-size={major ? 12 : 9} font-family="var(--lm-font-num, sans-serif)" font-weight="700" text-anchor="middle" dominant-baseline="central"
-          transform={`rotate(${ang + 90} ${100 + Math.cos(a) * rt} ${100 + Math.sin(a) * rt})`}>
+          font-size={major ? 12 : 9} font-family="var(--lm-font-num, sans-serif)" font-weight="700" text-anchor="middle" dominant-baseline="central">
           {(k / 10).toFixed(k % 10 === 0 ? 0 : 1)}
         </text>,
       );

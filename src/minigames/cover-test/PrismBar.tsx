@@ -68,7 +68,7 @@ export function PrismBar({ prism, onChange, sound }: PrismBarProps) {
         ))}
       </div>
       <div class="cvt-prism__row" role="radiogroup" aria-label="Eye the prism is held in front of">
-        <span class="cvt-prism__lab"><Icon name="eye" size={13} /> Prism held over</span>
+        <span class="cvt-prism__lab"><Icon name="eye" size={13} /> <span class="cvt-lab-t">Prism held over</span></span>
         {(['OD', 'OS'] as Eye[]).map((e) => (
           <button key={e} type="button" role="radio" aria-checked={prism.eye === e} class={`cvt-chip${prism.eye === e ? ' is-on' : ''}`} onClick={() => setEye(e)}>{e}</button>
         ))}

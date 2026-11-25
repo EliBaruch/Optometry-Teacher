@@ -191,6 +191,13 @@
   .cvt-panel.is-tab-call .cvt-sec--measure, .cvt-panel.is-tab-measure .cvt-sec--call, .cvt-panel.is-tab-measure .cvt-sec--lock { display: none; }
   .cvt-sec .cvt-eyebrow { display: none; }
   .cvt-chip { min-height: 36px; }
+  .cvt-prism { grid-template-columns: 1fr auto; grid-template-areas: 'top eye' 'track track' 'bases bases'; row-gap: 4px; padding: 6px 10px 8px; align-items: center; }
+  .cvt-prism__top { grid-area: top; } .cvt-prism__track { grid-area: track; } .cvt-prism__row--bases { grid-area: bases; grid-template-columns: repeat(4, 1fr); }
+  .cvt-prism > [aria-label^='Eye'] { grid-area: eye; }
+  .cvt-prism__row--bases .cvt-chip { padding: 0 4px; gap: 2px; font-size: 0.7rem; justify-content: center; min-height: 34px; }
+  .cvt-lab-t, .cvt-note { display: none; }
+  .cvt-prism__read { font-size: 1.25rem; }
+  .cvt-head { padding: 5px 12px; } .cvt-seg__b { min-height: 34px !important; }
   .cvt-foot { padding: 7px 12px; gap: 10px; flex-wrap: nowrap; }
   .cvt-steps { display: none; }
   .cvt-foot__bar { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; font-size: 0.8rem; color: var(--lm-muted); } .cvt-foot__bar > :first-child { flex: 1; }

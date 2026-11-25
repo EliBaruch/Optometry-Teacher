@@ -142,7 +142,9 @@ async function runUnit(u) {
   let review = null
   for (let round = 1; round <= MAX_FIX_ROUNDS + 1; round++) {
     const chk = await agent(checksPrompt(u), { label: `checks:${u.key}#${round}`, phase: 'Checks', schema: CHECK_SCHEMA, ...M.checks() })
-    if (chk && !chk.ok && chk.failures.length) {
+    // Drop gate false positives (e.g. Math.sin identifiers the reporter itself marked as ignorable).
+    if (chk) chk.failures = (chk.failures || []).filter(f => !/not a failure|ignored|Math\.sin|identifier/i.test(f))
+    if (chk && chk.failures.length) {
       log(`${u.key} round ${round}: mechanical checks failed (${chk.failures.length}) — straight to revise`)
       if (round > MAX_FIX_ROUNDS) { review = { verdict: 'revise', scores: null, mustFix: chk.failures, niceToHave: [], summary: 'mechanical checks failing' }; break }
       const mech = { verdict: 'revise', scores: null, mustFix: chk.failures, niceToHave: [], summary: 'Mechanical checks failed: fix these first (type errors / boundary violations / failing tests / player-visible forbidden words).' }

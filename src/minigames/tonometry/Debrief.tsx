@@ -54,6 +54,7 @@ export function Debrief({ assessment, measures, challenge, onFinish }: DebriefPr
             );
           })}
         </div>
+        <p class="tn-deb__tip">Good to know: thick mires under-read and thin mires over-read (textbooks differ on the wording, but the 0.25 mm-per-mire standard is what matters). Central corneal thickness also shifts Goldmann readings: a thick cornea over-reads, a thin one under-reads, so CCT is measured alongside IOP.</p>
         {challenge && (
           <div class="tn-quiz">
             <h4>{challenge.question}</h4>

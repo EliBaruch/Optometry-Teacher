@@ -57,8 +57,8 @@ export function createFluoPainter(canvas: HTMLCanvasElement): FluoPainter {
     // blink animation + spread of dye over the cornea
     const bu = f.blinkAt >= 0 && !f.reduced ? (now - f.blinkAt) / 1000 / BLINK_SECONDS : 2;
     const lid = f.base.lidAperture * (bu >= 0 && bu < 1 ? Math.abs(Math.cos(bu * Math.PI)) ** 0.7 : 1);
-    const meniscus = f.dyeAt >= 0 ? ease((now - f.dyeAt - (f.reduced ? 99999 : 1000)) / 1100) : 0;
-    const spread = f.spreadAt >= 0 ? ease((now - f.spreadAt - (f.reduced ? -99999 : BLINK_SECONDS * 1000)) / (SPREAD_SECONDS * 1000)) : 0;
+    const meniscus = f.dyeAt >= 0 ? (f.reduced ? 1 : ease((now - f.dyeAt - 1000) / 1100)) : 0;
+    const spread = f.spreadAt >= 0 ? (f.reduced ? 1 : ease((now - f.spreadAt - BLINK_SECONDS * 1000) / (SPREAD_SECONDS * 1000))) : 0;
     const dye = f.dyeAt >= 0;
 
     const k0 = `${lid.toFixed(2)}`;
