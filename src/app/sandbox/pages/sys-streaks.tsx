@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { dayKey, defineStrings, pickStrings, type ClinicalCase, type GameServices, type Grade, type ModeModule, type RewardGrant, type ScoreBreakdown } from '@core';
+import { dayKey, defineStrings, modeText, pickStrings, type ClinicalCase, type GameServices, type Grade, type ModeModule, type RewardGrant, type ScoreBreakdown } from '@core';
 import { Button, HudSlot, RewardChip, Screen, useSignal } from '@ui-kit';
 import streaks, { streaksOf } from '../../../systems/streaks';
 import { INITIAL } from '../../../systems/streaks/state';
@@ -153,7 +153,7 @@ function Page({ services }: { services: GameServices }) {
           <h2 class="sksb-h">exam-overlay</h2>
           <div class="sksb-exam">
             <div class="sksb-exam__overlay"><HudSlot slot="exam-overlay" /></div>
-            <p class="sksb-exam__hint">{run ? t.runLine(services.registries.modes.get(run.modeId)?.title, run.completed.length, run.totalScore) : t.startHint}</p>
+            <p class="sksb-exam__hint">{run ? t.runLine((() => { const m = services.registries.modes.get(run.modeId); return m ? modeText(m, services.locale).title : undefined; })(), run.completed.length, run.totalScore) : t.startHint}</p>
           </div>
           <h2 class="sksb-h">results-extra</h2>
           <HudSlot slot="results-extra" />

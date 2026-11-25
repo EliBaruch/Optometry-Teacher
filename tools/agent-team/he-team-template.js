@@ -125,7 +125,8 @@ async function runUnit(u) {
   let review = null
   for (let round = 1; round <= MAX_FIX_ROUNDS + 1; round++) {
     const chk = await agent(checksPrompt(u), { label: `checks:${u.key}#${round}`, phase: 'Checks', schema: CHECK_SCHEMA, ...M.checks() })
-    if (chk) chk.failures = (chk.failures || []).filter(f => !/not a failure|ignored|no player-visible|not opened|unconfirmed|\.test\.tsx?|test file/i.test(f))
+    if (chk) chk.failures = (chk.failures || []).filter(f => !/not a failure|ignored|no player-visible|not opened|unconfirmed|\.test\.tsx?|test file|no failures|all passed|passed with no|\bpassed\b.*\bpassed\b/i.test(f))
+    if (chk && chk.ok) chk.failures = []
     if (chk && chk.failures.length) {
       log(`${u.key} round ${round}: mechanical checks failed (${chk.failures.length})`)
       if (round > MAX_FIX_ROUNDS) { review = { verdict: 'revise', scores: null, mustFix: chk.failures, niceToHave: [], summary: 'mechanical checks failing' }; break }

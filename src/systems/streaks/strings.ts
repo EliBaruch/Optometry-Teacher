@@ -214,7 +214,7 @@ export const S = defineStrings({
     peakCombo: 'שיא הקומבו',
     peakComboN: (n: number) => `שיא הקומבו · ${n} ברצף`,
     runNewBestOver: (title: string, diff: number) => `שיא אישי חדש במצב ${title}: ${diff} נקודות מעל הסימן הקודם.`,
-    runFirst: (title: string, total: number) => `הסבב הראשון שלכם במצב ${title} נרשמה: ${total} נקודות.`,
+    runFirst: (title: string, total: number) => `הסבב הראשון שלכם במצב ${title} נרשם: ${total} נקודות.`,
     runBestStands: (title: string, best: number) => `השיא שלכם במצב ${title} עומד על ${best}.`,
     runPoints: (total: number) => `${total} נקודות בסבב הזה.`,
     outClimbed: (mult: string, n: number) => `עליתם לקומבו \u2066${mult}\u2069: ${heDiag(n)} ברצף.`,
