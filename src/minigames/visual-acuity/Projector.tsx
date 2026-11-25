@@ -45,11 +45,17 @@ function layout(kind: ChartKind): Laid[] {
   return out;
 }
 
+/**
+ * Camera zoom for the selected line. Letters grow with line size, but only
+ * as ~h^0.38, so small lines still look small (like a real chart) while
+ * staying big enough to judge the blur on screen.
+ */
 function targetZoom(h: number, count: number, W: number, H: number): number {
-  const px = Math.max(24, Math.min(84, H * 0.15));
+  const base = Math.max(22, Math.min(58, H * 0.075));
+  const px = Math.min(H * 0.24, base * Math.pow(h / 5, 0.38));
   let z = px / h;
   const width = (2 * count - 1) * h;
-  if (width * z > W * 0.8) z = (W * 0.8) / width;
+  if (width * z > W * 0.86) z = (W * 0.86) / width;
   return z;
 }
 
@@ -192,9 +198,15 @@ export function Projector(p: ProjectorProps) {
           </radialGradient>
           <linearGradient id={`${uid}-bar`} x1="0" x2="1">
             <stop offset="0%" stop-color="#ffd27a" stop-opacity="0" />
-            <stop offset="18%" stop-color="#ffd27a" stop-opacity="0.16" />
-            <stop offset="82%" stop-color="#ffd27a" stop-opacity="0.16" />
+            <stop offset="18%" stop-color="#ffd27a" stop-opacity="0.1" />
+            <stop offset="82%" stop-color="#ffd27a" stop-opacity="0.1" />
             <stop offset="100%" stop-color="#ffd27a" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id={`${uid}-edge`} x1="0" x2="1">
+            <stop offset="0%" stop-color="#d9cfbf" stop-opacity="1" />
+            <stop offset="7%" stop-color="#e6ddcf" stop-opacity="0" />
+            <stop offset="93%" stop-color="#e6ddcf" stop-opacity="0" />
+            <stop offset="100%" stop-color="#d9cfbf" stop-opacity="1" />
           </linearGradient>
           <clipPath id={`${uid}-box`} clipPathUnits="userSpaceOnUse"><rect x="0" y="0" width="5" height="5" /></clipPath>
           <filter id={`${uid}-blur`} x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
@@ -222,6 +234,7 @@ export function Projector(p: ProjectorProps) {
           )}
         </g>
 
+        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-edge)`} pointer-events="none" />
         {b.scotoma > 0.01 && <circle cx={W / 2} cy={selY} r={scotR} fill={`url(#${uid}-scot)`} opacity={Math.min(1, b.scotoma + 0.15)} />}
         {veil > 0.01 && <rect x="0" y="0" width={W} height={H} fill="#fffaf0" opacity={veil * 0.42} />}
         {p.pinhole && <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-ph)`} />}

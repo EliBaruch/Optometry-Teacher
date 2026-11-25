@@ -6,11 +6,13 @@ import { CARD_RARITIES, FRAME_LABEL, nextFrame, rarityRank, setReward, type Card
 import { GALLERY_COLOR, RARITY_HEX, RARITY_NAME, type CollectionStore } from '../store';
 import { EyeGlyph, GhostCard, IrisCard } from './IrisCard';
 import { viewFor } from './views';
+import { useSeenFor } from './visibility';
 import './reveal.css';
 
 type Phase = 'sealed' | 'charging' | 'open';
 
-const AUTO_OPEN_MS = 2600;
+const AUTO_OPEN_MS = 1800;
+const TEAR_MS = 760;
 const CHARGE_STEP_MS = 260;
 const SFX: Record<CardRarity, SfxId> = { common: 'reveal', rare: 'rare', epic: 'rare', legendary: 'legendary' };
 const BURST: Record<CardRarity, 'sparks' | 'stars' | 'confetti'> = { common: 'sparks', rare: 'sparks', epic: 'stars', legendary: 'confetti' };
@@ -41,16 +43,22 @@ function Reveal({ store, pull }: { store: CollectionStore; pull: Pull }) {
   const state = useSignal(store.state);
   const catalog = store.catalog();
   const view = viewFor(state, catalog, pull.dx);
-  const [phase, setPhase] = useState<Phase>(reduced ? 'open' : 'sealed');
+  const [phase, setPhaseState] = useState<Phase>(reduced ? 'open' : 'sealed');
+  const phaseRef = useRef(phase);
+  const setPhase = (p: Phase) => {
+    phaseRef.current = p;
+    setPhaseState(p);
+  };
   const [charge, setCharge] = useState<CardRarity>('common');
   const [flipped, setFlipped] = useState(!reduced);
+  const [tearing, setTearing] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const later = (fn: () => void, ms: number) => void timers.current.push(setTimeout(fn, ms));
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   const open = () => {
-    if (phase !== 'sealed') return;
+    if (phaseRef.current !== 'sealed') return;
     const { audio, fx } = services;
     setPhase('charging');
     audio.play('drumroll', { volume: 0.5 });
@@ -58,14 +66,24 @@ function Reveal({ store, pull }: { store: CollectionStore; pull: Pull }) {
     const steps = CARD_RARITIES.slice(0, rarityRank(pull.rarity) + 1);
     steps.forEach((r, i) => later(() => {
       setCharge(r);
-      if (i > 0) audio.play('sparkle', { volume: 0.5, pitch: 1 + i * 0.15 });
+      if (i > 0) {
+        audio.play('sparkle', { volume: 0.5, pitch: 1 + i * 0.15 });
+        fx.shake(1 + i, 120);
+      }
     }, i * CHARGE_STEP_MS));
     later(() => {
       setPhase('open');
+      setTearing(true);
+      later(() => setTearing(false), TEAR_MS);
       audio.play('chest-open');
       later(() => audio.play(SFX[pull.rarity]), 120);
       const r = root.current?.querySelector('.gp-stage')?.getBoundingClientRect();
-      if (r) fx.burst(r.left + r.width / 2, r.top + r.height * 0.45, { kind: BURST[pull.rarity], count: 24 + rarityRank(pull.rarity) * 22, color: RARITY_HEX[pull.rarity] });
+      if (r) {
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height * 0.45;
+        fx.burst(x, y, { kind: BURST[pull.rarity], count: 24 + rarityRank(pull.rarity) * 22, color: RARITY_HEX[pull.rarity] });
+        if (rarityRank(pull.rarity) >= 2) later(() => fx.burst(x, y, { kind: 'sparks', count: 30, color: '#fff3c4' }), 260);
+      }
       if (pull.rarity === 'legendary') {
         fx.flash('#ffd27a', 260);
         fx.hitstop(90);
@@ -74,11 +92,9 @@ function Reveal({ store, pull }: { store: CollectionStore; pull: Pull }) {
     }, steps.length * CHARGE_STEP_MS + 220);
   };
 
-  useEffect(() => {
-    if (phase !== 'sealed') return;
-    const t = setTimeout(open, AUTO_OPEN_MS);
-    return () => clearTimeout(t);
-  }, [phase]);
+  // Auto-open only after the sleeve has really been on screen for a beat
+  // (the results screen fades its extras in late and may scroll).
+  useSeenFor(root, AUTO_OPEN_MS, open, phase === 'sealed');
 
   if (!view) return null;
   const name = view.dx?.name ?? pull.dx;
@@ -99,8 +115,8 @@ function Reveal({ store, pull }: { store: CollectionStore; pull: Pull }) {
         <div class="gp-card-wrap">
           <IrisCard view={view} size="md" flipped={flipped} sway={isOpen && !flipped} onActivate={isOpen ? () => { services.audio.play('whoosh', { volume: 0.6 }); setFlipped((f) => !f); } : undefined} />
         </div>
-        {!isOpen && (
-          <button type="button" class="gp-sleeve" onClick={open} aria-label="Open your new iris card">
+        {(!isOpen || tearing) && (
+          <button type="button" class={cx('gp-sleeve', tearing && 'is-torn')} onClick={open} aria-label="Open your new iris card" tabIndex={isOpen ? -1 : 0} aria-hidden={isOpen ? 'true' : undefined}>
             <span class="gp-sleeve__half gp-sleeve__half--top" aria-hidden="true" />
             <span class="gp-sleeve__half gp-sleeve__half--bottom" aria-hidden="true" />
             <span class="gp-seal" aria-hidden="true"><EyeGlyph /></span>

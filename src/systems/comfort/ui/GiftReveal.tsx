@@ -9,6 +9,12 @@ import { centerOf, safePlay, useComfort } from './hooks';
 
 const SHAKE_MS = 900;
 
+/** Centre of an element inside the reveal, or a point `dy` below the box as a fallback. */
+function below(sel: string, box: { x: number; y: number }, dy: number): { x: number; y: number } {
+  const el = typeof document !== 'undefined' ? document.querySelector(`.cf-reveal ${sel}`) : null;
+  return el ? centerOf(el) : { x: box.x, y: box.y + dy };
+}
+
 /**
  * Opening tonight's gift: the box wobbles, the lid springs off with a flash of
  * light, coins count up and (on evenings 3 and 7) a satchel reveals its rarity.
@@ -57,14 +63,20 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
       const c = centerOf(boxRef.current);
       safePlay(services, 'chest-open');
       services.fx.flash('#e0f2fe', 160);
-      services.fx.burst(c.x, c.y - 10, { kind: 'coins', count: 26 });
-      services.fx.burst(c.x, c.y - 10, { kind: 'sparks', count: 30, color: ACCENT });
+      // Light sparks from the open box; the heavy coin shower rises from the
+      // counter below it so the dialog title stays readable.
+      services.fx.burst(c.x, c.y + 10, { kind: 'sparks', count: 24, color: ACCENT });
+      later(140, () => {
+        const n = below('.cf-reveal__coins', c, 90);
+        services.fx.burst(n.x, n.y, { kind: 'coins', count: 22 });
+      });
       later(380, () => safePlay(services, 'coins'));
       if (r.satchel) {
         const rare = r.satchel.rarity === 'legendary' ? 'legendary' : r.satchel.rarity === 'common' ? 'sparkle' : 'rare';
         later(900, () => {
           safePlay(services, rare);
-          services.fx.burst(c.x, c.y, { kind: 'stars', count: r.satchel!.rarity === 'common' ? 12 : 32, color: RARITY_COLOR[r.satchel!.rarity] });
+          const sc = below('.cf-reveal__satchel', c, 150);
+          services.fx.burst(sc.x, sc.y, { kind: 'stars', count: r.satchel!.rarity === 'common' ? 12 : 32, color: RARITY_COLOR[r.satchel!.rarity] });
           if (r.satchel!.rarity === 'legendary') services.fx.shake(4, 260);
         });
       }
@@ -76,7 +88,7 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
       open={props.open}
       onClose={props.onClose}
       eyebrow={`Evening ${day.day} of ${GIFT_CALENDAR.length}`}
-      title={result ? day.label : 'A gift is waiting'}
+      title={result ? (day.satchel ? day.label : 'Tonight’s gift') : 'A gift is waiting'}
       icon="gift"
       accent={ACCENT}
       size="sm"
@@ -111,6 +123,7 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
                 <strong class="lm-num">+{result.satchel.coins}</strong>
               </div>
             )}
+            {!day.satchel && <p class="cf-reveal__flavour">{day.label}</p>}
             <p class="cf-reveal__note">Your next gift arrives tomorrow. No rush — it will wait for you.</p>
           </div>
         ) : (
@@ -119,6 +132,7 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
               <strong class="lm-num">✦ {day.coins}</strong> lumens
               {day.satchel && <> + a mystery satchel</>}
             </p>
+            {!day.satchel && <p class="cf-reveal__flavour">{day.label}</p>}
             {day.satchel && (
               <p class="cf-reveal__odds" aria-label="Satchel odds">
                 {(['common', 'rare', 'epic', 'legendary'] as const).map((r) => (

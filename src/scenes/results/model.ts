@@ -145,11 +145,21 @@ export function pickClinchers(
   n = 2,
 ): KeyFinding[] {
   const vocab = words([...(dx?.keyFindings ?? []), ...kase.teachingPoints, dx?.name ?? ''].join(' '));
+  const key = (f: Pick<RevealedFinding, 'label' | 'eye'>) => `${f.label}|${f.eye ?? ''}`;
   const fromEssential = new Set<string>();
   for (const t of kase.essentialTests) {
-    for (const f of session?.testsDone[t]?.findings ?? []) fromEssential.add(`${f.label}|${f.eye ?? ''}`);
+    for (const f of session?.testsDone[t]?.findings ?? []) fromEssential.add(key(f));
+  }
+  // A finding that only an off-target test produced can't have clinched this diagnosis
+  // (e.g. a colour-vision result on a keratitis case), however abnormal it looks.
+  const relevant = new Set<TestId>([...kase.essentialTests, ...kase.helpfulTests]);
+  const fromRelevant = new Set<string>();
+  const fromOffTarget = new Set<string>();
+  for (const [t, r] of Object.entries(session?.testsDone ?? {}) as [TestId, { findings: RevealedFinding[] } | undefined][]) {
+    for (const f of r?.findings ?? []) (relevant.has(t) ? fromRelevant : fromOffTarget).add(key(f));
   }
   const scored = (session?.chart ?? [])
+    .filter((f) => !(fromOffTarget.has(key(f)) && !fromRelevant.has(key(f))))
     .map((f, i) => {
       let s = FLAG_WEIGHT[f.flag];
       for (const w of words(`${f.label} ${f.value}`)) if (vocab.has(w)) s += 1.5;
@@ -167,8 +177,10 @@ export function pickClinchers(
     seen.add(f.label);
     out.push({ label: f.label, value: f.value, eye: f.eye, flag: f.flag, source: 'chart' });
   }
+  const covered = words(out.map((o) => o.label).join(' '));
   for (const k of dx?.keyFindings ?? []) {
     if (out.length >= n) break;
+    if ([...words(k)].some((w) => covered.has(w))) continue; // the chart already shows this one
     out.push({ label: k, value: '', flag: 'abnormal', source: 'textbook' });
   }
   return out;

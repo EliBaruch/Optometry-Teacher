@@ -7,7 +7,7 @@ import { beats, reached } from './choreo';
 import {
   affectedEye, buildReview, clockText, confidenceNote, pickClinchers, prettyId, reviewUrgency,
 } from './model';
-import { EMPTY_LOG, accuracy, appendEntry, bestCase, checkBest, comboPeak, findRun, type RunLogEntry } from './run-log';
+import { EMPTY_LOG, accuracy, appendEntry, bestCase, checkBest, comboPeak, findRun, missedDiagnoses, type RunLogEntry } from './run-log';
 
 const kase: ClinicalCase = {
   id: 'aac-test',
@@ -122,6 +122,15 @@ describe('model', () => {
     expect(picks.every((p) => p.source === 'chart')).toBe(true);
   });
 
+  it('never lets an off-target test clinch the diagnosis', () => {
+    const plates = { label: 'Colour plates', value: '8/10 (R-G 7/8)', eye: 'OD' as const, flag: 'abnormal' as const };
+    const iop = { label: 'IOP', value: '56 mmHg', eye: 'OD' as const, flag: 'critical' as const };
+    const testsDone = { 'color-vision': result('color-vision', [plates]), tonometry: result('tonometry', [iop]) };
+    const picks = pickClinchers(kase, { chart: [plates, iop], testsDone }, dx);
+    expect(picks.map((p) => p.label)).toEqual(['IOP', 'Mid-dilated, poorly reactive pupil']);
+    expect(picks[1]!.source).toBe('textbook');
+  });
+
   it('falls back to codex key findings when the chart is thin', () => {
     const picks = pickClinchers(kase, { chart: [], testsDone: {} }, dx);
     expect(picks).toHaveLength(2);
@@ -151,6 +160,12 @@ describe('run log', () => {
     for (let i = 2; i < 8; i++) s = appendEntry(s, `r${i}`, 'shift', e('a', true), 3);
     expect(s.runs.map((r) => r.seed)).toEqual(['r5', 'r6', 'r7']);
     expect(findRun(s, undefined)).toBeUndefined();
+  });
+
+  it('lists missed diagnoses once each, in order', () => {
+    const list = [e('a', false), e('b', true), { ...e('c', false), diagnosisId: 'y' }, e('d', false), { ...e('f', false), diagnosisId: '' }];
+    expect(missedDiagnoses(list)).toEqual(['x', 'y']);
+    expect(missedDiagnoses([])).toEqual([]);
   });
 
   it('computes combo peak, best case and accuracy', () => {

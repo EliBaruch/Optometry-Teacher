@@ -4,7 +4,7 @@ import { ALL_TESTS, TEST_CATALOG } from '@core';
 import {
   BACKDROP_VARIANTS, Badge, Button, Card, Chip, CountUp, Divider, GlassPanel, GradeStamp, ICON_NAMES, Icon, IconButton,
   Kbd, Modal, Ornament, ProgressBar, RewardChip, RingMeter, Screen, ScrollArea, SpeechBubble, Stars, TabPanel, Tabs,
-  ToastHost, Tooltip, type BackdropVariant, type IconName,
+  ToastHost, Tooltip, setLiteRendering, useLiteRendering, type BackdropVariant, type IconName,
 } from '@ui-kit';
 import type { SandboxPage } from '../Sandbox';
 
@@ -14,22 +14,32 @@ const CSS = `
 .uk-hero { text-align: center; padding: 36px 8px 8px; display: grid; justify-items: center; gap: 14px; }
 .uk-hero h2 { font-size: var(--lm-fs-5xl); font-weight: 480; letter-spacing: -0.02em; line-height: 1; }
 .uk-hero p { max-width: 620px; color: var(--lm-text-muted); font-size: var(--lm-fs-lg); }
-.uk-grid { display: grid; gap: 22px; grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: start; }
+.uk-grid { display: grid; gap: 22px; grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: stretch; }
+.uk-grid > .lm-panel { display: flex; flex-direction: column; }
+.uk-fill { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.uk-col { display: grid; gap: 22px; align-content: stretch; grid-auto-rows: auto; }
+.uk-col > .lm-panel { display: flex; flex-direction: column; }
 .uk-c12 { grid-column: span 12; } .uk-c8 { grid-column: span 8; } .uk-c7 { grid-column: span 7; } .uk-c6 { grid-column: span 6; }
 .uk-c5 { grid-column: span 5; } .uk-c4 { grid-column: span 4; }
 @media (max-width: 980px) { .uk-c8, .uk-c7, .uk-c6, .uk-c5, .uk-c4 { grid-column: span 12; } }
 .uk-sub { font: 600 var(--lm-fs-2xs)/1 var(--lm-font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--lm-muted-2); margin: 18px 0 10px; }
-.uk-sub:first-child { margin-top: 0; }
+.uk-sub:first-child, .lm-panel__header + .uk-sub { margin-top: 0; }
 .uk-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; }
 .uk-sw { border-radius: 14px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--lm-glass-border); background: rgba(6,3,14,.35); }
 .uk-sw i { display: block; height: 52px; box-shadow: inset 0 -1px 0 rgba(255,255,255,.06); }
 .uk-sw div { padding: 7px 9px 8px; font-size: 11.5px; line-height: 1.3; }
 .uk-sw b { display: block; font-weight: 600; color: var(--lm-ivory); }
 .uk-sw span { font-family: var(--lm-font-num); color: var(--lm-muted); font-size: 10.5px; }
-.uk-type .d1 { font-family: var(--lm-font-display); font-size: var(--lm-fs-4xl); line-height: 1.05; font-weight: 500; }
+.uk-type .d1 { font-family: var(--lm-font-display); font-size: var(--lm-fs-3xl); line-height: 1.05; font-weight: 500; }
 .uk-type .d2 { font-family: var(--lm-font-display); font-size: var(--lm-fs-2xl); font-style: italic; font-weight: 380; color: var(--lm-ivory-dim); }
-.uk-type .num { font-family: var(--lm-font-num); font-size: var(--lm-fs-3xl); font-weight: 700; letter-spacing: .01em; }
+.uk-type .num { font-family: var(--lm-font-num); font-size: var(--lm-fs-3xl); font-weight: 700; letter-spacing: .01em; display: flex; flex-wrap: wrap; column-gap: .32em; row-gap: 6px; line-height: 1.1; }
+.uk-type .num-g { display: inline-flex; align-items: baseline; white-space: nowrap; position: relative; padding-bottom: 16px; }
+.uk-type .num-g em { font-style: normal; font-size: .5em; color: var(--lm-ivory-dim); }
+.uk-type .num-g small { position: absolute; left: 0; bottom: 0; font: 600 10px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-text-muted); }
+.uk-type .num-sep { font-style: normal; color: var(--lm-text-muted); margin-right: .32em; }
+.uk-type .num-g:has(.num-sep) small { left: .64em; }
 .uk-type p { color: var(--lm-text-muted); max-width: 56ch; }
+.uk-sep { width: 1px; height: 22px; background: var(--lm-hairline); margin: 0 4px; }
 .uk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .uk-meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 18px; align-items: center; justify-items: center; }
 .uk-ring-val { font-family: var(--lm-font-num); font-size: 24px; font-weight: 700; color: var(--lm-ivory); }
@@ -52,7 +62,43 @@ const CSS = `
 .uk-icon svg { width: 28px; height: 28px; }
 .uk-icon span { font-size: 10.5px; color: var(--lm-muted); text-align: center; line-height: 1.25; }
 .uk-icon small { font-size: 9.5px; color: var(--lm-muted-2); margin-top: -6px; }
+.uk-icons--tests { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
+.uk-icons--tests .uk-icon { align-content: start; padding: 18px 8px 14px; gap: 10px; background: linear-gradient(180deg, rgba(255,210,122,.045), rgba(6,3,14,.3) 60%); }
+.uk-icon__well { font-style: normal; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; color: var(--lm-gold);
+  background: radial-gradient(circle at 50% 30%, rgba(255,210,122,.2), rgba(255,210,122,.03) 68%);
+  box-shadow: inset 0 0 0 1px rgba(255,210,122,.24), inset 0 1px 0 rgba(255,245,230,.14), 0 6px 18px -10px rgba(255,190,90,.6);
+  transition: transform var(--lm-dur-ui) var(--lm-ease-spring), box-shadow var(--lm-dur-ui) var(--lm-ease-out); }
+.uk-icons--tests .uk-icon svg { width: 30px; height: 30px; }
+.uk-icons--tests .uk-icon span { color: var(--lm-ivory-dim); font-size: 11.5px; font-weight: 500; }
+.uk-icons--tests .uk-icon:hover .uk-icon__well { transform: scale(1.08) rotate(-4deg); box-shadow: inset 0 0 0 1px rgba(255,210,122,.5), inset 0 1px 0 rgba(255,245,230,.2), 0 0 26px -6px rgba(255,200,110,.75); }
+@media (max-width: 1100px) { .uk-icons--tests { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.uk-toasts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: center; }
+.uk-skills { display: grid; gap: 8px; width: 100%; }
+.uk-skill { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 12px; background: rgba(6,3,14,.3); box-shadow: inset 0 0 0 1px var(--lm-hairline); font-size: var(--lm-fs-sm); color: var(--lm-ivory-dim); }
+.uk-alert { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; }
+.uk-alert p { color: var(--lm-text-muted); font-size: var(--lm-fs-sm); }
 .uk-tabpanel { padding-top: 16px; color: var(--lm-text-muted); font-size: var(--lm-fs-sm); min-height: 64px; }
+@media (max-width: 560px) {
+  .uk-swatches { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
+  .uk-sw i { height: 40px; }
+  .uk-icons { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+  .uk-icon span { font-size: 9.5px; overflow-wrap: anywhere; }
+  .uk-icon { padding: 12px 4px 10px; gap: 6px; }
+  .uk-icon svg { width: 24px; height: 24px; }
+  .uk-icon small { display: none; }
+  .uk-icons--tests { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .uk-icons--tests .uk-icon { padding: 12px 4px 10px; }
+  .uk-icon__well { width: 42px; height: 42px; }
+  .uk-icons--tests .uk-icon svg { width: 24px; height: 24px; }
+  .uk-icons--tests .uk-icon span { font-size: 9.5px; }
+  .uk-patient { grid-template-columns: 52px 1fr; gap: 12px; }
+  .uk-portrait { width: 52px; height: 52px; }
+  .uk-portrait svg { width: 28px; height: 28px; }
+  .uk-finding { display: grid; grid-template-columns: 1fr auto; row-gap: 4px; }
+  .uk-finding .k { grid-column: 1; }
+  .uk-finding .v { grid-column: 1 / -1; grid-row: 2; }
+  .uk-finding .lm-badge { grid-column: 2; grid-row: 1; }
+}
 .uk-footer { text-align: center; padding: 18px 0 8px; color: var(--lm-muted-2); font-size: 12px; display: grid; justify-items: center; gap: 10px; }
 `;
 
@@ -105,6 +151,7 @@ const FINDINGS: [string, string, 'normal' | 'abnormal' | 'critical'][] = [
   ['Optic disc', 'C/D 0.3 OU, healthy rim', 'normal'],
   ['Macula', 'Flat, foveal reflex present', 'normal'],
 ];
+const SKILLS: [string, number][] = [['Refraction', 3], ['Anterior segment', 2], ['Neuro-ophthalmology', 1]];
 const FLAG_ICON = { normal: 'check', abnormal: 'warning', critical: 'alert' } as const;
 
 const GRADES: Grade[] = ['S', 'A', 'B', 'C', 'D', 'F'];
@@ -125,6 +172,7 @@ function Swatch({ name, css, hex }: { name: string; css: string; hex: string }) 
 
 function UiKitShowcase({ services }: { services: GameServices }) {
   const [variant, setVariant] = useState<BackdropVariant>('title');
+  const lite = useLiteRendering();
   const [tab, setTab] = useState('history');
   const [tab2, setTab2] = useState('od');
   const [modal, setModal] = useState(false);
@@ -176,6 +224,10 @@ function UiKitShowcase({ services }: { services: GameServices }) {
                   {v}
                 </Chip>
               ))}
+              <span class="uk-sep" aria-hidden="true" />
+              <Tooltip content="Live blur behind glass. Switched off automatically on devices that cannot keep up.">
+                <Chip icon="sparkle" selected={!lite} onClick={() => setLiteRendering(!lite)}>Frosted glass</Chip>
+              </Tooltip>
             </div>
           </GlassPanel>
 
@@ -196,10 +248,12 @@ function UiKitShowcase({ services }: { services: GameServices }) {
               <div class="d1">Acute angle closure</div>
               <div class="d2">“The lights have rainbow halos, doctor.”</div>
               <div class="lm-eyebrow" style={{ marginTop: 8 }}>Inter · interface</div>
-              <p>Intraocular pressure 52 mmHg OD with a mid-dilated, poorly reactive pupil and a shallow anterior chamber. Same-day referral.</p>
+              <p>Intraocular pressure 52 mmHg OD with a mid-dilated, poorly reactive pupil and a shallow anterior chamber. Emergency: refer immediately.</p>
               <div class="lm-eyebrow" style={{ marginTop: 8 }}>Space Grotesk · readouts</div>
-              <div class="num">
-                20/40 <span class="lm-muted">·</span> 52<span style={{ fontSize: '.5em' }}> mmHg</span> <span class="lm-muted">·</span> −2.25
+              <div class="num" role="list">
+                <span class="num-g" role="listitem">20/40<small>VA OD</small></span>
+                <span class="num-g" role="listitem"><i class="num-sep" aria-hidden="true">·</i>52<em> mmHg</em><small>IOP OD</small></span>
+                <span class="num-g" role="listitem"><i class="num-sep" aria-hidden="true">·</i>−2.25<small>Sphere</small></span>
               </div>
             </div>
           </GlassPanel>
@@ -322,12 +376,16 @@ function UiKitShowcase({ services }: { services: GameServices }) {
 
           <GlassPanel class="uk-c4" eyebrow="Components" title="Mastery stars" icon="star"
             actions={<IconButton icon="refresh" size="sm" label="Replay" onClick={() => setReplay((r) => r + 1)} />}>
-            <div class="lm-stack" style={{ alignItems: 'center', '--lm-stack-gap': '18px', paddingTop: 8 }}>
+            <div class="lm-stack uk-fill" style={{ alignItems: 'center', '--lm-stack-gap': '16px' }}>
               <Stars key={`s${replay}-${stars}`} value={stars} size={52} />
               <div class="uk-row" style={{ justifyContent: 'center' }}>
                 {[0, 1, 2, 3].map((n) => <Chip key={n} size="sm" selected={stars === n} onClick={() => setStars(n)}>{`${n} ★`}</Chip>)}
               </div>
-              <Stars value={2} size={20} animate={false} />
+              <div class="uk-skills">
+                {SKILLS.map(([name, v]) => (
+                  <div class="uk-skill" key={name}><span>{name}</span><Stars value={v} size={16} animate={false} /></div>
+                ))}
+              </div>
             </div>
           </GlassPanel>
 
@@ -348,7 +406,7 @@ function UiKitShowcase({ services }: { services: GameServices }) {
           </GlassPanel>
 
           <GlassPanel class="uk-c4" eyebrow="Components" title="Toasts" icon="info">
-            <div class="lm-stack">
+            <div class="uk-toasts uk-fill">
               <Button block icon="info" onClick={() => toast('info', 'Patient 3 of 5 is in the waiting room.')}>Info</Button>
               <Button block icon="check" onClick={() => toast('good', 'Correct — angle closure caught in time.')}>Good</Button>
               <Button block icon="warning" onClick={() => toast('bad', 'Missed: no pressure check on a red, painful eye.')}>Bad</Button>
@@ -371,20 +429,31 @@ function UiKitShowcase({ services }: { services: GameServices }) {
             </ScrollArea>
           </GlassPanel>
 
-          <Card class="uk-c6" accent="var(--lm-lounge)" glow eyebrow="Components" title="Cards & dialogs" icon="heart"
-            onClick={() => setModal(true)}>
-            <p class="lm-muted">Interactive cards lift and glow on hover. This one opens a dialog with a focus trap, <Kbd>Esc</Kbd> to close, and a scale-and-blur entrance.</p>
-            <Divider label="Lounge" />
-            <div class="uk-row"><Badge tone="info">Daily gift ready</Badge><Badge tone="gold" variant="outline" icon="clock">Earned while away</Badge></div>
-          </Card>
+          <div class="uk-c6 uk-col">
+            <Card accent="var(--lm-lounge)" glow eyebrow="Components" title="Cards & dialogs" icon="heart"
+              onClick={() => setModal(true)}>
+              <p class="lm-muted">Interactive cards lift and glow on hover and work with <Kbd>Enter</Kbd> or <Kbd>Space</Kbd>. This one opens a dialog with a focus trap, <Kbd>Esc</Kbd> to close, and a scale-and-blur entrance.</p>
+              <Divider label="Lounge" />
+              <div class="uk-row"><Badge tone="info">Daily gift ready</Badge><Badge tone="gold" variant="outline" icon="clock">Earned while away</Badge></div>
+            </Card>
+            <GlassPanel accent="var(--lm-code-red)" strong padding="md">
+              <div class="uk-alert">
+                <span style={{ color: 'var(--lm-critical)' }}><Icon name="alert" size={28} /></span>
+                <div class="lm-stack" style={{ '--lm-stack-gap': '8px' }}>
+                  <div class="lm-row"><span class="lm-eyebrow" style={{ color: 'var(--lm-critical)' }}>Code Red · accent panel</span><Badge tone="critical" variant="solid" size="sm" pulse>Same day</Badge></div>
+                  <p>New flashes and floaters with a shadow creeping in from one side: suspect a retinal detachment and arrange a dilated fundus exam today.</p>
+                </div>
+              </div>
+            </GlassPanel>
+          </div>
 
           {/* ── Icons ────────────────────────────────────────────── */}
           <GlassPanel class="uk-c12" eyebrow={`Icons · ${ICON_NAMES.length}`} title="Instruments & interface" icon="eye">
             <div class="uk-sub">Clinical tests</div>
-            <div class="uk-icons">
+            <div class="uk-icons uk-icons--tests">
               {ALL_TESTS.map((t) => (
                 <div class="uk-icon" key={t} title={t}>
-                  <Icon name={t as IconName} />
+                  <i class="uk-icon__well" aria-hidden="true"><Icon name={t as IconName} /></i>
                   <span>{TEST_CATALOG[t].name}</span>
                   <small>{t}</small>
                 </div>

@@ -99,16 +99,27 @@ export function stainGeometry(pattern: StainPattern, seed: number): StainGeometr
       for (const b of dendriteBranches(seed)) g.lines.push({ pts: b.pts, width: 0.22, bulb: true });
       break;
     case 'round-ulcer': {
-      const cx = rng.float(-1.2, 1.2);
-      const cy = rng.float(0, 1.8);
-      const r = rng.float(0.9, 1.3);
+      // same place as the white stromal opacity (lesionSpot) so white light & cobalt agree
+      const sp = lesionSpot(seed, 'ulcer');
       const pts: Pt[] = [];
       for (let i = 0; i < 18; i++) {
         const a = (i / 18) * Math.PI * 2;
-        const rr = r * (1 + rng.float(-0.1, 0.1));
-        pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]);
+        const rr = sp.r * 0.85 * (1 + rng.float(-0.1, 0.1));
+        pts.push([sp.x + Math.cos(a) * rr, sp.y + Math.sin(a) * rr]);
       }
       g.blobs.push({ pts, soft: 0.5 });
+      break;
+    }
+    case 'focal': {
+      // small round epithelial defect around an embedded foreign body (lesionSpot 'fb')
+      const sp = lesionSpot(seed, 'fb');
+      const pts: Pt[] = [];
+      for (let i = 0; i < 14; i++) {
+        const a = (i / 14) * Math.PI * 2;
+        const rr = 0.42 * (1 + rng.float(-0.15, 0.15));
+        pts.push([sp.x + Math.cos(a) * rr, sp.y + Math.sin(a) * rr]);
+      }
+      g.blobs.push({ pts, soft: 0.2 });
       break;
     }
     case 'vertical-linear-scratches': {

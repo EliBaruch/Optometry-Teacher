@@ -145,8 +145,10 @@ function RenderFxPage({ services }: { services: GameServices }) {
   const codeRed = () => {
     fx().vignette('#ef4444', 1800);
     fx().shake(6, 900);
-    const c = centre();
-    fx().burst(c.x, c.y + 120, { kind: 'embers', count: 40, color: '#ef4444' });
+    // embers rise from the bottom edge, so they read above any control panel
+    const w = window.innerWidth;
+    const y = window.innerHeight - 6;
+    for (let i = 0; i < 5; i++) fx().burst(w * (0.1 + i * 0.2), y, { kind: 'embers', count: 10, color: i % 2 ? '#f97316' : '#ef4444' });
     sfx('alarm');
   };
 

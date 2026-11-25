@@ -43,7 +43,13 @@ export function ChartView({ frame, reducedMotion, badge }: ChartViewProps) {
 
   const paint = (f: ChartFrame) => {
     if (!painter.current) return;
-    const ls = painter.current.draw(f);
+    const all = painter.current.draw(f);
+    // Drop labels that would collide with the one above (tiny lines on small screens).
+    const ls: typeof all = [];
+    for (const l of all) {
+      const prev = ls[ls.length - 1];
+      if (!prev || l.y + l.h / 2 - (prev.y + prev.h / 2) >= 11) ls.push(l);
+    }
     const key = ls.map((l) => `${l.denom}:${Math.round(l.y)}`).join('|');
     if (key !== labelKey.current) {
       labelKey.current = key;
@@ -109,7 +115,7 @@ export function ChartView({ frame, reducedMotion, badge }: ChartViewProps) {
       {!frame.dark && frame.layout === 'balance' && (
         <div class="php-chart__labels php-chart__labels--balance" aria-hidden="true">
           {labels.map((l) => (
-            <span key={l.denom} style={{ top: `${l.y + l.h / 2}px` }}>{l.denom === -1 ? 'top · OS' : 'bottom · OD'}</span>
+            <span key={l.denom} style={{ top: `${Math.max(10, l.y - 12)}px` }}>{l.denom === -1 ? 'Top · left eye (OS)' : 'Bottom · right eye (OD)'}</span>
           ))}
         </div>
       )}

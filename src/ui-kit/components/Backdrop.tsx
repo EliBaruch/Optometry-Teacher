@@ -6,6 +6,7 @@ import {
   type BackdropVariant, type Drop, type Mote,
 } from '../lib/backdrop-sim';
 import { cx } from '../lib/cx';
+import { createFrameSampler, isLiteRendering, needsQualityProbe, onLiteRenderingChange, reportFrameWindow } from '../lib/quality';
 import './Backdrop.css';
 
 export type { BackdropVariant } from '../lib/backdrop-sim';
@@ -142,12 +143,21 @@ export function Backdrop({ variant = 'hub', rain, grain = true, vignette = true,
     // Slow drifting light reads perfectly at ~30 fps; rain streaks want a bit
     // more. Skipping frames lets the compositor idle (and the glass panels'
     // backdrop blur skip recomputing) on the frames in between.
-    const frameMs = withRain ? 1000 / 45 : 1000 / 30;
+    // On devices that cannot keep up (see lib/quality) drop to a gentler rate.
+    const rateFor = (lite: boolean) => (lite ? 1000 / 20 : withRain ? 1000 / 45 : 1000 / 30);
+    let frameMs = rateFor(isLiteRendering());
+    const offLite = onLiteRenderingChange((lite) => (frameMs = rateFor(lite)));
+    const sampler = needsQualityProbe() ? createFrameSampler() : null;
     const loop = (now: number) => {
       raf = 0;
       if (!visible || document.hidden) {
         last = -1;
+        sampler?.reset();
         return;
+      }
+      if (sampler && !sampler.done) {
+        const windowMedian = sampler.tick(now);
+        if (windowMedian !== null && needsQualityProbe()) reportFrameWindow(windowMedian);
       }
       if (last >= 0 && now - last < frameMs - 2) {
         raf = requestAnimationFrame(loop);
@@ -189,6 +199,7 @@ export function Backdrop({ variant = 'hub', rain, grain = true, vignette = true,
 
     return () => {
       stop();
+      offLite();
       ro?.disconnect();
       io?.disconnect();
       document.removeEventListener('visibilitychange', onVis);

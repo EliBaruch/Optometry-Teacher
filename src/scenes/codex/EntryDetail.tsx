@@ -2,7 +2,7 @@ import { useMemo } from 'preact/hooks';
 import { playSingleCase, type Diagnosis, type GameServices } from '@core';
 import { Button, Icon, RingMeter, Stars, cx, useRegistry } from '@ui-kit';
 import { URGENCY_META, casesFor, categoryMeta, confusedWith, masteryTier, referenceLabel, safeUrl } from './logic';
-import { Illumination, RarityGem, UrgencyTag } from './parts';
+import { Illumination, RarityGem, UrgencyTag, useNarrow } from './parts';
 
 export interface EntryDetailProps {
   services: GameServices;
@@ -14,6 +14,7 @@ export interface EntryDetailProps {
 /** The illuminated page for one diagnosis (rendered inside a Modal). */
 export function EntryDetail({ services, d, isUnlocked, onNavigate }: EntryDetailProps) {
   const cases = useRegistry(services.registries.cases);
+  const examReady = useRegistry(services.registries.scenes).some((s) => s.id === 'exam');
   const meta = categoryMeta(d.category);
   const seen = services.learning.seen(d.id);
   const mastery = seen ? services.learning.mastery(d.id) : 0;
@@ -25,10 +26,12 @@ export function EntryDetail({ services, d, isUnlocked, onNavigate }: EntryDetail
   );
   const url = safeUrl(d.reference);
   const urgency = URGENCY_META[d.typicalUrgency];
+  const narrow = useNarrow();
   const stars = mastery >= 0.8 ? 3 : mastery >= 0.55 ? 2 : mastery >= 0.25 ? 1 : 0;
 
+  const canPractise = examReady && pool.length > 0;
   const practise = () => {
-    if (!pool.length) return;
+    if (!canPractise) return;
     const kase = services.rng.pick(pool);
     services.audio.play('door');
     playSingleCase(services, kase.id);
@@ -48,11 +51,13 @@ export function EntryDetail({ services, d, isUnlocked, onNavigate }: EntryDetail
           </div>
         </div>
         <div class="codex-page__mastery">
-          <RingMeter value={mastery} size={96} thickness={7} accent={meta.accent} ariaLabel={`Mastery ${Math.round(mastery * 100)}%`}>
+          <RingMeter value={mastery} size={narrow ? 56 : 96} thickness={narrow ? 6 : 7} ticks={!narrow} accent={meta.accent} ariaLabel={`Mastery ${Math.round(mastery * 100)}%`}>
             <span class="codex-page__pct lm-num">{Math.round(mastery * 100)}<small>%</small></span>
           </RingMeter>
-          <span class="codex-page__tier">{tier}</span>
-          {seen && <Stars value={stars} size={16} sfx={false} />}
+          <span class="codex-page__tierbox">
+            <span class="codex-page__tier">{tier}</span>
+            {seen && <Stars value={stars} size={16} sfx={false} />}
+          </span>
         </div>
       </header>
 
@@ -91,11 +96,12 @@ export function EntryDetail({ services, d, isUnlocked, onNavigate }: EntryDetail
           <div class="codex-confused">
             {confused.map((c) => {
               const open = isUnlocked(c.id);
+              const cm = categoryMeta(c.category);
               return (
-                <button key={c.id} type="button" class={cx('codex-confused__chip', !open && 'is-locked')} style={{ '--acc': categoryMeta(c.category).accent }}
-                  onClick={() => onNavigate(c.id)} aria-label={open ? `Open ${c.name}` : `Undiscovered ${categoryMeta(c.category).label} entry`}>
-                  <Icon name={open ? 'book' : 'lock'} />
-                  {open ? c.name : 'Undiscovered'}
+                <button key={c.id} type="button" class={cx('codex-confused__chip', !open && 'is-locked')} style={{ '--acc': cm.accent }}
+                  onClick={() => onNavigate(c.id)} aria-label={open ? `Open ${c.name}` : `Sealed ${cm.label} entry`}>
+                  {open ? <Icon name="book" /> : <span class="codex-confused__seal" aria-hidden="true">{cm.label.charAt(0)}</span>}
+                  {open ? c.name : <span>Sealed · <span class="codex-confused__cat">{cm.label}</span></span>}
                 </button>
               );
             })}
@@ -109,9 +115,9 @@ export function EntryDetail({ services, d, isUnlocked, onNavigate }: EntryDetail
             <Icon name="book" /> Read more on {referenceLabel(url)} <Icon name="arrow-right" class="codex-ref__arrow" />
           </a>
         ) : <span />}
-        <Button variant="primary" icon="play" disabled={!pool.length} onClick={practise} sfx="select"
-          title={pool.length ? `${pool.length} case${pool.length > 1 ? 's' : ''} available` : 'No patient with this diagnosis yet'}>
-          {pool.length ? 'Practise a case' : 'No case yet'}
+        <Button variant="primary" icon={examReady ? 'play' : 'clock'} disabled={!canPractise} onClick={practise} sfx="select"
+          title={!examReady ? 'The exam room is still being fitted out' : pool.length ? `${pool.length} case${pool.length > 1 ? 's' : ''} available` : 'No patient with this diagnosis yet'}>
+          {!examReady ? 'Exam room opening soon' : pool.length ? 'Practise a case' : 'No case yet'}
         </Button>
       </footer>
     </article>

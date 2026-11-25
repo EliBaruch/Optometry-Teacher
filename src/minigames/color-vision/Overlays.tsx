@@ -102,9 +102,10 @@ export interface RevealProps {
   onContinue: () => void;
 }
 
-function showcase(truth: Interpretation, store: PlateStore): number {
+function showcase(truth: Interpretation, store: PlateStore, findings: PatientFindings): number {
   const kinds = store.plates.map((p) => p.kind);
-  if (truth.type === 'tritan') return kinds.indexOf('tritan');
+  const eye: Eye = truth.eye === 'OS' ? 'OS' : 'OD';
+  if (truth.type === 'tritan' || findings.colorVision[eye].type === 'acquired-blue-yellow') return kinds.indexOf('tritan');
   if (truth.type === 'protan' || truth.type === 'deutan') return kinds.indexOf('classify');
   return Math.max(0, kinds.indexOf('vanish'));
 }
@@ -120,7 +121,7 @@ const describeAnswer = (i: Interpretation) =>
 
 export function RevealPanel(p: RevealProps) {
   const v = verdict(p.score);
-  const idx = showcase(p.truth, p.store);
+  const idx = showcase(p.truth, p.store, p.findings);
   const affected: Eye = p.truth.eye === 'OS' ? 'OS' : 'OD';
   const vision = eyeVision(p.findings, affected);
   const blur = Math.max(0, Math.min(6, (vision.va - 0.2) * 5));

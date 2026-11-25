@@ -6,7 +6,7 @@ import {
 import { ACCENT } from '../controller';
 import {
   EARN_CAP_HOURS, REST_AFTER_CASES, casesToday, formatDuration, giftReady, jarCapacity, msUntilTomorrow, nextGift,
-  ratePerHour, skillOf,
+  collectable, ratePerHour, salutation, skillOf,
 } from '../logic';
 import { pearlsFor } from '../pearls';
 import { GiftBox } from './GiftBox';
@@ -74,7 +74,7 @@ export function LoungeScene({ services }: SceneProps) {
   const next = nextGift(state);
   const rate = ratePerHour(state);
   const cap = jarCapacity(state);
-  const coins = Math.floor(state.jar);
+  const coins = collectable(state);
   const skill = skillOf(state);
   const plan = ctl.plan();
   const seen = casesToday(state, now);
@@ -102,11 +102,23 @@ export function LoungeScene({ services }: SceneProps) {
       backdrop="calm"
       class="cf-lounge"
       right={
-        <button type="button" role="switch" aria-checked={quiet} class={`cf-quiet ${quiet ? 'is-on' : ''}`} onClick={toggleQuiet}>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={quiet}
+          aria-label="Quiet mode: calm music"
+          title="Quiet mode: calm music"
+          class={`cf-quiet ${quiet ? 'is-on' : ''}`}
+          onClick={toggleQuiet}
+        >
           <span class="cf-quiet__track" aria-hidden="true">
-            <span class="cf-quiet__thumb" />
+            <span class="cf-quiet__thumb">
+              <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true">
+                <path d="M11.5 10.6A5 5 0 0 1 6.4 3a5 5 0 1 0 6.6 6.9 5 5 0 0 1-1.5.7z" fill="currentColor" />
+              </svg>
+            </span>
           </span>
-          <span class="cf-quiet__label">Quiet mode</span>
+          <span class="cf-quiet__label" aria-hidden="true">Quiet mode</span>
         </button>
       }
     >
@@ -136,7 +148,7 @@ export function LoungeScene({ services }: SceneProps) {
           />
           <div class="cf-hero__shade" aria-hidden="true" />
           <div class="cf-hero__copy">
-            <p class="lm-eyebrow">Evening, {doctorName(services)}</p>
+            <p class="lm-eyebrow">{salutation(new Date(now).getHours())}, {doctorName(services)}</p>
             <h2 class="cf-hero__title">Kick off your shoes. The rain will keep.</h2>
             {seen >= REST_AFTER_CASES ? (
               <p class="cf-hero__sub">{seen} patients today — that is a full, good day. Stopping here is a fine choice.</p>
@@ -165,6 +177,7 @@ export function LoungeScene({ services }: SceneProps) {
               </button>
               <div>
                 <p class="cf-card__big lm-num">✦ {next.coins}{next.satchel && <small> + satchel</small>}</p>
+                <p class="cf-card__flavour">{next.label}</p>
                 <p class="lm-muted cf-card__small">
                   {ready ? 'Tap the box to open it.' : `Next gift in ${formatDuration(msUntilTomorrow(now))}.`} Missed evenings never reset the calendar.
                 </p>
@@ -183,9 +196,14 @@ export function LoungeScene({ services }: SceneProps) {
                   ✦ <CountUp value={coins} />
                 </p>
                 <p class="lm-muted cf-card__small">
+                  {state.bonus > 0 && (
+                    <span class="cf-card__kept">
+                      Includes your ✦ {state.bonus} welcome back gift, kept safe.{' '}
+                    </span>
+                  )}
                   Your technicians earn <strong class="lm-num cf-nowrap">✦ {rate.toFixed(1)}/hour</strong> while you’re away, for up to {EARN_CAP_HOURS} hours.
                 </p>
-                <Button variant="primary" size="sm" icon="coin" onClick={collect} disabled={coins < 1} sfx={false}>
+                <Button variant="primary" icon="coin" onClick={collect} disabled={coins < 1} sfx={false} class="cf-card__collect">
                   {coins >= 1 ? 'Collect' : 'Jar is filling'}
                 </Button>
               </div>
@@ -195,8 +213,8 @@ export function LoungeScene({ services }: SceneProps) {
               max={1}
               accent={ACCENT}
               size="sm"
-              label="Team skill (from your recent cases)"
-              valueText={`${Math.round(skill * 100)}%`}
+              label="Team skill"
+              valueText={state.recent.length ? `${Math.round(skill * 100)}%` : 'no cases yet'}
               ariaLabel="Team skill from your recent case scores"
             />
             <p class="lm-muted cf-card__tiny">Sharper diagnoses, triage and work-ups train your team — the rate follows your case scores, not your hours.</p>
@@ -211,8 +229,8 @@ export function LoungeScene({ services }: SceneProps) {
             actions={
               pearls.length > 1 && (
                 <div class="cf-card__nav">
-                  <IconButton icon="chevron-left" label="Previous pearl" size="sm" variant="ghost" onClick={() => setTip((t) => t - 1)} />
-                  <IconButton icon="chevron-right" label="Next pearl" size="sm" variant="ghost" onClick={() => setTip((t) => t + 1)} />
+                  <IconButton icon="chevron-left" label="Previous pearl" variant="ghost" class="cf-card__navbtn" onClick={() => setTip((t) => t - 1)} />
+                  <IconButton icon="chevron-right" label="Next pearl" variant="ghost" class="cf-card__navbtn" onClick={() => setTip((t) => t + 1)} />
                 </div>
               )
             }
@@ -233,7 +251,7 @@ export function LoungeScene({ services }: SceneProps) {
       </div>
       <Portal>
         <GiftReveal services={services} open={gift} onClose={() => setGift(false)} />
-        <WelcomeBack services={services} />
+        <WelcomeBack services={services} host="scene" />
       </Portal>
     </Screen>
   );

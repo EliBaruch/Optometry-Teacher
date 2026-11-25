@@ -4,7 +4,7 @@
  * right side of the card is the temporal field; for OS it is the nasal field.
  */
 import { EYES, type AmslerFinding, type Eye, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
-import { classOf, normalizeAmsler, type AmslerClass } from './geometry';
+import { classOf, directionOf, normalizeAmsler, type AmslerClass } from './geometry';
 
 export type FieldLocation =
   | 'central' | 'superior' | 'inferior' | 'temporal' | 'nasal'
@@ -12,19 +12,15 @@ export type FieldLocation =
 
 /** Where a defect lies relative to fixation, in field terms for this eye. */
 export function locationOf(f: AmslerFinding, eye: Eye): FieldLocation {
-  const n = normalizeAmsler(f);
-  const { x, y } = n.center;
-  const d = Math.hypot(x, y);
-  // Involves fixation, or lies within ~1° of it -> central.
-  if (d <= Math.max(1, n.radius * 0.45)) return 'central';
-  const ax = Math.abs(x);
-  const ay = Math.abs(y);
-  const vert = ay >= Math.max(0.75, ax * 0.4) ? (y > 0 ? 'supero' : 'infero') : '';
-  const temporalSide = eye === 'OD' ? x > 0 : x < 0;
-  const horiz = ax >= Math.max(0.75, ay * 0.4) ? (temporalSide ? 'temporal' : 'nasal') : '';
+  const d = directionOf(f);
+  if (d.central) return 'central';
+  const vert = d.v > 0 ? 'supero' : d.v < 0 ? 'infero' : '';
+  // OD: the patient's right of fixation is the temporal field; OS: their left is.
+  const temporalSide = eye === 'OD' ? d.h > 0 : d.h < 0;
+  const horiz = d.h === 0 ? '' : temporalSide ? 'temporal' : 'nasal';
   if (vert && horiz) return `${vert}${horiz}` as FieldLocation;
   if (vert) return vert === 'supero' ? 'superior' : 'inferior';
-  return (horiz || 'central') as FieldLocation;
+  return horiz as FieldLocation;
 }
 
 /** Diameter of the defect in degrees (= Amsler squares), clipped to the 20° grid. */
@@ -44,7 +40,7 @@ export function describeAmsler(f: AmslerFinding, eye: Eye): string {
   if (f.result === 'normal') return 'Normal — lines straight, no missing areas';
   const loc = locationOf(f, eye);
   const ext = extentDeg(f);
-  const size = ext >= 18 ? 'whole grid' : `${ext}° across`;
+  const size = ext >= 18 ? 'fills the grid' : `${ext}° across`;
   if (f.result === 'metamorphopsia') return `Metamorphopsia — ${loc}, ${size}`;
   if (f.result === 'central-scotoma') {
     return loc === 'central' ? `Central scotoma — ${size}` : `Central scotoma — ${loc}, ${size}`;

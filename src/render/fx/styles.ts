@@ -34,7 +34,7 @@ const CSS = `
 }
 .fx-hitstop { scale: 1.006; filter: brightness(1.12) saturate(1.08); transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .fx-hitstop { scale: none; } }
-html.reduced-motion .fx-hitstop { scale: none; }
+html.reduced-motion .fx-hitstop, .fx-hitstop.fx-hitstop--still { scale: none; }
 `;
 
 export function ensureFxStyles(doc: Document = document): void {

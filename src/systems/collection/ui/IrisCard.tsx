@@ -6,7 +6,7 @@ import { formatCardDate, wingOf } from '../catalog';
 import { FRAME_LABEL, FRAME_TIERS, frameFor, pickPearl, type OwnedCard } from '../model';
 import { cardPalette } from '../palette';
 import { RARITY_NAME } from '../store';
-import { irisArtUrl } from './art';
+import { useIrisArt } from './art';
 import { useHolo } from './holo';
 import './card.css';
 
@@ -18,7 +18,7 @@ export interface CardView {
   total: number;
 }
 
-const ART_PX = { sm: 256, md: 384, lg: 560 } as const;
+const ART_PX = { xs: 192, sm: 256, md: 384, lg: 560 } as const;
 const URGENCY: Record<Urgency, { label: string; color: string }> = {
   routine: { label: 'Routine', color: '#5eead4' },
   soon: { label: 'Soon', color: '#38bdf8' },
@@ -59,8 +59,8 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
   const frame = frameFor(card.shine);
   const tierIdx = FRAME_TIERS.indexOf(frame);
   const f = card.featured;
-  const palette = useMemo(() => cardPalette(f.irisColor, wing.color, card.rarity), [f.irisColor, wing.color, card.rarity]);
-  const art = useMemo(() => irisArtUrl(f.seed, card.rarity, palette, ART_PX[size]), [f.seed, card.rarity, palette, size]);
+  const palette = useMemo(() => cardPalette(f.irisColor, card.rarity, f.seed), [f.irisColor, card.rarity, f.seed]);
+  const art = useIrisArt({ seed: f.seed, rarity: card.rarity, palette, accent: wing.color }, ART_PX[size], size === 'md' || size === 'lg');
   const name = dx?.name ?? view.dxId;
   const pearl = pickPearl(dx?.pearls ?? [], f.seed);
   const urgency = dx ? URGENCY[dx.typicalUrgency] : undefined;
@@ -77,7 +77,7 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
   return (
     <div
       ref={ref}
-      class={cx('gc-card', `gc-r-${card.rarity}`, `gc-f-${frame}`, flipped && 'is-flipped', sway && !reduced && 'is-sway', onActivate && 'is-button', klass)}
+      class={cx('gc-card', `gc-r-${card.rarity}`, `gc-f-${frame}`, size === 'xs' && 'is-mini', flipped && 'is-flipped', sway && !reduced && 'is-sway', onActivate && 'is-button', klass)}
       style={{ '--wing': wing.color, ...(style as object) }}
       role={onActivate ? 'button' : 'img'}
       tabIndex={onActivate ? 0 : undefined}
@@ -93,7 +93,11 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
                 <span>{no}<span style={{ opacity: 0.5 }}> / {num(view.total)}</span></span>
                 <span class="gc-head__rar"><i class="gc-gem" />{RARITY_NAME[card.rarity]}</span>
               </div>
-              <div class="gc-art">{art ? <img src={art} alt="" draggable={false} /> : null}</div>
+              <div class="gc-art" style={{ '--gc-iris': palette[1], '--gc-acc': wing.color }}>
+                {art ? <img key={art} src={art} alt="" draggable={false} /> : null}
+                {ribbon && <span class="gc-new">{ribbon}</span>}
+                {size === 'xs' && <i class="gc-gem gc-mini-gem" />}
+              </div>
               <span class="gc-pill"><i />{wing.label}</span>
               {study ? (
                 <>
@@ -103,7 +107,7 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
               ) : (
                 <>
                   <h3 class="gc-name">{name}</h3>
-                  <p class="gc-meta"><b>{f.patient}</b> · {formatCardDate(card.firstAt)}</p>
+                  <p class="gc-meta">{f.patient}</p>
                 </>
               )}
               <div class="gc-foot">
@@ -111,13 +115,13 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
                   {FRAME_TIERS.map((t, i) => <i key={t} class={i <= tierIdx ? 'is-on' : ''} />)}
                   <span class="gc-frame-name">{FRAME_LABEL[frame]}</span>
                 </span>
+                <span class="gc-date">{formatCardDate(f.at)}</span>
                 <span class="gc-grade" style={{ '--gc-grade': GRADE_COLOR[card.bestGrade] }}>{card.bestGrade}</span>
               </div>
             </div>
             <div class="gc-foil" />
             <div class="gc-sparkle" />
             <div class="gc-glare" />
-            {ribbon && <div class="gc-ribbon">{ribbon}</div>}
           </div>
           <div class="gc-face gc-face--back" aria-hidden="true">
             <div class="gc-back">

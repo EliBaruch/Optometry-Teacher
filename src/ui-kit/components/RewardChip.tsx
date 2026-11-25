@@ -1,5 +1,6 @@
-import { useEffect } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import type { RewardGrant, SfxId } from '@core';
+import { useInView } from '../hooks/useInView';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useSfx } from '../hooks/useSfx';
 import { IconOrText } from '../icons/Icon';
@@ -29,6 +30,9 @@ export function RewardChip({ grant, index = 0, stagger = 140, animate = true, sf
   const accent = grant.color ?? RARITY_COLOR[rarity];
   const delay = index * stagger;
   const anim = animate && !reduced;
+  const root = useRef<HTMLDivElement>(null);
+  const loops = rarity === 'epic' || rarity === 'legendary';
+  const inView = useInView(root);
 
   useEffect(() => {
     if (!sfx) return;
@@ -38,7 +42,8 @@ export function RewardChip({ grant, index = 0, stagger = 140, animate = true, sf
 
   return (
     <div
-      class={cx('lm-reward', `lm-reward--${rarity}`, anim && 'is-anim', klass)}
+      ref={root}
+      class={cx('lm-reward', `lm-reward--${rarity}`, anim && 'is-anim', loops && !inView && 'is-idle', klass)}
       style={{ '--rw-c': accent, '--rw-r': RARITY_COLOR[rarity], '--d': `${delay}ms` }}
       role="group"
       aria-label={`${grant.label}: ${grant.value}${rarity !== 'common' ? ` (${RARITY_LABEL[rarity]})` : ''}`}

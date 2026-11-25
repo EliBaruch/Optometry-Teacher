@@ -57,6 +57,9 @@ export function createFxController(layer: HTMLElement, shakeTarget: HTMLElement,
   };
   resize();
   win.addEventListener('resize', resize);
+  // The layer can change size without a window resize (panels, safe areas).
+  const ro = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(() => resize()) : null;
+  ro?.observe(layer);
 
   const overlays = new Set<HTMLElement>();
   const timers = new Set<ReturnType<typeof setTimeout>>();
@@ -258,8 +261,10 @@ export function createFxController(layer: HTMLElement, shakeTarget: HTMLElement,
       const until = now() + ms;
       frozenUntil = Math.max(frozenUntil, until);
       shakeTarget.classList.add('fx-hitstop');
+      // Honour the injected reduced-motion callback, not only the media query.
+      shakeTarget.classList.toggle('fx-hitstop--still', reduced());
       later(() => {
-        if (now() + 1 >= frozenUntil) shakeTarget.classList.remove('fx-hitstop');
+        if (now() + 1 >= frozenUntil) shakeTarget.classList.remove('fx-hitstop', 'fx-hitstop--still');
       }, ms);
     },
 
@@ -269,6 +274,7 @@ export function createFxController(layer: HTMLElement, shakeTarget: HTMLElement,
       if (raf) win.cancelAnimationFrame(raf);
       raf = 0;
       win.removeEventListener('resize', resize);
+      ro?.disconnect();
       for (const t of timers) clearTimeout(t);
       timers.clear();
       for (const el of overlays) {
@@ -276,7 +282,7 @@ export function createFxController(layer: HTMLElement, shakeTarget: HTMLElement,
       }
       overlays.clear();
       endShake();
-      shakeTarget.classList.remove('fx-hitstop');
+      shakeTarget.classList.remove('fx-hitstop', 'fx-hitstop--still');
       pool.clear();
       canvas.remove();
     },

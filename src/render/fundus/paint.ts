@@ -4,12 +4,12 @@
  * grain) are applied in screen space.
  */
 import { createRng, type PosteriorSegment } from '@core';
-import { fbm, grainPattern, makeCanvas, smoothClosedPath, smoothOpenPath } from '../eye/color';
+import { fbm, grainPattern, makeCanvas, rgba as rgbaHex, smoothClosedPath, smoothOpenPath } from '../eye/color';
 import { viewScale } from './geometry';
 import { computeFundusLayout, layoutToMap, type FundusLayout } from './layout';
 import { DEEP, paintLesion } from './paint-lesions';
 import { U, type FundusMap, type FundusViewport, type PaintFundusOptions } from './types';
-import type { Vessel } from './vessels';
+import { paintVessels } from './paint-vessels';
 
 const TAU = Math.PI * 2;
 type Ctx = CanvasRenderingContext2D;
@@ -107,11 +107,11 @@ function choroidLayer(L: FundusLayout): HTMLCanvasElement | OffscreenCanvas | nu
     let y = rng.float(-0.05, 1.05);
     const vt = vortices[(x < 0.5 ? 0 : 1) + (y < 0.5 ? 0 : 2)]!;
     let h = Math.atan2(vt[1] - y, vt[0] - x) + rng.float(-0.9, 0.9);
-    const w = rng.float(0.22, 0.55) * U;
+    const w = (tig ? rng.float(0.35, 0.8) : rng.float(0.22, 0.55)) * U;
     const dFov = Math.hypot(x - a.fovea.x, y - a.fovea.y);
     const vis = tig ? Math.min(1, 0.35 + dFov * 2.2) : strength;
     ctx.strokeStyle = tig ? `rgba(208,98,52,${(rng.float(0.35, 0.6) * vis).toFixed(2)})` : `rgba(255,150,90,${(rng.float(0.2, 0.45) * vis).toFixed(3)})`;
-    const curl = rng.float(-0.05, 0.05);
+    const curl = rng.float(-0.025, 0.025);
     const steps = 32;
     const pts: [number, number][] = [[x, y]];
     for (let s2 = 0; s2 < steps; s2++) {
@@ -155,7 +155,7 @@ function paintChoroid(ctx: Ctx, L: FundusLayout, S: number): void {
   }
   const layer = choroidLayer(L);
   if (layer) {
-    if ('filter' in ctx) ctx.filter = `blur(${Math.max(0.5, 0.08 * U * S).toFixed(1)}px)`;
+    if ('filter' in ctx) ctx.filter = `blur(${Math.max(0.5, (tig ? 0.14 : 0.1) * U * S).toFixed(1)}px)`;
     ctx.drawImage(layer as CanvasImageSource, -CH_PAD, -CH_PAD, 1 + CH_PAD * 2, 1 + CH_PAD * 2);
     if ('filter' in ctx) ctx.filter = 'none';
   }
@@ -231,10 +231,22 @@ function paintNflSheen(ctx: Ctx, L: FundusLayout, S: number): void {
 
 function discColors(post: PosteriorSegment) {
   switch (post.disc.color) {
-    case 'pale': return { rimIn: '#f2dcc2', rimOut: '#e8c6a4', cup: '#fbf2e2' };
-    case 'hyperemic': return { rimIn: '#ec8a68', rimOut: '#d8634a', cup: '#f2b89a' };
-    default: return { rimIn: '#f7bf96', rimOut: '#eea27c', cup: '#fbe8c6' };
+    case 'pale': return { rimIn: '#f4dcc0', rimOut: '#ecc9a6', cupIn: '#fff6e8', cupOut: '#f6e2c6' };
+    case 'hyperemic': return { rimIn: '#f28e6a', rimOut: '#de6a4a', cupIn: '#f8c2a0', cupOut: '#f0a078' };
+    default: return { rimIn: '#f6b48a', rimOut: '#ea9266', cupIn: '#fff0d4', cupOut: '#f8d2a2' };
   }
+}
+
+/** Closed outline of the cup (world coords) from the layout's polar profile. */
+function cupOutline(L: FundusLayout, scale = 1): [number, number][] {
+  const d = L.a.disc;
+  const pts: [number, number][] = [];
+  for (let i = 0; i < 64; i++) {
+    const th = (i / 64) * TAU;
+    const r = L.cup.r(th) * scale;
+    pts.push([d.x + Math.cos(th) * r * d.rx, d.y + Math.sin(th) * r * d.ry]);
+  }
+  return pts;
 }
 
 function paintDisc(ctx: Ctx, L: FundusLayout, S: number): void {
@@ -244,11 +256,11 @@ function paintDisc(ctx: Ctx, L: FundusLayout, S: number): void {
   const swollen = !!post.disc.edema || post.disc.margins === 'elevated';
   const blurred = swollen || post.disc.margins === 'blurred';
   const rng = createRng(L.seed).fork('disc');
+  const px = (n: number) => Math.max(0.02 * U, n / S);
 
-  // peripapillary: myopic temporal crescent / scleral ring
+  // peripapillary: myopic temporal crescent of atrophy
   if (post.fundusTone === 'tigroid') {
     ctx.save();
-    // temporal crescent of peripapillary atrophy only
     ctx.beginPath();
     ctx.rect(a.nasal > 0 ? d.x - 1 : d.x, d.y - 1, 1, 2);
     ctx.clip();
@@ -262,22 +274,9 @@ function paintDisc(ctx: Ctx, L: FundusLayout, S: number): void {
     ctx.fill();
     ctx.restore();
   }
-  if (!blurred) {
-    ctx.strokeStyle = 'rgba(246,215,180,0.45)';
-    ctx.lineWidth = Math.max(0.05 * U, 0.8 / S);
-    ctx.beginPath();
-    ctx.ellipse(d.x, d.y, d.rx * 1.04, d.ry * 1.04, 0, 0, TAU);
-    ctx.stroke();
-    // a little peripapillary pigment
-    ctx.strokeStyle = 'rgba(70,30,12,0.25)';
-    ctx.lineWidth = Math.max(0.05 * U, 1 / S);
-    ctx.beginPath();
-    ctx.ellipse(d.x, d.y, d.rx * 1.1, d.ry * 1.09, 0, Math.PI * 0.6, Math.PI * 1.3);
-    ctx.stroke();
-  }
 
   if (blurred) {
-    // greyish peripapillary halo of swollen nerve fibres, with radial striations
+    // greyish peripapillary halo of swollen nerve fibres
     const halo = swollen ? 1.7 : 1.35;
     const hg = ctx.createRadialGradient(d.x, d.y, d.ry * 0.7, d.x, d.y, d.ry * halo);
     hg.addColorStop(0, swollen ? 'rgba(228,150,118,0.85)' : 'rgba(236,170,130,0.6)');
@@ -287,6 +286,15 @@ function paintDisc(ctx: Ctx, L: FundusLayout, S: number): void {
     ctx.beginPath();
     ctx.ellipse(d.x, d.y, d.rx * halo, d.ry * halo, 0, 0, TAU);
     ctx.fill();
+  } else {
+    // soft outer glow so the margin is crisp but not cut-out
+    const og = ctx.createRadialGradient(d.x, d.y, d.ry * 0.95, d.x, d.y, d.ry * 1.22);
+    og.addColorStop(0, 'rgba(236,150,104,0.55)');
+    og.addColorStop(1, 'rgba(236,150,104,0)');
+    ctx.fillStyle = og;
+    ctx.beginPath();
+    ctx.ellipse(d.x, d.y, d.rx * 1.22, d.ry * 1.22, 0, 0, TAU);
+    ctx.fill();
   }
 
   // neuroretinal rim
@@ -294,166 +302,115 @@ function paintDisc(ctx: Ctx, L: FundusLayout, S: number): void {
   if (blurred && 'filter' in ctx) ctx.filter = `blur(${Math.max(1, 0.12 * U * S).toFixed(1)}px)`;
   const rg = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, Math.max(d.rx, d.ry));
   rg.addColorStop(0, col.rimIn);
-  rg.addColorStop(0.7, col.rimIn);
-  rg.addColorStop(0.95, col.rimOut);
-  rg.addColorStop(1, 'rgba(232,140,100,0.95)');
+  rg.addColorStop(0.72, col.rimIn);
+  rg.addColorStop(0.94, col.rimOut);
+  rg.addColorStop(1, 'rgba(226,128,88,0.9)');
   ctx.fillStyle = rg;
   ctx.beginPath();
   ctx.ellipse(d.x, d.y, d.rx, d.ry, 0, 0, TAU);
   ctx.fill();
   ctx.restore();
-  if (post.disc.color === 'pale-sectoral') {
-    // temporal pallor (e.g. after optic neuritis)
-    ctx.save();
-    ctx.beginPath();
-    ctx.ellipse(d.x, d.y, d.rx, d.ry, 0, 0, TAU);
-    ctx.clip();
-    const tg = ctx.createLinearGradient(d.x - a.nasal * d.rx, 0, d.x, 0);
-    tg.addColorStop(0, 'rgba(250,236,215,0.95)');
-    tg.addColorStop(1, 'rgba(250,236,215,0)');
-    ctx.fillStyle = tg;
-    ctx.fillRect(d.x - d.rx, d.y - d.ry, d.rx * 2, d.ry * 2);
-    ctx.restore();
-  }
 
-  // cup: pale excavation with sloping walls
-  const cupPts: [number, number][] = [];
-  for (let i = 0; i < 48; i++) {
-    const th = (i / 48) * TAU;
-    const r = cup.r(th);
-    cupPts.push([d.x + Math.cos(th) * r * d.rx, d.y + Math.sin(th) * r * d.ry]);
-  }
-  const cupC = cupPts.reduce((acc, p) => [acc[0] + p[0] / cupPts.length, acc[1] + p[1] / cupPts.length], [0, 0]);
   ctx.save();
   ctx.beginPath();
-  smoothClosedPath(ctx, cupPts.map(([x, y]) => [cupC[0] + (x - cupC[0]) * 1.12, cupC[1] + (y - cupC[1]) * 1.12] as [number, number]));
-  ctx.fillStyle = 'rgba(250,220,180,0.35)';
-  ctx.fill();
+  ctx.ellipse(d.x, d.y, d.rx, d.ry, 0, 0, TAU);
+  ctx.clip();
+  // the temporal rim is normally a little paler; sectoral pallor exaggerates it
+  const sect = post.disc.color === 'pale-sectoral';
+  const tg = ctx.createLinearGradient(d.x - a.nasal * d.rx, 0, d.x + a.nasal * d.rx * 0.2, 0);
+  tg.addColorStop(0, sect ? 'rgba(250,236,215,0.95)' : 'rgba(255,226,196,0.28)');
+  tg.addColorStop(1, 'rgba(250,236,215,0)');
+  ctx.fillStyle = tg;
+  ctx.fillRect(d.x - d.rx, d.y - d.ry, d.rx * 2, d.ry * 2);
+  // radial striations of the nerve-fibre bundles crossing the rim
+  ctx.strokeStyle = 'rgba(255,226,200,0.14)';
+  ctx.lineWidth = px(0.6);
+  for (let i = 0; i < 70; i++) {
+    const th = rng.float(0, TAU);
+    const r0 = cup.r(th) * 1.05;
+    ctx.beginPath();
+    ctx.moveTo(d.x + Math.cos(th) * r0 * d.rx, d.y + Math.sin(th) * r0 * d.ry);
+    ctx.lineTo(d.x + Math.cos(th) * d.rx * 1.02, d.y + Math.sin(th) * d.ry * 1.02);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  if (!blurred) {
+    // Elschnig scleral ring + a little peripapillary pigment temporally
+    ctx.strokeStyle = 'rgba(252,226,196,0.5)';
+    ctx.lineWidth = px(1);
+    ctx.beginPath();
+    ctx.ellipse(d.x, d.y, d.rx * 1.025, d.ry * 1.02, 0, 0, TAU);
+    ctx.stroke();
+    const t0 = a.nasal > 0 ? Math.PI * 0.75 : -Math.PI * 0.25;
+    ctx.strokeStyle = 'rgba(74,32,14,0.3)';
+    ctx.lineWidth = px(1.4);
+    ctx.beginPath();
+    ctx.ellipse(d.x, d.y, d.rx * 1.08, d.ry * 1.06, 0, t0, t0 + Math.PI * 0.5);
+    ctx.stroke();
+  }
+
+  // cup: a pale excavation whose walls slope into it (soft graded edge)
+  const cupPts = cupOutline(L);
+  const cupC = cupPts.reduce((acc, p) => [acc[0] + p[0] / cupPts.length, acc[1] + p[1] / cupPts.length], [0, 0]);
+  const grow = (k: number) => cupPts.map(([x, y]) => [cupC[0] + (x - cupC[0]) * k, cupC[1] + (y - cupC[1]) * k] as [number, number]);
+  ctx.save();
+  for (const [k, al] of [[1.22, 0.18], [1.1, 0.35]] as const) {
+    ctx.beginPath();
+    smoothClosedPath(ctx, grow(k));
+    ctx.fillStyle = col.cupOut;
+    ctx.globalAlpha = al;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
   ctx.beginPath();
   smoothClosedPath(ctx, cupPts);
-  const cg = ctx.createRadialGradient(cupC[0], cupC[1], 0, cupC[0], cupC[1], d.ry * cup.verticalCdr * 1.1);
-  cg.addColorStop(0, col.cup);
-  cg.addColorStop(0.8, col.cup);
-  cg.addColorStop(1, 'rgba(245,215,175,0.9)');
+  const cg = ctx.createRadialGradient(cupC[0], cupC[1], 0, cupC[0], cupC[1], d.ry * cup.verticalCdr * 1.05);
+  cg.addColorStop(0, col.cupIn);
+  cg.addColorStop(0.65, col.cupIn);
+  cg.addColorStop(1, col.cupOut);
   ctx.fillStyle = cg;
   ctx.fill();
-  // lamina cribrosa pores visible in a large cup
+  // lamina cribrosa pores (grey, slit-like) in a deep, large cup
   if (cup.verticalCdr > 0.5) {
     ctx.clip();
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 34; i++) {
       const ang = rng.float(0, TAU);
       const rr = Math.sqrt(rng.next()) * d.ry * cup.verticalCdr * 0.7;
-      ctx.fillStyle = 'rgba(150,130,120,0.35)';
+      ctx.fillStyle = `rgba(150,128,120,${rng.float(0.18, 0.35).toFixed(2)})`;
       ctx.beginPath();
-      ctx.ellipse(cupC[0] + Math.cos(ang) * rr, cupC[1] + Math.sin(ang) * rr, 0.025 * U, 0.04 * U, 0, 0, TAU);
+      ctx.ellipse(cupC[0] + Math.cos(ang) * rr, cupC[1] + Math.sin(ang) * rr, 0.018 * U, 0.038 * U, ang * 0.15, 0, TAU);
       ctx.fill();
     }
   }
   ctx.restore();
-  // inner shadow on the temporal cup wall (light from nasal)
-  ctx.strokeStyle = 'rgba(200,120,90,0.25)';
-  ctx.lineWidth = Math.max(0.05 * U, 0.8 / S);
+  // the sharp edge of the cup wall catches a shadow on the side away from the light
+  ctx.strokeStyle = 'rgba(196,118,84,0.22)';
+  ctx.lineWidth = px(1);
   ctx.beginPath();
   smoothClosedPath(ctx, cupPts);
   ctx.stroke();
 }
 
-// ── vessels
-function strokeVessel(ctx: Ctx, v: Vessel, widthAt: (i: number) => number, color: string, minPx: number): void {
-  ctx.strokeStyle = color;
-  const n = v.pts.length;
-  const run = 4;
-  for (let i = 0; i < n - 1; i += run) {
-    const end = Math.min(n - 1, i + run);
-    ctx.lineWidth = Math.max(minPx, widthAt(Math.min(n - 1, i + (run >> 1))));
-    ctx.beginPath();
-    ctx.moveTo(v.pts[i]![0], v.pts[i]![1]);
-    for (let k = i + 1; k <= end; k++) ctx.lineTo(v.pts[k]![0], v.pts[k]![1]);
-    ctx.stroke();
-  }
-}
-
-function vesselWidthFn(L: FundusLayout, v: Vessel): (i: number) => number {
-  if (v.kind !== 'vein' || !L.beads.length) return (i) => v.w[i]!;
-  // venous beading: sausage-like calibre variation inside the affected segments
-  const mod: number[] = v.pts.map(([x, y], i) => {
-    let m = 1;
-    for (const b of L.beads) {
-      const dd = Math.hypot(x - b.x, y - b.y);
-      if (dd < b.r) m = 1 + 0.55 * Math.sin(i * 1.3) * (1 - dd / b.r);
-    }
-    return m;
-  });
-  return (i) => v.w[i]! * mod[i]!;
-}
-
-function paintVessels(ctx: Ctx, L: FundusLayout, S: number, onlyKind?: 'artery' | 'vein', tint?: string): void {
-  const vs = L.post.vessels;
-  const minPx = 0.5 / S;
-  const seg = !!vs.segmentation;
+/** Vessels dipping into the cup look paler/deeper: veil them with cup tissue. */
+function paintCupVeil(ctx: Ctx, L: FundusLayout): void {
+  if (L.post.disc.edema || L.post.disc.margins === 'elevated') return;
+  const col = discColors(L.post);
+  const d = L.a.disc;
+  const pts = cupOutline(L, 0.98);
+  const c = pts.reduce((acc, p) => [acc[0] + p[0] / pts.length, acc[1] + p[1] / pts.length], [0, 0]);
+  const r = d.ry * L.cup.verticalCdr;
+  const a = L.cup.verticalCdr > 0.55 ? 0.5 : 0.35;
   ctx.save();
-  ctx.lineCap = seg ? 'butt' : 'round';
-  ctx.lineJoin = 'round';
-  for (const kind of ['vein', 'artery'] as const) {
-    if (onlyKind && kind !== onlyKind) continue;
-    for (const v of L.tree.vessels) {
-      if (v.kind !== kind) continue;
-      const wf = vesselWidthFn(L, v);
-      const fade = v.depth === 0 ? 1 : v.depth === 1 ? 0.92 : 0.8;
-      if (seg) ctx.setLineDash([0.28 * U, 0.12 * U]);
-      if (kind === 'vein') {
-        strokeVessel(ctx, v, (i) => wf(i) * 1.14, `rgba(60,8,16,${0.3 * fade})`, minPx);
-        strokeVessel(ctx, v, wf, tint ?? `rgba(112,20,34,${fade})`, minPx);
-        ctx.setLineDash([]);
-        strokeVessel(ctx, v, (i) => wf(i) * 0.22, `rgba(230,120,110,${0.18 * fade})`, minPx * 0.5);
-      } else {
-        const copper = vs.copperWiring;
-        strokeVessel(ctx, v, (i) => wf(i) * 1.12, `rgba(120,30,15,${0.15 * fade})`, minPx);
-        strokeVessel(ctx, v, wf, tint ?? (copper ? `rgba(184,82,40,${fade})` : `rgba(190,46,32,${fade})`), minPx);
-        ctx.setLineDash([]);
-        // central light reflex (broad & bright in arteriolosclerosis)
-        strokeVessel(ctx, v, (i) => wf(i) * (copper ? 0.5 : 0.24), copper ? `rgba(236,160,92,${0.85 * fade})` : `rgba(255,175,145,${0.42 * fade})`, minPx * 0.4);
-      }
-    }
-    if (kind === 'vein' && !onlyKind && L.post.vessels.avNicking) paintNicking(ctx, L, S);
-  }
+  ctx.beginPath();
+  smoothClosedPath(ctx, pts);
+  const g = ctx.createRadialGradient(c[0], c[1], 0, c[0], c[1], r);
+  g.addColorStop(0, rgbaHex(col.cupIn, a * 0.6));
+  g.addColorStop(0.55, rgbaHex(col.cupIn, a));
+  g.addColorStop(1, rgbaHex(col.cupIn, 0));
+  ctx.fillStyle = g;
+  ctx.fill();
   ctx.restore();
-}
-
-/** AV nicking: the vein tapers & seems interrupted either side of a crossing arteriole. */
-function paintNicking(ctx: Ctx, L: FundusLayout, S: number): void {
-  const tone = TONES[L.post.fundusTone ?? 'medium'];
-  for (const c of L.tree.crossings) {
-    if (!c.arteryOver) continue;
-    const v = L.tree.vessels[c.vein]!;
-    const w = v.w[c.idx]!;
-    const len = Math.max(w * 3.5, 0.25 * U);
-    const dx = Math.cos(c.angle);
-    const dy = Math.sin(c.angle);
-    ctx.save();
-    ctx.lineCap = 'round';
-    // conceal the vein near the crossing
-    ctx.strokeStyle = tone.m;
-    ctx.lineWidth = w * 1.5;
-    ctx.beginPath();
-    ctx.moveTo(c.x - dx * len, c.y - dy * len);
-    ctx.lineTo(c.x + dx * len, c.y + dy * len);
-    ctx.stroke();
-    // tapered stumps
-    for (const s of [-1, 1]) {
-      for (let k = 0; k < 6; k++) {
-        const t0 = len * (1 - k / 6);
-        const t1 = len * (1 - (k + 1) / 6);
-        ctx.strokeStyle = 'rgba(118,22,30,1)';
-        ctx.lineWidth = Math.max(0.5 / S, w * (1 - (k + 1) / 7));
-        ctx.beginPath();
-        ctx.moveTo(c.x + s * dx * t0, c.y + s * dy * t0);
-        ctx.lineTo(c.x + s * dx * t1, c.y + s * dy * t1);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
 }
 
 /** Disc oedema obscures vessels as they cross the swollen margin. */
@@ -485,13 +442,14 @@ function paintDiscOedemaVeil(ctx: Ctx, L: FundusLayout, S: number): void {
   }
   if (swollen) {
     // Paton lines: circumferential folds on the temporal side
-    ctx.strokeStyle = 'rgba(255,240,225,0.25)';
+    ctx.strokeStyle = 'rgba(255,240,225,0.12)';
     ctx.lineWidth = Math.max(0.03 * U, 0.7 / S);
     for (let i = 0; i < 3; i++) {
-      const rr = 1.3 + i * 0.14;
-      const mid = L.a.nasal > 0 ? Math.PI : 0;
+      const rr = 1.28 + i * 0.13 + rng.float(-0.03, 0.03);
+      const mid = (L.a.nasal > 0 ? Math.PI : 0) + rng.float(-0.2, 0.2);
+      const span = rng.float(0.3, 0.5);
       ctx.beginPath();
-      ctx.ellipse(d.x, d.y, d.rx * rr, d.ry * rr, 0, mid - 0.7, mid + 0.7);
+      ctx.ellipse(d.x, d.y, d.rx * rr, d.ry * rr, 0, mid - span, mid + span);
       ctx.stroke();
     }
   }
@@ -507,51 +465,78 @@ function detachPath(ctx: Ctx, L: FundusLayout, withOuter = true): void {
 function paintDetachment(ctx: Ctx, L: FundusLayout, S: number): void {
   if (!L.detachment) return;
   const rng = createRng(L.seed).fork('rd');
+  const poly = L.detachment.polygon;
+  const serous = L.post.detachment?.kind === 'serous';
+  // shadow cast on the attached side of the ridge
+  ctx.save();
+  if ('filter' in ctx) ctx.filter = `blur(${Math.max(1, 0.25 * U * S).toFixed(1)}px)`;
+  detachPath(ctx, L, false);
+  ctx.strokeStyle = 'rgba(70,22,12,0.35)';
+  ctx.lineWidth = 0.4 * U;
+  ctx.stroke();
+  if ('filter' in ctx) ctx.filter = 'none';
+  ctx.restore();
+
   ctx.save();
   detachPath(ctx, L);
   ctx.clip('evenodd');
-  // opaque, grey-white, elevated retina
+  // the choroidal glow is lost under the opaque, oedematous retina
+  ctx.globalCompositeOperation = 'saturation';
+  ctx.fillStyle = 'rgba(128,120,120,0.55)';
+  ctx.fillRect(-1, -1, 3, 3);
+  ctx.globalCompositeOperation = 'source-over';
   const g = ctx.createRadialGradient(0.5, 0.5, 0.1, 0.5, 0.5, 0.62);
-  g.addColorStop(0, 'rgba(196,184,180,0.5)');
-  g.addColorStop(1, 'rgba(206,196,192,0.72)');
+  g.addColorStop(0, serous ? 'rgba(214,170,150,0.35)' : 'rgba(198,186,184,0.5)');
+  g.addColorStop(1, serous ? 'rgba(220,180,160,0.5)' : 'rgba(214,204,202,0.74)');
   ctx.fillStyle = g;
   ctx.fillRect(-1, -1, 3, 3);
   // vessels ride on the billowing retina: darker, displaced
   ctx.save();
-  ctx.translate(0.004, 0.004);
-  paintVessels(ctx, L, S, 'vein', 'rgba(70,14,22,0.85)');
-  paintVessels(ctx, L, S, 'artery', 'rgba(120,30,30,0.8)');
+  ctx.translate(0.004, 0.005);
+  paintVessels(ctx, L, S, 'vein', 'rgba(60,12,22,0.9)');
+  paintVessels(ctx, L, S, 'artery', 'rgba(116,30,32,0.85)');
   ctx.restore();
-  // undulating folds running parallel to the detachment border
-  ctx.lineCap = 'round';
-  const poly = L.detachment.polygon;
-  for (let i = 0; i < 26; i++) {
-    const k = 1.06 + (i % 13) * 0.08 + rng.float(-0.03, 0.03);
-    const start = rng.int(0, poly.length - 1);
-    const len = rng.int(5, 12);
-    const pts: [number, number][] = [];
-    for (let j = 0; j < len; j++) {
-      const p = poly[(start + j) % poly.length]!;
-      const wob = 1 + Math.sin(j * 0.8 + i) * 0.015;
-      pts.push([0.5 + (p[0] - 0.5) * k * wob, 0.5 + (p[1] - 0.5) * k * wob]);
+  if (!serous) {
+    // undulating folds: soft shadow troughs + bright crests, roughly parallel to the border
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const folds: [number, number][][] = [];
+    for (let i = 0; i < 30; i++) {
+      const k = 1.05 + (i % 15) * 0.07 + rng.float(-0.03, 0.03);
+      const start = rng.int(0, poly.length - 1);
+      const len = rng.int(6, 16);
+      const ph = rng.float(0, 6.28);
+      const pts: [number, number][] = [];
+      for (let j = 0; j < len; j++) {
+        const p = poly[(start + j) % poly.length]!;
+        const wob = 1 + Math.sin(j * 0.9 + ph) * 0.03;
+        pts.push([0.5 + (p[0] - 0.5) * k * wob, 0.5 + (p[1] - 0.5) * k * wob]);
+      }
+      folds.push(pts);
     }
-    ctx.strokeStyle = 'rgba(80,60,60,0.16)';
-    ctx.lineWidth = 0.22 * U;
-    ctx.beginPath();
-    smoothOpenPath(ctx, pts.map(([x, y]) => [x + 0.002, y + 0.003] as [number, number]));
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
-    ctx.lineWidth = 0.07 * U;
-    ctx.beginPath();
-    smoothOpenPath(ctx, pts);
-    ctx.stroke();
+    if ('filter' in ctx) ctx.filter = `blur(${Math.max(1, 0.12 * U * S).toFixed(1)}px)`;
+    for (const pts of folds) {
+      ctx.strokeStyle = 'rgba(70,50,55,0.22)';
+      ctx.lineWidth = 0.38 * U;
+      ctx.beginPath();
+      smoothOpenPath(ctx, pts.map(([x, y]) => [x + 0.003, y + 0.004] as [number, number]));
+      ctx.stroke();
+    }
+    if ('filter' in ctx) ctx.filter = 'none';
+    for (const pts of folds) {
+      ctx.strokeStyle = 'rgba(255,252,250,0.2)';
+      ctx.lineWidth = 0.07 * U;
+      ctx.beginPath();
+      smoothOpenPath(ctx, pts);
+      ctx.stroke();
+    }
   }
   ctx.restore();
-  // the detachment border: a soft elevated ridge
+  // the elevated border: a soft pale ridge
   ctx.save();
   detachPath(ctx, L, false);
-  ctx.strokeStyle = 'rgba(240,230,225,0.35)';
-  ctx.lineWidth = 0.1 * U;
+  ctx.strokeStyle = 'rgba(245,236,232,0.45)';
+  ctx.lineWidth = 0.12 * U;
   ctx.stroke();
   ctx.restore();
 }
@@ -698,6 +683,7 @@ export function paintFundus(ctx: CanvasRenderingContext2D, w: number, h: number,
   for (const l of L.lesions) if (DEEP.has(l.type)) paintLesion(ctx, l, L, S);
   paintDisc(ctx, L, S);
   paintVessels(ctx, L, S);
+  paintCupVeil(ctx, L);
   {
     const st = { x: L.a.disc.x + L.a.nasal * 0.15 * U, y: L.a.disc.y + 0.05 * U };
     const sg = ctx.createRadialGradient(st.x, st.y, 0, st.x, st.y, 0.16 * U);

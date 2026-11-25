@@ -41,6 +41,19 @@ function Shop({ services, store }: { services: GameServices; store: Economy }) {
   const [opening, setOpening] = useState<string | null>(null);
   const [odds, setOdds] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const shelfRef = useRef<HTMLUListElement>(null);
+  const oddsRef = useRef<HTMLDivElement>(null);
+
+  /** The crate button that opened the theatre may be gone: land focus on the shelf. */
+  const closeOpening = () => {
+    setOpening(null);
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (active && active !== document.body && document.contains(active)) return;
+      const target = shelfRef.current?.querySelector<HTMLElement>('button') ?? oddsRef.current?.querySelector<HTMLElement>('button');
+      target?.focus({ preventScroll: true });
+    }, 40);
+  };
 
   useEffect(() => () => store.preview(null), [store]);
   useEffect(() => {
@@ -84,27 +97,31 @@ function Shop({ services, store }: { services: GameServices; store: Economy }) {
       </header>
 
       <section class="eco-shelf" aria-labelledby="eco-shelf-h">
-        <div class="eco-shelf__head">
+        <div class="eco-shelf__head" ref={oddsRef}>
           <h3 id="eco-shelf-h">Supply crates</h3>
           <Button variant="ghost" size="sm" icon="info" onClick={() => setOdds(true)}>Drop odds</Button>
         </div>
         {state.crates.length ? (
-          <div class="eco-shelf__row" role="list">
+          <ul class="eco-shelf__row" role="list" ref={shelfRef}>
             {state.crates.slice(0, 8).map((c, i) => (
-              <button
-                key={c.id} type="button" role="listitem" class="eco-shelf__crate" style={{ '--i': i, '--trim': CRATES[c.kind].trim }}
-                aria-label={`Open ${CRATES[c.kind].name} — ${c.reason}`}
-                onClick={() => {
-                  services.audio.play('whoosh', { volume: 0.5 });
-                  setOpening(c.id);
-                }}
-              >
-                <CrateArt kind={c.kind} size={96} class="eco-crate--idle" />
-                <span class="eco-shelf__name">{CRATES[c.kind].name}</span>
-              </button>
+              <li key={c.id} class="eco-shelf__slot" style={{ '--i': i, '--trim': CRATES[c.kind].trim }}>
+                <button
+                  type="button" class="eco-shelf__crate"
+                  aria-label={`Open ${CRATES[c.kind].name}: ${c.reason}`}
+                  onClick={() => {
+                    services.audio.play('whoosh', { volume: 0.5 });
+                    setOpening(c.id);
+                  }}
+                >
+                  <CrateArt kind={c.kind} size={96} class="eco-crate--idle" />
+                  <span class="eco-shelf__name">{CRATES[c.kind].name}</span>
+                </button>
+              </li>
             ))}
-            {state.crates.length > 8 && <span class="eco-shelf__more lm-num">+{state.crates.length - 8}</span>}
-          </div>
+            {state.crates.length > 8 && (
+              <li class="eco-shelf__more lm-num" aria-label={`${state.crates.length - 8} more crates waiting`}>+{state.crates.length - 8}</li>
+            )}
+          </ul>
         ) : (
           <p class="eco-shelf__empty">
             <Icon name="crate" size={22} /> No crates waiting. Earn them with exemplary (S) cases, runs of correct diagnoses and promotions.
@@ -122,7 +139,7 @@ function Shop({ services, store }: { services: GameServices; store: Economy }) {
           {t.id === 'ledger' ? (
             <Ledger state={state} />
           ) : (
-            <div class="eco-cases">
+            <div class={`eco-cases eco-cases--n${items.length}`}>
               {items.map((item, i) => (
                 <ItemCase
                   key={item.id} item={item} index={i} services={services} store={store} playerName={settings.playerName}
@@ -134,7 +151,7 @@ function Shop({ services, store }: { services: GameServices; store: Economy }) {
         </TabPanel>
       ))}
 
-      {opening && <CrateOpening services={services} store={store} crateId={opening} onClose={() => setOpening(null)} />}
+      {opening && <CrateOpening services={services} store={store} crateId={opening} onClose={closeOpening} />}
       <Modal open={odds} onClose={() => setOdds(false)} title="Supply crate odds" eyebrow="Published in full" icon="info" size="md" accent="#f5b942">
         <OddsTable pity={state.pity} />
       </Modal>
@@ -150,7 +167,6 @@ function ItemCase(props: {
   const reduced = useReducedMotion();
   const [confirm, setConfirm] = useState(false);
   const [fresh, setFresh] = useState(false);
-  const ref = useRef<HTMLElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -192,7 +208,6 @@ function ItemCase(props: {
 
   return (
     <article
-      ref={ref}
       class={`eco-case eco-case--${item.rarity}${owned ? ' is-owned' : ''}${equipped ? ' is-equipped' : ''}${fresh ? ' is-fresh' : ''}${props.previewing ? ' is-previewing' : ''}`}
       style={{ '--rc': color, '--i': props.index }}
       aria-label={`${item.name}, ${RARITY_LABEL[item.rarity]} ${KIND_LABEL[item.kind].toLowerCase()}`}
@@ -308,8 +323,8 @@ function OddsTable({ pity }: { pity: number }) {
       </table>
       <p class="lm-num">Contents: {CONTENT_ODDS.coins}% lumens · {CONTENT_ODDS.cosmetic}% cosmetic · {CONTENT_ODDS.hints}% consult notes</p>
       <p>
-        Guarantee: at most {PITY_LIMIT} crates in a row without an epic or better. Your next guaranteed epic is within{' '}
-        <b class="lm-num">{Math.max(1, PITY_LIMIT - pity)}</b> crate{PITY_LIMIT - pity === 1 ? '' : 's'}.
+        Guarantee: after {PITY_LIMIT - 1} crates in a row without an epic or better, crate {PITY_LIMIT} is always epic or better. Your next
+        guaranteed epic is within <b class="lm-num">{Math.max(1, PITY_LIMIT - pity)}</b> crate{Math.max(1, PITY_LIMIT - pity) === 1 ? '' : 's'}.
       </p>
       <p class="eco-odds__foot">Crates are earned in play only. There is no real-money purchase anywhere in Lumen.</p>
     </div>

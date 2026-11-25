@@ -4,7 +4,8 @@
  */
 import type { VNode } from 'preact';
 import { createRng } from '@core';
-import { mix, shade } from '../../fx/color';
+import { mix, shade } from '../color';
+import { GOLD } from '../palette';
 import { CX, VIEW_H, VIEW_W, type Side } from '../geometry';
 import { P, ribbon, smooth, type Pt } from '../paths';
 import type { PaintCtx } from './ctx';
@@ -96,20 +97,86 @@ export function Rash({ c }: { c: PaintCtx }) {
   );
 }
 
-/** Prominent, tortuous superficial temporal artery (a giant-cell arteritis cue). */
+/** Centre-line of the frontal branch of the superficial temporal artery. */
+function arteryLine(c: PaintCtx): Pt[] {
+  const { g } = c;
+  const s = c.signSide;
+  const W = g.headW;
+  // preauricular -> up the temple -> curving forward toward the frontal hairline
+  const base: Pt[] = [
+    [CX + s * (W - 2.6), g.earTop + 5],
+    [CX + s * (W - 3.6), g.eyeY - 9],
+    [CX + s * (W - 5.8), g.browY - 7],
+    [CX + s * (W - 10.5), g.hairline + 7],
+    [CX + s * (W - 17), g.hairline + 1.5],
+  ];
+  // resample and add a tortuous (beaded, kinked) wiggle perpendicular to the path
+  const out: Pt[] = [];
+  const n = 26;
+  for (let i = 0; i <= n; i++) {
+    const u = (i / n) * (base.length - 1);
+    const k = Math.min(base.length - 2, Math.floor(u));
+    const f = u - k;
+    const a = base[k]!;
+    const b = base[k + 1]!;
+    const x = a[0] + (b[0] - a[0]) * f;
+    const y = a[1] + (b[1] - a[1]) * f;
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const amp = 1.5 * Math.sin((i / n) * Math.PI * 0.9 + 0.3);
+    const w = Math.sin(i * 1.25) * amp;
+    out.push([x + (-dy / len) * w, y + (dx / len) * w]);
+  }
+  return out;
+}
+
+/** Hair on the affected temple is tucked back so the artery can be seen. */
+export function templeMask(c: PaintCtx) {
+  if (!c.ext.templeTenderness) return null;
+  const { g } = c;
+  const s = c.signSide;
+  const fade = c.id('templeFade');
+  const cy = (g.hairline + g.earTop) / 2 + 3;
+  return (
+    <>
+      <radialGradient id={fade}>
+        <stop offset="0" stop-color="#000" stop-opacity="1" />
+        <stop offset="0.62" stop-color="#000" stop-opacity="0.95" />
+        <stop offset="1" stop-color="#000" stop-opacity="0" />
+      </radialGradient>
+      <mask id={c.id('templeMask')} maskUnits="userSpaceOnUse" x="-60" y="-60" width={VIEW_W + 120} height={VIEW_H + 120}>
+        <rect x="-60" y="-60" width={VIEW_W + 120} height={VIEW_H + 120} fill="#fff" />
+        <ellipse cx={CX + s * (g.headW - 7)} cy={cy} rx="13" ry={(g.earTop - g.hairline) / 2 + 9} fill={`url(#${fade})`} />
+      </mask>
+    </>
+  );
+}
+
+/** Prominent, tortuous, raised superficial temporal artery (a giant-cell arteritis cue). */
 export function TemporalArtery({ c }: { c: PaintCtx }) {
   if (!c.ext.templeTenderness) return null;
-  const { g, skin } = c;
-  const s = c.signSide;
-  const x = CX + s * (g.headW - 5);
-  const pts: Pt[] = [];
-  for (let i = 0; i <= 6; i++) pts.push([x + (i % 2 ? s * 2.2 : -s * 0.6), g.hairline + 2 + i * 3.6]);
+  const { skin } = c;
+  const pts = arteryLine(c);
   const d = smooth(pts);
+  const cord = mix(skin.shadow, '#7d2440', 0.42);
+  const nodes = [5, 11, 17, 22].map((i) => pts[i]!);
   return (
-    <g>
-      <path d={d} fill="none" stroke={mix(skin.deep, '#7a2a3a', 0.3)} stroke-opacity="0.55" stroke-width="1.8" stroke-linecap="round" />
-      <path d={d} fill="none" stroke={skin.light} stroke-opacity="0.5" stroke-width="0.6" stroke-linecap="round" transform={`translate(${s * -0.6} -0.4)`} />
-      <ellipse cx={x} cy={g.hairline + 12} rx="5" ry="9" fill="#d05a5a" opacity="0.1" />
+    <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+      {/* erythema of the overlying skin */}
+      <path d={d} stroke="#d9465a" stroke-opacity="0.16" stroke-width="8" />
+      <path d={d} stroke="#d9465a" stroke-opacity="0.2" stroke-width="4.6" />
+      {/* cast shadow (key light is upper right) then the raised cord */}
+      <path d={d} stroke={skin.deep} stroke-opacity="0.55" stroke-width="2.8" transform="translate(-0.7 0.8)" />
+      <path d={d} stroke={cord} stroke-width="2.5" />
+      <path d={d} stroke={mix(cord, '#b04a64', 0.5)} stroke-width="1.2" />
+      <path d={d} stroke={mix(skin.light, '#ffe2d8', 0.4)} stroke-opacity="0.7" stroke-width="0.6" transform="translate(0.45 -0.55)" />
+      {nodes.map(([x, y], i) => (
+        <g key={i}>
+          <circle cx={x} cy={y} r="1.75" fill={cord} stroke="none" />
+          <circle cx={x + 0.4} cy={y - 0.5} r="0.55" fill={skin.light} opacity="0.65" stroke="none" />
+        </g>
+      ))}
     </g>
   );
 }
@@ -146,74 +213,122 @@ export function EyePatch({ c }: { c: PaintCtx }) {
   );
 }
 
-/** Photophobia: the patient's left hand shades both eyes from the light. */
+/** Tapered capsule along a quadratic curve (fingers, thumb). */
+function digit(p0: Pt, ctrl: Pt, p2: Pt, w: number, tipRound = 0.75): string {
+  const pts: [number, number, number][] = [];
+  const n = 10;
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const u = 1 - t;
+    // full width along the finger, rounding off at the tip
+    const tip = t > tipRound ? Math.sqrt(Math.max(0, 1 - ((t - tipRound) / (1 - tipRound)) ** 2)) : 1;
+    pts.push([u * u * p0[0] + 2 * u * t * ctrl[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * ctrl[1] + t * t * p2[1], Math.max(0.15, w * (1 - t * 0.12) * tip)]);
+  }
+  return ribbon(pts);
+}
+
+const qpt = (p0: Pt, c: Pt, p2: Pt, t: number): Pt => {
+  const u = 1 - t;
+  return [u * u * p0[0] + 2 * u * t * c[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * c[1] + t * t * p2[1]];
+};
+
+/**
+ * Photophobia: the patient's left hand (viewer's right) held palm-down as a
+ * visor just above the brows, fingers together and slightly cupped, casting
+ * a shadow over both eyes.
+ */
 export function ShieldHand({ c }: { c: PaintCtx }) {
   if (!c.ext.photophobia) return null;
   const { g, skin } = c;
-  const by = g.browY - 8;
   const W = g.headW;
+  const by = g.browY - 4.5;
+  const k = 1 - g.child * 0.22;
   const hand = c.id('hand');
-  const kx = CX + 8; // knuckle line
-  const back = smooth(
+  const handLo = c.id('handLo');
+  const shadow = c.id('handShadow');
+  const outline = mix(skin.deep, '#2a160e', 0.25);
+  // index (back/top) .. little (front/bottom); x of the knuckle, tip reach, width, cup
+  const fingers = [
+    { y: by - 11.2, x0: CX + 12.5, reach: 26 * k, w: 4, cup: 0.5 },
+    { y: by - 7.3, x0: CX + 11.5, reach: 30 * k, w: 4.3, cup: 1.4 },
+    { y: by - 3.4, x0: CX + 10.5, reach: 27 * k, w: 4.15, cup: 2.4 },
+    { y: by + 0.3, x0: CX + 10, reach: 20.5 * k, w: 3.7, cup: 3.2 },
+  ];
+  const dorsum = smooth(
     [
-      [CX + W + 12, by - 7],
-      [CX + 26, by - 10],
-      [kx, by - 11],
-      [kx - 2, by - 3],
-      [CX + 24, by + 2],
-      [CX + W + 10, by + 7],
+      [CX + W + 13, by - 9.5],
+      [CX + 27, by - 13.6],
+      [CX + 12, by - 13.6],
+      [CX + 8.5, by - 6],
+      [CX + 8.5, by + 2.4],
+      [CX + 24, by + 4.6],
+      [CX + W + 11, by + 5.5],
     ],
     true,
+    0.85,
   );
-  const fingers: VNode[] = [];
-  const lens = [24, 27, 25, 20];
-  for (let i = 3; i >= 0; i--) {
-    const y0 = by - 9.6 + i * 2.5;
-    const len = lens[i]!;
-    const tip = kx - len;
-    const d = quadRibbonClosed([kx + 3, y0], [kx - len * 0.5, y0 - 1.2 + i * 0.3], [tip, y0 + 0.8 + i * 0.6], 3.4 - i * 0.15);
-    fingers.push(
-      <g key={i}>
-        <path d={d} fill={`url(#${hand})`} stroke={skin.deep} stroke-opacity="0.35" stroke-width="0.55" />
-        <path d={`M${P(kx - len * 0.45, y0 - 1)}q1 0.9 0 1.8`} stroke={skin.deep} stroke-opacity="0.3" stroke-width="0.45" fill="none" />
-      </g>,
-    );
-  }
-  const thumb = smooth([[CX + 34, by + 1], [CX + 26, by + 5], [CX + 17, by + 8.5], [CX + 14.5, by + 7], [CX + 22, by + 1.5]], true);
-  const arm = `M${P(CX + W + 10, by - 7)}C${P(CX + W + 26, by + 10)} ${P(VIEW_W, by + 60)} ${P(VIEW_W + 12, VIEW_H)}L${P(VIEW_W - 16, VIEW_H)}C${P(CX + W + 16, by + 70)} ${P(CX + W + 4, by + 22)} ${P(CX + W + 8, by + 7)}Z`;
-  const sleeve = `M${P(VIEW_W - 30, by + 78)}L${P(VIEW_W + 12, by + 54)}L${P(VIEW_W + 12, VIEW_H)}L${P(VIEW_W - 26, VIEW_H)}Z`;
+  const thumbA: Pt = [CX + W + 6, by + 3.5];
+  const thumbC: Pt = [CX + 30, by + 10.5];
+  const thumbB: Pt = [CX + 18.5, by + 8.6];
+  // forearm drops steeply toward an elbow just outside the frame (foreshortened)
+  const arm = `M${P(CX + W + 13, by - 9.5)}C${P(CX + W + 24, by - 2)} ${P(VIEW_W - 4, by + 40)} ${P(VIEW_W + 8, by + 92)}L${P(VIEW_W - 12, by + 104)}C${P(VIEW_W - 22, by + 54)} ${P(CX + W + 14, by + 16)} ${P(CX + W + 11, by + 5.5)}Z`;
+  const shadowD = `M${P(CX - W - 4, by + 1)}L${P(CX + W + 4, by + 2)}L${P(CX + W + 4, by + 27)}L${P(CX - W - 4, by + 25)}Z`;
   return (
     <g>
       <defs>
         <linearGradient id={hand} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color={mix(skin.light, skin.base, 0.3)} />
-          <stop offset="0.65" stop-color={skin.base} />
+          <stop offset="0" stop-color={mix(skin.light, skin.base, 0.25)} />
+          <stop offset="0.55" stop-color={skin.base} />
+          <stop offset="1" stop-color={mix(skin.base, skin.shadow, 0.7)} />
+        </linearGradient>
+        <linearGradient id={handLo} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color={skin.base} />
           <stop offset="1" stop-color={skin.shadow} />
         </linearGradient>
+        <linearGradient id={shadow} gradientUnits="userSpaceOnUse" x1="0" y1={by + 1} x2="0" y2={by + 27}>
+          <stop offset="0" stop-color={skin.deep} stop-opacity="0.62" />
+          <stop offset="0.45" stop-color={skin.deep} stop-opacity="0.34" />
+          <stop offset="1" stop-color={skin.deep} stop-opacity="0" />
+        </linearGradient>
       </defs>
-      {/* shade cast over the eyes */}
-      <g clip-path={`url(#${c.id('headClip')})`}>
-        <rect x="0" y={by + 4} width={VIEW_W} height="20" fill={skin.deep} opacity="0.22" filter={`url(#${c.id('soft2')})`} />
+      {/* shade cast over the brows and eyes */}
+      <path d={shadowD} fill={`url(#${shadow})`} clip-path={c.url('headClip')} />
+      <path d={arm} fill={`url(#${handLo})`} stroke={outline} stroke-opacity="0.35" stroke-width="0.6" />
+      <path d={`M${P(CX + W + 20, by - 4)}C${P(VIEW_W - 10, by + 30)} ${P(VIEW_W, by + 56)} ${P(VIEW_W + 6, by + 80)}`} stroke={GOLD} stroke-opacity="0.3" stroke-width="1" fill="none" stroke-linecap="round" />
+      {/* thumb tucked under the palm */}
+      <path d={digit(thumbA, thumbC, thumbB, 4.6, 0.7)} fill={`url(#${handLo})`} stroke={outline} stroke-opacity="0.45" stroke-width="0.5" />
+      <ellipse cx={thumbB[0] + 2} cy={thumbB[1] - 0.4} rx="1.9" ry="1.3" fill={mix(skin.light, '#f2d3c8', 0.4)} opacity="0.6" />
+      <path d={dorsum} fill={`url(#${hand})`} stroke={outline} stroke-opacity="0.4" stroke-width="0.55" />
+      {/* extensor tendons fanning to the knuckles */}
+      <g stroke={skin.shadow} stroke-opacity="0.35" stroke-width="0.6" fill="none" stroke-linecap="round">
+        {fingers.map((f, i) => (
+          <path key={i} d={`M${P(CX + W + 6, by - 3 + i * 0.6)}Q${P(CX + 26, f.y + 1)} ${P(f.x0 + 4, f.y + 0.3)}`} />
+        ))}
       </g>
-      <path d={arm} fill={`url(#${hand})`} />
-      <path d={arm} fill="none" stroke={skin.deep} stroke-opacity="0.25" stroke-width="0.6" />
-      <path d={sleeve} fill={c.spec.outfit} />
-      <path d={sleeve} fill="#000" opacity="0.15" />
-      <path d={back} fill={`url(#${hand})`} stroke={skin.deep} stroke-opacity="0.3" stroke-width="0.6" />
-      {fingers}
-      <path d={thumb} fill={skin.base} stroke={skin.deep} stroke-opacity="0.35" stroke-width="0.55" />
-      <path d={`M${P(CX + 30, by - 9.5)}Q${P(CX + 16, by - 12)} ${P(kx - 18, by - 11.6)}`} stroke={shade(skin.light, 0.25)} stroke-opacity="0.55" stroke-width="0.8" fill="none" stroke-linecap="round" />
+      {fingers.map((f, i) => {
+        const p0: Pt = [f.x0 + 2, f.y];
+        const p2: Pt = [f.x0 - f.reach, f.y + f.cup];
+        const ctrl: Pt = [f.x0 - f.reach * 0.55, f.y - 0.9 + f.cup * 0.15];
+        const d = digit(p0, ctrl, p2, f.w);
+        const pip = qpt(p0, ctrl, p2, 0.42);
+        const dip = qpt(p0, ctrl, p2, 0.72);
+        const nail = qpt(p0, ctrl, p2, 0.9);
+        return (
+          <g key={i}>
+            {/* contact shadow on the finger behind */}
+            <path d={d} fill={skin.deep} opacity="0.28" transform="translate(0.5 0.9)" />
+            <path d={d} fill={`url(#${hand})`} stroke={outline} stroke-opacity="0.5" stroke-width="0.5" />
+            {/* knuckle (MCP) highlight */}
+            <ellipse cx={f.x0 + 1.4} cy={f.y - 0.6} rx="2.4" ry="1.5" fill={skin.light} opacity="0.5" />
+            <path d={`M${P(pip[0] + 0.6, pip[1] - f.w * 0.42)}q-1 ${f.w * 0.42} 0 ${f.w * 0.84}`} stroke={outline} stroke-opacity="0.35" stroke-width="0.45" fill="none" />
+            <path d={`M${P(dip[0] + 0.4, dip[1] - f.w * 0.36)}q-0.7 ${f.w * 0.36} 0 ${f.w * 0.72}`} stroke={outline} stroke-opacity="0.28" stroke-width="0.4" fill="none" />
+            <ellipse cx={nail[0]} cy={nail[1] - 0.2} rx="2" ry={f.w * 0.3} fill={mix(skin.light, '#f6dcd2', 0.5)} opacity="0.75" />
+            <path d={`M${P(p0[0] - 2, f.y - f.w * 0.38)}L${P(nail[0] + 2, nail[1] - f.w * 0.4)}`} stroke={shade(skin.light, 0.2)} stroke-opacity="0.45" stroke-width="0.5" stroke-linecap="round" />
+          </g>
+        );
+      })}
+      {/* key-light rim along the top of the hand */}
+      <path d={`M${P(CX + W + 12, by - 9.8)}C${P(CX + 32, by - 14)} ${P(CX + 16, by - 14.2)} ${P(CX + 4, by - 13.2)}`} stroke={GOLD} stroke-opacity="0.55" stroke-width="0.8" fill="none" stroke-linecap="round" />
     </g>
   );
-}
-
-/** Closed tapered capsule along a quadratic curve (fingers). */
-function quadRibbonClosed(p0: Pt, ctrl: Pt, p2: Pt, w: number): string {
-  const pts: [number, number, number][] = [];
-  for (let i = 0; i <= 8; i++) {
-    const t = i / 8;
-    const u = 1 - t;
-    pts.push([u * u * p0[0] + 2 * u * t * ctrl[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * ctrl[1] + t * t * p2[1], w * (1 - t * 0.18)]);
-  }
-  return ribbon(pts);
 }

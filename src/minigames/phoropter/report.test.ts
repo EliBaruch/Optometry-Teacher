@@ -36,6 +36,12 @@ describe('report()', () => {
     const f = buildFindings(25, { refraction: { OD: { sphere: 0.5, cylinder: 0, axis: 180 }, OS: { sphere: 3, cylinder: -0.5, axis: 90 } } });
     expect(report(f)).toContainEqual({ label: 'Anisometropia', value: 'ΔSE 2.25 D', eye: 'OU', flag: 'abnormal' });
   });
+  it('notes a poorly defined endpoint for irregular astigmatism', () => {
+    const f = buildFindings(22, { retinoscopyReflex: { OS: 'scissors' }, keratometry: { OS: { mires: 'distorted' } } });
+    const r = report(f);
+    expect(r).toContainEqual({ label: 'Endpoint', value: 'Poorly defined — irregular astigmatism', eye: 'OS', flag: 'abnormal' });
+    expect(r.some((x) => x.label === 'Endpoint' && x.eye === 'OD')).toBe(false);
+  });
   it('is pure', () => {
     const f = buildFindings(40);
     expect(report(f)).toEqual(report(f));

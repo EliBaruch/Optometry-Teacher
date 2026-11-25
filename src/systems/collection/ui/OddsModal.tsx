@@ -2,7 +2,7 @@ import { Modal } from '@ui-kit';
 import { BASE_ODDS, CARD_RARITIES, FRAME_LABEL, FRAME_THRESHOLDS, FRAME_TIERS, FRAME_XP, PERFECT_LEGENDARY_BONUS, ZEBRA_EPIC_BONUS, setReward } from '../model';
 import { GALLERY_COLOR, RARITY_HEX, RARITY_NAME } from '../store';
 
-const GRADES = ['S', 'A', 'B', 'C', 'D'] as const;
+const GRADES = [['S', 'S'], ['A', 'A'], ['B', 'B'], ['C', 'C'], ['D', 'D–F']] as const;
 const pct = (v: number) => (v ? `${Math.round(v * 100)}%` : '—');
 
 /** Transparent drop odds: how cards, rarities and frames are earned. */
@@ -15,8 +15,8 @@ export function OddsModal(props: { open: boolean; onClose: () => void }) {
           Only a <strong>correct diagnosis</strong> collects a card — the better your work-up, the rarer the painting. Missing a diagnosis never costs you anything:
           the condition simply appears as a named silhouette you can collect next time.
         </p>
-        <table class="go-table">
-          <caption>Rarity odds by case grade</caption>
+        <h4 class="go-caption" id="gallery-odds-caption">Rarity odds by case grade</h4>
+        <table class="go-table" aria-labelledby="gallery-odds-caption">
           <thead>
             <tr>
               <th scope="col">Grade</th>
@@ -24,9 +24,9 @@ export function OddsModal(props: { open: boolean; onClose: () => void }) {
             </tr>
           </thead>
           <tbody>
-            {GRADES.map((g) => (
+            {GRADES.map(([g, label]) => (
               <tr key={g}>
-                <th scope="row">{g}</th>
+                <th scope="row">{label}</th>
                 {CARD_RARITIES.map((r) => <td key={r} class="lm-num">{pct(BASE_ODDS[g][r])}</td>)}
               </tr>
             ))}

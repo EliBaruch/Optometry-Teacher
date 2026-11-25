@@ -92,13 +92,15 @@ export function assess(
   let steps = 0;
   for (const eye of ['OD', 'OS'] as const) {
     const error = rxError(finals[eye], truths[eye]);
-    perEye[eye] = { error, score: eyeScore(error), protocol: protocolScore(protocol[eye], ctx[eye]) };
+    // An Rx the patient was never asked about is an unverified guess (e.g. the autorefraction copied over).
+    const verified = protocol[eye].asks >= 3 ? 1 : protocol[eye].asks > 0 ? 0.75 : 0.5;
+    perEye[eye] = { error, score: eyeScore(error) * verified, protocol: protocolScore(protocol[eye], ctx[eye]) };
     steps += protocol[eye].asks + protocol[eye].clicks;
   }
   const eff = efficiency(steps);
   const rx = (perEye.OD.score + perEye.OS.score) / 2;
   const proto = Math.min(1, (perEye.OD.protocol + perEye.OS.protocol) / 2 + (balanceChecked ? 0.1 : 0));
-  const accuracy = Math.max(0, Math.min(1, 0.7 * rx + 0.18 * proto + 0.12 * eff));
+  const accuracy = Math.max(0, Math.min(1, 0.6 * rx + 0.28 * proto + 0.12 * eff));
   const perfect = perEye.OD.error.exact && perEye.OS.error.exact && perEye.OD.protocol >= 0.99 && perEye.OS.protocol >= 0.99;
   return { accuracy: Math.round(accuracy * 1000) / 1000, perfect, perEye, efficiency: eff, balanced: balanceChecked };
 }

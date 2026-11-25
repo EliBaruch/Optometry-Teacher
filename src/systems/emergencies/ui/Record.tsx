@@ -7,8 +7,10 @@ import './widgets.css';
 
 const OUTCOME_LABEL: Record<Outcome, string> = {
   saved: 'Saved',
-  'under-triaged': 'Triage missed',
-  missed: 'Diagnosis missed',
+  'over-triaged': 'Safe, over-cautious triage',
+  'under-triaged': 'Referred too slowly',
+  referred: 'Sent on in time, diagnosis missed',
+  missed: 'Diagnosis and triage missed',
   timeout: 'Out of time',
 };
 
@@ -46,7 +48,7 @@ export function RecordWidget({ services }: { services: GameServices }) {
         <>
           <div class="cr-record__grid">
             <Tile icon="heart" label="Sights saved" i={0}><CountUp value={s.saved} /></Tile>
-            <Tile icon="target" label="Correct triage" i={1}><CountUp value={rate} suffix="%" /></Tile>
+            <Tile icon="target" label="Save rate" i={1}><CountUp value={rate} suffix="%" /></Tile>
             <Tile icon="clock" label="Avg. time to call" i={2}>{avg === null ? '—' : formatDuration(avg)}</Tile>
             <Tile icon="lightning" label="Fastest save" i={3}>{s.fastestSaveSec === null ? '—' : formatDuration(s.fastestSaveSec)}</Tile>
             <Tile icon="flame" label="Best run" i={4}><CountUp value={s.bestRun} /></Tile>

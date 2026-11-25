@@ -1,5 +1,5 @@
 /** Pure helpers for the Practice Arcade (unit-tested). */
-import { TEST_CATALOG, type MiniGameModule, type MiniGameResult, type TestCategory } from '@core';
+import { TEST_CATALOG, type MiniGameModule, type MiniGameResult, type TestCategory, type TestId } from '@core';
 
 export type DifficultyId = 'easy' | 'clinical' | 'expert';
 
@@ -56,6 +56,30 @@ export function practicable(list: readonly MiniGameModule[]): MiniGameModule[] {
   return list.filter((m) => typeof m.practice === 'function').sort((a, b) => rank(a) - rank(b) || a.title.localeCompare(b.title));
 }
 
+/**
+ * Catalogue tests with no practicable mini-game yet, in exam order — shown as
+ * "being calibrated" placeholders so the cabinet never looks empty or broken.
+ * `clinicOnly` marks tests whose mini-game exists but offers no practice mode.
+ */
+export function upcoming(installed: readonly MiniGameModule[]): { id: TestId; clinicOnly: boolean }[] {
+  const playable = new Set(practicable(installed).map((m) => m.id));
+  const registered = new Set(installed.map((m) => m.id));
+  const ids = Object.keys(TEST_CATALOG) as TestId[];
+  return ids
+    .filter((id) => !playable.has(id))
+    .sort((a, b) => {
+      const ca = CATEGORY_ORDER.indexOf(TEST_CATALOG[a].category);
+      const cb = CATEGORY_ORDER.indexOf(TEST_CATALOG[b].category);
+      return ca - cb || ids.indexOf(a) - ids.indexOf(b);
+    })
+    .map((id) => ({ id, clinicOnly: registered.has(id) }));
+}
+
+/** "1 instrument", "3 instruments" */
+export function plural(n: number, word: string, many = `${word}s`): string {
+  return n === 1 ? word : many;
+}
+
 export function practiceScore(result: Pick<MiniGameResult, 'accuracy' | 'perfect'>, diff: Difficulty): number {
   const acc = Number.isFinite(result.accuracy) ? Math.max(0, Math.min(1, result.accuracy)) : 0;
   return Math.round(acc * 1000 * diff.mult + (result.perfect ? 150 * diff.mult : 0));
@@ -82,6 +106,8 @@ export interface RecordOutcome {
   score: number;
   previousBest: number;
   isBest: boolean;
+  /** True on the very first logged run of this instrument (any difficulty). */
+  firstPlay: boolean;
 }
 
 export function recordResult(save: ArcadeSave, testId: string, diff: Difficulty, result: MiniGameResult, now: number): RecordOutcome {
@@ -102,6 +128,7 @@ export function recordResult(save: ArcadeSave, testId: string, diff: Difficulty,
     score,
     previousBest: prev.best,
     isBest: score > prev.best,
+    firstPlay: prev.plays === 0,
   };
 }
 

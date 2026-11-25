@@ -34,6 +34,11 @@ export const RATE_SKILL = 11;
 export const SKILL_WINDOW = 12;
 /** After this many patients in one day the lounge suggests a rest. */
 export const REST_AFTER_CASES = 12;
+/**
+ * After "keep it in the jar", the welcome note only returns once the jar has
+ * grown by at least this many coins (or a fresh comeback gift arrives).
+ */
+export const RESHOW_MIN_COINS = 20;
 
 export type GiftRarity = 'common' | 'rare' | 'epic' | 'legendary';
 
@@ -43,17 +48,18 @@ export interface GiftDay {
   coins: number;
   /** Mystery satchel: an extra coin bundle whose size is a published rarity roll. */
   satchel: boolean;
+  /** Flavour: what the gift is wrapped in tonight. Coins are the reward. */
   label: string;
 }
 
 /** The 7-day escalating calendar. It cycles; it never resets. */
 export const GIFT_CALENDAR: readonly GiftDay[] = [
-  { day: 1, coins: 20, satchel: false, label: 'Fresh coffee' },
-  { day: 2, coins: 30, satchel: false, label: 'Warm scarf' },
+  { day: 1, coins: 20, satchel: false, label: 'Smells of fresh coffee' },
+  { day: 2, coins: 30, satchel: false, label: 'Tucked in a warm scarf' },
   { day: 3, coins: 40, satchel: true, label: 'Supply satchel' },
-  { day: 4, coins: 50, satchel: false, label: 'Brass lens cloth' },
-  { day: 5, coins: 60, satchel: false, label: 'Velvet case' },
-  { day: 6, coins: 75, satchel: false, label: 'Candle tin' },
+  { day: 4, coins: 50, satchel: false, label: 'Polished with a lens cloth' },
+  { day: 5, coins: 60, satchel: false, label: 'Wrapped in midnight velvet' },
+  { day: 6, coins: 75, satchel: false, label: 'Lit by a little candle' },
   { day: 7, coins: 120, satchel: true, label: 'Grand satchel' },
 ];
 
@@ -71,8 +77,15 @@ export interface WelcomeNote {
 export interface ComfortState {
   /** Last time the player was seen with the game in front of them. */
   lastSeenAt: number | null;
-  /** Uncollected clinic earnings (fractional coins). */
+  /** Uncollected clinic earnings (fractional coins). Only collecting ever lowers it. */
   jar: number;
+  /**
+   * Gift coins the player chose to keep for later (a dismissed welcome-back
+   * bonus). Held apart from the capped jar so a cap can never trim them.
+   */
+  bonus: number;
+  /** Collectable coins at the moment the player last chose "keep it in the jar". */
+  keptCoins: number | null;
   /** Recent case quality, 0..1 (score total / max). Feeds the earnings rate. */
   recent: number[];
   gift: {
@@ -95,6 +108,8 @@ export interface ComfortState {
 export const INITIAL: ComfortState = {
   lastSeenAt: null,
   jar: 0,
+  bonus: 0,
+  keptCoins: null,
   recent: [],
   gift: { lastClaimDay: null, next: 0, totalClaims: 0 },
   comebackAt: null,
@@ -112,6 +127,8 @@ export function sanitize(s: Partial<ComfortState> | null | undefined): ComfortSt
   return {
     lastSeenAt: v.lastSeenAt == null ? null : num(v.lastSeenAt, 0) || null,
     jar: Math.max(0, num(v.jar, 0)),
+    bonus: Math.max(0, Math.floor(num(v.bonus, 0))),
+    keptCoins: v.keptCoins == null ? null : Math.max(0, num(v.keptCoins, 0)),
     recent: Array.isArray(v.recent) ? v.recent.filter((x) => typeof x === 'number' && x >= 0 && x <= 1).slice(-SKILL_WINDOW) : [],
     gift: {
       lastClaimDay: typeof v.gift?.lastClaimDay === 'string' ? v.gift.lastClaimDay : null,
@@ -169,10 +186,20 @@ export function earningsFor(s: Pick<ComfortState, 'recent'>, awayMs: number): nu
   return ratePerHour(s) * hours;
 }
 
+/** Whole coins ready to collect right now: the jar plus any gift kept for later. */
+export function collectable(s: Pick<ComfortState, 'jar' | 'bonus'>): number {
+  return Math.floor(s.jar) + s.bonus;
+}
+
 /**
- * Evaluate a return to the clinic. Adds the absence's earnings to the jar
- * (never above capacity), decides on the comeback bonus, and prepares the
- * welcome note when the absence was long enough to deserve one.
+ * Evaluate a return to the clinic. Adds the absence's earnings to the jar,
+ * decides on the comeback bonus, and prepares the welcome note when the
+ * absence was long enough to deserve one.
+ *
+ * No-loss rule: the cap only limits how much a single absence can *add*; a jar
+ * that already holds more (the rate dropped since, or old saves) keeps every
+ * coin. Only `collect` ever lowers the jar. Comeback gifts stack: a second one
+ * that comes due while the first is still on an unread note is added to it.
  * A clock that moved backwards simply re-anchors `lastSeenAt`.
  */
 export function arrive(s: ComfortState, now: number): ComfortState {
@@ -181,39 +208,57 @@ export function arrive(s: ComfortState, now: number): ComfortState {
   const away = now - seen;
   if (away < MIN_AWAY_MS) return { ...s, lastSeenAt: now };
   const cap = jarCapacity(s);
-  const jar = Math.min(cap, s.jar + earningsFor(s, away));
+  const jar = Math.max(s.jar, Math.min(cap, s.jar + earningsFor(s, away)));
   const comebackDue = away >= COMEBACK_AFTER_MS && (s.comebackAt == null || now - s.comebackAt >= COMEBACK_COOLDOWN_MS);
-  const coins = Math.floor(jar);
+  const coins = Math.floor(jar) + s.bonus;
   const prev = s.welcome;
-  const welcome: WelcomeNote | null =
-    coins >= 1 || comebackDue || prev
-      ? {
-          awayMs: away,
-          coins,
-          // an un-dismissed comeback stays on the note
-          comebackCoins: comebackDue ? COMEBACK_COINS : prev?.comebackCoins ?? 0,
-          at: now,
-        }
-      : null;
-  return { ...s, lastSeenAt: now, jar, welcome, comebackAt: comebackDue ? now : s.comebackAt };
+  // Having chosen to keep the coins, the player is not asked again until the jar has grown meaningfully.
+  const grewEnough = s.keptCoins == null || coins - s.keptCoins >= RESHOW_MIN_COINS;
+  const show = prev != null || comebackDue || (coins >= 1 && grewEnough);
+  const welcome: WelcomeNote | null = show
+    ? {
+        awayMs: away,
+        coins,
+        // an un-dismissed comeback stays on the note, and a fresh one stacks on top of it
+        comebackCoins: (prev?.comebackCoins ?? 0) + (comebackDue ? COMEBACK_COINS : 0),
+        at: now,
+      }
+    : null;
+  return {
+    ...s,
+    lastSeenAt: now,
+    jar,
+    welcome,
+    keptCoins: show ? null : s.keptCoins,
+    comebackAt: comebackDue ? now : s.comebackAt,
+  };
 }
 
-/** Collect the whole coins in the jar (+ any comeback bonus on the note). */
+/** Collect the whole coins in the jar, any kept gift, and a comeback bonus on the note. */
 export function collect(s: ComfortState): { state: ComfortState; coins: number; comeback: number } {
-  const coins = Math.floor(s.jar);
+  const whole = Math.floor(s.jar);
+  const coins = whole + s.bonus;
   const comeback = s.welcome?.comebackCoins ?? 0;
   return {
-    state: { ...s, jar: s.jar - coins, welcome: null, lifetime: { ...s.lifetime, earned: s.lifetime.earned + coins + comeback } },
+    state: {
+      ...s,
+      jar: s.jar - whole,
+      bonus: 0,
+      keptCoins: null,
+      welcome: null,
+      lifetime: { ...s.lifetime, earned: s.lifetime.earned + coins + comeback },
+    },
     coins,
     comeback,
   };
 }
 
-/** Close the welcome note without collecting: the coins stay safe in the jar. */
+/** Close the welcome note without collecting: every coin stays safe for later. */
 export function dismissWelcome(s: ComfortState): ComfortState {
   if (!s.welcome) return s;
-  // A comeback bonus is a gift, not a test: it moves into the jar rather than vanishing.
-  return { ...s, welcome: null, jar: s.jar + (s.welcome.comebackCoins || 0) };
+  // A comeback bonus is a gift, not a test: it is kept (outside the capped jar) rather than vanishing.
+  const bonus = s.bonus + (s.welcome.comebackCoins || 0);
+  return { ...s, welcome: null, bonus, keptCoins: Math.floor(s.jar) + bonus };
 }
 
 // ── Daily gift ───────────────────────────────────────────────────────────
@@ -224,6 +269,15 @@ export function giftReady(s: ComfortState, now: number): boolean {
 
 export function nextGift(s: ComfortState): GiftDay {
   return GIFT_CALENDAR[s.gift.next] ?? GIFT_CALENDAR[0]!;
+}
+
+/** Short progress line toward the evening-7 grand satchel (counts gifts, not days: missed evenings never matter). */
+export function grandSatchelHint(s: ComfortState, ready: boolean): string {
+  if (!ready && s.gift.next === 0 && s.gift.totalClaims > 0) return 'Week complete. A fresh calendar starts tomorrow';
+  const next = nextGift(s);
+  if (next.day === GIFT_CALENDAR.length) return ready ? 'Tonight: the grand satchel' : 'The grand satchel is next';
+  const n = GIFT_CALENDAR.length - next.day;
+  return `${n} ${n === 1 ? 'gift' : 'gifts'} until the grand satchel`;
 }
 
 /** Published satchel odds; better recent case quality shifts weight to rarer tiers. */
@@ -294,6 +348,14 @@ export function formatDuration(ms: number): string {
     return m ? `${h}h ${m}m` : `${h}h`;
   }
   return `${Math.floor(h / 24)} days`;
+}
+
+/** Time-of-day salutation for the lounge ("Good evening"). */
+export function salutation(hourOfDay: number): string {
+  if (hourOfDay >= 5 && hourOfDay < 12) return 'Good morning';
+  if (hourOfDay >= 12 && hourOfDay < 18) return 'Good afternoon';
+  if (hourOfDay >= 18 && hourOfDay < 22) return 'Good evening';
+  return 'A quiet night';
 }
 
 /** Warm, guilt-free greeting line for a return. */

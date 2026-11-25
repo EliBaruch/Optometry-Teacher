@@ -3,8 +3,13 @@
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   width: min(440px, calc(100vw - 32px)); pointer-events: none;
 }
-.lm-toasts--top { top: calc(var(--lm-topbar-h) + var(--lm-safe-top) + 8px); flex-direction: column-reverse; }
+.lm-toasts--top, .lm-toasts--auto { top: calc(var(--lm-topbar-h) + var(--lm-safe-top) + 8px); flex-direction: column-reverse; }
 .lm-toasts--bottom { bottom: calc(24px + var(--lm-safe-bottom)); flex-direction: column; }
+/* auto: under the bar on desktop; at the thumb end on phones, so the bar and the first controls stay visible */
+@media (pointer: coarse) and (max-width: 720px) {
+  .lm-toasts--auto { top: auto; bottom: calc(20px + var(--lm-safe-bottom)); flex-direction: column; }
+  .lm-toasts--auto .lm-toast { animation-name: lm-toast-in-up; }
+}
 .lm-toast {
   --toast-c: var(--lm-info);
   position: relative; overflow: hidden; pointer-events: auto;
@@ -41,7 +46,8 @@
   background: var(--lm-iridescent);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: lm-hue 3s linear infinite;
+  /* a few turns while it is fresh, then hold: no endless repaint for a sticky toast */
+  animation: lm-hue 3s linear 3;
 }
 
 .lm-toast:focus-visible {

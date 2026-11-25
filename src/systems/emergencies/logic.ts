@@ -5,7 +5,7 @@
  *  - the deterministic weekly Grand Rounds pick,
  *  - persisted stats reducer.
  */
-import { createRng, type ClinicalCase, type ScoreBreakdown, type Urgency } from '@core';
+import { URGENCIES, createRng, type ClinicalCase, type ScoreBreakdown, type ScorePart, type Urgency } from '@core';
 
 // ── Clock ────────────────────────────────────────────────────────────────
 
@@ -79,13 +79,36 @@ export function clockColor(remaining: number, limit: number): string {
 
 // ── Outcomes & rewards ───────────────────────────────────────────────────
 
-export type Outcome = 'saved' | 'under-triaged' | 'missed' | 'timeout';
+/**
+ * How an emergency resolved, judged on both axes an optometrist is graded on:
+ *  - saved:          right diagnosis, right urgency;
+ *  - over-triaged:   right diagnosis, referred faster than needed (safe, over-cautious);
+ *  - under-triaged:  right diagnosis, referred slower than the condition allows;
+ *  - referred:       wrong diagnosis, but sent on at least as fast as needed (patient safe);
+ *  - missed:         wrong diagnosis and sent on too slowly;
+ *  - timeout:        no decision before the clock ran out.
+ */
+export type Outcome = 'saved' | 'over-triaged' | 'under-triaged' | 'referred' | 'missed' | 'timeout';
 
-export function classify(score: Pick<ScoreBreakdown, 'diagnosisCorrect' | 'urgencyCorrect'>): Outcome {
-  if (score.diagnosisCorrect && score.urgencyCorrect) return 'saved';
-  if (score.diagnosisCorrect) return 'under-triaged';
-  return 'missed';
+const rank = (u: Urgency) => URGENCIES.indexOf(u);
+
+/**
+ * Classify a decision. `chosen` is the urgency the player picked and `required`
+ * the case's own urgency; without them we can only tell right from wrong, so a
+ * wrong urgency is assumed to be too slow (the unsafe direction).
+ */
+export function classify(
+  score: Pick<ScoreBreakdown, 'diagnosisCorrect' | 'urgencyCorrect'>,
+  chosen?: Urgency,
+  required?: Urgency,
+): Outcome {
+  const dir = chosen && required ? Math.sign(rank(chosen) - rank(required)) : score.urgencyCorrect ? 0 : -1;
+  if (score.diagnosisCorrect) return dir === 0 ? 'saved' : dir > 0 ? 'over-triaged' : 'under-triaged';
+  return dir >= 0 ? 'referred' : 'missed';
 }
+
+/** The patient was sent on in time (whatever the label on the referral). */
+export const patientSafe = (o: Outcome) => o === 'saved' || o === 'over-triaged' || o === 'referred';
 
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
 
@@ -93,33 +116,70 @@ export interface RescueReward {
   coins: number;
   xp: number;
   rarity: Rarity;
-  /** 0..1 — score.total / score.max (the learning signal) */
+  /** 0..1 — score.total / score.max (the overall grade signal) */
   quality: number;
+  /** 0..1 — how thorough the work-up was: essential tests, key history, test technique, efficiency */
+  mastery: number;
   /** 0..1 — share of the clock left when the call was made */
   timeLeft: number;
+  /** 0..1 — how much of the decisiveness bonus the work-up unlocked */
+  decisive: number;
+  /** Earlier saves of this same case this week (each halves the bonus) */
+  repeats: number;
+  /** The right answer, but reached without the work-up that proves it */
+  thin: boolean;
   /** Grand Rounds weekly bonus (0 when not applicable) */
   grandCoins: number;
   grandXp: number;
 }
 
+const part = (score: ScoreBreakdown, id: ScorePart['id']) => score.parts.find((p) => p.id === id);
+
 /**
- * Bonus for a sight saved. Scales with the quality of the work-up (the whole
- * score breakdown: diagnosis, triage, essential tests, efficiency, history,
- * technique) and with decisiveness — never with time spent playing.
+ * 0..1 work-up mastery: the share of essential tests, key history questions and
+ * test technique actually earned, trimmed by wasted tests / hints. Diagnosis,
+ * urgency and speed are excluded on purpose — a blind guess that happens to be
+ * right scores 0 here.
  */
-export function rescueReward(score: ScoreBreakdown, elapsedSec: number, limitSec: number, grandRounds: boolean): RescueReward {
-  const quality = score.max > 0 ? clamp01(score.total / score.max) : 0;
-  const timeLeft = limitSec > 0 ? clamp01(1 - elapsedSec / limitSec) : 0;
-  const coins = Math.round(25 + 55 * quality + 20 * timeLeft);
-  const xp = Math.round(40 + 80 * quality + 30 * timeLeft);
-  const rarity: Rarity = score.perfect ? 'legendary' : quality >= 0.8 ? 'epic' : 'rare';
-  const grand = grandRounds ? grandRoundsBonus(quality) : { coins: 0, xp: 0 };
-  return { coins, xp, rarity, quality, timeLeft, grandCoins: grand.coins, grandXp: grand.xp };
+export function workupMastery(score: ScoreBreakdown): number {
+  const rigour = (['workup', 'history', 'skill'] as const).map((id) => part(score, id)).filter((p): p is ScorePart => !!p);
+  if (!rigour.length) {
+    // No breakdown available: only the share of the grade beyond diagnosis + triage + speed counts.
+    return score.max > 0 ? clamp01((score.total / score.max - 0.7) / 0.3) : 0;
+  }
+  const got = rigour.reduce((s, p) => s + p.points, 0);
+  const max = rigour.reduce((s, p) => s + p.max, 0);
+  const eff = part(score, 'efficiency');
+  const effK = eff && eff.max > 0 ? clamp01(eff.points / eff.max) : 1;
+  return clamp01((max > 0 ? got / max : 0) * (0.8 + 0.2 * effK));
 }
 
-/** Weekly Grand Rounds bonus: half for any save, the rest earned by work-up quality. */
-export function grandRoundsBonus(quality: number): { coins: number; xp: number } {
-  const k = 0.5 + 0.5 * clamp01(quality);
+/** Below this mastery a save is "thin": correct, but unproven. */
+export const THIN_MASTERY = 0.45;
+
+/**
+ * Bonus for a sight saved. Driven by work-up mastery (never time spent). The
+ * decisiveness term only opens up once the work-up is genuinely thorough, so a
+ * fast blind guess earns little, and repeat saves of the same case in one week
+ * halve each time (no farming a known answer).
+ */
+export function rescueReward(score: ScoreBreakdown, elapsedSec: number, limitSec: number, grandRounds: boolean, repeats = 0): RescueReward {
+  const quality = score.max > 0 ? clamp01(score.total / score.max) : 0;
+  const mastery = workupMastery(score);
+  const timeLeft = limitSec > 0 ? clamp01(1 - elapsedSec / limitSec) : 0;
+  const decisive = clamp01((mastery - 0.6) / 0.3);
+  const k = Math.pow(0.5, Math.max(0, repeats));
+  const coins = Math.round((15 + 65 * mastery + 20 * timeLeft * decisive) * k);
+  const xp = Math.round((25 + 95 * mastery + 30 * timeLeft * decisive) * k);
+  const thin = mastery < THIN_MASTERY;
+  const rarity: Rarity = score.perfect ? 'legendary' : mastery >= 0.8 ? 'epic' : !thin ? 'rare' : 'common';
+  const grand = grandRounds ? grandRoundsBonus(mastery) : { coins: 0, xp: 0 };
+  return { coins, xp, rarity, quality, mastery, timeLeft, decisive, repeats, thin, grandCoins: grand.coins, grandXp: grand.xp };
+}
+
+/** Weekly Grand Rounds bonus: a quarter for any save, the rest earned by work-up mastery. */
+export function grandRoundsBonus(mastery: number): { coins: number; xp: number } {
+  const k = 0.25 + 0.75 * clamp01(mastery);
   return { coins: Math.round(150 * k), xp: Math.round(250 * k) };
 }
 
@@ -128,6 +188,21 @@ const URGENCY_LINE: Record<Urgency, string> = {
   urgent: 'it needs to be seen the same day',
   soon: 'it needs review within days',
   routine: 'routine follow-up is enough',
+};
+
+/** "…is enough" phrasing for gentle over-triage feedback. */
+const ENOUGH_LINE: Record<Urgency, string> = {
+  emergency: 'a same-hour referral was right',
+  urgent: 'same-day review is enough',
+  soon: 'review within days is enough',
+  routine: 'routine follow-up is enough',
+};
+
+export const URGENCY_LABEL: Record<Urgency, string> = {
+  emergency: 'Emergency',
+  urgent: 'Urgent',
+  soon: 'Soon',
+  routine: 'Routine',
 };
 
 /** First sentence-ish of a teaching line, kept toast-sized. */
@@ -144,41 +219,73 @@ export function keyRedFlag(kase: Pick<ClinicalCase, 'redFlags' | 'teachingPoints
   return kase?.redFlags?.[0] ?? kase?.teachingPoints?.[0];
 }
 
-/** Sober teaching toast after a missed / under-triaged / timed-out emergency. */
-export function teachingMessage(outcome: Exclude<Outcome, 'saved'>, dxName: string, urgency: Urgency, flag?: string): string {
+export interface TeachingContext {
+  /** Correct diagnosis name */
+  dxName: string;
+  /** The urgency the case requires */
+  urgency: Urgency;
+  /** Key red flag to remember */
+  flag?: string;
+  /** The diagnosis the player chose (for 'referred' / 'missed') */
+  chosenDxName?: string;
+}
+
+/** Sober teaching line after any emergency that was not a clean save. */
+export function teachingMessage(outcome: Exclude<Outcome, 'saved'>, c: TeachingContext): string {
+  const { dxName, urgency, flag, chosenDxName } = c;
   const tail = flag ? ` Red flag to remember: ${clip(flag)}` : '';
-  if (outcome === 'under-triaged') return `Right call on ${dxName} — but ${URGENCY_LINE[urgency]}.${tail}`;
-  if (outcome === 'timeout') return `The clock ran out on this ${dxName} case.${tail}`;
-  return `This was ${dxName}.${tail}`;
+  const not = chosenDxName && chosenDxName !== dxName ? `, not ${chosenDxName}` : '';
+  switch (outcome) {
+    case 'over-triaged':
+      return `Safe and correct on ${dxName}, if over-cautious — ${ENOUGH_LINE[urgency]}.`;
+    case 'under-triaged':
+      return `Right call on ${dxName} — but ${URGENCY_LINE[urgency]}.${tail}`;
+    case 'referred':
+      return `You sent them on in time — but this was ${dxName}${not}.${tail}`;
+    case 'timeout':
+      return `The clock ran out on this ${dxName} case — ${URGENCY_LINE[urgency]}.${tail}`;
+    case 'missed':
+      return `This was ${dxName}${not}, and ${URGENCY_LINE[urgency]}.${tail}`;
+  }
+}
+
+/** A short nudge after a thin save: name the essential tests that would have proven it. */
+export function confirmLine(missedTests: readonly string[]): string {
+  if (!missedTests.length) return 'Right call — next time, prove it with the key history and tests.';
+  const list = missedTests.length > 1 ? `${missedTests.slice(0, -1).join(', ')} and ${missedTests[missedTests.length - 1]}` : missedTests[0];
+  return `Right call — next time confirm it with ${list}.`;
 }
 
 // ── Weeks & Grand Rounds ─────────────────────────────────────────────────
 
 const DAY = 86400000;
+const WEEK = 7 * DAY;
 
-/** Local Monday 00:00 of the week containing `ms`. */
+/*
+ * Grand Rounds weeks run on UTC so every player, in every time zone, sees the
+ * same featured case at the same moment (Monday 00:00 UTC rotation).
+ */
+
+/** UTC Monday 00:00 of the week containing `ms`. */
 export function weekStart(ms: number): number {
   const d = new Date(ms);
-  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
-  return monday.getTime();
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
 }
 
-/** ISO-8601 week key in local time, e.g. "2026-W48". */
+/** ISO-8601 week key (UTC), e.g. "2026-W48". */
 export function weekKey(ms: number): string {
   const d = new Date(ms);
-  const thursday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7) + 3);
-  const year = thursday.getFullYear();
-  const jan4 = new Date(year, 0, 4);
-  const week1Thursday = new Date(year, 0, 4 - ((jan4.getDay() + 6) % 7) + 3);
-  const week = 1 + Math.round((thursday.getTime() - week1Thursday.getTime()) / (7 * DAY));
+  const thursday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + 3));
+  const year = thursday.getUTCFullYear();
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const week1Thursday = Date.UTC(year, 0, 4 - ((jan4.getUTCDay() + 6) % 7) + 3);
+  const week = 1 + Math.round((thursday.getTime() - week1Thursday) / WEEK);
   return `${year}-W${String(week).padStart(2, '0')}`;
 }
 
-/** ms until the next Grand Rounds rotation (next local Monday 00:00). */
+/** ms until the next Grand Rounds rotation (next Monday 00:00 UTC). */
 export function msUntilNextWeek(ms: number): number {
-  const start = new Date(weekStart(ms));
-  const next = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7);
-  return Math.max(0, next.getTime() - ms);
+  return Math.max(0, weekStart(ms) + WEEK - ms);
 }
 
 export function formatRotation(ms: number): string {
@@ -193,9 +300,9 @@ export function grandRoundsPool(cases: readonly ClinicalCase[]): ClinicalCase[] 
   return cases.filter((c) => (c.emergency?.timeLimitSec ?? 0) > 0).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
-/** Whole weeks since Monday 1 Jan 2024 (local), DST-safe. */
+/** Whole weeks since Monday 1 Jan 2024 (UTC). */
 export function weekIndex(ms: number): number {
-  return Math.round((weekStart(ms) - new Date(2024, 0, 1).getTime()) / (7 * DAY));
+  return Math.round((weekStart(ms) - Date.UTC(2024, 0, 1)) / WEEK);
 }
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
@@ -241,7 +348,12 @@ export interface RecentRun {
 export interface EmergencyStats {
   attempts: number;
   saved: number;
+  /** Right diagnosis, referred faster than needed (safe) */
+  overTriaged: number;
+  /** Right diagnosis, referred too slowly */
   underTriaged: number;
+  /** Wrong diagnosis, but sent on in time */
+  referred: number;
   missed: number;
   timeouts: number;
   /** Sum of seconds-to-decision over saves (for the average) */
@@ -254,17 +366,34 @@ export interface EmergencyStats {
   bestRun: number;
   grandRounds: { week: string; claimed: boolean };
   grandRoundsTotal: number;
+  /** Saves per case this week (diminishing returns on replaying a known case) */
+  weekSaves: { week: string; byCase: Record<string, number> };
   recent: RecentRun[];
   achievements: string[];
 }
 
-export const STATS_VERSION = 1;
+export const STATS_VERSION = 2;
 
 export const INITIAL_STATS: EmergencyStats = {
-  attempts: 0, saved: 0, underTriaged: 0, missed: 0, timeouts: 0,
+  attempts: 0, saved: 0, overTriaged: 0, underTriaged: 0, referred: 0, missed: 0, timeouts: 0,
   totalSaveSec: 0, fastestSaveSec: null, savedBy: {}, run: 0, bestRun: 0,
-  grandRounds: { week: '', claimed: false }, grandRoundsTotal: 0, recent: [], achievements: [],
+  grandRounds: { week: '', claimed: false }, grandRoundsTotal: 0, weekSaves: { week: '', byCase: {} }, recent: [], achievements: [],
 };
+
+/** Upgrade any older save (v1 had no over-triage / referred / weekly counts) without losing progress. */
+export function migrateStats(old: unknown): EmergencyStats {
+  if (!old || typeof old !== 'object') return INITIAL_STATS;
+  const o = old as Partial<EmergencyStats>;
+  return {
+    ...INITIAL_STATS,
+    ...o,
+    savedBy: { ...(o.savedBy ?? {}) },
+    grandRounds: o.grandRounds ?? INITIAL_STATS.grandRounds,
+    weekSaves: o.weekSaves ?? INITIAL_STATS.weekSaves,
+    recent: Array.isArray(o.recent) ? o.recent : [],
+    achievements: Array.isArray(o.achievements) ? o.achievements : [],
+  };
+}
 
 export interface RecordInput {
   caseId: string;
@@ -272,20 +401,31 @@ export interface RecordInput {
   outcome: Outcome;
   sec: number;
   at: number;
+  /** Week key of `at` (for the weekly repeat counter); defaults to weekKey(at) */
+  week?: string;
   /** This save completed the current week's Grand Rounds */
   grandRoundsWeek?: string;
 }
 
+/** How many times this case was already saved this week. */
+export function priorSavesThisWeek(s: EmergencyStats, caseId: string, week: string): number {
+  return s.weekSaves.week === week ? (s.weekSaves.byCase[caseId] ?? 0) : 0;
+}
+
+const COUNTER: Partial<Record<Outcome, keyof EmergencyStats>> = {
+  'over-triaged': 'overTriaged', 'under-triaged': 'underTriaged', referred: 'referred', missed: 'missed', timeout: 'timeouts',
+};
+
 export function recordOutcome(s: EmergencyStats, r: RecordInput): EmergencyStats {
   const saved = r.outcome === 'saved';
-  const run = saved ? s.run + 1 : 0;
+  // A save extends the run; an over-cautious (but safe, correct) call holds it; anything else quietly resets it.
+  const run = saved ? s.run + 1 : r.outcome === 'over-triaged' ? s.run : 0;
+  const week = r.week ?? weekKey(r.at);
+  const counter = COUNTER[r.outcome];
   const next: EmergencyStats = {
     ...s,
     attempts: s.attempts + 1,
     saved: s.saved + (saved ? 1 : 0),
-    underTriaged: s.underTriaged + (r.outcome === 'under-triaged' ? 1 : 0),
-    missed: s.missed + (r.outcome === 'missed' ? 1 : 0),
-    timeouts: s.timeouts + (r.outcome === 'timeout' ? 1 : 0),
     totalSaveSec: s.totalSaveSec + (saved ? r.sec : 0),
     fastestSaveSec: saved ? (s.fastestSaveSec === null ? r.sec : Math.min(s.fastestSaveSec, r.sec)) : s.fastestSaveSec,
     savedBy: saved ? { ...s.savedBy, [r.diagnosisId]: (s.savedBy[r.diagnosisId] ?? 0) + 1 } : s.savedBy,
@@ -293,6 +433,11 @@ export function recordOutcome(s: EmergencyStats, r: RecordInput): EmergencyStats
     bestRun: Math.max(s.bestRun, run),
     recent: [{ caseId: r.caseId, outcome: r.outcome, sec: Math.round(r.sec), at: r.at }, ...s.recent].slice(0, 8),
   };
+  if (counter) (next as unknown as Record<string, number>)[counter] = ((s[counter] as number | undefined) ?? 0) + 1;
+  if (saved) {
+    const byCase = s.weekSaves.week === week ? s.weekSaves.byCase : {};
+    next.weekSaves = { week, byCase: { ...byCase, [r.caseId]: (byCase[r.caseId] ?? 0) + 1 } };
+  }
   if (saved && r.grandRoundsWeek) {
     next.grandRounds = { week: r.grandRoundsWeek, claimed: true };
     next.grandRoundsTotal = s.grandRoundsTotal + 1;

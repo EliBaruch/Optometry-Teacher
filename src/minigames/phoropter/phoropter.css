@@ -1,0 +1,413 @@
+/* Subjective refraction — a brass-and-glass refractor at midnight. */
+
+.php-root {
+  --php-brass: #e6b960;
+  --php-brass-hi: #fff0c2;
+  --php-brass-lo: #6b4310;
+  --php-violet: #c4b5fd;
+  --php-ice: #7dd3fc;
+  --php-panel: linear-gradient(165deg, rgba(52, 34, 88, 0.42), rgba(18, 11, 34, 0.66));
+  position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  container-type: inline-size; container-name: php;
+  color: var(--lm-ivory, #f6efe4); font-family: var(--lm-font-ui, system-ui, sans-serif);
+  background:
+    radial-gradient(90% 70% at 28% 42%, rgba(120, 78, 190, 0.22), transparent 62%),
+    radial-gradient(60% 55% at 82% 30%, rgba(255, 210, 122, 0.07), transparent 60%),
+    radial-gradient(70% 50% at 70% 110%, rgba(56, 189, 248, 0.07), transparent 60%),
+    linear-gradient(180deg, #0e0819, #07040e);
+  overflow: hidden; outline: none;
+}
+.php-root button { font: inherit; color: inherit; }
+.php-num { font-family: var(--lm-font-num, sans-serif); font-variant-numeric: tabular-nums; }
+.php-eyebrow {
+  margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--lm-muted, #a99bbd);
+}
+
+/* ── header ─────────────────────────────────────────────────────────────── */
+.php-head {
+  display: flex; align-items: center; gap: 14px; padding: 9px 16px; min-width: 0;
+  border-bottom: 1px solid var(--lm-hairline, rgba(255, 236, 210, 0.09));
+  background: linear-gradient(180deg, rgba(30, 18, 54, 0.8), rgba(16, 9, 30, 0.35));
+}
+.php-head__title {
+  display: flex; align-items: center; gap: 8px; flex: none;
+  font: 560 1.05rem/1.1 var(--lm-font-display, Georgia, serif); letter-spacing: 0.01em;
+}
+.php-head__title .lm-icon, .php-head__title svg { color: var(--lm-gold); filter: drop-shadow(0 0 6px rgba(255, 210, 122, 0.5)); }
+.php-head__hint {
+  flex: 1; min-width: 0; margin: 0; padding-left: 14px; border-left: 1px solid var(--lm-hairline);
+  font-size: var(--lm-fs-sm, 13.5px); line-height: 1.35; color: var(--lm-ivory-dim, #ddd3c4);
+  animation: php-fade-in var(--lm-dur-med, 380ms) var(--lm-ease-out) both;
+}
+
+/* segmented control (eye selector, JCC mode) */
+.php-seg {
+  display: flex; align-items: center; gap: 3px; padding: 3px; border-radius: 12px; flex: none;
+  background: rgba(8, 4, 16, 0.62); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1), inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.php-seg__k { padding: 0 6px 0 7px; font: 700 0.66rem/1 var(--lm-font-ui); letter-spacing: 0.14em; color: var(--lm-muted); }
+.php-seg__b {
+  position: relative; display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 13px;
+  border: 0; border-radius: 9px; background: transparent; cursor: pointer;
+  font-family: var(--lm-font-num) !important; font-weight: 700; font-size: 0.86rem; letter-spacing: 0.05em;
+  color: var(--lm-muted) !important;
+  transition: background var(--lm-dur-ui) var(--lm-ease-out), color var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-ui) var(--lm-ease-out);
+}
+.php-seg--sm .php-seg__b { min-height: 30px; padding: 0 10px; font-size: 0.78rem; }
+.php-seg__b:hover:not(:disabled) { color: var(--lm-ivory) !important; background: rgba(255, 255, 255, 0.05); }
+.php-seg__b.is-on {
+  color: var(--lm-text-on-gold, #2a1a05) !important; background: linear-gradient(180deg, #fff0c9, #ffd98c 40%, #f5b942);
+  box-shadow: 0 0 0 1px rgba(255, 214, 140, 0.7), 0 4px 14px -4px rgba(245, 170, 50, 0.7);
+}
+.php-seg__b:disabled { cursor: default; opacity: 0.55; }
+.php-seg__b.is-on:disabled { opacity: 1; }
+.php-seg__b:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
+.php-seg__ok { width: 14px; height: 14px; color: var(--lm-normal); }
+.php-seg__b.is-on .php-seg__ok { color: #0f5b4f; }
+
+/* ── stage ──────────────────────────────────────────────────────────────── */
+.php-stage {
+  display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr); gap: 14px;
+  min-height: 0; padding: 12px 14px;
+}
+
+/* instrument column */
+.php-instr {
+  position: relative; display: flex; flex-direction: column; min-height: 0; min-width: 0; border-radius: var(--lm-r-lg, 20px);
+  background:
+    radial-gradient(80% 70% at 50% 40%, rgba(255, 210, 122, 0.06), transparent 70%),
+    linear-gradient(180deg, rgba(20, 12, 36, 0.55), rgba(8, 4, 16, 0.7));
+  box-shadow: inset 0 0 0 1px var(--lm-hairline), inset 0 1px 0 rgba(255, 245, 230, 0.05), var(--lm-shadow-2);
+}
+.php-instr__head { display: flex; justify-content: center; padding: 8px 10px 0; }
+.php-instr__body { position: relative; flex: 1; min-height: 180px; }
+.php-instr__body > .php-phoropter { position: absolute; inset: 4px 8px; width: calc(100% - 16px); height: calc(100% - 8px); }
+
+.php-slip {
+  display: flex; align-items: center; gap: 12px; padding: 5px 12px; border-radius: 8px; max-width: 100%; overflow: hidden;
+  background: linear-gradient(180deg, #f8f0dd, #eadbbb); color: #3a2410;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.8), inset 0 -1px 0 rgba(120, 80, 30, 0.25);
+  font-size: 0.74rem; white-space: nowrap; transform: rotate(-0.6deg);
+}
+.php-slip__k { font: 700 0.62rem/1 var(--lm-font-ui); letter-spacing: 0.13em; text-transform: uppercase; color: #8a5a1c; }
+.php-slip__v { font-family: var(--lm-font-num); font-variant-numeric: tabular-nums; }
+.php-slip__v b { color: #8a5a1c; margin-right: 2px; }
+
+/* refractor SVG */
+.php-phoropter { display: block; width: 100%; height: 100%; max-height: 100%; overflow: visible; user-select: none; }
+.php-tick { stroke: rgba(255, 236, 200, 0.4); stroke-width: 1; }
+.php-tick--major { stroke: rgba(255, 226, 170, 0.85); stroke-width: 1.6; }
+.php-scale-num { font: 600 9px var(--lm-font-num, sans-serif); fill: rgba(255, 232, 190, 0.75); }
+.php-win rect { fill: #0b0812; stroke: rgba(255, 214, 140, 0.45); stroke-width: 1; }
+.php-win__k { font: 700 9px var(--lm-font-ui); fill: rgba(255, 214, 140, 0.7); letter-spacing: 0.1em; }
+.php-win__v { font: 700 12.5px var(--lm-font-num, sans-serif); fill: #fff4da; }
+.php-eye-label { font: 600 15px var(--lm-font-display, serif); fill: rgba(255, 232, 190, 0.55); letter-spacing: 0.12em; transition: fill var(--lm-dur-ui); }
+.php-pd { font: 700 9px var(--lm-font-num); fill: rgba(42, 26, 5, 0.85); letter-spacing: 0.08em; }
+.php-bat__aura { fill: url(#php-aura); opacity: 0; transition: opacity var(--lm-dur-med) var(--lm-ease-out); }
+.php-bat.is-on .php-bat__aura { opacity: 1; animation: php-breathe 3.6s ease-in-out infinite; }
+.php-bat.is-on .php-eye-label { fill: var(--lm-gold); }
+.php-fade { transition: opacity var(--lm-dur-med) var(--lm-ease-out), stroke-width var(--lm-dur-med) var(--lm-ease-out), r var(--lm-dur-med) var(--lm-ease-out); }
+.php-cyl-line { stroke: rgba(196, 181, 253, 0.55); stroke-width: 1.4; stroke-dasharray: 4 3; }
+.php-needle path { fill: var(--php-ice); filter: drop-shadow(0 0 3px rgba(125, 211, 252, 0.8)); }
+.php-dot { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.8; }
+.php-dot--red { fill: #f43f5e; filter: drop-shadow(0 0 3px rgba(244, 63, 94, 0.9)); }
+.php-dot--white { fill: #fdfaf2; }
+.php-jcc { opacity: 0; transform: translateY(-36px) scale(0.92); pointer-events: none;
+  transition: opacity var(--lm-dur-med) var(--lm-ease-out), transform var(--lm-dur-med) var(--lm-ease-spring-soft); }
+.php-jcc.is-in { opacity: 1; transform: none; }
+.php-jcc__flip { animation: php-flip 260ms var(--lm-ease-out) both; transform-box: fill-box; transform-origin: center; }
+.php-prism { opacity: 0; transition: opacity var(--lm-dur-med) var(--lm-ease-out); }
+.php-prism.is-in { opacity: 1; }
+.php-prism__t { font: 700 9px var(--lm-font-num); fill: rgba(200, 235, 255, 0.9); letter-spacing: 0.06em; }
+.php-occ { transform: translateX(var(--php-occ-x, 120px)); opacity: 0;
+  transition: transform var(--lm-dur-med) var(--lm-ease-out), opacity var(--lm-dur-med) var(--lm-ease-out); }
+.php-occ.is-in { transform: none; opacity: 1; }
+.php-occ__t { font: 700 12px var(--lm-font-num); fill: rgba(255, 220, 160, 0.4); letter-spacing: 0.2em; }
+.php-badge circle { fill: rgba(11, 7, 22, 0.85); stroke: var(--lm-gold); stroke-width: 2; filter: drop-shadow(0 0 10px rgba(255, 210, 122, 0.6)); }
+.php-badge text { font: 700 26px var(--lm-font-display, serif); fill: var(--lm-gold); }
+.php-badge { animation: php-pop 320ms var(--lm-ease-spring) both; transform-box: fill-box; transform-origin: center; }
+
+/* control deck */
+.php-deck {
+  display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;
+  padding: 10px 14px 12px; border-top: 1px solid var(--lm-hairline);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.32));
+  border-radius: 0 0 var(--lm-r-lg, 20px) var(--lm-r-lg, 20px);
+}
+.php-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; }
+.php-toggle {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 0 12px;
+  border: 0; border-radius: 10px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  background: rgba(255, 245, 230, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.14);
+  transition: background var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-ui) var(--lm-ease-out);
+}
+.php-toggle:hover:not(:disabled) { background: rgba(255, 245, 230, 0.09); }
+.php-toggle.is-on { background: rgba(255, 210, 122, 0.14); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.7), 0 0 18px -4px rgba(255, 210, 122, 0.55); }
+.php-toggle:disabled { opacity: 0.55; cursor: default; }
+.php-toggle:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
+.php-duo-swatch {
+  width: 18px; height: 12px; border-radius: 3px; flex: none;
+  background: linear-gradient(90deg, #b3122a 50%, #0f7a3c 50%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.php-nudges { display: flex; flex-direction: column; gap: 6px; }
+.php-nudge { display: flex; align-items: center; gap: 6px; }
+.php-nudge__eye { width: 26px; font: 700 0.8rem var(--lm-font-num); color: var(--lm-gold); }
+.php-nudge button {
+  min-height: 32px; padding: 0 9px; border: 0; border-radius: 8px; cursor: pointer;
+  font: 600 0.78rem var(--lm-font-num) !important;
+  background: rgba(255, 245, 230, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.14);
+}
+.php-nudge button:hover:not(:disabled) { background: rgba(255, 245, 230, 0.12); }
+.php-nudge button:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
+.php-nudge output { min-width: 50px; text-align: center; font-weight: 700; }
+
+/* ── brass dial ─────────────────────────────────────────────────────────── */
+.php-dial { --php-accent: var(--lm-gold); display: flex; align-items: center; gap: 10px; }
+.php-dial__knob {
+  position: relative; width: 74px; height: 74px; flex: none; border-radius: 50%; cursor: grab; touch-action: none; outline: none;
+  transition: filter var(--lm-dur-ui) var(--lm-ease-out), transform var(--lm-dur-fast) var(--lm-ease-out);
+}
+.php-dial--lg .php-dial__knob { width: 92px; height: 92px; }
+.php-dial__knob svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.php-dial__knob:hover { filter: brightness(1.08); }
+.php-dial__knob.is-grabbed { cursor: grabbing; transform: scale(0.97); }
+.php-dial__knob:focus-visible { box-shadow: 0 0 0 2px var(--lm-ink-900, #0b0716), 0 0 0 4px var(--php-accent), 0 0 22px 4px color-mix(in srgb, var(--php-accent) 45%, transparent); }
+.php-dial__shadow { fill: rgba(0, 0, 0, 0.55); filter: blur(3px); transform: translateY(3px); }
+.php-dial__rim { fill: #1a1024; stroke: color-mix(in srgb, var(--php-accent) 55%, #5a3a0c); stroke-width: 1.5; }
+.php-dial__rot { transform-origin: 50px 50px; transition: transform 160ms var(--lm-ease-out); }
+.php-dial__knurl line { stroke: #b78633; stroke-width: 2.2; stroke-linecap: round; }
+.php-dial__face { stroke: #5a3a0c; stroke-width: 1; }
+.php-dial__groove { fill: none; stroke: rgba(60, 34, 4, 0.55); stroke-width: 1.2; }
+.php-dial__cap { stroke: rgba(255, 226, 170, 0.4); stroke-width: 1; }
+.php-dial__mark { fill: var(--php-accent); stroke: rgba(30, 16, 2, 0.7); stroke-width: 0.8; filter: drop-shadow(0 0 4px var(--php-accent)); }
+.php-dial__mark--tail { opacity: 0.55; }
+.php-dial__gloss { fill: rgba(255, 255, 255, 0.2); pointer-events: none; }
+.php-dial__meta { display: flex; flex-direction: column; gap: 1px; min-width: 74px; }
+.php-dial__label { font: 700 0.64rem/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-muted); }
+.php-dial__value {
+  font: 700 1.28rem/1.1 var(--lm-font-num); font-variant-numeric: tabular-nums; color: var(--lm-ivory);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--php-accent) 45%, transparent);
+}
+.php-dial--lg .php-dial__value { font-size: 1.55rem; }
+.php-dial__sub { font-size: 0.68rem; color: var(--lm-muted-2, #7d6f95); }
+.php-dial.is-disabled .php-dial__knob { cursor: not-allowed; filter: saturate(0.4) brightness(0.7); }
+.php-dial.is-disabled .php-dial__value { color: var(--lm-muted); text-shadow: none; }
+
+/* ── patient view column ────────────────────────────────────────────────── */
+.php-view { display: flex; flex-direction: column; gap: 8px; min-height: 0; min-width: 0; }
+.php-patient { display: flex; align-items: flex-start; gap: 10px; min-height: 76px; }
+.php-patient__avatar { flex: none; width: 64px; height: 64px; border-radius: 50%; filter: drop-shadow(0 0 14px rgba(255, 210, 122, 0.25)); }
+.php-patient__say { flex: 1; min-width: 0; }
+.php-patient__say .lm-speech { padding: 9px 13px 10px; border-radius: 16px; }
+.php-patient__say .lm-speech__text { font-size: 0.98rem; line-height: 1.35; }
+.php-patient__say .lm-speech__speaker { margin-bottom: 2px; }
+.php-you {
+  margin: 8px 0 0; padding: 9px 13px; border-radius: 14px; font: italic 500 0.96rem/1.3 var(--lm-font-display, serif);
+  color: var(--lm-gold-200, #ffe7b3); background: rgba(255, 210, 122, 0.07); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.25);
+  animation: php-fade-in var(--lm-dur-ui) var(--lm-ease-out) both;
+}
+.php-thinking { display: inline-flex; gap: 5px; margin: 18px 0 0 6px; padding: 10px 14px; border-radius: 14px; background: rgba(248, 241, 229, 0.9); }
+.php-thinking span { width: 7px; height: 7px; border-radius: 50%; background: #8a5a1c; animation: php-dot 1s ease-in-out infinite; }
+.php-thinking span:nth-child(2) { animation-delay: 0.15s; }
+.php-thinking span:nth-child(3) { animation-delay: 0.3s; }
+
+.php-view__label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 4px; }
+.php-view__va { font-size: 0.78rem; color: var(--lm-muted); white-space: nowrap; }
+.php-view__va b { color: var(--lm-ivory); font-size: 0.9rem; }
+
+/* the projected chart inside a brass bezel */
+.php-chart {
+  position: relative; flex: 1; min-height: 150px; border-radius: 14px; overflow: hidden;
+  background: #efe9de;
+  box-shadow:
+    0 0 0 3px #1a0f24, 0 0 0 5px rgba(230, 185, 96, 0.75), 0 0 0 6px rgba(60, 34, 4, 0.9),
+    0 24px 50px -18px rgba(0, 0, 0, 0.9), 0 0 60px -10px rgba(255, 230, 180, 0.22);
+  margin: 6px;
+}
+.php-chart__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.php-chart__vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(120% 95% at 50% 45%, transparent 58%, rgba(30, 18, 40, 0.38) 100%),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.12), transparent 30%);
+}
+.php-chart__labels { position: absolute; inset: 0 auto 0 0; width: 0; pointer-events: none; }
+.php-chart__labels span {
+  position: absolute; left: 7px; transform: translateY(-50%); white-space: nowrap;
+  font: 600 9px var(--lm-font-num); letter-spacing: 0.04em; color: rgba(70, 50, 40, 0.5);
+}
+.php-chart__labels--balance { inset: 0; width: auto; }
+.php-chart__labels--balance span { left: 50%; transform: translate(-50%, -50%); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(70, 50, 40, 0.6); }
+.php-chart__dark { position: absolute; inset: 0; display: grid; place-items: center; color: var(--lm-muted-2); font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; }
+.php-chart__badge {
+  position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
+  font: 700 1.4rem/1 var(--lm-font-display, serif); color: var(--lm-gold);
+  background: rgba(11, 7, 22, 0.85); box-shadow: 0 0 0 2px var(--lm-gold), 0 0 18px rgba(255, 210, 122, 0.6);
+  animation: php-pop 320ms var(--lm-ease-spring) both;
+}
+
+.php-asks { display: flex; gap: 8px; padding: 2px 6px 0; }
+.php-asks .php-ask { flex: 1; }
+.php-ask__n {
+  display: inline-grid; place-items: center; padding: 1px 7px; border-radius: 999px; margin-right: 2px;
+  font: 700 0.72rem/1.4 var(--lm-font-num); color: var(--lm-text-on-gold); background: var(--lm-gold);
+}
+
+/* ── footer ─────────────────────────────────────────────────────────────── */
+.php-foot {
+  display: flex; align-items: center; gap: 14px; padding: 9px 16px;
+  padding-bottom: max(9px, var(--lm-safe-bottom, 0px));
+  border-top: 1px solid var(--lm-hairline);
+  background: linear-gradient(0deg, rgba(30, 18, 54, 0.85), rgba(16, 9, 30, 0.4));
+}
+.php-progress { flex: 1; display: flex; gap: 16px; flex-wrap: wrap; min-width: 0; }
+.php-pips { display: flex; align-items: center; gap: 4px; opacity: 0.72; transition: opacity var(--lm-dur-ui); }
+.php-pips.is-active { opacity: 1; }
+.php-pips__eye { margin-right: 4px; font: 700 0.8rem var(--lm-font-num); color: var(--lm-gold); }
+.php-pip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px 3px 5px; border-radius: 999px;
+  font-size: 0.68rem; color: var(--lm-muted); background: rgba(255, 245, 230, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.08);
+  transition: color var(--lm-dur-ui), background var(--lm-dur-ui), box-shadow var(--lm-dur-ui);
+}
+.php-pip i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 236, 210, 0.2); transition: background var(--lm-dur-ui), box-shadow var(--lm-dur-ui); }
+.php-pip.is-done { color: var(--lm-ivory); background: rgba(94, 234, 212, 0.08); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.35); }
+.php-pip.is-done i { background: var(--lm-normal); box-shadow: 0 0 8px var(--lm-normal); animation: php-pop 360ms var(--lm-ease-spring) both; }
+.php-steps { font-size: 0.82rem; color: var(--lm-muted); white-space: nowrap; }
+
+/* ── overlays (tutorial, debrief) ───────────────────────────────────────── */
+.php-tut, .php-debrief {
+  position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px;
+  background: radial-gradient(80% 80% at 50% 45%, rgba(20, 10, 40, 0.55), rgba(5, 2, 10, 0.84));
+  backdrop-filter: blur(4px);
+  animation: php-fade-in var(--lm-dur-med) var(--lm-ease-out) both;
+}
+.php-tut__card, .php-debrief__card {
+  position: relative; width: min(460px, 100%); max-height: 100%; overflow: auto; padding: 22px 24px 18px; border-radius: var(--lm-r-xl, 28px);
+  background: var(--lm-glass-bg-strong); box-shadow: inset 0 0 0 1px var(--lm-glass-border-hi), var(--lm-glass-highlight), var(--lm-shadow-3), var(--lm-glow-soft);
+  animation: php-rise var(--lm-dur-reveal) var(--lm-ease-out-expo) both;
+}
+.php-tut__card::before, .php-debrief__card::before {
+  content: ''; position: absolute; inset: 0 0 auto; height: 3px; border-radius: 28px 28px 0 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 210, 122, 0.85), transparent);
+}
+.php-tut__title { margin: 6px 0 8px; font: 560 1.45rem/1.15 var(--lm-font-display, serif); }
+.php-tut__body { margin: 0; color: var(--lm-ivory-dim); line-height: 1.55; font-size: 0.93rem; }
+.php-tut__keys { display: flex; gap: 6px; margin: 12px 0 0; }
+.php-tut__dots { display: flex; gap: 6px; justify-content: center; margin: 16px 0 12px; }
+.php-tut__dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 236, 210, 0.2); transition: all var(--lm-dur-ui) var(--lm-ease-out); }
+.php-tut__dots span.is-on { width: 22px; border-radius: 4px; background: var(--lm-gold); box-shadow: 0 0 10px rgba(255, 210, 122, 0.6); }
+.php-tut__actions { display: flex; justify-content: space-between; gap: 8px; }
+
+.php-debrief__card { width: min(640px, 100%); padding: 22px 24px 20px; }
+.php-challenge { display: flex; flex-direction: column; gap: 10px; }
+.php-challenge__q { margin: 0; font: 520 1.15rem/1.35 var(--lm-font-display, serif); }
+.php-challenge__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.php-opt {
+  display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 8px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: left;
+  font-size: 0.86rem; line-height: 1.3; background: rgba(255, 245, 230, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.14);
+  transition: background var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-ui) var(--lm-ease-out), transform var(--lm-dur-fast) var(--lm-ease-out);
+}
+.php-opt:hover:not(:disabled) { background: rgba(255, 245, 230, 0.1); transform: translateY(-1px); }
+.php-opt:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
+.php-opt:disabled { cursor: default; }
+.php-opt__key {
+  flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px;
+  font: 700 0.72rem var(--lm-font-num); color: var(--lm-gold); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.45);
+}
+.php-opt.is-right { background: rgba(94, 234, 212, 0.13); box-shadow: inset 0 0 0 1.5px var(--lm-normal), 0 0 18px -4px rgba(94, 234, 212, 0.6); animation: php-pop 360ms var(--lm-ease-spring) both; }
+.php-opt.is-wrong { background: rgba(244, 63, 94, 0.12); box-shadow: inset 0 0 0 1.5px var(--lm-critical); animation: php-shake 360ms var(--lm-ease-out) both; }
+.php-challenge__explain {
+  display: flex; gap: 8px; align-items: flex-start; margin: 2px 0 6px; padding: 10px 12px; border-radius: 12px; font-size: 0.86rem; line-height: 1.5;
+  color: var(--lm-ivory-dim); background: rgba(251, 191, 36, 0.08); box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.3);
+  animation: php-fade-in var(--lm-dur-med) var(--lm-ease-out) both;
+}
+.php-challenge__explain.is-right { background: rgba(94, 234, 212, 0.08); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.3); }
+.php-challenge__explain svg { flex: none; margin-top: 2px; }
+
+.php-result { display: flex; flex-direction: column; gap: 14px; animation: php-rise var(--lm-dur-reveal) var(--lm-ease-out-expo) both; }
+.php-challenge + .php-result { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--lm-hairline); }
+.php-result__head { display: flex; align-items: center; gap: 16px; }
+.php-result__pct { font: 700 1.35rem var(--lm-font-num); }
+.php-result__title { margin: 4px 0 0; font: 560 1.3rem/1.2 var(--lm-font-display, serif); }
+.php-result__eyes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.php-rx {
+  position: relative; padding: 10px 12px; border-radius: 14px; background: rgba(8, 4, 16, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1);
+}
+.php-rx.is-exact { box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.55), 0 0 20px -6px rgba(255, 210, 122, 0.5); }
+.php-rx__eye { font: 700 0.9rem var(--lm-font-num); color: var(--lm-gold); margin-bottom: 4px; }
+.php-rx dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; font-size: 0.8rem; }
+.php-rx dt { color: var(--lm-muted); }
+.php-rx dd { margin: 0; text-align: right; white-space: nowrap; }
+.php-rx__err { display: flex; gap: 6px; margin-top: 8px; }
+.php-rx__err span { padding: 2px 8px; border-radius: 999px; font: 600 0.7rem var(--lm-font-num); }
+.php-rx__err .ok { color: var(--lm-normal); background: rgba(94, 234, 212, 0.1); }
+.php-rx__err .off { color: var(--lm-abnormal); background: rgba(251, 191, 36, 0.1); }
+.php-lessons { margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 5px; font-size: 0.84rem; line-height: 1.5; color: var(--lm-ivory-dim); }
+.php-lessons li::marker { color: var(--lm-gold); }
+.php-result__foot { display: flex; justify-content: flex-end; }
+
+/* ── motion ─────────────────────────────────────────────────────────────── */
+@keyframes php-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes php-rise { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes php-pop { 0% { opacity: 0; transform: scale(0.6); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes php-flip { 0% { transform: rotateY(90deg); opacity: 0.4; } 100% { transform: none; opacity: 1; } }
+@keyframes php-breathe { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes php-dot { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-4px); opacity: 1; } }
+@keyframes php-shake { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+.php-root.is-reduced *, .php-root.is-reduced *::before, .php-root.is-reduced *::after {
+  animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .php-root *, .php-root *::before, .php-root *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+}
+
+/* ── compact / phone (container width) ─────────────────────────────────── */
+@container php (max-width: 820px) {
+  .php-stage { grid-template-columns: minmax(0, 1fr) minmax(260px, 0.85fr); gap: 10px; padding: 10px; }
+  .php-dial--lg .php-dial__knob { width: 80px; height: 80px; }
+  .php-dial__knob { width: 66px; height: 66px; }
+  .php-deck { gap: 12px; }
+}
+@container php (max-width: 680px) {
+  .php-head { flex-wrap: wrap; gap: 6px 10px; padding: 8px 12px; }
+  .php-head__title { font-size: 0.98rem; }
+  .php-head__hint { order: 3; flex-basis: 100%; padding: 0; border: 0; font-size: 0.8rem; }
+  .php-head .php-seg { margin-left: auto; }
+  .php-stage { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; overscroll-behavior: contain; padding: 8px 10px 12px; }
+  .php-instr, .php-view { display: contents; }
+  .php-patient { order: 1; min-height: 0; }
+  .php-stage > *, .php-instr > *, .php-view > * { flex-shrink: 0; }
+  .php-patient {
+    position: sticky; top: -8px; z-index: 3; margin: -8px -10px 0; padding: 8px 10px 8px;
+    background: linear-gradient(180deg, rgba(14, 8, 25, 0.97) 80%, rgba(14, 8, 25, 0));
+  }
+  .php-head .php-seg__b { padding: 0 10px; }
+  .php-view__label { order: 2; }
+  .php-chart { order: 3; flex: none; height: 200px; min-height: 0; margin: 4px; }
+  .php-asks { order: 4; }
+  .php-deck { order: 5; border-radius: 16px; border: 0; background: linear-gradient(180deg, rgba(20, 12, 36, 0.6), rgba(8, 4, 16, 0.75)); box-shadow: inset 0 0 0 1px var(--lm-hairline); gap: 10px 14px; padding: 10px; }
+  .php-instr__body { order: 6; flex: none; padding: 0; }
+  .php-instr__head { order: 7; padding: 0; }
+  .php-dial { flex-direction: column; gap: 4px; text-align: center; }
+  .php-dial__meta { align-items: center; min-width: 0; }
+  .php-dial__sub { display: none; }
+  .php-dial--lg .php-dial__knob, .php-dial__knob { width: 72px; height: 72px; }
+  .php-dial--lg .php-dial__value, .php-dial__value { font-size: 1.1rem; }
+  .php-tools { flex-direction: row; flex-wrap: wrap; justify-content: center; flex-basis: 100%; }
+  .php-tools .lm-kbd { display: none; }
+  .php-asks .lm-kbd { display: none; }
+  .php-foot { gap: 10px; padding: 8px 10px; padding-bottom: max(8px, var(--lm-safe-bottom, 0px)); }
+  .php-progress { gap: 4px; flex-direction: column; }
+  .php-pip { padding: 2px 5px 2px 4px; font-size: 0.6rem; }
+  .php-steps { display: none; }
+  .php-challenge__opts, .php-result__eyes { grid-template-columns: 1fr; }
+  .php-tut__card, .php-debrief__card { padding: 18px 16px 14px; }
+}
+@container php (max-width: 400px) {
+  .php-pip { font-size: 0; gap: 0; padding: 4px; }
+  .php-pip i { width: 8px; height: 8px; }
+  .php-slip { font-size: 0.66rem; gap: 8px; }
+}

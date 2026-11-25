@@ -41,6 +41,8 @@ export function Tutorial(props: { steps: TutorialStep[]; onClose(): void }) {
 export function ChallengeCard(props: {
   challenge: Challenge;
   summary: { label: string; value: string; ok: boolean | null }[];
+  /** Technique notes shown under the summary */
+  notes?: string[];
   onAnswer(correct: boolean): void;
   onFinish(): void;
 }) {
@@ -63,6 +65,11 @@ export function ChallengeCard(props: {
             </li>
           ))}
         </ul>
+        {props.notes && props.notes.length > 0 && (
+          <ul class="va-quiz__notes">
+            {props.notes.slice(0, 4).map((n) => <li key={n}>{n}</li>)}
+          </ul>
+        )}
         <h3 class="va-quiz__prompt">{c.prompt}</h3>
         <div class="va-quiz__opts" ref={firstRef}>
           {c.options.map((o, i) => {

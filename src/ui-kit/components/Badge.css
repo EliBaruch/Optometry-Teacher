@@ -26,3 +26,5 @@
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 70%, transparent); }
   70%, 100% { box-shadow: 0 0 0 6px transparent; }
 }
+/* Lite rendering: the ping repaints a shadow every frame; pulse a few times, then rest. */
+html.lm-lite .lm-badge__dot { animation-iteration-count: 3; }

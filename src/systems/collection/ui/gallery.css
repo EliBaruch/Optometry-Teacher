@@ -13,14 +13,14 @@
 .gs-content { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; width: 100%; box-sizing: border-box; }
 
 /* soft ceiling spotlights sweeping the wall */
-.gs-lights { position: absolute; inset: 0 0 auto 0; height: 720px; pointer-events: none; z-index: 0; overflow: hidden; }
+.gs-lights { position: absolute; inset: 0 0 auto 0; height: 600px; pointer-events: none; z-index: 0; overflow: hidden; }
 .gs-lights span {
-  position: absolute; top: -40px; left: calc(8% + var(--i) * 21%); width: 340px; height: 760px; margin-left: -170px;
+  position: absolute; top: -40px; left: calc(18% + var(--i) * 32%); width: 380px; height: 640px; margin-left: -190px;
   background: conic-gradient(from 180deg at 50% 0%, transparent 162deg, rgba(255, 228, 180, 0.06) 172deg, rgba(255, 236, 205, 0.1) 180deg, rgba(255, 228, 180, 0.06) 188deg, transparent 198deg);
   transform-origin: 50% 0;
   will-change: transform;
   animation: gs-sweep 14s var(--lm-ease-in-out) infinite alternate;
-  animation-delay: calc(var(--i) * -3.1s);
+  animation-delay: calc(var(--i) * -4.7s);
 }
 @keyframes gs-sweep { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
 
@@ -29,8 +29,8 @@
   position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: var(--lm-sp-6); align-items: center;
   padding: var(--lm-sp-5) var(--lm-sp-6); margin-bottom: var(--lm-sp-5);
   border-radius: var(--lm-r-xl);
-  background: var(--lm-glass-sheen), var(--lm-glass-bg);
-  backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  /* opaque glass: the spotlights sweep behind it, so no live backdrop blur */
+  background: var(--lm-glass-sheen), linear-gradient(180deg, rgba(36, 22, 60, 0.92), rgba(18, 10, 32, 0.94));
   box-shadow: var(--lm-glass-highlight), inset 0 0 0 1px rgba(244, 114, 182, 0.22), 0 0 60px -20px rgba(244, 114, 182, 0.35), var(--lm-shadow-2);
   animation: lm-fade-up var(--lm-dur-reveal) var(--lm-ease-out-expo) both;
 }
@@ -93,7 +93,12 @@
 .gs-empty strong { color: var(--lm-ivory); }
 
 /* ── rooms & wall ──────────────────────────────────────────────────────── */
-.gs-room { --c: #f472b6; margin-bottom: var(--lm-sp-8); }
+.gs-room {
+  --c: #f472b6; --gs-bleed: 28px;
+  /* off-screen rooms skip rendering; the bleed keeps glows and lamp light un-clipped */
+  content-visibility: auto; contain-intrinsic-size: auto 640px;
+  padding: 0 var(--gs-bleed) var(--gs-bleed); margin: 0 calc(var(--gs-bleed) * -1) calc(var(--lm-sp-8) - var(--gs-bleed));
+}
 .gs-room__head {
   display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin-bottom: var(--lm-sp-4); padding-bottom: 10px;
   border-bottom: 1px solid transparent;
@@ -125,6 +130,8 @@
 
 /* ── inspector ─────────────────────────────────────────────────────────── */
 .gi-modal .lm-modal__title { font-family: var(--lm-font-display); }
+/* a definite cap (the kit's percentage cap is ignored while the grid sizes its row, which pushes tall panels off-centre) */
+.lm-modal.gi-modal .lm-modal__panel { max-height: min(88vh, calc(100dvh - 24px)); }
 .gi { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; min-height: 0; max-height: calc(88vh - 90px); }
 .gi-stage {
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--lm-sp-5);
@@ -169,7 +176,7 @@
 .go p { margin: 0; }
 .go strong { color: var(--lm-ivory); }
 .go-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: center; border-radius: var(--lm-r-md); overflow: hidden; box-shadow: inset 0 0 0 1px var(--lm-hairline); }
-.go-table caption { text-align: left; font: 700 11px/1 var(--lm-font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--lm-gold); padding-bottom: 10px; }
+.go-caption { margin: 0 0 calc(var(--lm-sp-4) * -1 + 10px); font: 700 11px/1 var(--lm-font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--lm-gold); }
 .go-table th, .go-table td { padding: 9px 8px; border-bottom: 1px solid var(--lm-hairline); }
 .go-table thead th { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255, 255, 255, 0.04); }
 .go-table tbody th { font: 700 var(--lm-fs-md)/1 var(--lm-font-num); color: var(--lm-gold); }
@@ -193,9 +200,11 @@
   .gs-tally li { min-width: 0; }
   .gs-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--lm-sp-6) var(--lm-sp-3); }
   .gs-lights span { width: 220px; margin-left: -110px; }
+  .gs-lights span:nth-child(2) { display: none; }
+  .gs-room { --gs-bleed: 12px; }
   .gs-room__seal { margin-left: 0; width: 100%; }
   .gi-stage { padding: var(--lm-sp-4); }
-  .gi-card { --gc-w: min(260px, 66vw); }
+  .gi-card { --gc-w: min(232px, 60vw); }
   .gi-info { padding: var(--lm-sp-4); }
 }
 

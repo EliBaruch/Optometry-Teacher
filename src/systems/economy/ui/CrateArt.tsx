@@ -43,6 +43,33 @@ export function CrateArt(props: { kind: CrateKind; size?: number | string; class
           <stop offset="0.4" stop-color={spec.trim} stop-opacity=".9" />
           <stop offset="1" stop-color={spec.trim} stop-opacity="0" />
         </radialGradient>
+        <linearGradient id={`${id}-shaft`} x1="0" y1="84" x2="0" y2="-60" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#fffbe8" stop-opacity=".95" />
+          <stop offset="0.25" stop-color={spec.trim} stop-opacity=".55" />
+          <stop offset="1" stop-color={spec.trim} stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id={`${id}-ao`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#000" stop-opacity=".7" />
+          <stop offset="1" stop-color="#000" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id={`${id}-rim`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color={spec.trim} stop-opacity="0" />
+          <stop offset="0.3" stop-color="#fff6d6" stop-opacity=".75" />
+          <stop offset="0.7" stop-color={spec.trim} stop-opacity=".45" />
+          <stop offset="1" stop-color={spec.trim} stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id={`${id}-sheen`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#fff" stop-opacity="0" />
+          <stop offset="0.5" stop-color="#fff" stop-opacity=".85" />
+          <stop offset="1" stop-color="#fff" stop-opacity="0" />
+        </linearGradient>
+        <clipPath id={`${id}-metal`}>
+          <rect x="52" y="58" width="12" height="110" />
+          <rect x="136" y="58" width="12" height="110" />
+          <rect x="82" y="94" width="36" height="38" rx="7" />
+          <rect x="88" y="70" width="24" height="18" rx="4" />
+          <path d="M30 152 h16 v16 h-11 a5 5 0 0 1 -5 -5 z M170 152 h-16 v16 h11 a5 5 0 0 0 5 -5 z" />
+        </clipPath>
         <pattern id={`${id}-grain`} width="140" height="12" patternUnits="userSpaceOnUse">
           <path d="M0 3 Q35 1 70 4 T140 3 M0 8 Q40 10 80 7 T140 9" stroke="#000" stroke-opacity=".18" fill="none" stroke-width=".8" />
         </pattern>
@@ -67,9 +94,25 @@ export function CrateArt(props: { kind: CrateKind; size?: number | string; class
         <rect x="82" y="94" width="36" height="38" rx="7" fill={`url(#${id}-brass)`} />
         <rect x="85" y="97" width="30" height="32" rx="5" fill="#2a1606" opacity=".55" />
         <path d={glyph} fill={spec.trim} class="eco-crate__emblem" />
+        {/* ambient occlusion under the lid overhang + a warm rim light along the edges */}
+        <rect x="30" y="84" width="140" height="12" fill={`url(#${id}-ao)`} />
+        <path d="M31 90 V160" stroke={`url(#${id}-rim)`} stroke-width="1.2" opacity=".5" />
         <rect x="30" y="84" width="140" height="84" rx="5" fill="none" stroke="#000" stroke-opacity=".5" />
       </g>
 
+      {/* light shafts escaping under the lid as the crate strains */}
+      <g class="eco-crate__shafts" fill={`url(#${id}-shaft)`}>
+        <path d="M40 84 L-6 -50 L22 -50 L52 84 Z" />
+        <path d="M70 84 L46 -60 L66 -60 L80 84 Z" />
+        <path d="M94 84 L88 -70 L112 -70 L106 84 Z" />
+        <path d="M120 84 L134 -60 L154 -60 L130 84 Z" />
+        <path d="M148 84 L178 -50 L206 -50 L160 84 Z" />
+      </g>
+      {/* light leaking through the plank gaps and the keyhole */}
+      <g class="eco-crate__cracks" stroke="#fff6d6" stroke-linecap="round">
+        <path d="M66 112 H82 M118 112 H134 M66 140 H134" stroke-width="1.6" />
+      </g>
+      <circle class="eco-crate__keyhole" cx="100" cy="79" r="5" fill="#fff6d6" />
       {/* light leaking through the seam */}
       <rect class="eco-crate__seam" x="32" y="81" width="136" height="5" rx="2.5" fill="#fff6d6" />
 
@@ -87,6 +130,13 @@ export function CrateArt(props: { kind: CrateKind; size?: number | string; class
         <rect x="88" y="70" width="24" height="18" rx="4" fill={`url(#${id}-brass)`} />
         <circle cx="100" cy="79" r="3" fill="#2a1606" />
         <rect x="24" y="58" width="152" height="26" rx="4" fill="none" stroke="#000" stroke-opacity=".5" />
+        <path d="M40 40.6 H160" stroke={`url(#${id}-rim)`} stroke-width="1.4" />
+        <path d="M25 58.6 H175" stroke={`url(#${id}-rim)`} stroke-width="1" opacity=".8" />
+        <rect x="24" y="80" width="152" height="4" rx="2" fill="#000" opacity=".28" />
+      </g>
+      {/* a slow specular sweep across every piece of brass */}
+      <g clip-path={`url(#${id}-metal)`} class="eco-crate__sheen-clip" aria-hidden="true">
+        <rect class="eco-crate__sheen" x="-30" y="40" width="30" height="140" fill={`url(#${id}-sheen)`} transform="skewX(-18)" />
       </g>
       {/* glints */}
       <path class="eco-crate__glint" d="M150 64 l2 -6 2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 z" fill="#fffbe8" />

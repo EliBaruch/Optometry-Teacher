@@ -273,3 +273,10 @@ export function pickPearl(pearls: readonly string[], seed: number): string | und
   if (!pearls.length) return undefined;
   return pearls[(seed >>> 0) % pearls.length];
 }
+
+/** The player's finest cards for showcases: rarest first, then most polished, then newest. */
+export function finestCards(state: CollectionState, n: number): OwnedCard[] {
+  return Object.values(state.cards)
+    .sort((a, b) => rarityRank(b.rarity) - rarityRank(a.rarity) || b.shine - a.shine || b.lastAt - a.lastAt)
+    .slice(0, Math.max(0, n));
+}

@@ -1,6 +1,8 @@
-import { URGENCIES } from '@core';
+import { ALL_TESTS, URGENCIES } from '@core';
 import { Button, GlassPanel, Icon, IconOrText, cx, palette } from '@ui-kit';
-import { URGENCY_LABEL, type ReviewModel } from './model';
+import { URGENCY_LABEL, testRef, type ReviewModel } from './model';
+
+const testName = (id: Parameters<typeof testRef>[0]) => testRef(id).name;
 
 const CATEGORY_WORD: Record<string, string> = {
   onset: 'Onset', symptoms: 'Symptoms', 'ocular-history': 'Eye history', medical: 'Medical', medications: 'Medications', family: 'Family', social: 'Lifestyle',
@@ -241,5 +243,47 @@ export function ReflectionCard({ review }: { review: ReviewModel }) {
         ))}
       </ol>
     </section>
+  );
+}
+
+/** Timeout: where the work-up had got to when the clock ran out, and the order that would have beaten it. */
+export function ClockPanel({ review, limitSec }: { review: ReviewModel; limitSec?: number }) {
+  const k = review.kase;
+  const essentials = k.essentialTests.length;
+  const keyQs = k.history.filter((h) => h.relevance === 'key').length;
+  const stats = [
+    { label: 'Essential tests', done: essentials - review.missedTests.length, of: essentials },
+    { label: 'Key questions', done: keyQs - review.unaskedKey.length, of: keyQs },
+  ];
+  return (
+    <GlassPanel class="rs-clock" strong padding="md" eyebrow="Where the clock stopped" title={limitSec ? `${Math.floor(limitSec / 60)}:${String(limitSec % 60).padStart(2, '0')} on the clock` : 'Time ran out'} icon="clock">
+      <div class="rs-clock__stats">
+        {stats.map((s) => (
+          <div key={s.label} class="rs-clock__stat">
+            <span class="rs-clock__num lm-num">
+              {s.done}
+              <small>/{s.of}</small>
+            </span>
+            <span class="rs-clock__label">{s.label}</span>
+            <span class="rs-clock__bar" aria-hidden="true">
+              <span style={{ width: `${s.of ? (100 * s.done) / s.of : 100}%` }} />
+            </span>
+          </div>
+        ))}
+      </div>
+      {essentials > 0 && (
+        <>
+          <h4 class="rs-teach__h">The essentials, in exam order</h4>
+          <ol class="rs-clock__route" role="list">
+            {[...k.essentialTests].sort((a, b) => ALL_TESTS.indexOf(a) - ALL_TESTS.indexOf(b)).map((t) => (
+              <li key={t} class={cx(review.missedTests.some((m) => m.id === t) && 'is-missed')}>
+                <IconOrText icon={t} />
+                <span>{testName(t)}</span>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+    </GlassPanel>
   );
 }

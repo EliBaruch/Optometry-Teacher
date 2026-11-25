@@ -67,3 +67,11 @@
 }
 @keyframes lm-stamp-glare { 0% { transform: translateX(-220%) skewX(-16deg); } 45%, 100% { transform: translateX(420%) skewX(-16deg); } }
 .lm-stamp--S .lm-stamp__svg { filter: drop-shadow(0 0 14px rgba(255, 210, 122, 0.6)) drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35)); }
+
+/* Off screen: freeze the decorative loops (no repaints for an invisible stamp). */
+.lm-stamp.is-idle .lm-stamp__rays, .lm-stamp.is-idle .lm-stamp__glare::before { animation-play-state: paused; }
+html.lm-lite .lm-stamp--S::before { filter: none; }
+/* Lite rendering (device could not keep up): rays land but do not spin; the glare sweeps twice, then rests. */
+html.lm-lite .lm-stamp__rays { animation: none; }
+html.lm-lite .lm-stamp.is-anim .lm-stamp__rays { animation: lm-stamp-rays-in 900ms var(--lm-ease-out-expo) calc(var(--d) + 290ms) both; }
+html.lm-lite .lm-stamp__glare::before { animation-iteration-count: 2; }

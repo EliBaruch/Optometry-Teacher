@@ -233,7 +233,7 @@ export function Phoropter(p: PhoropterProps) {
       <text x="214" y="61" text-anchor="end" class="php-pd">PD 64</text>
 
       {/* face opening between the batteries */}
-      <path d="M 278 330 C 278 268, 296 236, 320 232 C 344 236, 362 268, 362 330 Z" fill="#050309" stroke="url(#php-brass)" stroke-width="2.5" />
+      <path d="M 284 330 C 286 284, 300 252, 320 250 C 340 252, 354 284, 356 330" fill="rgba(5,3,9,0.92)" stroke="url(#php-brass)" stroke-width="2" />
 
       <Battery eye="OD" lens={p.lenses.OD} on={on('OD')} occluded={p.occluded.OD} jcc={jccEye === 'OD' ? p.jcc : null} jccRed={jccEye === 'OD' ? p.jccRed : null} flipKey={p.flipKey} prism={p.prism} />
       <Battery eye="OS" lens={p.lenses.OS} on={on('OS')} occluded={p.occluded.OS} jcc={jccEye === 'OS' ? p.jcc : null} jccRed={jccEye === 'OS' ? p.jccRed : null} flipKey={p.flipKey} prism={p.prism} />

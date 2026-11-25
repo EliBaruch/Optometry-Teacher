@@ -1,11 +1,12 @@
 import type { VNode } from 'preact';
 import { createRng } from '@core';
-import { luminance, mix, shade } from '../../fx/color';
+import { luminance, mix, shade } from '../color';
 import { CX, type Side } from '../geometry';
 import { GOLD } from '../palette';
 import { P, headPath, smooth, type Pt } from '../paths';
 import type { AttrMap } from '../rig';
 import type { PaintCtx } from './ctx';
+import { RimLight } from './rim';
 
 /** Soft radial falloff — a cheap stand-in for a blurred ellipse. */
 function softGrad(c: PaintCtx, name: string, color: string) {
@@ -45,11 +46,6 @@ export function faceDefs(c: PaintCtx) {
         <stop offset="0" stop-color="#fdfaf5" />
         <stop offset="0.7" stop-color="#efe6df" />
         <stop offset="1" stop-color="#d6c7c0" />
-      </radialGradient>
-      <radialGradient id={c.id('scleraRed')} gradientUnits="objectBoundingBox" cx="0.5" cy="0.55" r="0.62">
-        <stop offset="0" stop-color="#f9e2dc" />
-        <stop offset="0.55" stop-color="#f1b4ad" />
-        <stop offset="1" stop-color="#d9636a" />
       </radialGradient>
       <radialGradient id={c.id('iris')} gradientUnits="objectBoundingBox" cx="0.5" cy="0.5" r="0.5">
         <stop offset="0" stop-color={shade(c.spec.irisColor, 0.35)} />
@@ -108,7 +104,7 @@ export function Ears({ c }: { c: PaintCtx }) {
             <path d={e.outer} fill={side < 0 ? skin.shadow : skin.base} />
             <path d={e.outer} fill={skin.warm} opacity="0.35" />
             <path d={e.inner} fill="none" stroke={skin.deep} stroke-width="1.6" stroke-linecap="round" opacity="0.55" />
-            {side > 0 && <path d={e.outer} fill="none" stroke={GOLD} stroke-opacity="0.55" stroke-width="1" />}
+            {side > 0 && <RimLight c={c} name="ear" o={{ d: e.outer, dx: 1.6, dy: 0.6, cx: CX + c.g.headW + c.g.earW * 0.6, cy: c.g.earTop + 4, r: 16, opacity: 0.75 }} />}
           </g>
         );
       })}
@@ -145,8 +141,9 @@ export function Head({ c, a }: { c: PaintCtx; a: AttrMap }) {
         {/* chin highlight + soft shadow under the lower lip */}
         <ellipse cx={CX + 2} cy={g.chinY - 7} rx={(7) * 1.45} ry={(3.2) * 1.45} fill={`url(#${c.id('gLight')})`} opacity="0.22"/>
         <ellipse cx={CX} cy={g.mouthY + g.lipL * 2 + 3.2} rx={(g.mouthW * 0.5) * 1.45} ry={(1.7) * 1.45} fill={`url(#${c.id('gDeep')})`} opacity="0.28"/>
-        {/* rim light from the gold key */}
-        <path d={head} fill="none" stroke={`url(#${c.id('rim')})`} stroke-width="3.2" />
+        {/* soft bounce on the shadow side + tapered rim from the gold key */}
+        <RimLight c={c} name="bounce" o={{ d: head, dx: -2.4, dy: 0.4, cx: CX - g.cheekW, cy: ey + 16, r: 30, opacity: 0.22, color: '#b9a4ff' }} />
+        <RimLight c={c} name="head" o={{ d: head, dx: 2.6, dy: 1, cx: CX + g.headW + 1, cy: ey - 4, r: 44, opacity: 0.9 }} />
       </g>
     </g>
   );

@@ -61,7 +61,7 @@ export const THEMES: CatalogItem[] = [
   },
   {
     id: 'jade-lantern', kind: 'theme', name: 'Jade Lantern', rarity: 'epic', price: 900,
-    blurb: 'Lantern-lit jade — calm green, the colour of a healthy fundus filter.',
+    blurb: 'Lantern-lit jade — the calm green of a fundus camera’s red-free filter.',
     palette: { accent: '#a3efc9', deep: '#55cf98', pale: '#e9fff3', shade: '#2a7f5a', ink: '#06261a', sky: ['#1d4d4a', '#7ef0c0'] },
   },
   {
@@ -152,6 +152,8 @@ export const DAILY_PRACTICE_CAP = 200;
 export const PERFECT_BONUS = 25;
 /** Points of the efficiency score a single hint costs in core scoring. */
 export const HINT_POINTS = 20;
+/** Points of the efficiency score each unnecessary test costs in core scoring. */
+export const UNNECESSARY_TEST_POINTS = 25;
 export const MAX_UNOPENED = 30;
 /** Momentum milestones (consecutive correct diagnoses) that award a crate. */
 export const isMomentumMilestone = (n: number) => n === 3 || n === 5 || (n >= 10 && n % 5 === 0);

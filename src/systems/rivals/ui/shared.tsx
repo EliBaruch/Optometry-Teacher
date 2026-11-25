@@ -8,15 +8,19 @@ import type { RivalsState } from '../league';
 import type { Rival } from '../roster';
 import './rivals.css';
 
-/** Controller + live state + a clock that ticks so colleagues' points keep growing on screen. */
+/**
+ * Controller + the state as displayed now + a clock that ticks so colleagues' points keep growing
+ * on screen. The clock is re-read whenever the state changes (a case finished, a nudge fired), and a
+ * week that has just ended already reads as rolled (no last-week points against this week's field).
+ */
 export function useRivals(services: GameServices, tickMs = 30_000): { ctl: RivalsController; state: RivalsState; now: number } {
   const ctl = rivalsFor(services);
-  const state = useSignal(ctl.state);
-  const [now, setNow] = useState(() => ctl.now());
-  useInterval(() => setNow(ctl.now()), tickMs);
-  // Re-read the clock whenever the state changes (a case just finished).
-  const at = Math.max(now, state.last?.at ?? 0);
-  return { ctl, state, now: at };
+  const raw = useSignal(ctl.state);
+  const [tick, setTick] = useState(0);
+  useInterval(() => setTick((n) => n + 1), tickMs);
+  const now = useMemo(() => ctl.now(), [raw, tick]);
+  const state = useMemo(() => ctl.view(now), [raw, now]);
+  return { ctl, state, now };
 }
 
 const specCache = new Map<string, AvatarSpec>();

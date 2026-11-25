@@ -5,7 +5,7 @@
 import { createRng, type Grade, type ScoreBreakdown } from '@core';
 import {
   CATALOG, COIN_RANGE, CONTENT_ODDS, CRATES, DAILY_FULL_RATE, HINT_POINTS, HINT_TOKENS, PERFECT_BONUS, PITY_LIMIT,
-  RARITY_ORDER, type CatalogItem, type CrateKind, type Rarity,
+  RARITY_ORDER, UNNECESSARY_TEST_POINTS, type CatalogItem, type CrateKind, type Rarity,
 } from './catalog';
 
 /* ── Case fee ─────────────────────────────────────────────────────────── */
@@ -19,7 +19,7 @@ export interface FeeLine {
 }
 
 export interface FeeInput {
-  score: Pick<ScoreBreakdown, 'total' | 'max' | 'grade' | 'perfect' | 'diagnosisCorrect' | 'parts'>;
+  score: Pick<ScoreBreakdown, 'total' | 'max' | 'grade' | 'perfect' | 'diagnosisCorrect' | 'parts'> & Partial<Pick<ScoreBreakdown, 'unnecessaryTests'>>;
   /** Case difficulty 1..5 (unknown → 3). */
   difficulty?: number;
   /** Correct diagnoses in a row BEFORE this case. */
@@ -45,7 +45,10 @@ export function caseFee(input: FeeInput): FeeResult {
   const difficulty = clampInt(input.difficulty ?? 3, 1, 5);
   const max = Math.max(1, score.max);
   const eff = score.parts.find((p) => p.id === 'efficiency');
-  const restored = eff ? Math.min((input.coveredHints ?? 0) * HINT_POINTS, Math.max(0, eff.max - eff.points)) : 0;
+  // A consult note only gives back what its hint actually cost: never the points
+  // lost to unnecessary tests (a wasteful work-up stays a wasteful work-up).
+  const wasted = (score.unnecessaryTests?.length ?? 0) * UNNECESSARY_TEST_POINTS;
+  const restored = eff ? Math.min((input.coveredHints ?? 0) * HINT_POINTS, Math.max(0, eff.max - wasted - eff.points)) : 0;
   const ratio = Math.min(1, Math.max(0, (score.total + restored) / max));
   const base = 30 + 10 * difficulty;
   // Accuracy is rewarded steeply: an 95% case pays ~2.5x a 55% case.

@@ -137,6 +137,7 @@ function ConstellationCard({ cat, stars, index }: { cat: DiagnosisCategory; star
               {v.stars >= 3 && (
                 <path d={`M0 ${-glow - 3} L0.9 0 L0 ${glow + 3} L-0.9 0 Z M${-glow - 3} 0 L0 0.9 L${glow + 3} 0 L0 -0.9 Z`} class="rk-star__spike" />
               )}
+              {v.stars === 0 && <circle r={v.charted ? 5 : 4.4} class="rk-star__halo0" />}
               <circle r={r} class="rk-star__core" />
               {v.fading && <circle r={r + 4} class="rk-star__ring" />}
               {sel === i && <circle r={r + 7} class="rk-star__sel" />}

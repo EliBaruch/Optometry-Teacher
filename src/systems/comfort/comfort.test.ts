@@ -82,6 +82,24 @@ describe('Lounge system install', () => {
     off();
   });
 
+  it('marks completed calendars with one stable, tiered milestone each', () => {
+    const { services, events, tick } = setup();
+    const off = comfort.install(services);
+    const ctl = comfortOf(services)!;
+    for (let d = 0; d < 28; d++) {
+      ctl.openGift();
+      tick(24 * H);
+    }
+    const ids = events.filter((e) => e.name === 'achievement:unlocked').map((e) => (e.payload as { id: string }).id);
+    expect(ids).toEqual(['lounge-week', 'lounge-month']);
+    const satchel = events
+      .filter((e) => e.name === 'reward:granted')
+      .map((e) => (e.payload as { label: string }).label)
+      .find((l) => /satchel/i.test(l))!;
+    expect(satchel).toMatch(/^[A-Z][a-z]+ (grand )?satchel$/);
+    off();
+  });
+
   it('welcomes the player back with earnings computed from saved timestamps', () => {
     const storage = memoryStorage();
     const a = setup({ storage });
@@ -159,25 +177,22 @@ describe('pearls', () => {
   });
 });
 
+const SOURCES = import.meta.glob<string>(['./ui/*.{ts,tsx,css}', './logic.ts', './controller.ts', './resume.ts', './pearls.ts', './index.tsx'], {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
 describe('player-facing text', () => {
-  it('never mentions the internal design lens', async () => {
-    const fs = await import('node:fs');
-    const path = await import('node:path');
-    const dir = path.resolve(__dirname);
-    const files: string[] = [];
-    const walk = (d: string) => {
-      for (const f of fs.readdirSync(d)) {
-        const p = path.join(d, f);
-        if (fs.statSync(p).isDirectory()) walk(p);
-        else if (/\.(tsx?|css)$/.test(f)) files.push(p);
-      }
-    };
-    walk(path.join(dir, 'ui'));
-    files.push(path.join(dir, 'logic.ts'));
-    const banned = /\b(sins?|deadly|vice|pride|greed|envy|gluttony|lust|wrath|sloth)\b/i;
-    for (const f of files) {
-      const src = fs.readFileSync(f, 'utf8').replace(/Math\.sin\(/g, '');
-      expect(banned.test(src), f).toBe(false);
+  it('never mentions the internal design lens', () => {
+    const banned = /\b(sins?|deadly|vice|pride|greed|envy|gluttony|lust|wrath)\b/i;
+    const files = Object.entries(SOURCES);
+    expect(files.length).toBeGreaterThan(10);
+    for (const [file, raw] of files) {
+      // the SystemModule contract's internal `drive` field is the one allowed mention
+      const src = raw.replace(/Math\.sin\(/g, '').replace(/drive: 'sloth'/g, '');
+      expect(banned.test(src), file).toBe(false);
+      if (!file.endsWith('index.tsx')) expect(/\bsloth\b/i.test(src), file).toBe(false);
     }
   });
 });

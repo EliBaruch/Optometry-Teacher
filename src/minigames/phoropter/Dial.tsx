@@ -30,7 +30,6 @@ export interface DialProps {
 }
 
 const DEG_PER_STEP = 16;
-const PX_PER_STEP = 14;
 
 export function Dial(p: DialProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -139,16 +138,29 @@ export function Dial(p: DialProps) {
         onKeyDown={onKey}
       >
         <svg viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <radialGradient id={`${p.id}-face`} cx="0.36" cy="0.3" r="0.85">
+              <stop offset="0" stop-color="#fff1c8" />
+              <stop offset="0.38" stop-color="#e2b25a" />
+              <stop offset="0.78" stop-color="#9a6418" />
+              <stop offset="1" stop-color="#5a3a0c" />
+            </radialGradient>
+            <radialGradient id={`${p.id}-cap`} cx="0.4" cy="0.32" r="0.9">
+              <stop offset="0" stop-color="#3b2a4f" />
+              <stop offset="1" stop-color="#0d0815" />
+            </radialGradient>
+          </defs>
           <circle cx="50" cy="50" r="49" class="php-dial__shadow" />
           <circle cx="50" cy="50" r="47" class="php-dial__rim" />
           <g class="php-dial__rot" style={{ transform: `rotate(${p.rotation}deg)` }}>
             <g class="php-dial__knurl">{ticks}</g>
-            <circle cx="50" cy="50" r="38" class="php-dial__face" />
-            <circle cx="50" cy="50" r="30" class="php-dial__cap" />
-            <rect x="48" y="14" width="4" height="15" rx="2" class="php-dial__mark" />
-            {p.mark === 'line' && <rect x="48.5" y="71" width="3" height="15" rx="1.5" class="php-dial__mark php-dial__mark--tail" />}
+            <circle cx="50" cy="50" r="38" class="php-dial__face" fill={`url(#${p.id}-face)`} />
+            <circle cx="50" cy="50" r="31" class="php-dial__groove" />
+            <circle cx="50" cy="50" r="21" class="php-dial__cap" fill={`url(#${p.id}-cap)`} />
+            <rect x="47.5" y="13" width="5" height="16" rx="2.5" class="php-dial__mark" />
+            {p.mark === 'line' && <rect x="48" y="71" width="4" height="16" rx="2" class="php-dial__mark php-dial__mark--tail" />}
           </g>
-          <ellipse cx="40" cy="34" rx="16" ry="9" class="php-dial__gloss" />
+          <ellipse cx="40" cy="32" rx="18" ry="9" class="php-dial__gloss" />
         </svg>
       </div>
       <div class="php-dial__meta">

@@ -2,6 +2,7 @@ import type { JSX } from 'preact';
 import { useId, useMemo } from 'preact/hooks';
 import { createRng } from '@core';
 import { cx } from '@ui-kit';
+import { centerOf } from './hooks';
 
 export interface LoungeArtProps {
   lampOn: boolean;
@@ -27,16 +28,16 @@ const SNELLEN = [
   { t: 'E D F C Z P', s: 5.5 },
 ];
 
-function centerOf(el: Element): { x: number; y: number } {
-  const r = el.getBoundingClientRect();
-  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-}
-
-/** Keyboard + pointer activation for an SVG group acting as a button. */
-function act(fn: (p: { x: number; y: number }) => void) {
+/**
+ * Keyboard + pointer activation for an SVG group acting as a button.
+ * NB: the attribute must be the lowercase `tabindex` — Preact writes props on
+ * SVG elements verbatim, and SVG ignores the camelCase `tabIndex` spelling, which
+ * would leave the control unreachable by keyboard.
+ */
+export function act(fn: (p: { x: number; y: number }) => void) {
   return {
     role: 'button' as const,
-    tabIndex: 0,
+    tabindex: 0,
     onClick: (e: MouseEvent) => fn(centerOf(e.currentTarget as Element)),
     onKeyDown: (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -110,7 +111,7 @@ export function LoungeArt(p: LoungeArtProps) {
       class={cx('cf-art', !p.lampOn && 'is-dim', p.quiet && 'is-quiet', p.class)}
       viewBox="-300 0 1500 520"
       preserveAspectRatio={p.align === 'right' ? 'xMaxYMid slice' : 'xMidYMid slice'}
-      role="img"
+      role="group"
       aria-label="The Lounge: a rainy arched window, a warm lamp, a sleeping cat in an armchair and a steaming coffee"
     >
       <defs>
@@ -177,6 +178,16 @@ export function LoungeArt(p: LoungeArtProps) {
           <stop offset="0.7" stop-color="#3b1a33" />
           <stop offset="1" stop-color="#22101f" />
         </radialGradient>
+        <linearGradient id={`${id}-drape`} x1="0" y1="0" x2="0.12" y2="0" spreadMethod="reflect">
+          <stop offset="0" stop-color="#3a1d52" />
+          <stop offset="0.55" stop-color="#5d3380" />
+          <stop offset="1" stop-color="#26113a" />
+        </linearGradient>
+        <linearGradient id={`${id}-drapeShade`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0a0614" stop-opacity="0.55" />
+          <stop offset="0.25" stop-color="#0a0614" stop-opacity="0" />
+          <stop offset="1" stop-color="#0a0614" stop-opacity="0.35" />
+        </linearGradient>
         <clipPath id={`${id}-win`}>
           <path d={windowPath} />
         </clipPath>
@@ -261,6 +272,25 @@ export function LoungeArt(p: LoungeArtProps) {
       <rect x="266" y="398" width="408" height="14" rx="3" fill="#3a2230" />
       <rect x="266" y="398" width="408" height="3" rx="1.5" fill="#ffd27a" opacity="0.35" />
 
+      {/* velvet curtains: tied back, drawn almost closed in quiet mode */}
+      <g aria-hidden="true">
+        <g class="cf-art__curtain cf-art__curtain--l">
+          <path d="M244 14 H452 C450 140 446 300 440 418 C400 428 330 426 252 420 C246 300 244 140 244 14 Z" fill={u('drape')} />
+          <path d="M244 14 H452 C450 140 446 300 440 418 C400 428 330 426 252 420 C246 300 244 140 244 14 Z" fill={u('drapeShade')} />
+          <path d="M252 420 C330 426 400 428 440 418" stroke="#ffd27a" stroke-opacity="0.35" stroke-width="2" fill="none" />
+        </g>
+        <g class="cf-art__curtain cf-art__curtain--r">
+          <path d="M696 14 H488 C490 140 494 300 500 418 C540 428 610 426 688 420 C694 300 696 140 696 14 Z" fill={u('drape')} />
+          <path d="M696 14 H488 C490 140 494 300 500 418 C540 428 610 426 688 420 C694 300 696 140 696 14 Z" fill={u('drapeShade')} />
+          <path d="M688 420 C610 426 540 428 500 418" stroke="#ffd27a" stroke-opacity="0.35" stroke-width="2" fill="none" />
+        </g>
+        <path class="cf-art__tie" d="M244 262 C256 270 278 270 292 258" stroke="#ffd27a" stroke-width="4" stroke-linecap="round" fill="none" />
+        <path class="cf-art__tie" d="M696 262 C684 270 662 270 648 258" stroke="#ffd27a" stroke-width="4" stroke-linecap="round" fill="none" />
+        <rect x="232" y="8" width="476" height="7" rx="3.5" fill={u('brass')} />
+        <circle cx="230" cy="11.5" r="8" fill={u('brass')} />
+        <circle cx="710" cy="11.5" r="8" fill={u('brass')} />
+      </g>
+
       {/* ── framed Snellen chart ─────────────────────────────── */}
       <g transform="translate(868 70)">
         <rect x="-6" y="-6" width="112" height="168" rx="4" fill={u('brass')} />
@@ -342,7 +372,7 @@ export function LoungeArt(p: LoungeArtProps) {
         <rect x="692" y="332" width="50" height="9" rx="2" fill="#a16207" />
         <path d="M696 336 h40 M700 345 h38 M698 354 h42" stroke="#ffd27a" stroke-opacity="0.35" stroke-width="0.8" />
         <g class="cf-art__coffee" {...act(p.onCoffee)} aria-label="Sip your coffee">
-          <rect x="752" y="300" width="70" height="66" fill="transparent" />
+          <rect x="740" y="262" width="96" height="108" fill="transparent" />
           <ellipse cx="784" cy="362" rx="22" ry="5" fill="#efe6d8" />
           <path d="M768 336 H800 L797 358 C796 362 772 362 771 358 Z" fill="#f6efe4" />
           <path d="M800 341 C812 341 812 354 798 354" stroke="#f6efe4" stroke-width="3.5" fill="none" />
@@ -372,7 +402,7 @@ export function LoungeArt(p: LoungeArtProps) {
         <path d="M842 416 l-4 26 M1038 416 l4 26" stroke={u('brass')} stroke-width="5" stroke-linecap="round" />
 
         <g class="cf-art__cat" {...act(p.onCat)} aria-label="Pet the clinic cat">
-          <rect x="872" y="300" width="140" height="60" fill="transparent" />
+          <rect x="866" y="272" width="152" height="96" fill="transparent" />
           <g class="cf-art__cat-body">
             <path d="M884 352 C878 322 914 306 952 308 C990 310 1004 330 998 352 Z" fill={u('cat')} />
             <path d="M900 330 C920 322 940 322 958 326" stroke="#7a3e16" stroke-width="2.4" fill="none" opacity="0.5" />
@@ -394,6 +424,9 @@ export function LoungeArt(p: LoungeArtProps) {
         </g>
       </g>
 
+      {/* quiet mode: the room settles into a softer, dimmer hush (the lamp stays warm) */}
+      <rect class="cf-art__hush" x="-300" width="1500" height="520" fill="#06031a" aria-hidden="true" />
+
       {/* ── floor lamp ───────────────────────────────────────── */}
       <g>
         <circle class="cf-art__lamp-glow" cx="1110" cy="150" r="300" fill={u('lamp')} />
@@ -401,6 +434,7 @@ export function LoungeArt(p: LoungeArtProps) {
         <ellipse cx="1110" cy="440" rx="34" ry="7" fill="#7a4d10" />
         <ellipse cx="1110" cy="438" rx="30" ry="5" fill="#d9962a" />
         <g class="cf-art__lampshade" {...act(() => p.onLamp())} aria-label={p.lampOn ? 'Dim the lamp' : 'Light the lamp'} aria-pressed={p.lampOn}>
+          <rect x="1046" y="96" width="128" height="128" fill="transparent" />
           <path d="M1062 168 L1078 104 H1142 L1158 168 Z" fill={u('shade')} />
           <path d="M1062 168 H1158" stroke="#a86d17" stroke-width="3" />
           <path d="M1078 104 H1142" stroke="#a86d17" stroke-width="2" />

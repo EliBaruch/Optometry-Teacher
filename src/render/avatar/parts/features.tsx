@@ -1,6 +1,6 @@
 import type { VNode } from 'preact';
 import { createRng } from '@core';
-import { luminance, mix, shade } from '../../fx/color';
+import { luminance, mix, shade } from '../color';
 import { CX, type Side } from '../geometry';
 import { P } from '../paths';
 import type { AttrMap } from '../rig';
@@ -21,29 +21,60 @@ function strabOffset(c: PaintCtx, side: Side): [number, number] {
   }
 }
 
-function vessels(c: PaintCtx, side: Side): string {
+/**
+ * Conjunctival vessel tree: trunks running in from the canthi and fornices,
+ * branching and thinning toward the limbus. Returns [trunks, branches].
+ */
+function vessels(c: PaintCtx, side: Side): [string, string] {
   const r = createRng((c.t.seed ^ (side > 0 ? 0xa11 : 0xb22)) >>> 0);
   const { g } = c;
   const ex = CX + side * g.eyeDX;
   const ey = g.eyeY;
-  let d = '';
-  for (let i = 0; i < 9; i++) {
-    const fromOuter = i % 2 === 0;
-    const sx = ex + (fromOuter ? side : -side) * (g.eyeW + 0.5);
-    let x = sx;
-    let y = ey + r.float(-g.eyeH * 0.7, g.eyeLow * 1.1);
-    d += `M${P(x, y)}`;
-    const steps = r.int(3, 5);
-    const dir = fromOuter ? -side : side;
+  let trunks = '';
+  let branches = '';
+  const walk = (x0: number, y0: number, dx: number, dy: number, steps: number, step: number, branchy: boolean): string => {
+    let x = x0;
+    let y = y0;
+    let d = `M${P(x, y)}`;
     for (let k = 0; k < steps; k++) {
-      const nx = x + dir * r.float(0.9, 1.9);
-      const ny = y + r.float(-1.1, 1.1);
-      d += `Q${P((x + nx) / 2 + r.float(-0.6, 0.6), (y + ny) / 2 + r.float(-0.8, 0.8))} ${P(nx, ny)}`;
+      const nx = x + dx * step + r.float(-0.5, 0.5);
+      const ny = y + dy * step + r.float(-0.7, 0.7);
+      d += `Q${P((x + nx) / 2 + r.float(-0.7, 0.7), (y + ny) / 2 + r.float(-0.7, 0.7))} ${P(nx, ny)}`;
+      if (branchy && r.chance(0.55)) branches += walk(nx, ny, dx * 0.6 + r.float(-0.5, 0.5), dy * 0.6 + r.float(-0.8, 0.8), r.int(1, 3), step * 0.7, false);
       x = nx;
       y = ny;
     }
+    return d;
+  };
+  for (let i = 0; i < 16; i++) {
+    const zone = i % 4;
+    let x0: number;
+    let y0: number;
+    let dx: number;
+    let dy: number;
+    if (zone === 0) {
+      // from the outer canthus
+      x0 = ex + side * (g.eyeW + 0.8);
+      y0 = ey + r.float(-g.eyeH * 0.6, g.eyeLow * 0.9);
+      dx = -side;
+      dy = r.float(-0.3, 0.3);
+    } else if (zone === 1) {
+      // from the inner canthus
+      x0 = ex - side * (g.eyeW + 0.8);
+      y0 = ey + r.float(-g.eyeH * 0.5, g.eyeLow * 0.8);
+      dx = side;
+      dy = r.float(-0.3, 0.3);
+    } else {
+      // from the upper / lower fornix
+      const up = zone === 2;
+      x0 = ex + r.float(-g.eyeW * 0.85, g.eyeW * 0.85);
+      y0 = up ? ey - g.eyeH * 1.5 : ey + g.eyeLow * 1.4;
+      dx = (ex - x0) / g.eyeW * 0.5;
+      dy = up ? 0.9 : -0.9;
+    }
+    trunks += walk(x0, y0, dx, dy, r.int(3, 5), r.float(1.2, 1.9), true);
   }
-  return d;
+  return [trunks, branches];
 }
 
 function Eye({ c, a, side }: { c: PaintCtx; a: AttrMap; side: Side }) {
@@ -62,6 +93,15 @@ function Eye({ c, a, side }: { c: PaintCtx; a: AttrMap; side: Side }) {
   const rashSide = c.ext.rash === 'forehead-dermatomal' && c.signSide === side;
   const lidFill = rashSide ? mix(skin.base, '#d4545a', 0.28) : mix(skin.base, skin.shadow, 0.35);
   const flick = (c.sex === 'F' ? 1 : 0.75) * (1 - g.child * 0.6);
+  const inj = c.id(`inj${key}`);
+  const canth = c.id(`canth${key}`);
+  const limb = c.id(`limb${key}`);
+  const vt = red ? vessels(c, side) : null;
+  const icx = ex + ox;
+  const icy = ey + oy;
+  const rG = g.eyeW * 1.12;
+  const lum = luminance(c.spec.irisColor);
+  const ruff = mix(c.spec.irisColor, '#f0d6ae', lum < 0.22 ? 0.5 : 0.32);
   const fibres: VNode[] = [];
   for (let i = 0; i < 22; i++) {
     const ang = (i / 22) * Math.PI * 2 + (i % 2) * 0.08;
@@ -74,10 +114,39 @@ function Eye({ c, a, side }: { c: PaintCtx; a: AttrMap; side: Side }) {
       <clipPath id={clip}>
         <path data-r={`clip${key}`} {...a[`clip${key}`]} />
       </clipPath>
+      {red && (
+        <defs>
+          <radialGradient id={inj} gradientUnits="userSpaceOnUse" cx={icx} cy={icy} r={rG} gradientTransform={`translate(${icx} ${icy}) scale(1 0.62) translate(${-icx} ${-icy})`}>
+            <stop offset="0" stop-color="#f4cdc6" />
+            <stop offset={Math.min(0.5, (R * 1.05) / rG)} stop-color="#eeaaa8" />
+            <stop offset="0.62" stop-color="#e2808a" />
+            <stop offset="0.84" stop-color="#d1525f" />
+            <stop offset="1" stop-color="#b8324a" />
+          </radialGradient>
+          <radialGradient id={canth}>
+            <stop offset="0" stop-color="#c8303f" stop-opacity="0.75" />
+            <stop offset="1" stop-color="#c8303f" stop-opacity="0" />
+          </radialGradient>
+          <radialGradient id={limb}>
+            <stop offset="0.62" stop-color="#f8dcd5" stop-opacity="0.4" />
+            <stop offset="1" stop-color="#f8dcd5" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+      )}
       <path data-r={`crease${key}`} {...a[`crease${key}`]} fill="none" stroke={skin.deep} stroke-opacity="0.42" stroke-width="0.95" stroke-linecap="round" />
       <g clip-path={`url(#${clip})`}>
-        <rect x={ex - g.eyeW - 2} y={ey - g.eyeH * 2.2} width={g.eyeW * 2 + 4} height={g.eyeH * 2.2 + g.eyeLow * 2.6} fill={`url(#${c.id(red ? 'scleraRed' : 'sclera')})`} />
-        {red && <path d={vessels(c, side)} stroke="#c22f3a" stroke-opacity="0.7" stroke-width="0.32" fill="none" stroke-linecap="round" />}
+        <rect x={ex - g.eyeW - 2} y={ey - g.eyeH * 2.2} width={g.eyeW * 2 + 4} height={g.eyeH * 2.2 + g.eyeLow * 2.6} fill={red ? `url(#${inj})` : c.url('sclera')} />
+        {red && vt && (
+          <g fill="none" stroke-linecap="round">
+            {/* canthal + fornix injection is the most intense */}
+            <ellipse cx={ex - side * (g.eyeW - 1)} cy={ey + 0.5} rx="3.6" ry="3.2" fill={`url(#${canth})`} />
+            <ellipse cx={ex + side * (g.eyeW - 0.6)} cy={ey - 0.4} rx="3.4" ry="3" fill={`url(#${canth})`} />
+            <path d={vt[0]} stroke="#9c1428" stroke-opacity="0.92" stroke-width="0.7" />
+            <path d={vt[1]} stroke="#ad1d30" stroke-opacity="0.8" stroke-width="0.4" />
+            {/* relatively clear perilimbal zone (conjunctival, not ciliary, pattern) */}
+            <circle cx={ex + ox} cy={ey + oy} r={R * 1.3} fill={`url(#${limb})`} />
+          </g>
+        )}
         <g data-r={`iris${key}`} {...a[`iris${key}`]}>
           <g transform={`translate(${ex + ox} ${ey + oy})`}>
             <circle r={R + 0.5} fill={shade(c.spec.irisColor, -0.6)} opacity="0.35" />
@@ -85,8 +154,10 @@ function Eye({ c, a, side }: { c: PaintCtx; a: AttrMap; side: Side }) {
             <g stroke={shade(c.spec.irisColor, 0.5)} stroke-opacity="0.35" stroke-width="0.32">{fibres}</g>
             <circle r={R * 0.58} fill="none" stroke={shade(c.spec.irisColor, 0.45)} stroke-opacity="0.45" stroke-width="0.5" stroke-dasharray="0.9 0.6" />
             <circle r={R - 0.25} fill="none" stroke={shade(c.spec.irisColor, -0.65)} stroke-width="0.7" />
+            {/* light collarette around the pupil so its size reads on any iris */}
+            <circle r={pr + 0.75} fill="none" stroke={ruff} stroke-width="1.1" opacity="0.6" />
             <circle r={pr} fill="#0b0708" />
-            <circle r={pr} fill="none" stroke={shade(c.spec.irisColor, -0.3)} stroke-width="0.35" opacity="0.8" />
+            <circle r={pr} fill="none" stroke={shade(c.spec.irisColor, -0.45)} stroke-width="0.4" opacity="0.9" />
           </g>
         </g>
         <g data-r={`glint${key}`} {...a[`glint${key}`]}>
@@ -97,7 +168,7 @@ function Eye({ c, a, side }: { c: PaintCtx; a: AttrMap; side: Side }) {
         {tear && <path data-r={`tear${key}`} {...a[`tear${key}`]} fill="none" stroke="#e9f6ff" stroke-opacity="0.9" stroke-width="1.3" />}
         <path data-r={`lid${key}`} {...a[`lid${key}`]} fill={lidFill} />
       </g>
-      <path data-r={`low${key}`} {...a[`low${key}`]} fill="none" stroke={skin.deep} stroke-opacity="0.5" stroke-width="0.75" stroke-linecap="round" />
+      <path data-r={`low${key}`} {...a[`low${key}`]} fill="none" stroke={red ? '#b8404c' : skin.deep} stroke-opacity={red ? 0.75 : 0.5} stroke-width={red ? 0.95 : 0.75} stroke-linecap="round" />
       <path data-r={`lash${key}`} {...a[`lash${key}`]} fill="none" stroke={lash} stroke-width={(c.sex === 'F' ? 1.9 : 1.5) - g.child * 0.4} stroke-linecap="round" />
       <path d={`M${P(ex + side * (g.eyeW - 0.5), ey - 1.1)}q${P(side * 1.9 * flick, -0.6 * flick)} ${P(side * 2.9 * flick, -2.2 * flick)}`} fill="none" stroke={lash} stroke-width={c.sex === 'F' ? 1.3 : 0.9} stroke-linecap="round" />
     </g>

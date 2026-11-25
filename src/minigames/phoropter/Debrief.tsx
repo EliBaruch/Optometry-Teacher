@@ -24,6 +24,7 @@ function lessons(p: DebriefProps): string[] {
   const out: string[] = [];
   for (const e of EYES) {
     const err = p.assessment.perEye[e].error;
+    if (p.protocol[e].asks === 0) out.push(`${e} was never checked with the patient — an Rx nobody looked through is only a guess.`);
     if (err.dM <= -0.24) out.push(`${e} is over-minused by ${formatDiopters(-err.dM).replace('+', '')} D. A young eye accommodates through it — push plus; treat minus like money.`);
     else if (err.dM >= 0.24) out.push(`${e} is under-minused by ${err.dM.toFixed(2)} D: letters were still gaining clarity with more minus.`);
     if (err.dCyl > 0.3) out.push(`${e} cylinder is off by ${err.dCyl.toFixed(2)} D (vector). Refine the axis first, then the power, with the cross-cylinder.`);

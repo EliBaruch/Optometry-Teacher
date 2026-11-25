@@ -83,6 +83,24 @@ describe('ranks system', () => {
     eng.stop();
   });
 
+  it('a tier inside the same rank is a light moment, not a promotion', () => {
+    const s = setup();
+    const ev = record(s);
+    const moments: Moment[] = [];
+    const eng = startEngine(s, { present: (m) => moments.push(m) });
+    s.bus.emit('xp:grant', { amount: xpAtLevel(1), reason: 'Gift' });
+    expect(ev['rank:changed']).toEqual([{ level: 2, title: 'Student II' }]);
+    const m = moments.find((x) => x.kind === 'rank');
+    expect(m && m.kind === 'rank' && m.newRank).toBe(false);
+    expect(ev['reward:granted']?.some((r) => r.label === 'Career level' && r.rarity === 'rare')).toBe(true);
+    // No level change: no moment, no event.
+    moments.length = 0;
+    s.bus.emit('xp:grant', { amount: 1, reason: 'Gift' });
+    expect(moments).toEqual([]);
+    expect(ev['rank:changed']).toHaveLength(1);
+    eng.stop();
+  });
+
   it('emergency triage, comeback and pending grants', () => {
     const s = setup();
     const off = ranks.install(s);

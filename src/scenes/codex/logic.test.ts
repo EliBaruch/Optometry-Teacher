@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ClinicalCase, Diagnosis } from '@core';
-import { casesFor, confusedWith, groupDiagnoses, masteryTier, matchesQuery, neighbour, referenceLabel, safeUrl, silhouette } from './logic';
+import { casesFor, confusedWith, groupDiagnoses, masteryTier, matchesQuery, neighbour, referenceLabel, safeUrl, silhouette, toRoman } from './logic';
 
 const dx = (id: string, name: string, category: Diagnosis['category'], extra: Partial<Diagnosis> = {}): Diagnosis => ({
   id, name, category, summary: '', keyFindings: [], typicalUrgency: 'routine', pearls: [], rarity: 'common', ...extra,
@@ -54,5 +54,11 @@ describe('codex logic', () => {
     expect(neighbour(['a', 'b', 'c'], 'c', 1)).toBe('a');
     expect(neighbour(['a', 'b', 'c'], 'a', -1)).toBe('c');
     expect(neighbour(['a'], 'a', 1)).toBeNull();
+  });
+
+  it('numbers folios in roman numerals', () => {
+    expect([1, 4, 9, 14, 40, 57, 1999].map(toRoman)).toEqual(['I', 'IV', 'IX', 'XIV', 'XL', 'LVII', 'MCMXCIX']);
+    expect(toRoman(0)).toBe('');
+    expect(toRoman(Number.NaN)).toBe('');
   });
 });

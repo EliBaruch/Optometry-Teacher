@@ -12,7 +12,9 @@ export interface CardProps {
   /** bump to fire the lens ripple */
   rippleKey: number;
   mask: Mask;
-  maskVersion: number;
+  /** changes whenever the mask's contents (or its eye) change */
+  maskKey: string;
+  sideLabels: 'field' | 'patient';
   showTruth: boolean;
   idle: boolean;
   tool: 'paint' | 'erase';
@@ -22,6 +24,8 @@ export interface CardProps {
   onStroke: (ax: number, ay: number, bx: number, by: number, start: boolean) => void;
   onStrokeEnd: () => void;
   onKey: (e: KeyboardEvent) => boolean;
+  /** mouse wheel over the live card: +1 grows the brush, -1 shrinks it */
+  onWheelBrush?: (dir: 1 | -1) => void;
   label: string;
 }
 
@@ -87,7 +91,8 @@ export function Card(p: CardProps) {
       strength: P.strength,
       ripple,
       mask: P.mask,
-      maskVersion: P.maskVersion,
+      maskKey: P.maskKey,
+      sideLabels: P.sideLabels,
       truth: s.truth,
       cursor: P.interactive ? s.cursor : null,
       idle: s.idle,
@@ -125,13 +130,26 @@ export function Card(p: CardProps) {
     };
   }, []);
 
+  // wheel over the live card resizes the brush (non-passive so the page does not scroll)
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    const onWheel = (e: WheelEvent) => {
+      const P = props.current;
+      if (!P.interactive || !P.onWheelBrush || e.deltaY === 0) return;
+      e.preventDefault();
+      P.onWheelBrush(e.deltaY < 0 ? 1 : -1);
+    };
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', onWheel);
+  }, []);
+
   useEffect(() => {
     if (p.rippleKey > 0) st.current.rippleStart = performance.now();
     kick();
   }, [p.rippleKey]);
 
   // any visual prop change → redraw
-  useEffect(kick, [p.finding, p.eye, p.perception, p.strength, p.maskVersion, p.showTruth, p.idle, p.tool, p.brush, p.interactive]);
+  useEffect(kick, [p.finding, p.eye, p.perception, p.strength, p.maskKey, p.sideLabels, p.showTruth, p.idle, p.tool, p.brush, p.interactive]);
 
   useEffect(() => {
     const s = st.current;

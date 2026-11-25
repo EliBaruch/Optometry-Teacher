@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { createServices, type ClinicalCase, type Diagnosis, type GameServices, type Grade, type RewardGrant, type ScoreBreakdown } from '@core';
-import { cardNumber, formatCardDate, newlyCompletedSets, orderedDiagnoses, setProgress } from './catalog';
+import { WINGS, cardNumber, formatCardDate, newlyCompletedSets, orderedDiagnoses, setProgress } from './catalog';
 import {
-  BASE_ODDS, CARD_RARITIES, INITIAL_STATE, acquire, frameFor, glimpse, markAllSeen, newMilestones, nextFrame, oddsFor, pickPearl,
-  rollRarity, shineFor, unseenCount, type Acquisition,
+  BASE_ODDS, CARD_RARITIES, FRAME_LABEL, INITIAL_STATE, MILESTONES, acquire, finestCards, frameFor, glimpse, markAllSeen, newMilestones, nextFrame,
+  oddsFor, pickPearl, rollRarity, shineFor, unseenCount, type Acquisition, type CardRarity,
 } from './model';
-import { cardPalette, hexToHsl, hslToHex } from './palette';
+import { cardPalette, cardPaletteInfo, hexToHsl, hslToHex, hueDelta, irisHue } from './palette';
 import { createStore, onCaseCompleted, wireStore } from './store';
 import collection from './index';
 
@@ -152,12 +152,63 @@ describe('palette', () => {
       expect(Math.max(...diff)).toBeLessThanOrEqual(1);
     }
   });
-  it('lifts dark irises and adds exotics with rarity', () => {
-    const p = cardPalette('#2a160c', '#fb7185', 'common');
-    expect(p).toHaveLength(3);
-    expect(hexToHsl(p[0]!).l).toBeGreaterThanOrEqual(0.41);
-    expect(cardPalette('#2a160c', '#fb7185', 'legendary')).toHaveLength(6);
-    expect(cardPalette('nonsense', '#fb7185', 'rare').every((c) => /^#[0-9a-f]{6}$/.test(c))).toBe(true);
+  // Real patient iris colours from the case library (mostly brown, plus hazel/green/blue/grey-blue).
+  const IRISES = ['#2a1a10', '#3a2412', '#5b4a2e', '#2a160c', '#4b3621', '#6b4a2e', '#7a8a6a', '#5b7f4a', '#5d8a6a', '#4f86b3', '#8fb3cf', '#7a8fa6', '#6b8e9e'];
+  const SEEDS = Array.from({ length: 40 }, (_, i) => (i * 2654435761) >>> 0);
+  const hue = (hex: string) => hexToHsl(hex).h;
+
+  it('paints every stromal colour from the iris hue family (common & rare)', () => {
+    for (const iris of IRISES) {
+      for (const seed of SEEDS) {
+        for (const r of ['common', 'rare'] as const) {
+          const p = cardPalette(iris, r, seed);
+          for (const c of p) expect(Math.abs(hueDelta(hue(c), irisHue(iris))), `${iris} ${r} ${seed} ${c}`).toBeLessThanOrEqual(35);
+        }
+      }
+    }
+  });
+  it('epic & legendary add exactly one exotic gem, as a minority entry', () => {
+    for (const iris of IRISES) {
+      for (const seed of SEEDS.slice(0, 12)) {
+        for (const r of ['epic', 'legendary'] as const) {
+          const { colors, exotic } = cardPaletteInfo(iris, r, seed);
+          const off = colors.filter((c) => Math.abs(hueDelta(hue(c), irisHue(iris))) > 35);
+          expect(off.length).toBeLessThanOrEqual(1);
+          expect(exotic).toBe(colors.length - 1);
+          expect(exotic).toBeGreaterThanOrEqual(4); // never the inner/mid/outer stroma
+        }
+      }
+    }
+  });
+  it('a brown iris stays brown: warm, dark-to-mid and never neon', () => {
+    for (const seed of SEEDS) {
+      const [, mid] = cardPalette('#2a1a10', 'common', seed).map(hexToHsl);
+      expect(mid!.h).toBeGreaterThan(5);
+      expect(mid!.h).toBeLessThan(50);
+      expect(mid!.l).toBeLessThan(0.45);
+      expect(mid!.s).toBeLessThan(0.7);
+    }
+  });
+  it('two cards with the same iris colour look clearly different by seed', () => {
+    const a = cardPaletteInfo('#3a2412', 'common', 1);
+    const b = cardPaletteInfo('#3a2412', 'common', 0xabcdef);
+    const dist = (x: string, y: string) => {
+      const p = hexToHsl(x);
+      const q = hexToHsl(y);
+      return Math.abs(hueDelta(p.h, q.h)) / 60 + Math.abs(p.l - q.l) * 4 + Math.abs(p.s - q.s) * 2;
+    };
+    const total = a.colors.reduce((s, c, i) => s + dist(c, b.colors[i]!), 0);
+    expect(total).toBeGreaterThan(0.6);
+    // across many seeds, every lighting character appears
+    const chars = new Set(SEEDS.map((s) => cardPaletteInfo('#3a2412', 'common', s).character));
+    expect(chars.size).toBe(3);
+    expect(cardPalette('#5a3a22', 'epic', 42)).toEqual(cardPalette('#5a3a22', 'epic', 42));
+  });
+  it('handles odd input', () => {
+    expect(cardPalette('nonsense', 'rare').every((c) => /^#[0-9a-f]{6}$/.test(c))).toBe(true);
+    expect(irisHue('#808080')).toBe(205);
+    expect(hueDelta(350, 10)).toBe(-20);
+    expect(hueDelta(10, 350)).toBe(20);
   });
 });
 
@@ -257,7 +308,7 @@ describe('system module', () => {
     expect(services.registries.scenes.has('gallery')).toBe(true);
     expect(services.registries.hub.has('gallery')).toBe(true);
     const slots = services.registries.hud.all().filter((w) => w.system === 'collection').map((w) => w.slot);
-    expect(slots).toEqual(expect.arrayContaining(['results-extra', 'hub-sidebar']));
+    expect(slots).toEqual(expect.arrayContaining(['results-extra', 'hub-sidebar', 'profile']));
     services.bus.emit('case:completed', { caseId: 'case-1', modeId: 'shift', score: score() });
     const hub = services.registries.hub.get('gallery')!;
     expect(hub.badge?.(services)).toBe('1 NEW');
@@ -272,5 +323,26 @@ describe('system module', () => {
     services.bus.emit('case:completed', { caseId: 'case-1', modeId: 'shift', score: score() });
     expect(rewards.filter((r) => r.label.startsWith('Iris card')).length).toBe(1);
     off();
+  });
+});
+
+describe('finest cards', () => {
+  it('ranks by rarity, then polish, then recency', () => {
+    const acq = (caseId: string, rarity: CardRarity, at: number) => ({ caseId, patient: 'P', irisColor: '#456', grade: 'A' as const, rarity, at, seed: at });
+    let s = INITIAL_STATE;
+    s = acquire(s, 'a', acq('1', 'rare', 1)).state;
+    s = acquire(s, 'b', acq('2', 'legendary', 2)).state;
+    s = acquire(s, 'c', acq('3', 'rare', 3)).state;
+    s = acquire(s, 'a', acq('4', 'common', 4)).state; // polishes 'a' (shine 2) without changing its rarity
+    s = acquire(s, 'd', acq('5', 'common', 5)).state;
+    expect(finestCards(s, 3).map((c) => c.dx)).toEqual(['b', 'a', 'c']);
+    expect(finestCards(s, 0)).toEqual([]);
+  });
+});
+
+describe('player-facing copy', () => {
+  it('never uses the internal design-lens vocabulary', () => {
+    const text = JSON.stringify([MILESTONES.map((m) => [m.title, m.description]), WINGS, FRAME_LABEL, collection.name]);
+    expect(text).not.toMatch(/\b(sins?|deadly|vice|pride|greed|envy|gluttony|lust|wrath|sloth)\b/i);
   });
 });

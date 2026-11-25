@@ -140,3 +140,13 @@ export function neighbour(ids: readonly string[], id: string, dir: 1 | -1): stri
   if (i < 0 || ids.length < 2) return null;
   return ids[(i + dir + ids.length) % ids.length]!;
 }
+
+/** Folio numbering for the atlas pages (1 → I, 14 → XIV). Non-positive input yields ''. */
+export function toRoman(n: number): string {
+  let v = Math.floor(n);
+  if (!(v > 0)) return '';
+  const table: [number, string][] = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+  let out = '';
+  for (const [k, r] of table) while (v >= k) { out += r; v -= k; }
+  return out;
+}

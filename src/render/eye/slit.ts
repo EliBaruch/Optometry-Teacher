@@ -9,7 +9,7 @@ import { createRng } from '@core';
 import { hexToRgb, mix, rgba } from './color';
 import { kpDots, lesionSpot, sunCellCount, vanHerickRatio } from './features';
 import type { EyeGeometry } from './geometry';
-import { irisTexture } from './iris';
+import { drawIrisTexture } from './iris';
 import { ANATOMY, type EyeState } from './types';
 
 export interface SlitBeam {
@@ -203,8 +203,7 @@ export function drawSlitBeam(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: E
   ctx.rect(ix - R * 2, iy - R * 2, R * 4, R * 4);
   ctx.arc(ix, iy, g.pupilR, 0, Math.PI * 2, true);
   ctx.clip('evenodd');
-  const tex = irisTexture(R, g.pupilR, { color: s.irisColor, seed: s.irisSeed, pupilShape: s.pupilShape ?? 'round' });
-  if (tex) ctx.drawImage(tex as CanvasImageSource, ix - R - 1, iy - R - 1);
+  drawIrisTexture(ctx, ix, iy, R, g.pupilR, { color: s.irisColor, seed: s.irisSeed, pupilShape: s.pupilShape ?? 'round' });
   ctx.fillStyle = fadeY(0.3, mix(hexToRgb(s.irisColor), [255, 240, 220], 0.45));
   ctx.fillRect(ix - R * 2, y0, R * 4, y1 - y0);
   ctx.restore();

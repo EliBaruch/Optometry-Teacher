@@ -36,7 +36,8 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
   const tally = CARD_RARITIES.map((r) => ({ r, n: Object.values(state.cards).filter((c) => c.rarity === r).length }));
   const polished = Object.values(state.cards).filter((c) => frameFor(c.shine) !== 'bronze').length;
 
-  const visibleSets = sets.filter((s) => wing === 'all' || s.category === wing);
+  // Wings you have started hang first; untouched wings wait further down the hall.
+  const visibleSets = sets.filter((s) => wing === 'all' || s.category === wing).sort((a, b) => Number(b.owned > 0) - Number(a.owned > 0));
   const showCard = (id: string) => {
     const c = state.cards[id];
     if (!c) return !ownedOnly && rarity === 'all';
@@ -61,7 +62,7 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
       contentClass="gs-content"
     >
       <div class="gs-lights" aria-hidden="true">
-        {[0, 1, 2, 3, 4].map((i) => <span key={i} style={{ '--i': i }} />)}
+        {[0, 1, 2].map((i) => <span key={i} style={{ '--i': i }} />)}
       </div>
 
       <section class="gs-hero">

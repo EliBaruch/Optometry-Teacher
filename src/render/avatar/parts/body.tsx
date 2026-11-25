@@ -1,8 +1,9 @@
-import { mix, shade } from '../../fx/color';
+import { mix, shade } from '../color';
 import { CX, VIEW_H, VIEW_W } from '../geometry';
 import { GOLD } from '../palette';
 import { P, smooth, type Pt } from '../paths';
 import type { PaintCtx } from './ctx';
+import { RimLight } from './rim';
 
 export function bodyDefs(c: PaintCtx) {
   const o = c.spec.outfit;
@@ -96,7 +97,7 @@ export function Body({ c }: { c: PaintCtx }) {
       <path d={neck} fill={`url(#${c.id('neck')})`} />
       {/* sternocleidomastoid hint + neck rim */}
       <path d={`M${P(CX - nw + 4, top + 22)}Q${P(CX - 7, sy - 20)} ${P(CX - 4, sy - 12)}`} stroke={skin.deep} stroke-opacity="0.1" stroke-width="2.2" fill="none" stroke-linecap="round" />
-      <path d={`M${P(CX + nw - 1, top + 6)}L${P(CX + nw + 3, sy - 8)}`} stroke={GOLD} stroke-opacity="0.45" stroke-width="1.4" fill="none" stroke-linecap="round" />
+      <RimLight c={c} name="neck" o={{ d: neck, dx: 1.8, dy: 0, cx: CX + nw + 2, cy: top + 22, r: 22, opacity: 0.55 }} />
       {old > 0 && (
         <g stroke={skin.deep} stroke-opacity={0.22 * Math.min(1, old * 1.5)} stroke-width="0.9" fill="none" stroke-linecap="round">
           <path d={`M${P(CX - nw + 4, top + 22)}Q${P(CX, top + 26)} ${P(CX + nw - 4, top + 22)}`} />
@@ -110,10 +111,11 @@ export function Body({ c }: { c: PaintCtx }) {
       <g mask={`url(#${c.id('nlMask')})`}>
         <path d={body} fill={`url(#${c.id('cloth')})`} />
         <path d={body} fill={`url(#${c.id('clothSide')})`} />
-        <path d={sh.edge} fill="none" stroke={`url(#${c.id('rimBody')})`} stroke-width="2.4" />
-        {/* soft fabric folds */}
-        <path d={`M${P(CX - g.shoulderW * 0.55, sy + 6)}Q${P(CX - g.shoulderW * 0.45, sy + 22)} ${P(CX - g.shoulderW * 0.5, VIEW_H)}`} stroke={shade(o, -0.4)} stroke-opacity="0.35" stroke-width="2" fill="none" />
-        <path d={`M${P(CX + g.shoulderW * 0.5, sy + 8)}Q${P(CX + g.shoulderW * 0.42, sy + 22)} ${P(CX + g.shoulderW * 0.46, VIEW_H)}`} stroke={shade(o, 0.25)} stroke-opacity="0.22" stroke-width="1.5" fill="none" />
+        {/* soft form: lit right shoulder, shadow under the chin and on the far side */}
+        <ellipse cx={CX + g.shoulderW * 0.62} cy={sy + 6} rx={g.shoulderW * 0.42} ry="20" fill={c.url('gLight')} opacity="0.16" />
+        <ellipse cx={CX - g.shoulderW * 0.7} cy={sy + 30} rx={g.shoulderW * 0.45} ry="34" fill={c.url('gBlack')} opacity="0.22" />
+        <ellipse cx={CX} cy={sy - 4} rx={g.neckW + 16} ry="11" fill={c.url('gBlack')} opacity="0.3" />
+        <RimLight c={c} name="shoulder" o={{ d: body, dx: 3, dy: 1.6, cx: CX + g.shoulderW * 0.95, cy: sy + 8, r: 46, opacity: 0.8 }} />
       </g>
       {nl.trim && <path d={nl.trim} fill="none" stroke={shade(o, -0.35)} stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />}
       {nl.trim && <path d={nl.trim} fill="none" stroke={shade(o, 0.2)} stroke-opacity="0.6" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" />}

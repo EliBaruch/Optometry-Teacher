@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { EYES, formatDiopters, formatRx, type Eye, type MiniGameContext, type MiniGameDone } from '@core';
-import { PatientAvatar } from '@render';
+import { AvatarBust } from '@render';
 import { Button, Icon, Kbd, SpeechBubble } from '@ui-kit';
 import { ChartView } from './ChartView';
 import type { ChartFrame } from './chart';
@@ -47,6 +47,8 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const listener = useMemo<Listener>(() => ({ rng: ctx.rng.fork('patient'), difficulty: ctx.difficulty }), []);
   const challenge = useMemo<Challenge | null>(() => (ctx.mode === 'practice' ? makeChallenge(f, ctx.rng.fork('challenge')) : null), []);
   const first = ctx.patient.name.split(' ')[0] ?? ctx.patient.name;
+  /** Spectacles come off behind the refractor. */
+  const avatarSpec = useMemo(() => ({ ...ctx.patient.avatar, glasses: 'none' as const }), []);
 
   const [s, setS] = useState<SessionState>(() => initSession(start));
   const live = useRef(s);
@@ -61,6 +63,11 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const finished = useRef(false);
   const t0 = useRef(performance.now());
   const recordBtn = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // Keyboard shortcuts live on the root: give it focus once the tutorial is out of the way.
+  useEffect(() => {
+    if (!tutorial && !result && !rootRef.current?.contains(document.activeElement)) rootRef.current?.focus({ preventScroll: true });
+  }, [tutorial]);
 
   const later = (ms: number, fn: () => void) => {
     const id = window.setTimeout(() => {
@@ -276,7 +283,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const steps = s.proto.OD.asks + s.proto.OS.asks;
 
   return (
-    <div class="php-root" onKeyDown={onKey} data-busy={busy || undefined}>
+    <div ref={rootRef} class={`php-root${ctx.reducedMotion ? ' is-reduced' : ''}`} tabIndex={-1} onKeyDown={onKey} data-busy={busy || undefined}>
       <header class="php-head">
         <div class="php-head__title"><Icon name="phoropter" /><span>Subjective refraction</span></div>
         <p class="php-head__hint" aria-live="polite">{note ?? hint(s)}</p>
@@ -354,7 +361,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
         <section class="php-view" aria-label="Patient">
           <div class="php-patient">
             <div class="php-patient__avatar">
-              <PatientAvatar spec={ctx.patient.avatar} age={ctx.patient.age} sex={ctx.patient.sex} expression={expression} size={64} reducedMotion={ctx.reducedMotion} external={{ squinting: expression === 'squint' }} />
+              <AvatarBust spec={avatarSpec} age={ctx.patient.age} sex={ctx.patient.sex} expression={expression} size={64} animated reducedMotion={ctx.reducedMotion} external={{ squinting: expression === 'squint' }} label={`${ctx.patient.name}, behind the refractor`} />
             </div>
             <div class="php-patient__say" aria-live="polite">
               {present?.kind === 'think' ? (

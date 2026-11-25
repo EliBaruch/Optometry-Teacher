@@ -146,6 +146,7 @@ export function HoldButton(props: { label: string; holdMs?: number; onConfirm: (
   };
   useEffect(() => () => cancelAnimationFrame(raf.current), []);
 
+  const holding = progress > 0 && progress < 1;
   return (
     <button
       type="button"
@@ -175,10 +176,28 @@ export function HoldButton(props: { label: string; holdMs?: number; onConfirm: (
       aria-label={`${props.label} — press and hold to confirm`}
     >
       <span class="settings-hold__fill" aria-hidden="true" />
-      <span class="settings-hold__label">
-        {props.icon && <Icon name={props.icon} />}
-        {progress > 0 && progress < 1 ? 'Keep holding…' : props.label}
+      {/* Both labels share one grid cell, so the button keeps the width of the wider one and nothing reflows mid-hold. */}
+      <span class="settings-hold__labels">
+        <span class={cx('settings-hold__label', holding && 'is-hidden')} aria-hidden={holding}>
+          {props.icon && <Icon name={props.icon} />}
+          {props.label}
+        </span>
+        <span class={cx('settings-hold__label', !holding && 'is-hidden')} aria-hidden={!holding}>
+          {props.icon && <Icon name={props.icon} />}
+          Keep holding…
+        </span>
       </span>
     </button>
+  );
+}
+
+/** Download / upload tray glyph (the shared icon set has no transfer icons). Inherits the button's icon styling. */
+export function TransferGlyph(props: { dir: 'down' | 'up' }) {
+  const arrow = props.dir === 'down' ? 'M12 3.5v11m-4.5-4.5L12 14.5 16.5 10' : 'M12 14.5v-11M7.5 8 12 3.5 16.5 8';
+  return (
+    <svg class="lm-btn__icon settings-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d={arrow} />
+      <path d="M4 15.5v2.5a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-2.5" />
+    </svg>
   );
 }

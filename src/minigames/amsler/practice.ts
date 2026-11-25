@@ -7,7 +7,7 @@ import {
   type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
-import { classOf, normalizeAmsler } from './geometry';
+import { classOf, directionOf, normalizeAmsler } from './geometry';
 import { describeAmsler, locationOf, type FieldLocation } from './report';
 
 const EYE_WORD: Record<Eye, string> = { OD: 'right eye (OD)', OS: 'left eye (OS)' };
@@ -126,7 +126,7 @@ const ARCHETYPES: Archetype[] = [
   },
   {
     key: 'erm',
-    cause: 'epiretinal membrane — slowly progressive distortion as the membrane wrinkles the macula; routine retina opinion',
+    cause: 'epiretinal membrane — slowly progressive distortion as the contracting membrane wrinkles and crowds the macula (objects can look larger: macropsia); routine retina opinion',
     age: [58, 82],
     sex: () => 'F',
     weight: (d) => 0.08 + 0.08 * d,
@@ -309,21 +309,27 @@ export function buildChallenge(findings: PatientFindings, rng: Rng): Challenge {
 
 // ───────────────────────── the patient's own words
 
-function plainDir(x: number, y: number): string {
-  const v = Math.abs(y) >= 1 ? (y > 0 ? 'above' : 'below') : '';
-  const h = Math.abs(x) >= 1 ? (x > 0 ? 'to the right' : 'to the left') : '';
+/** The patient's own words for where it is — same classifier as the chart's field location. */
+export function plainWhere(f: AmslerFinding): string {
+  const d = directionOf(f);
+  if (d.central) return 'right around the dot';
+  const v = d.v > 0 ? 'above' : d.v < 0 ? 'below' : '';
+  const h = d.h > 0 ? 'to the right' : d.h < 0 ? 'to the left' : '';
   if (v && h) return `${v} and ${h} of the dot`;
   if (v) return `just ${v} the dot`;
-  if (h) return `just ${h} of the dot`;
-  return 'right around the dot';
+  return `just ${h} of the dot`;
 }
 
 /** What the patient says while fixating the dot with this eye. */
 export function patientSays(f: AmslerFinding): string {
   if (f.result === 'normal') return 'The lines all look straight, and I can see all four corners of the square.';
   const n = normalizeAmsler(f);
-  const where = Math.hypot(n.center.x, n.center.y) <= Math.max(1, n.radius * 0.45) ? 'right around the dot' : plainDir(n.center.x, n.center.y);
-  if (f.result === 'metamorphopsia') return `The lines go wavy ${where} — like looking through rippled glass. The squares there look a bit smaller.`;
+  const where = plainWhere(f);
+  if (f.result === 'metamorphopsia') {
+    return n.radius >= 5
+      ? `A big area ${where === 'right around the dot' ? 'around the dot' : where} looks warped — the lines bow and wobble, like old window glass.`
+      : `The lines go wavy ${where} — like looking through rippled glass. The squares there look out of shape.`;
+  }
   if (n.radius >= 8) return 'It’s nearly all dark. I can only just make out the edges of the card.';
   if (f.result === 'central-scotoma') return 'There’s a grey smudge right where the dot should be — I can’t actually see the dot.';
   return `I can see the dot, but there’s a faded, missing patch ${where}.`;

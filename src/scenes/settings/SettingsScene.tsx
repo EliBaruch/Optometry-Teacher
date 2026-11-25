@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { formatSnellen, type SceneProps, type Settings } from '@core';
 import { Button, Divider, GlassPanel, Icon, Modal, Screen, cx, useReducedMotion, useSignal } from '@ui-kit';
-import { HoldButton, SwitchRow, VolumeSlider } from './controls';
+import { HoldButton, SwitchRow, TransferGlyph, VolumeSlider } from './controls';
 import { DEFAULT_NAME, NAME_MAX, countRecords, sanitizeName, saveFileName, settingsOnly, sizeLabel, validateImport } from './logic';
 import './settings.css';
 
@@ -105,27 +105,45 @@ export function SettingsScene({ services }: SceneProps) {
     services.fx.shake(4, 220);
   };
 
+  /**
+   * Replace the stored progress and reopen the clinic. Modules debounce their
+   * saves (~250 ms), so a write queued just before this could land after the
+   * swap: apply once now, then re-apply after the debounce window and reload.
+   */
+  const [restarting, setRestarting] = useState(false);
+  const replaceAndReload = (apply: () => void) => {
+    if (restarting) return;
+    setRestarting(true);
+    apply();
+    timers.current.push(setTimeout(() => {
+      apply();
+      location.reload();
+    }, 400));
+  };
+
   const confirmImport = () => {
     if (!pending) return;
     const before = services.save.exportAll();
-    services.save.resetAll();
-    if (!pending.hasSettings) {
-      const keep = settingsOnly(before);
-      if (keep) services.save.importAll(keep);
-    }
-    services.save.importAll(pending.json);
-    location.reload();
+    const incoming = pending;
+    services.audio.play('success');
+    replaceAndReload(() => {
+      services.save.resetAll();
+      if (!incoming.hasSettings) {
+        const keep = settingsOnly(before);
+        if (keep) services.save.importAll(keep);
+      }
+      services.save.importAll(incoming.json);
+    });
   };
 
   const confirmReset = () => {
-    const before = services.save.exportAll();
-    services.save.resetAll();
-    if (!resetSettingsToo) {
-      const keep = settingsOnly(before);
-      if (keep) services.save.importAll(keep);
-    }
+    const keep = resetSettingsToo ? null : settingsOnly(services.save.exportAll());
     services.audio.play('thud');
-    location.reload();
+    services.fx.flash('#f43f5e', 220);
+    replaceAndReload(() => {
+      services.save.resetAll();
+      if (keep) services.save.importAll(keep);
+    });
   };
 
   const back = () => services.router.back();
@@ -202,13 +220,13 @@ export function SettingsScene({ services }: SceneProps) {
             <p class="settings-note">
               Progress lives only in this browser
               {exportInfo.records > 0 ? (
-                <> — <span class="lm-num">{exportInfo.records}</span> records, <span class="lm-num">{sizeLabel(exportInfo.bytes)}</span>. </>
+                <> — <span class="lm-num">{exportInfo.records}</span> {exportInfo.records === 1 ? 'record' : 'records'}, <span class="lm-num">{sizeLabel(exportInfo.bytes)}</span>. </>
               ) : '. '}
               Keep a copy, or carry it to another device.
             </p>
             <div class="settings-actions">
-              <Button icon="arrow-right" onClick={doExport} sfx={false}>Export save</Button>
-              <Button icon="refresh" onClick={() => fileInput.current?.click()}>Import save</Button>
+              <Button onClick={doExport} sfx={false}><TransferGlyph dir="down" />Export save</Button>
+              <Button onClick={() => fileInput.current?.click()}><TransferGlyph dir="up" />Import save</Button>
               <input ref={fileInput} type="file" accept=".json,application/json" class="lm-sr-only" tabIndex={-1} aria-hidden="true" onChange={onFile} />
             </div>
             <p class={cx('settings-error', importError && 'is-shown')} role="alert">
@@ -258,7 +276,7 @@ export function SettingsScene({ services }: SceneProps) {
         </>}>
         {pending && (
           <div class="settings-modal">
-            <p><b>{pending.fileName}</b> holds <b class="lm-num">{pending.records}</b> records.</p>
+            <p><b>{pending.fileName}</b> holds <b class="lm-num">{pending.records}</b> {pending.records === 1 ? 'record' : 'records'}.</p>
             <p class="settings-note">It will replace the progress currently on this device, then the clinic will reopen.{!pending.hasSettings && ' Your sound and display settings will be kept.'}</p>
           </div>
         )}
@@ -279,6 +297,12 @@ export function SettingsScene({ services }: SceneProps) {
           </div>
         </div>
       </Modal>
+      {restarting && (
+        <div class="settings-restart" role="status" aria-live="assertive">
+          <span class="settings-restart__lens" aria-hidden="true" />
+          <p>Reopening the clinic…</p>
+        </div>
+      )}
     </Screen>
   );
 }

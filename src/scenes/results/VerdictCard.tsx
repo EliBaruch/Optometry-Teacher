@@ -1,6 +1,7 @@
 import { useMemo } from 'preact/hooks';
 import { AvatarBust, EyeCanvas, eyeStateFromFindings } from '@render';
 import { Badge, Icon, cx } from '@ui-kit';
+import { Safe } from './Safe';
 import { CONFIDENCE_LABEL, URGENCY_LABEL, affectedEye, type ReviewModel } from './model';
 
 const VERDICT_TITLE: Record<ReviewModel['verdict'], string> = {
@@ -82,7 +83,9 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
             <span>{VERDICT_TITLE[verdict]}</span>
           </div>
           <div class="rs-card__patient">
-            <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={52} ring={verdict === 'correct' ? '#ffd27a' : '#a99bbd'} reducedMotion={reduced} label={p.name} />
+            <Safe fallback={<span class="rs-card__avatar-ph" />}>
+              <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={52} ring={verdict === 'correct' ? '#ffd27a' : '#a99bbd'} reducedMotion={reduced} label={p.name} />
+            </Safe>
             <div class="rs-card__patient-text">
               <strong>{p.name}</strong>
               <span>
@@ -94,7 +97,9 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
 
           {eye && (
             <div class="rs-card__eye" aria-hidden="true">
-              <EyeCanvas state={eye.state} width={300} height={150} animate={flipped && !reduced} blink={false} reducedMotion={reduced} />
+              <Safe>
+                <EyeCanvas state={eye.state} width={300} height={150} animate={flipped && !reduced} blink={false} reducedMotion={reduced} />
+              </Safe>
               <span class="rs-card__eye-tag">{eye.e}</span>
             </div>
           )}

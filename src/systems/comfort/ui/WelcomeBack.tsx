@@ -1,43 +1,56 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { beginRun, type GameServices } from '@core';
-import { Button, CountUp, Modal, useReducedMotion } from '@ui-kit';
+import { Button, CountUp, Modal, useReducedMotion, useSignal } from '@ui-kit';
 import { ACCENT } from '../controller';
-import { COMEBACK_AFTER_MS, EARN_CAP_HOURS, formatDuration, ratePerHour, welcomeLine } from '../logic';
+import { COMEBACK_AFTER_MS, EARN_CAP_HOURS, collectable, formatDuration, jarCapacity, ratePerHour, welcomeLine } from '../logic';
 import { Jar } from './Jar';
-import { centerOf, doctorName, safePlay, useComfort } from './hooks';
+import { centerOf, doctorName, safePlay, useComfort, useHostLease } from './hooks';
+
+/** Where the note is hosted. Only one host renders it: the lounge, then the hub banner, then the top bar. */
+export type WelcomeHost = 'scene' | 'banner' | 'global';
+const HOST_PRIORITY: Record<WelcomeHost, number> = { scene: 2, banner: 1, global: 0 };
 
 /**
  * "Welcome back, Doctor" — shown once after a real absence. Warm, never
  * guilt-tripping: the clinic simply hands over what it earned, adds a
  * comeback gift after a long break, and points at reviews that are due.
  */
-export function WelcomeBack(props: { services: GameServices }) {
+export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }) {
   const { services } = props;
   const { ctl, state } = useComfort(services);
+  const mine = useHostLease(services, HOST_PRIORITY[props.host]);
+  // The global host never interrupts a patient: it waits until the run is over.
+  const inRun = useSignal(services.run.state) != null;
   const reduced = useReducedMotion();
   const jarRef = useRef<HTMLDivElement>(null);
   const [closing, setClosing] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   const note = state.welcome;
-  if (!ctl) return null;
+  // Looked up once per welcome note, not on every render.
+  const { due, review, reviewOpen } = useMemo(() => {
+    if (!note) return { due: 0, review: undefined, reviewOpen: false };
+    let due = 0;
+    let reviewOpen = false;
+    const review = services.registries.modes.get('review');
+    try {
+      due = services.learning.due(50).length;
+    } catch {
+      due = 0;
+    }
+    try {
+      reviewOpen = !!review && !review.locked?.(services);
+    } catch {
+      reviewOpen = false;
+    }
+    return { due, review, reviewOpen };
+  }, [note?.at, services]);
+  if (!ctl || !mine || (props.host === 'global' && inRun)) return null;
 
-  const coins = Math.floor(state.jar);
+  const coins = collectable(state);
+  const kept = state.bonus;
   const comeback = note?.comebackCoins ?? 0;
   const capped = (note?.awayMs ?? 0) >= EARN_CAP_HOURS * 3_600_000;
-  let due = 0;
-  try {
-    due = services.learning.due(50).length;
-  } catch {
-    due = 0;
-  }
-  const review = services.registries.modes.get('review');
-  let reviewOpen = false;
-  try {
-    reviewOpen = !!review && !review.locked?.(services);
-  } catch {
-    reviewOpen = false;
-  }
 
   const finish = (after?: () => void) => {
     if (closing) return;
@@ -82,7 +95,7 @@ export function WelcomeBack(props: { services: GameServices }) {
           <p class="cf-welcome__line">{welcomeLine(note.awayMs, hour)}</p>
           <div class="cf-welcome__grid">
             <div class="cf-welcome__jar" ref={jarRef}>
-              <Jar fill={Math.min(1, state.jar / (ratePerHour(state) * EARN_CAP_HOURS))} size={128} />
+              <Jar fill={Math.min(1, state.jar / jarCapacity(state))} size={128} />
             </div>
             <div class="cf-welcome__earn">
               <div class="lm-eyebrow">Your technicians earned</div>
@@ -93,6 +106,7 @@ export function WelcomeBack(props: { services: GameServices }) {
               <p class="lm-muted cf-welcome__rate">
                 ✦ {ratePerHour(state).toFixed(1)} an hour{capped ? ` · the jar holds ${EARN_CAP_HOURS} hours` : ''}
               </p>
+              {kept > 0 && <p class="cf-welcome__kept">Includes the ✦ {kept} gift you kept for later.</p>}
               {comeback > 0 && (
                 <div class="cf-welcome__bonus">
                   <strong>+{comeback}</strong> welcome back gift
@@ -107,7 +121,7 @@ export function WelcomeBack(props: { services: GameServices }) {
                 Your team set aside <strong>{due}</strong> {due === 1 ? 'diagnosis' : 'diagnoses'} for a second look — a short review now makes them stick.
               </span>
               {reviewOpen && (
-                <Button size="sm" variant="glass" icon="refresh" onClick={() => finish(() => beginRun(services, 'review'))}>
+                <Button variant="glass" icon="refresh" onClick={() => finish(() => beginRun(services, 'review'))}>
                   {review!.title}
                 </Button>
               )}

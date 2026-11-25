@@ -6,6 +6,10 @@ import { buildSchedule, totalDuration, visibleChars } from './typewriter';
 import { nextInTrap } from './focus';
 import { withAlpha, RARITY_COLOR, GRADE_COLOR } from './palette';
 import { VARIANTS, createDrop, createMote, moteAlpha, moteCount, stepDrops, stepMotes } from './backdrop-sim';
+import {
+  GOVERNOR_INITIAL, LITE_CLASS, createFrameSampler, governorStep, isLiteRendering, median, needsQualityProbe, reportFrameWindow, resetQualityForTests,
+  setLiteRendering, type GovernorState,
+} from './quality';
 
 describe('cx', () => {
   it('joins truthy parts and object keys', () => {
@@ -141,5 +145,92 @@ describe('backdrop simulation', () => {
     const drops = Array.from({ length: 20 }, () => createDrop(300, 300, rand));
     for (let i = 0; i < 600; i++) stepDrops(drops, 1 / 30, 300, 300, rand);
     for (const d of drops) expect(d.y - d.len).toBeLessThanOrEqual(300 + 1);
+  });
+});
+
+describe('quality governor', () => {
+  const run = (intervalMs: number, frames: number, opts?: Parameters<typeof createFrameSampler>[0]) => {
+    const s = createFrameSampler(opts);
+    const medians: number[] = [];
+    for (let i = 0; i < frames; i++) {
+      const m = s.tick(i * intervalMs);
+      if (m !== null) medians.push(m);
+    }
+    return { s, medians };
+  };
+
+  it('median handles odd, even and empty lists', () => {
+    expect(median([3, 1, 2])).toBe(2);
+    expect(median([4, 1, 2, 3])).toBe(2.5);
+    expect(median([])).toBe(0);
+  });
+
+  it('reports one median per window, then stops after the configured number of windows', () => {
+    const fast = run(16.7, 2000, { windows: 3 });
+    expect(fast.medians).toHaveLength(3);
+    expect(fast.medians.every((m) => Math.abs(m - 16.7) < 0.01)).toBe(true);
+    expect(fast.s.done).toBe(true);
+    expect(run(83, 400, { windows: 2 }).medians.every((m) => m === 83)).toBe(true);
+  });
+
+  it('waits for warm-up and the sampling window before reporting', () => {
+    const opts = { warmupMs: 800, windowMs: 1500 };
+    expect(run(83, 10, opts).medians).toHaveLength(0); // still warming up
+    expect(run(83, 20, opts).medians).toHaveLength(0); // window not yet full
+    expect(run(83, 40, opts).medians).toHaveLength(1); // ~3.3s at 12 fps
+  });
+
+  it('ignores long pauses and resets', () => {
+    const s = createFrameSampler({ warmupMs: 0, minSamples: 3, windowMs: 0, windows: 1 });
+    s.tick(0);
+    expect(s.tick(5000)).toBeNull(); // pause, not slowness
+    s.reset();
+    s.tick(6000);
+    s.tick(6016);
+    s.tick(6032);
+    expect(s.tick(6048)).toBe(16);
+    expect(s.done).toBe(true);
+  });
+
+  const fold = (windows: number[], from: GovernorState = GOVERNOR_INITIAL) => windows.reduce((st, m) => governorStep(st, m), from);
+
+  it('one slow window (a boot hitch) is not enough; two in a row engage lite', () => {
+    expect(fold([120]).lite).toBe(false);
+    expect(fold([120, 16, 120]).lite).toBe(false);
+    expect(fold([120, 90]).lite).toBe(true);
+  });
+
+  it('three comfortably fast windows lift an automatic verdict, but only once per session', () => {
+    const lite = fold([120, 120]);
+    expect(fold([16, 16], lite).lite).toBe(true);
+    expect(fold([16, 30, 16, 16], lite).lite).toBe(true); // a middling window breaks the streak
+    const lifted = fold([16, 16, 16], lite);
+    expect(lifted.lite).toBe(false);
+    const again = fold([120, 120], lifted);
+    expect(again.lite).toBe(true);
+    expect(fold([16, 16, 16, 16], again).lite).toBe(true); // sticky after one flap
+  });
+
+  it('a forced setting ignores automatic verdicts', () => {
+    const forced = { ...GOVERNOR_INITIAL, forced: true };
+    expect(fold([120, 120, 120], forced).lite).toBe(false);
+  });
+
+  it('drives html.lm-lite and stops probing once forced', () => {
+    resetQualityForTests();
+    expect(needsQualityProbe()).toBe(true);
+    reportFrameWindow(120);
+    expect(isLiteRendering()).toBe(false);
+    reportFrameWindow(120);
+    expect(isLiteRendering()).toBe(true);
+    expect(document.documentElement.classList.contains(LITE_CLASS)).toBe(true);
+    expect(needsQualityProbe()).toBe(true); // may still lift once
+    setLiteRendering(false);
+    expect(document.documentElement.classList.contains(LITE_CLASS)).toBe(false);
+    expect(needsQualityProbe()).toBe(false);
+    reportFrameWindow(120);
+    reportFrameWindow(120);
+    expect(isLiteRendering()).toBe(false);
+    resetQualityForTests();
   });
 });

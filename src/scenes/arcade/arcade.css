@@ -1,5 +1,5 @@
 /* Practice Arcade — a cabinet of luminous instruments. */
-.arcade-content > * { max-width: 1240px; margin-left: auto; margin-right: auto; }
+.arcade-content > :not(.lm-modal) { max-width: 1240px; margin-left: auto; margin-right: auto; }
 
 .arcade-hero {
   display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, 1fr); gap: var(--lm-sp-7); align-items: end;
@@ -134,15 +134,16 @@
 .arcade-result__answer p { margin-top: 4px; color: var(--lm-ivory); font-size: var(--lm-fs-md); }
 .arcade-result__findings { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--lm-sp-2); }
 .arcade-finding {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 8px 12px; border-radius: var(--lm-r-sm);
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; min-width: 0; border-radius: var(--lm-r-sm);
   background: color-mix(in srgb, var(--f) 7%, transparent); box-shadow: inset 3px 0 0 var(--f), inset 0 0 0 1px color-mix(in srgb, var(--f) 22%, transparent);
   animation: lm-fade-up var(--lm-dur-reveal) var(--lm-ease-out-expo) both; animation-delay: calc(300ms + var(--i) * 60ms);
 }
 .arcade-finding__label { font-size: var(--lm-fs-xs); color: var(--lm-text-muted); }
 .arcade-finding__label small { color: var(--lm-muted-2); }
-.arcade-finding__value { font-weight: 700; color: var(--lm-ivory); white-space: nowrap; }
+.arcade-finding__value { font-weight: 700; color: var(--lm-ivory); overflow-wrap: anywhere; }
 .arcade-result__actions { display: flex; flex-wrap: wrap; gap: var(--lm-sp-2); }
-.arcade-result__kbd { margin-left: 4px; opacity: 0.7; }
+.arcade-result__hint { margin-top: calc(var(--lm-sp-2) * -1); font-size: var(--lm-fs-xs); color: var(--lm-muted-2); }
+@media (pointer: coarse) { .arcade-result__hint { display: none; } }
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
@@ -164,4 +165,43 @@
   .arcade-result__pct { font-size: 1.6rem; }
   .arcade-result__word { font-size: var(--lm-fs-2xl); }
   .arcade-result__actions .lm-btn { flex: 1 1 auto; }
+}
+
+/* ── Instruments still being calibrated ──────────────────────────────── */
+.arcade-card--pending {
+  min-height: 0; cursor: default; backdrop-filter: none; -webkit-backdrop-filter: none;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 236, 210, 0.016) 0 2px, transparent 2px 8px),
+    linear-gradient(160deg, rgba(22, 13, 40, 0.5), rgba(8, 4, 16, 0.6));
+  box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.06);
+}
+.arcade-card--pending::before { opacity: 0.18; }
+.arcade-card--pending:hover, .arcade-card--pending:active { transform: none; box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); }
+.arcade-card--pending .arcade-card__lens {
+  width: 56px; height: 56px; color: var(--lm-muted-2); filter: grayscale(0.7) brightness(0.8);
+  box-shadow: 0 0 0 2px #140c26, 0 0 0 3px color-mix(in srgb, var(--acc) 25%, #2a1846), inset 0 -6px 14px rgba(0, 0, 0, 0.5);
+}
+.arcade-card--pending .arcade-card__ring { animation: none; opacity: 0.4; }
+.arcade-card--pending:hover .arcade-card__lens { transform: none; }
+.arcade-card--pending .arcade-card__cat { color: color-mix(in srgb, var(--acc) 55%, var(--lm-muted-2)); }
+.arcade-card--pending .arcade-card__title { color: var(--lm-muted); font-size: var(--lm-fs-lg); }
+.arcade-card--pending .arcade-card__blurb { color: var(--lm-muted-2); }
+.arcade-card__soon { display: inline-flex; align-items: center; gap: 6px; font-size: var(--lm-fs-xs); letter-spacing: 0.04em; color: var(--lm-muted-2); }
+.arcade-card__soon svg { width: 12px; height: 12px; }
+
+.arcade-card__tiers { display: inline-flex; gap: 4px; }
+.arcade-card__tier {
+  width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--t) 45%, transparent);
+  transition: transform var(--lm-dur-ui) var(--lm-ease-spring);
+}
+.arcade-card__tier.is-done { background: var(--t); box-shadow: 0 0 6px color-mix(in srgb, var(--t) 70%, transparent); }
+.arcade-card__tier.is-current { transform: scale(1.35); }
+
+@media (max-width: 560px) {
+  .arcade-card:not(.is-played) .arcade-card__foot { flex-basis: auto; border: 0; padding: 0; }
+  .arcade-card:not(.is-played) .arcade-card__new { display: none; }
+  .arcade-card--pending { padding: var(--lm-sp-3) var(--lm-sp-4); }
+  .arcade-card--pending .arcade-card__lens { width: 44px; height: 44px; }
+  .arcade-card--pending .arcade-card__blurb { display: none; }
+  .arcade-card--pending .arcade-card__foot { flex-basis: auto; border: 0; padding: 0; }
 }

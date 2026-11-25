@@ -71,7 +71,9 @@
 .cr-saved.is-leaving { opacity: 0; }
 .cr-saved__veil {
   position: absolute; inset: 0;
-  background: radial-gradient(70% 60% at 50% 42%, rgba(255, 210, 122, 0.16), rgba(26, 15, 46, 0.55) 55%, rgba(6, 3, 13, 0.82) 100%);
+  background:
+    radial-gradient(38% 30% at 50% 36%, rgba(255, 210, 122, 0.2), rgba(255, 210, 122, 0) 100%),
+    radial-gradient(75% 65% at 50% 46%, rgba(11, 7, 22, 0.72), rgba(11, 7, 22, 0.84) 60%, rgba(6, 3, 13, 0.94) 100%);
   animation: cr-wash 500ms var(--lm-ease-out) both;
 }
 .cr-saved__rays {
@@ -81,13 +83,17 @@
 }
 .cr-saved__rays svg { display: block; width: 100%; height: 100%; }
 .cr-saved__card { position: relative; display: grid; justify-items: center; gap: 4px; text-align: center; padding: 0 var(--lm-gutter); margin-top: -6vh; }
+.cr-saved__card::before {
+  content: ''; position: absolute; z-index: -1; left: 50%; top: 58%; width: min(150%, 760px); height: 82%; translate: -50% -50%; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(6, 3, 13, 0.7), rgba(6, 3, 13, 0.35) 65%, rgba(6, 3, 13, 0));
+}
 .cr-saved__emblem { position: relative; filter: drop-shadow(0 0 28px rgba(255, 210, 122, 0.55)); animation: cr-emblem 900ms var(--lm-ease-spring-soft) both; }
 .cr-eye { display: block; width: clamp(130px, 22vw, 190px); height: auto; overflow: visible; }
 .cr-eye__lid { transform-origin: 0 0; animation: cr-lid-open 820ms 120ms var(--lm-ease-out-expo) both; }
 .cr-eye__rays { transform-origin: 0 0; animation: cr-rays-pop 900ms 380ms var(--lm-ease-spring) both; }
 .cr-eye__pupil { transform-origin: 0 0; animation: cr-pupil 900ms 500ms var(--lm-ease-out) both; }
-.cr-saved__bust { position: absolute; right: -14px; bottom: -6px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(11, 7, 22, 0.9), 0 0 22px rgba(94, 234, 212, 0.5); animation: lm-pop-in 600ms 700ms var(--lm-ease-spring) both; }
-.cr-saved__eyebrow { margin-top: 6px; font: 650 var(--lm-fs-2xs)/1 var(--lm-font-ui); letter-spacing: 0.24em; text-transform: uppercase; color: #5eead4; animation: lm-fade-up 500ms 300ms var(--lm-ease-out-expo) both; }
+.cr-saved__bust { position: absolute; right: -30px; bottom: 14px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(11, 7, 22, 0.9), 0 0 22px rgba(94, 234, 212, 0.5); animation: lm-pop-in 600ms 700ms var(--lm-ease-spring) both; }
+.cr-saved__eyebrow { margin-top: 14px; font: 650 var(--lm-fs-2xs)/1 var(--lm-font-ui); letter-spacing: 0.24em; text-transform: uppercase; color: #5eead4; text-shadow: 0 0 12px rgba(6, 3, 13, 0.95), 0 1px 2px #000; animation: lm-fade-up 500ms 300ms var(--lm-ease-out-expo) both; }
 .cr-saved__title {
   margin: 0; font: 600 clamp(2.7rem, 1.4rem + 6vw, 5.4rem)/1 var(--lm-font-display); letter-spacing: -0.01em; font-optical-sizing: auto;
   background: linear-gradient(180deg, #fffaf0 0%, #ffe7b3 45%, #ffd27a 70%, #d9962a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -105,6 +111,18 @@
 .cr-saved__chip--gold { color: var(--lm-text-on-gold); background: linear-gradient(180deg, #ffe7b3, #ffd27a 55%, #f5b942); border-color: #fff0c8; box-shadow: var(--lm-glow-gold); }
 .cr-saved__chip--grand { color: #fff6df; background: linear-gradient(180deg, rgba(167, 139, 250, 0.4), rgba(239, 68, 68, 0.3)); border-color: rgba(255, 210, 122, 0.8); box-shadow: 0 0 22px rgba(255, 210, 122, 0.4); }
 .cr-saved.is-still .cr-saved__rays { animation: none; opacity: 0.7; }
+.cr-saved__note {
+  margin: 12px 0 0; max-width: 38ch; padding: 8px 14px; border-radius: var(--lm-r-md);
+  font: 500 var(--lm-fs-sm)/1.45 var(--lm-font-ui); color: #ffe7d0;
+  background: rgba(6, 3, 13, 0.78); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.35);
+  animation: lm-fade-up 600ms 900ms var(--lm-ease-out-expo) both;
+}
+/* Tiered spectacle: the rays and glow follow the quality of the work-up. */
+.cr-saved.is-thin .cr-saved__rays svg { opacity: 0.4; }
+.cr-saved.is-thin .cr-saved__title { font-size: clamp(2.2rem, 1.2rem + 4.6vw, 4.2rem); filter: drop-shadow(0 0 12px rgba(255, 210, 122, 0.35)) drop-shadow(0 3px 0 rgba(74, 46, 6, 0.6)); }
+.cr-saved.is-thin .cr-saved__emblem { filter: drop-shadow(0 0 14px rgba(255, 210, 122, 0.3)); }
+.cr-saved--legendary .cr-saved__emblem { filter: drop-shadow(0 0 34px rgba(255, 210, 122, 0.75)) drop-shadow(0 0 70px rgba(239, 68, 68, 0.35)); }
+.cr-saved--legendary .cr-saved__eyebrow { color: #ffe7b3; }
 
 @keyframes cr-rays-in { from { opacity: 0; scale: 0.4; } to { opacity: 1; scale: 1; } }
 @keyframes cr-spin { to { rotate: 360deg; } }
@@ -114,7 +132,17 @@
 @keyframes cr-pupil { 0% { transform: scale(1.5); } 100% { transform: scale(1); } }
 @keyframes cr-title { 0% { opacity: 0; transform: translateY(18px) scale(0.86); letter-spacing: 0.12em; } 100% { opacity: 1; transform: none; letter-spacing: -0.01em; } }
 
+@media (max-width: 760px), (pointer: coarse) {
+  /* Phones: skip the full-width backdrop blur (the band is near-opaque anyway) to keep the arrival smooth. */
+  .cr-arrival__band { backdrop-filter: none; -webkit-backdrop-filter: none; background-color: rgba(70, 6, 18, 0.55); }
+}
 @media (max-width: 480px) {
+  /* The patient sits beside the emblem, clear of the eye. */
+  .cr-saved__bust { right: auto; left: calc(100% + 2px); bottom: -2px; width: 44px; height: 44px; display: grid; place-items: center; }
+  .cr-saved__bust .lav-root { width: 44px; height: 44px; }
+  .cr-saved__card::before { width: 160%; height: 100%; top: 56%; background: radial-gradient(closest-side, rgba(6, 3, 13, 0.88), rgba(6, 3, 13, 0.6) 70%, rgba(6, 3, 13, 0)); }
+  .cr-saved__veil { background: radial-gradient(40% 26% at 50% 34%, rgba(255, 210, 122, 0.16), rgba(255, 210, 122, 0) 100%), rgba(8, 5, 16, 0.9); }
+  .cr-saved__chip { background-color: rgba(30, 14, 10, 0.85); }
   .cr-arrival__title { letter-spacing: 0.04em; font-size: clamp(2.2rem, 13vw, 3rem); }
   .cr-arrival__glyph { display: none; }
   .cr-arrival__stripes { width: 18vw; }

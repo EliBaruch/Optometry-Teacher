@@ -63,3 +63,8 @@
   background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.25), transparent);
   animation: lm-shimmer 3.2s var(--lm-ease-in-out) calc(var(--d) + 600ms) infinite;
 }
+
+/* Off screen: freeze the rarity loops. */
+.lm-reward.is-idle::before, .lm-reward.is-idle::after, .lm-reward.is-idle .lm-reward__shine::before { animation-play-state: paused; }
+/* Lite rendering: a couple of cycles to announce the rarity, then hold still. */
+html.lm-lite .lm-reward--epic::after, html.lm-lite .lm-reward--legendary::before, html.lm-lite .lm-reward__shine::before { animation-iteration-count: 2; }

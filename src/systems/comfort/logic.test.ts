@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { createRng } from '@core';
 import {
   COMEBACK_AFTER_MS, COMEBACK_COINS, DAY, EARN_CAP_HOURS, GIFT_CALENDAR, INITIAL, MIN_AWAY_MS, RATE_BASE, RATE_SKILL,
   SATCHEL_BONUS, arrive, claimGift, collect, dismissWelcome, earningsFor, formatDuration, giftReady, jarCapacity,
-  msUntilTomorrow, ratePerHour, recordCase, rollRarity, sanitize, satchelOdds, skillOf, welcomeLine,
+  msUntilTomorrow, ratePerHour, recordCase, rollRarity, sanitize, satchelOdds, skillOf, salutation, welcomeLine, collectable, grandSatchelHint,
   type ComfortState,
 } from './logic';
 
@@ -94,12 +95,103 @@ describe('collect / dismiss', () => {
     expect(out.state.lifetime.earned).toBe(12);
   });
 
-  it('dismissing never loses anything: the comeback gift moves into the jar', () => {
+  it('dismissing never loses anything: the comeback gift is kept for later', () => {
     const s = { ...INITIAL, jar: 10, welcome: { awayMs: 4 * DAY, coins: 10, comebackCoins: COMEBACK_COINS, at: T0 } };
     const d = dismissWelcome(s);
     expect(d.welcome).toBeNull();
-    expect(d.jar).toBe(10 + COMEBACK_COINS);
+    expect(d.jar).toBe(10);
+    expect(d.bonus).toBe(COMEBACK_COINS);
+    expect(collectable(d)).toBe(10 + COMEBACK_COINS);
     expect(dismissWelcome(INITIAL)).toBe(INITIAL);
+    const out = collect(d);
+    expect(out.coins + out.comeback).toBe(10 + COMEBACK_COINS);
+    expect(out.state.bonus).toBe(0);
+  });
+
+  it('a kept comeback gift survives later absences (dismiss → arrive)', () => {
+    // skill 0 → capacity 32: the reviewer's 182 → 32 repro
+    const back = arrive({ ...INITIAL, lastSeenAt: T0, jar: 32 }, T0 + 4 * DAY);
+    const kept = dismissWelcome(back);
+    expect(collectable(kept)).toBe(32 + COMEBACK_COINS);
+    const later = arrive(kept, T0 + 4 * DAY + 3 * H);
+    expect(collectable(later)).toBe(32 + COMEBACK_COINS);
+    const out = collect(later);
+    expect(out.coins + out.comeback).toBe(32 + COMEBACK_COINS);
+  });
+
+  it('a drop in skill never trims coins already earned', () => {
+    let s: ComfortState = arrive({ ...withSkill(1, 12), lastSeenAt: T0 }, T0 + 10 * H);
+    const full = s.jar;
+    expect(full).toBeCloseTo(jarCapacity(s));
+    for (let i = 0; i < 12; i++) s = recordCase(s, 0, 1300, T0 + 10 * H);
+    expect(jarCapacity(s)).toBeLessThan(full);
+    s = arrive(s, T0 + 20 * H);
+    expect(s.jar).toBe(full);
+  });
+
+  it('after "keep it in the jar" the note only returns once the jar has grown', () => {
+    const s0 = arrive({ ...withSkill(1), lastSeenAt: T0 }, T0 + 2 * H);
+    expect(s0.welcome).not.toBeNull();
+    const kept = dismissWelcome(s0);
+    const short = arrive(kept, T0 + 2 * H + 30 * 60_000); // +7.5 coins
+    expect(short.welcome).toBeNull();
+    const long = arrive(short, T0 + 2 * H + 30 * 60_000 + 2 * H); // +30 more
+    expect(long.welcome).not.toBeNull();
+    expect(long.keptCoins).toBeNull();
+  });
+});
+
+describe('comeback gifts stack', () => {
+  it('a second comeback due while the first note is unread is added, not merged', () => {
+    const s1 = arrive({ ...INITIAL, lastSeenAt: T0 }, T0 + 4 * DAY);
+    expect(s1.welcome?.comebackCoins).toBe(COMEBACK_COINS);
+    // the note is never read; the player is away again for long enough for another gift
+    const s2 = arrive(s1, T0 + 4 * DAY + 8 * DAY);
+    expect(s2.welcome?.comebackCoins).toBe(2 * COMEBACK_COINS);
+    const out = collect(s2);
+    expect(out.comeback).toBe(2 * COMEBACK_COINS);
+  });
+});
+
+describe('no-loss property: only collect lowers what the player is owed', () => {
+  const owed = (s: ComfortState) => s.jar + s.bonus + (s.welcome?.comebackCoins ?? 0);
+  it('holds across thousands of random arrive / dismiss / recordCase / collect sequences', () => {
+    const rng = createRng('lounge-property');
+    for (let run = 0; run < 200; run++) {
+      let s: ComfortState = { ...INITIAL, lastSeenAt: T0 };
+      let t = T0;
+      // comeback-gift ledger: every gift granted is either paid out or still held
+      let granted = 0;
+      let giftsPaid = 0;
+      const giftsHeld = (x: ComfortState) => x.bonus + (x.welcome?.comebackCoins ?? 0);
+      for (let step = 0; step < 40; step++) {
+        const before = owed(s);
+        const op = rng.next();
+        if (op < 0.4) {
+          const gaps = [5 * 60_000, 25 * 60_000, 3 * H, 9 * H, 2 * DAY, 4 * DAY, 9 * DAY];
+          t += gaps[Math.floor(rng.next() * gaps.length)]!;
+          const prevAt = s.comebackAt;
+          s = arrive(s, t);
+          if (s.comebackAt !== prevAt) granted += COMEBACK_COINS;
+        } else if (op < 0.6) {
+          s = dismissWelcome(s);
+        } else if (op < 0.85) {
+          s = recordCase(s, Math.floor(rng.next() * 1300), 1300, t);
+        } else {
+          const bonusBefore = s.bonus;
+          const out = collect(s);
+          expect(out.coins + out.comeback).toBeCloseTo(before - (s.jar % 1)); // only the fraction stays behind
+          giftsPaid += bonusBefore + out.comeback;
+          s = out.state;
+          expect(owed(s)).toBeLessThan(1);
+          expect(giftsPaid + giftsHeld(s)).toBe(granted);
+          continue;
+        }
+        expect(owed(s)).toBeGreaterThanOrEqual(before - 1e-9);
+        expect(s.jar).toBeGreaterThanOrEqual(0);
+        expect(giftsPaid + giftsHeld(s)).toBe(granted); // comeback gifts never merge or vanish
+      }
+    }
   });
 });
 
@@ -146,6 +238,16 @@ describe('daily gift calendar', () => {
     expect(s.gift.next).toBe(3);
   });
 
+  it('describes the way to the grand satchel without counting days', () => {
+    const at = (next: number, totalClaims = next) => ({ ...INITIAL, gift: { lastClaimDay: null, next, totalClaims } });
+    expect(grandSatchelHint(at(0, 0), true)).toBe('6 gifts until the grand satchel');
+    expect(grandSatchelHint(at(1), false)).toBe('5 gifts until the grand satchel');
+    expect(grandSatchelHint(at(5), true)).toBe('1 gift until the grand satchel');
+    expect(grandSatchelHint(at(6), true)).toBe('Tonight: the grand satchel');
+    expect(grandSatchelHint(at(6), false)).toBe('The grand satchel is next');
+    expect(grandSatchelHint(at(0, 7), false)).toMatch(/fresh calendar/);
+  });
+
   it('counts down to local midnight', () => {
     expect(msUntilTomorrow(T0)).toBe(4 * H);
   });
@@ -158,6 +260,7 @@ describe('sanitize & copy', () => {
     expect(s.recent).toEqual([0.5]);
     expect(s.gift).toEqual({ lastClaimDay: null, next: 6, totalClaims: 0 });
     expect(sanitize(null)).toEqual(INITIAL);
+    expect(sanitize({ bonus: -3, keptCoins: 'x' as unknown as number }).bonus).toBe(0);
   });
 
   it('formats durations and never uses guilt in greetings', () => {
@@ -167,5 +270,15 @@ describe('sanitize & copy', () => {
     for (const h of [0, 8, 14, 20]) {
       for (const away of [H, 4 * DAY]) expect(welcomeLine(away, h)).not.toMatch(/miss(ed)?|lost|streak|abandon/i);
     }
+  });
+});
+
+describe('salutation', () => {
+  it('follows the clock', () => {
+    expect(salutation(8)).toBe('Good morning');
+    expect(salutation(14)).toBe('Good afternoon');
+    expect(salutation(20)).toBe('Good evening');
+    expect(salutation(2)).toBe('A quiet night');
+    expect(salutation(23)).toBe('A quiet night');
   });
 });

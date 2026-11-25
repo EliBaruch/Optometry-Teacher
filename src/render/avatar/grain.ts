@@ -1,4 +1,4 @@
-/** A tiny tiling film-grain bitmap (generated once, cached) for print-like texture. */
+/** A tiny tiling film-grain bitmap (alpha speckle) (generated once, cached) for print-like texture. */
 import { createRng } from '@core';
 
 let cached: string | null | undefined;
@@ -17,11 +17,13 @@ export function grainDataUrl(): string | null {
     const img = g.createImageData(size, size);
     const r = createRng(0x6a1e);
     for (let i = 0; i < size * size; i++) {
-      const v = 128 + (r.next() - 0.5) * 255;
-      img.data[i * 4] = v;
-      img.data[i * 4 + 1] = v;
-      img.data[i * 4 + 2] = v;
-      img.data[i * 4 + 3] = 255;
+      // light/dark speckle carried in alpha, so it needs no blend mode
+      const v = r.next() - 0.5;
+      const c = v > 0 ? 255 : 0;
+      img.data[i * 4] = c;
+      img.data[i * 4 + 1] = c;
+      img.data[i * 4 + 2] = c;
+      img.data[i * 4 + 3] = Math.round(Math.abs(v) * 2 * (v > 0 ? 70 : 110));
     }
     g.putImageData(img, 0, 0);
     const url = cv.toDataURL('image/png');

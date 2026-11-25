@@ -6,10 +6,10 @@ import {
 import { BEAT_ORDER, beats, type Beat } from './choreo';
 import { demoKind, prepareDemo } from './demo';
 import { buildReview, type ReviewModel } from './model';
-import { Rewards } from './Rewards';
+import { ClinicPanels, Rewards, useClinicPanels } from './Rewards';
 import { appendEntry, findRun, runLogSlot } from './run-log';
 import { ScoreLedger } from './ScoreLedger';
-import { CasePanel, ConfidenceCallout, DiagnosisPanel, MissedPanel, ReflectionCard, TriagePanel } from './Teaching';
+import { CasePanel, ClockPanel, ConfidenceCallout, DiagnosisPanel, MissedPanel, ReflectionCard, TriagePanel } from './Teaching';
 import { VerdictCard } from './VerdictCard';
 import './results.css';
 
@@ -129,6 +129,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
   const dxPanel = useRef<HTMLElement | null>(null);
   const nextBtn = useRef<HTMLDivElement>(null);
   const verdictFired = useRef(false);
+  const panels = useClinicPanels(services);
 
   // Beat 1 impact: the card faces the player.
   useEffect(() => {
@@ -258,6 +259,11 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
               </div>
             </div>
 
+            {!score && (
+              <div class={cx('rs-scorepanel', hit.stamp && 'is-shown')}>
+                <ClockPanel review={review} limitSec={session?.caseId === kase.id ? session.timeLimitSec : undefined} />
+              </div>
+            )}
             {score && (
               <GlassPanel class={cx('rs-scorepanel', hit.ledger && 'is-shown')} strong padding="md">
                 <ScoreLedger score={score} started={!!hit.ledger} totalShown={!!hit.total} step={b.partStep} instant={instant} runPoints={runEntry?.points} />
@@ -268,17 +274,25 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
           </div>
         </div>
 
-        <div class={cx('rs-lesson', hit.teaching && 'is-shown')} aria-hidden={!hit.teaching}>
-          <Divider label="The lesson" />
-          <div class="rs-grid">
-            <DiagnosisPanel review={review} panelRef={(el) => (dxPanel.current = el)} />
-            <div class="rs-col">
-              <MissedPanel review={review} />
-              <TriagePanel review={review} />
+        <div class={cx('rs-body', panels && 'has-rail')}>
+          <div class={cx('rs-lesson', hit.teaching && 'is-shown')} aria-hidden={!hit.teaching}>
+            <Divider label="The lesson" />
+            <div class="rs-grid">
+              <DiagnosisPanel review={review} panelRef={(el) => (dxPanel.current = el)} />
+              <div class="rs-col">
+                <MissedPanel review={review} />
+                <TriagePanel review={review} />
+              </div>
             </div>
+            <CasePanel review={review} />
+            <ReflectionCard review={review} />
           </div>
-          <CasePanel review={review} />
-          <ReflectionCard review={review} />
+          {panels && (
+            <aside class={cx('rs-clinic', hit.rewards && 'is-shown')} aria-label="Around the clinic">
+              <Divider label="Around the clinic" />
+              <ClinicPanels shown={!!hit.rewards} />
+            </aside>
+          )}
         </div>
       </div>
 
@@ -306,7 +320,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
             </>
           )}
         </div>
-        <div class="rs-actions__btns">
+        <div class={cx('rs-actions__btns', (runActive ? 1 : 0) + (hasCodex ? 1 : 0) === 1 && 'is-pair')}>
           {runActive && (
             <Button variant="ghost" icon="home" onClick={onBack} sfx="back">
               Back to clinic

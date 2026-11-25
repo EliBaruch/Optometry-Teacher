@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { useNarrow } from './useNarrow';
+import { useParallax } from './useParallax';
 import { beginRun, hashString, type SceneProps } from '@core';
 import {
   Button, CountUp, Divider, GlassPanel, HudSlot, Icon, ProgressBar, RingMeter, Screen, cx,
@@ -11,6 +13,10 @@ import './profile.css';
 export function ProfileScene({ services }: SceneProps) {
   const settings = useSignal(services.settings);
   const reduced = useReducedMotion();
+  const narrow = useNarrow();
+  // Phones: give the top bar to the title — the same HUD widgets appear below in "Clinic record".
+  const compactBar = useNarrow(560);
+  const ring = narrow ? 76 : 104;
   const diagnoses = useRegistry(services.registries.diagnoses);
   const modes = useRegistry(services.registries.modes);
   const scenes = useRegistry(services.registries.scenes);
@@ -32,26 +38,7 @@ export function ProfileScene({ services }: SceneProps) {
 
   /* parallax on the hero */
   const heroRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el || reduced) return;
-    let raf = 0;
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerType === 'touch' || raf) return;
-      const x = (e.clientX / window.innerWidth) * 2 - 1;
-      const y = (e.clientY / window.innerHeight) * 2 - 1;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        el.style.setProperty('--mx', x.toFixed(3));
-        el.style.setProperty('--my', y.toFixed(3));
-      });
-    };
-    window.addEventListener('pointermove', onMove, { passive: true });
-    return () => {
-      window.removeEventListener('pointermove', onMove);
-      cancelAnimationFrame(raf);
-    };
-  }, [reduced]);
+  useParallax(heroRef, reduced);
 
   /* inline name editing */
   const [editing, setEditing] = useState(false);
@@ -84,10 +71,10 @@ export function ProfileScene({ services }: SceneProps) {
   const hour = new Date(services.clock.now()).getHours();
 
   return (
-    <Screen title="Profile" eyebrow="Your clinician's record" onBack={() => services.router.back()} escToBack={!editing} backdrop="hub" class="profile-scene" contentClass="profile-content">
+    <Screen title="Profile" eyebrow="Your clinician's record" onBack={() => services.router.back()} escToBack={!editing} hud={!compactBar} backdrop="hub" class="profile-scene" contentClass="profile-content">
       <section class="profile-hero" ref={heroRef}>
         <div class="profile-hero__crest">
-          <Crest seed={seed} palette={palette} rarity={tier.rarity} size={176} initials={initials(settings.playerName)} />
+          <Crest seed={seed} palette={palette} rarity={tier.rarity} size={narrow ? 124 : 176} initials={initials(settings.playerName)} />
         </div>
         <div class="profile-hero__id lm-enter" style={d(0)}>
           <div class="lm-eyebrow">{greeting(hour)}</div>
@@ -109,7 +96,7 @@ export function ProfileScene({ services }: SceneProps) {
           ) : (
             <h2 class="profile-name">
               <span class="profile-name__text">{settings.playerName}</span>
-              <Button size="sm" variant="ghost" class="profile-name__edit" onClick={() => setEditing(true)} aria-label="Rename">Rename</Button>
+              <Button size="sm" variant="glass" class="profile-name__edit" onClick={() => setEditing(true)} aria-label="Rename">Rename</Button>
             </h2>
           )}
           <p class="profile-hero__role">Optometrist · Lumen Observatory Clinic</p>
@@ -128,7 +115,7 @@ export function ProfileScene({ services }: SceneProps) {
 
       <section class="profile-stats" aria-label="Learning">
         <GlassPanel class="profile-stat lm-enter" style={d(1)} accent="#5eead4" glow>
-          <RingMeter value={total ? stats.seen / total : 0} size={104} accent="#5eead4" ariaLabel="Diagnoses encountered">
+          <RingMeter value={total ? stats.seen / total : 0} size={ring} accent="#5eead4" ariaLabel="Diagnoses encountered">
             <CountUp value={stats.seen} class="profile-stat__num" delay={reduced ? 0 : 300} />
           </RingMeter>
           <div class="profile-stat__text">
@@ -137,7 +124,7 @@ export function ProfileScene({ services }: SceneProps) {
           </div>
         </GlassPanel>
         <GlassPanel class="profile-stat lm-enter" style={d(2)} accent="#ffd27a" glow>
-          <RingMeter value={stats.seen ? stats.mastered / stats.seen : 0} size={104} accent="#ffd27a" ariaLabel="Diagnoses mastered">
+          <RingMeter value={stats.seen ? stats.mastered / stats.seen : 0} size={ring} accent="#ffd27a" ariaLabel="Diagnoses mastered">
             <CountUp value={stats.mastered} class="profile-stat__num" delay={reduced ? 0 : 420} />
           </RingMeter>
           <div class="profile-stat__text">
@@ -146,7 +133,7 @@ export function ProfileScene({ services }: SceneProps) {
           </div>
         </GlassPanel>
         <GlassPanel class={cx('profile-stat lm-enter', stats.due > 0 && 'is-due')} style={d(3)} accent="#38bdf8" glow={stats.due > 0}>
-          <RingMeter value={stats.seen ? Math.min(1, stats.due / stats.seen) : 0} size={104} accent="#38bdf8" ariaLabel="Diagnoses due for review">
+          <RingMeter value={stats.seen ? Math.min(1, stats.due / stats.seen) : 0} size={ring} accent="#38bdf8" ariaLabel="Diagnoses due for review">
             <CountUp value={stats.due} class="profile-stat__num" delay={reduced ? 0 : 540} />
           </RingMeter>
           <div class="profile-stat__text">
@@ -190,26 +177,26 @@ export function ProfileScene({ services }: SceneProps) {
           )}
         </GlassPanel>
 
-        <div class="profile-side">
-          {hasProfileWidgets && (
-            <section class="profile-slot lm-enter" style={d(5)} aria-label="Clinic record">
-              <HudSlot slot="profile" class="profile-slot__widgets" />
-            </section>
-          )}
-          {links.length > 0 && (
-            <nav class="profile-links lm-enter" style={d(6)} aria-label="More">
-              {links.map((l) => (
-                <button key={l.id} type="button" class="profile-link" style={{ '--acc': l.accent }} onClick={() => go(l.id)}
-                  onPointerEnter={() => services.audio.play('hover', { volume: 0.25 })}>
-                  <span class="profile-link__icon"><Icon name={l.icon} /></span>
-                  <span class="profile-link__text"><b>{l.title}</b><small>{l.sub}</small></span>
-                  <Icon name="chevron-right" class="profile-link__chev" />
-                </button>
-              ))}
-            </nav>
-          )}
-        </div>
+        {links.length > 0 && (
+          <nav class="profile-links lm-enter" style={d(5)} aria-label="More">
+            {links.map((l) => (
+              <button key={l.id} type="button" class="profile-link" style={{ '--acc': l.accent }} onClick={() => go(l.id)}
+                onPointerEnter={() => services.audio.play('hover', { volume: 0.25 })}>
+                <span class="profile-link__icon"><Icon name={l.icon} /></span>
+                <span class="profile-link__text"><b>{l.title}</b><small>{l.sub}</small></span>
+                <Icon name="chevron-right" class="profile-link__chev" />
+              </button>
+            ))}
+          </nav>
+        )}
       </div>
+
+      {hasProfileWidgets && (
+        <section class="profile-record lm-enter" style={d(6)} aria-label="Clinic record">
+          <Divider label="Clinic record" />
+          <HudSlot slot="profile" class="profile-slot__widgets" />
+        </section>
+      )}
     </Screen>
   );
 }

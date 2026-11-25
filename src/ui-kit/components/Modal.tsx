@@ -24,7 +24,11 @@ export interface ModalProps {
   /** Esc / close button / backdrop click close the dialog (default true). */
   dismissible?: boolean;
   closeOnBackdrop?: boolean;
-  /** CSS selector of the element to focus first. */
+  /**
+   * CSS selector of the element to focus first. Default: the first footer
+   * button that is not destructive (so Enter on a confirmation never erases
+   * anything), else the first focusable element.
+   */
   initialFocus?: string;
   /** Remove body padding (mini-game stages, media). */
   flush?: boolean;
@@ -32,6 +36,7 @@ export interface ModalProps {
 }
 
 const EXIT_MS = 240;
+const SAFE_FOOTER_ACTION = '.lm-modal__footer button:not(.lm-btn--danger):not([disabled])';
 
 /**
  * Accessible dialog rendered in place (no portal): fixed overlay with a
@@ -76,7 +81,7 @@ export function Modal({
   }, [isOpen]);
   // Declared after isolation so its cleanup (restoring focus to the opener)
   // runs once the opener is no longer inert.
-  useFocusTrap(panel, isOpen, initialFocus);
+  useFocusTrap(panel, isOpen, initialFocus ?? SAFE_FOOTER_ACTION);
 
   if (!mounted) return null;
   const close = () => dismissible && onClose();

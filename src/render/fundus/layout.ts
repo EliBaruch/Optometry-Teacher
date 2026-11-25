@@ -78,7 +78,9 @@ export function cupProfile(post: PosteriorSegment, nasal: 1 | -1): CupProfile {
 const COUNT: Partial<Record<LesionType, (d: number) => number>> = {
   'microaneurysm': (d) => 6 * d,
   'dot-blot-hemorrhage': (d) => 4 * d,
-  'flame-hemorrhage': (d) => 2 * d + 1,
+  'flame-hemorrhage': (d) => 3 * d + 1,
+  'irma': (d) => 2 * d,
+  'preretinal-hemorrhage': (d) => (d > 3 ? 2 : 1),
   'cotton-wool-spot': (d) => Math.min(8, d + 1),
   'hard-exudate': (d) => d,
   'drusen-small': (d) => 14 * d,
@@ -114,6 +116,22 @@ function placeLesions(a: Anatomy, post: PosteriorSegment, tree: VesselTree, seed
       lesions.push({ type: L.type, zone, x, y, r: rMm * U, source: src, a: extra.a ?? 0, seed: rng.int(1, 1e9), ...extra });
     const n = COUNT[L.type]?.(d) ?? 1;
     const pt = (accept?: (x: number, y: number) => boolean) => samplePoint(a, zone, rng, accept);
+    /** a point on (or just beside) a retinal vessel inside the zone; falls back to any zone point */
+    const nearVessel = (kind: 'artery' | 'vein' | 'any', maxDepth: number, offMm: number): [number, number] => {
+      const pool = tree.vessels.filter((v) => (kind === 'any' || v.kind === kind) && v.depth <= maxDepth);
+      for (let k = 0; k < 80 && pool.length; k++) {
+        const v = pool[rng.int(0, pool.length - 1)]!;
+        const i = rng.int(Math.floor(v.pts.length * 0.1), v.pts.length - 2);
+        const p = v.pts[i]!;
+        const q = v.pts[i + 1]!;
+        const h = Math.atan2(q[1] - p[1], q[0] - p[0]) + Math.PI / 2;
+        const o = rng.float(-offMm, offMm) * U;
+        const x = p[0] + Math.cos(h) * o;
+        const y = p[1] + Math.sin(h) * o;
+        if (zone === 'disc' || zone === 'macula' ? inZone(a, zone, x, y) : inZone(a, zone, x, y) && quadrantOk(a, zone, x, y)) return [x, y];
+      }
+      return pt();
+    };
     switch (L.type) {
       case 'microaneurysm':
         for (let i = 0; i < n; i++) { const [x, y] = pt(); push(x, y, rng.float(0.035, 0.06)); }
@@ -122,7 +140,28 @@ function placeLesions(a: Anatomy, post: PosteriorSegment, tree: VesselTree, seed
         for (let i = 0; i < n; i++) { const [x, y] = pt(); push(x, y, rng.float(0.07, 0.17)); }
         break;
       case 'flame-hemorrhage':
-        for (let i = 0; i < n; i++) { const [x, y] = pt(); push(x, y, rng.float(0.25, 0.55), { a: nflAngle(x, y) }); }
+        // NFL haemorrhages: most hug the veins, all follow the nerve-fibre direction
+        for (let i = 0; i < n; i++) {
+          const [x, y] = zone !== 'disc' && rng.chance(0.65) ? nearVessel('vein', 1, 0.45) : pt();
+          push(x, y, rng.float(0.25, 0.6), { a: nflAngle(x, y) });
+        }
+        break;
+      case 'irma':
+        // intraretinal microvascular abnormalities: tortuous shunt vessels beside small vessels
+        for (let i = 0; i < n; i++) {
+          const [x, y] = nearVessel('any', 2, 0.35);
+          push(x, y, rng.float(0.35, 0.6), { a: rng.float(0, Math.PI * 2) });
+        }
+        break;
+      case 'preretinal-hemorrhage':
+        for (let i = 0; i < n; i++) {
+          let x: number;
+          let y: number;
+          if (zone === 'macula') { x = a.fovea.x + rng.float(-0.3, 0.3) * U; y = a.fovea.y - rng.float(0.2, 0.6) * U; }
+          else if (zone === 'disc') { x = a.disc.x - a.nasal * rng.float(1.3, 1.8) * U; y = a.disc.y + rng.float(-0.4, 0.6) * U; }
+          else [x, y] = nearVessel('vein', 0, 0.3);
+          push(x, y, 0.45 + 0.16 * d, { variant: 'boat' });
+        }
         break;
       case 'cotton-wool-spot':
         for (let i = 0; i < n; i++) {
@@ -355,14 +394,21 @@ export function pointInPolygon(poly: ReadonlyArray<readonly [number, number]>, x
 export function computeFundusLayout(post: PosteriorSegment, eye: Eye, seed: number): FundusLayout {
   const swelling = post.disc.edema || post.disc.margins === 'elevated' ? 1.22 : 1;
   const a = anatomy(eye, swelling);
-  const tree = buildVessels(a, post, seed);
+  const cup = cupProfile(post, a.nasal);
+  const rxMm = a.disc.rx / U;
+  const ryMm = a.disc.ry / U;
+  const cupMm = (tx: number, ty: number) => {
+    const th = Math.atan2(ty / ryMm, (-a.nasal * tx) / rxMm);
+    return cup.r(th) * Math.hypot(Math.cos(th) * rxMm, Math.sin(th) * ryMm);
+  };
+  const tree = buildVessels(a, post, seed, { cupMm, cdr: cup.verticalCdr });
   if (post.vessels.avNicking) tree.crossings = findCrossings(tree);
   const { lesions, beads } = placeLesions(a, post, tree, seed);
   const det = post.detachment;
   const totalLike = det?.zones.some((z) => z === 'diffuse');
   return {
     a, post, seed, swelling,
-    cup: cupProfile(post, a.nasal),
+    cup,
     tree, lesions, beads,
     detachment: det && det.zones.length ? { zones: det.zones, maculaOff: det.maculaOff, polygon: detachmentBoundary(a, totalLike ? ['diffuse'] : det.zones, det.maculaOff, seed) } : undefined,
   };

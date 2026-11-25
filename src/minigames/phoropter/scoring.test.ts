@@ -56,4 +56,12 @@ describe('assess', () => {
     expect(b.perfect).toBe(false);
     expect(b.accuracy).toBeLessThan(a.accuracy);
   });
+  it('does not reward copying an unverified starting point', () => {
+    const truth = { OD: L(-2, -0.75, 180), OS: L(-1.5) };
+    const ctx = { OD: { trueCyl: 0.75, best: -0.1 }, OS: { trueCyl: 0, best: -0.1 } };
+    const idle = emptyProtocol();
+    const a = assess(truth, truth, { OD: idle, OS: idle }, ctx, false);
+    expect(a.accuracy).toBeLessThan(0.5);
+    expect(a.perfect).toBe(false);
+  });
 });

@@ -38,11 +38,11 @@ export function LatestCard({ store }: { store: CollectionStore }) {
       aria-label={view ? `Gallery: latest card ${view.dx?.name ?? view.dxId}. ${owned} of ${catalog.length} collected.` : 'Gallery: no cards yet'}
     >
       <div class="gl-card">
-        {view ? <IrisCard view={view} size="sm" sway tilt={false} /> : <div class="gl-empty"><EyeGlyph /></div>}
+        {view ? <IrisCard view={view} size="xs" sway tilt={false} /> : <div class="gl-empty"><EyeGlyph /></div>}
       </div>
       <div class="gl-body">
         <div class="gl-eyebrow">
-          <span class="lm-eyebrow">Gallery · latest</span>
+          <span class="lm-eyebrow">Gallery</span>
           {unseen > 0 && <Badge color={GALLERY_COLOR} pulse size="sm">{unseen} NEW</Badge>}
         </div>
         {view ? (

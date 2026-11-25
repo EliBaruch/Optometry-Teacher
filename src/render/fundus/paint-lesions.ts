@@ -44,14 +44,76 @@ function microaneurysm(ctx: Ctx, l: LesionInst, S: number): void {
 function dotBlot(ctx: Ctx, l: LesionInst, S: number): void {
   const rng = createRng(l.seed);
   const r = Math.max(l.r, minPx(S, 1.5));
+  // fuzzy margin (blood spreading in the outer plexiform layer) then a dense round core
+  softDot(ctx, l.x, l.y, r * 1.35, 'rgba(120,10,16,0.5)', 'rgba(130,16,20,0)', 0.35);
   ctx.beginPath();
-  smoothClosedPath(ctx, blob(rng, l.x, l.y, r, 10, 0.28));
-  const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, r * 1.2);
-  g.addColorStop(0, 'rgba(110,6,14,0.95)');
-  g.addColorStop(0.75, 'rgba(135,12,20,0.9)');
-  g.addColorStop(1, 'rgba(150,20,25,0.4)');
+  smoothClosedPath(ctx, blob(rng, l.x, l.y, r, 14, 0.12));
+  const g = ctx.createRadialGradient(l.x - r * 0.15, l.y - r * 0.15, 0, l.x, l.y, r * 1.1);
+  g.addColorStop(0, 'rgba(96,4,12,0.97)');
+  g.addColorStop(0.7, 'rgba(122,10,18,0.92)');
+  g.addColorStop(1, 'rgba(140,20,24,0.55)');
   ctx.fillStyle = g;
   ctx.fill();
+}
+
+/** IRMA: fine, tortuous, irregular intraretinal shunt vessels (do not cross major vessels). */
+function irma(ctx: Ctx, l: LesionInst, S: number): void {
+  const rng = createRng(l.seed);
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (let k = 0; k < 5; k++) {
+    let x = l.x + rng.float(-0.4, 0.4) * l.r;
+    let y = l.y + rng.float(-0.4, 0.4) * l.r;
+    let h = l.a + rng.float(-0.8, 0.8);
+    ctx.strokeStyle = `rgba(${rng.int(120, 150)},${rng.int(14, 26)},${rng.int(26, 40)},${rng.float(0.7, 0.95).toFixed(2)})`;
+    ctx.lineWidth = Math.max(0.022 * U * rng.float(0.8, 1.4), minPx(S, 0.6));
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    for (let i = 0; i < 16; i++) {
+      h += rng.float(-0.9, 0.9);
+      x += Math.cos(h) * l.r * 0.11;
+      y += Math.sin(h) * l.r * 0.11;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Boat-shaped pre-retinal (subhyaloid) haemorrhage: flat fluid level above, rounded below. */
+function preretinal(ctx: Ctx, l: LesionInst): void {
+  const rng = createRng(l.seed);
+  const r = l.r;
+  const w = r * rng.float(1.1, 1.3);
+  const level = l.y - r * 0.25;
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(l.x, l.y, w, r, 0, 0, TAU);
+  ctx.clip();
+  // plasma above the level: translucent, yellow-tinged
+  ctx.fillStyle = 'rgba(214,120,80,0.35)';
+  ctx.fillRect(l.x - w, l.y - r, w * 2, level - (l.y - r));
+  // settled red cells below: dense, uniform, obscures the vessels
+  const g = ctx.createLinearGradient(0, level, 0, l.y + r);
+  g.addColorStop(0, 'rgba(150,14,18,0.97)');
+  g.addColorStop(1, 'rgba(105,6,12,0.98)');
+  ctx.fillStyle = g;
+  ctx.fillRect(l.x - w, level, w * 2, l.y + r - level);
+  // bright meniscus at the fluid level
+  ctx.strokeStyle = 'rgba(255,190,160,0.5)';
+  ctx.lineWidth = 0.03 * U;
+  ctx.beginPath();
+  ctx.moveTo(l.x - w, level);
+  ctx.lineTo(l.x + w, level);
+  ctx.stroke();
+  ctx.restore();
+  // glossy specular on the posterior hyaloid face
+  ctx.strokeStyle = 'rgba(255,235,220,0.25)';
+  ctx.lineWidth = 0.04 * U;
+  ctx.beginPath();
+  ctx.ellipse(l.x, l.y, w * 0.92, r * 0.92, 0, Math.PI * 0.15, Math.PI * 0.55);
+  ctx.stroke();
 }
 
 /** Spindle (flame-shaped) splinter haemorrhage along the nerve fibres. */
@@ -238,33 +300,54 @@ function subretinalHeme(ctx: Ctx, l: LesionInst): void {
   }
 }
 
+/** One NV frond: a fine wandering stem ending in (and budding) small closed loops. */
+function frond(ctx: Ctx, rng: Rng, x: number, y: number, ang: number, len: number, w: number, depth: number): void {
+  const steps = 10;
+  const step = len / steps;
+  let h = ang;
+  ctx.lineWidth = w;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  const buds: [number, number, number][] = [];
+  for (let i = 0; i < steps; i++) {
+    h += rng.float(-0.28, 0.28);
+    x += Math.cos(h) * step;
+    y += Math.sin(h) * step;
+    ctx.lineTo(x, y);
+    if (depth < 2 && i > 2 && i < steps - 1 && rng.chance(0.3)) buds.push([x, y, h + (rng.chance(0.5) ? 1 : -1) * rng.float(0.5, 1.0)]);
+  }
+  ctx.stroke();
+  // terminal loop (new vessels form arcades of loops)
+  // teardrop-shaped loop that turns back on itself
+  const lr = len * rng.float(0.1, 0.16);
+  const side = rng.chance(0.5) ? 1 : -1;
+  const nx = Math.cos(h + side * Math.PI / 2);
+  const ny = Math.sin(h + side * Math.PI / 2);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.bezierCurveTo(x + Math.cos(h) * lr * 2.2, y + Math.sin(h) * lr * 2.2, x + Math.cos(h) * lr * 1.6 + nx * lr * 2.2, y + Math.sin(h) * lr * 1.6 + ny * lr * 2.2, x + nx * lr * rng.float(0.6, 1.2), y + ny * lr * rng.float(0.6, 1.2));
+  ctx.stroke();
+  for (const [bx, by, bh] of buds) frond(ctx, rng, bx, by, bh, len * rng.float(0.35, 0.55), w * 0.85, depth + 1);
+}
+
 function neovascularization(ctx: Ctx, l: LesionInst, S: number): void {
   const rng = createRng(l.seed);
   const nvd = l.variant === 'nvd';
-  // fine, lacy, looping new vessels on a faint fibrous veil
-  softDot(ctx, l.x, l.y, l.r * 1.1, 'rgba(240,220,210,0.12)', 'rgba(240,220,210,0)', 0.3);
+  // faint grey-white fibrovascular veil
+  softDot(ctx, l.x, l.y, l.r * 1.05, 'rgba(240,222,212,0.14)', 'rgba(240,222,212,0)', 0.35);
+  ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  const loops = nvd ? 26 : 14;
-  for (let i = 0; i < loops; i++) {
-    const a0 = rng.float(0, TAU);
-    let x = l.x + Math.cos(a0) * l.r * rng.float(0, nvd ? 0.6 : 0.3);
-    let y = l.y + Math.sin(a0) * l.r * rng.float(0, nvd ? 0.6 : 0.3);
-    let h = rng.float(0, TAU);
-    ctx.strokeStyle = `rgba(${rng.int(185, 215)},${rng.int(30, 55)},${rng.int(40, 60)},${rng.float(0.6, 0.9).toFixed(2)})`;
-    ctx.lineWidth = Math.max(0.018 * U, minPx(S, 0.6));
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    const steps = 18;
-    const curl = rng.float(0.25, 0.45) * (rng.chance(0.5) ? 1 : -1);
-    for (let k = 0; k < steps; k++) {
-      h += curl + rng.float(-0.2, 0.2);
-      x += Math.cos(h) * l.r * 0.09;
-      y += Math.sin(h) * l.r * 0.09;
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
+  const fronds = nvd ? 16 : 7;
+  // NVE grows as a sea-fan in one direction; NVD radiates over the disc and its margin
+  const fanDir = rng.float(0, TAU);
+  for (let i = 0; i < fronds; i++) {
+    const ang = nvd ? (i / fronds) * TAU + rng.float(-0.2, 0.2) : fanDir + rng.float(-0.9, 0.9);
+    const r0 = nvd ? l.r * rng.float(0.05, 0.3) : 0;
+    ctx.strokeStyle = `rgba(${rng.int(190, 220)},${rng.int(36, 60)},${rng.int(44, 64)},${rng.float(0.7, 0.95).toFixed(2)})`;
+    frond(ctx, rng, l.x + Math.cos(ang) * r0, l.y + Math.sin(ang) * r0, ang, l.r * rng.float(0.6, 0.95), Math.max(0.016 * U, minPx(S, 0.55)), 0);
   }
+  ctx.restore();
 }
 
 function retinalTear(ctx: Ctx, l: LesionInst): void {
@@ -311,38 +394,49 @@ function lattice(ctx: Ctx, l: LesionInst): void {
   const rng = createRng(l.seed);
   ctx.save();
   ctx.translate(l.x, l.y);
-  ctx.rotate(l.a); // circumferential
+  ctx.rotate(l.a); // long axis circumferential (parallel to the ora)
   const L = l.r;
-  const W = L * 0.28;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, L, W, 0, 0, TAU);
-  ctx.fillStyle = 'rgba(160,60,40,0.4)';
+  const W = L * 0.24;
+  // spindle of thinned retina: slightly redder, with pointed ends
+  const spindle = () => {
+    ctx.beginPath();
+    ctx.moveTo(-L, 0);
+    ctx.bezierCurveTo(-L * 0.5, -W * 1.3, L * 0.5, -W * 1.3, L, 0);
+    ctx.bezierCurveTo(L * 0.5, W * 1.3, -L * 0.5, W * 1.3, -L, 0);
+    ctx.closePath();
+  };
+  spindle();
+  ctx.fillStyle = 'rgba(150,48,30,0.35)';
   ctx.fill();
   ctx.clip();
-  // white sclerosed vessels in a criss-cross lattice
-  ctx.strokeStyle = 'rgba(240,232,222,0.55)';
-  ctx.lineWidth = 0.03 * U;
+  // white sclerosed vessels: a long axial strand with oblique, criss-crossing branches
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(244,236,226,0.75)';
+  ctx.lineWidth = 0.035 * U;
+  ctx.beginPath();
+  ctx.moveTo(-L * 0.9, rng.float(-0.2, 0.2) * W);
+  ctx.bezierCurveTo(-L * 0.3, rng.float(-0.5, 0.5) * W, L * 0.3, rng.float(-0.5, 0.5) * W, L * 0.9, rng.float(-0.2, 0.2) * W);
+  ctx.stroke();
+  ctx.lineWidth = 0.025 * U;
   for (let i = 0; i < 9; i++) {
-    const x0 = rng.float(-L, L);
+    const x0 = rng.float(-0.8, 0.8) * L;
+    const dir = rng.chance(0.5) ? 1 : -1;
+    ctx.strokeStyle = `rgba(244,236,226,${rng.float(0.4, 0.7).toFixed(2)})`;
     ctx.beginPath();
-    ctx.moveTo(x0 - W, -W);
-    ctx.lineTo(x0 + W * rng.float(0.5, 1.5), W);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x0 + W, -W);
-    ctx.lineTo(x0 - W * rng.float(0.5, 1.5), W);
+    ctx.moveTo(x0 - dir * W * 0.9, -W * 1.1);
+    ctx.quadraticCurveTo(x0, rng.float(-0.3, 0.3) * W, x0 + dir * W * rng.float(0.6, 1.3), W * 1.1);
     ctx.stroke();
   }
   ctx.restore();
-  // pigment clumps at the margins
-  for (let i = 0; i < 10; i++) {
-    const t = rng.float(-1, 1);
+  // clumped pigment along the margins
+  for (let i = 0; i < 12; i++) {
+    const t = rng.float(-0.9, 0.9);
     const side = rng.chance(0.5) ? 1 : -1;
     const lx = t * l.r;
-    const ly = side * l.r * 0.28 * Math.sqrt(1 - t * t);
+    const ly = side * W * 0.9 * (1 - t * t) * rng.float(0.6, 1.1);
     const x = l.x + lx * Math.cos(l.a) - ly * Math.sin(l.a);
     const y = l.y + lx * Math.sin(l.a) + ly * Math.cos(l.a);
-    softDot(ctx, x, y, rng.float(0.05, 0.1) * U, 'rgba(35,15,8,0.9)', 'rgba(35,15,8,0)', 0.5);
+    softDot(ctx, x, y, rng.float(0.04, 0.09) * U, 'rgba(35,15,8,0.9)', 'rgba(35,15,8,0)', 0.5);
   }
 }
 
@@ -402,13 +496,13 @@ function hollenhorst(ctx: Ctx, l: LesionInst, S: number): void {
   ctx.fill();
 }
 
-function whitening(ctx: Ctx, l: LesionInst, L: FundusLayout): void {
+function whitening(ctx: Ctx, l: LesionInst, L: FundusLayout, S: number): void {
   const rng = createRng(l.seed);
   if (l.variant === 'pole') {
     // ischaemic posterior pole: opaque milky retina, thinnest at the foveola
     const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.r);
-    g.addColorStop(0, 'rgba(236,228,218,0.72)');
-    g.addColorStop(0.6, 'rgba(232,224,214,0.6)');
+    g.addColorStop(0, 'rgba(236,228,218,0.58)');
+    g.addColorStop(0.55, 'rgba(232,224,214,0.45)');
     g.addColorStop(1, 'rgba(232,224,214,0)');
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -419,6 +513,24 @@ function whitening(ctx: Ctx, l: LesionInst, L: FundusLayout): void {
       const d = Math.sqrt(rng.next()) * l.r * 0.8;
       softDot(ctx, l.x + Math.cos(a) * d, l.y + Math.sin(a) * d, rng.float(0.3, 0.8) * U, 'rgba(245,240,232,0.25)', 'rgba(245,240,232,0)', 0.1);
     }
+    // opacification is densest where the inner retina is thickest: along the arcades & around the disc
+    ctx.save();
+    if ('filter' in ctx) ctx.filter = `blur(${Math.max(1, 0.3 * U * S).toFixed(1)}px)`;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(240,234,226,0.22)';
+    ctx.lineWidth = 1.1 * U;
+    for (const v of L.tree.vessels) {
+      if (v.depth !== 0) continue;
+      ctx.beginPath();
+      let started = false;
+      for (const [x, y] of v.pts) {
+        if (Math.hypot(x - L.a.disc.x, y - L.a.disc.y) > 7 * U) break;
+        if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    if ('filter' in ctx) ctx.filter = 'none';
+    ctx.restore();
     // the foveola has no inner retina to opacify → the choroid still shows through
     const f = L.a.fovea;
     softDot(ctx, f.x, f.y, 0.5 * U, 'rgba(178,52,34,0.9)', 'rgba(178,52,34,0)', 0.45);
@@ -529,12 +641,14 @@ export function paintLesion(ctx: Ctx, l: LesionInst, L: FundusLayout, S: number)
     case 'pigment-clumping': return pigment(ctx, l, S);
     case 'laser-scars': return laserScar(ctx, l, S);
     case 'hollenhorst-plaque': return hollenhorst(ctx, l, S);
-    case 'retinal-whitening': return whitening(ctx, l, L);
+    case 'retinal-whitening': return whitening(ctx, l, L, S);
     case 'cherry-red-spot': return cherryRed(ctx, l);
     case 'macular-edema': return macularEdema(ctx, l);
     case 'epiretinal-membrane': return erm(ctx, l);
     case 'macular-hole': return macularHole(ctx, l);
     case 'disc-hemorrhage': return discHeme(ctx, l);
+    case 'irma': return irma(ctx, l, S);
+    case 'preretinal-hemorrhage': return preretinal(ctx, l);
     case 'venous-beading': return; // painted as part of the veins
   }
 }

@@ -41,7 +41,7 @@
   background:
     radial-gradient(ellipse 120% 90% at 50% 45%, transparent 52%, rgba(3, 1, 8, 0.55) 82%, rgba(3, 1, 8, 0.9) 100%);
 }
-.lm-backdrop.is-static .lm-backdrop__grain { animation: none; }
+.lm-backdrop.is-static .lm-backdrop__grain, html.lm-lite .lm-backdrop__grain { animation: none; }
 
 /* ── variants ─────────────────────────────────────────────────────────── */
 .lm-backdrop--title {

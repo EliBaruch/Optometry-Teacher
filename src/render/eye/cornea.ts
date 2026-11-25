@@ -207,13 +207,22 @@ export function drawCornealFindings(ctx: CanvasRenderingContext2D, s: EyeState, 
     const sp = lesionSpot(s.irisSeed, 'fb');
     const x = sp.x * pxmm;
     const y = sp.y * pxmm;
-    const ring = ctx.createRadialGradient(x, y, 0, x, y, pxmm * 0.55);
+    const rr = pxmm * (s.rustRing ? 0.75 : 0.45);
+    const ring = ctx.createRadialGradient(x, y, 0, x, y, rr);
     ring.addColorStop(0, 'rgba(120,60,20,0.9)');
-    ring.addColorStop(0.5, 'rgba(170,90,30,0.6)');
+    ring.addColorStop(0.55, s.rustRing ? 'rgba(178,96,34,0.85)' : 'rgba(170,90,30,0.5)');
     ring.addColorStop(1, 'rgba(170,90,30,0)');
     ctx.fillStyle = ring;
     ctx.beginPath();
-    ctx.arc(x, y, pxmm * 0.55, 0, TAU);
+    ctx.arc(x, y, rr, 0, TAU);
+    ctx.fill();
+    // faint grey infiltrate halo of the reactive stroma
+    const halo = ctx.createRadialGradient(x, y, rr * 0.8, x, y, rr * 2.2);
+    halo.addColorStop(0, 'rgba(230,232,235,0.25)');
+    halo.addColorStop(1, 'rgba(230,232,235,0)');
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(x, y, rr * 2.2, 0, TAU);
     ctx.fill();
     ctx.fillStyle = '#1c130e';
     ctx.beginPath();
@@ -275,6 +284,7 @@ export function drawStain(ctx: CanvasRenderingContext2D, s: EyeState, pxmm: numb
   if (s.abrasion && s.stain === 'none') patterns.add('linear-abrasion');
   if (s.ulcer === 'ulcer' && s.stain === 'none') patterns.add('round-ulcer');
   if (s.punctateKeratitis && s.stain === 'none') patterns.add('diffuse-punctate');
+  if (s.foreignBody && s.stain === 'none') patterns.add('focal');
   for (const p of patterns) {
     const geo = stainGeometry(p, s.irisSeed);
     ctx.shadowColor = 'rgba(140,255,90,0.95)';
@@ -319,6 +329,16 @@ export function drawStain(ctx: CanvasRenderingContext2D, s: EyeState, pxmm: numb
         ctx.fill();
       }
     }
+  }
+  if (s.foreignBody) {
+    // the embedded particle itself does not fluoresce: a dark speck inside the green ring
+    const sp = lesionSpot(s.irisSeed, 'fb');
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#120c08';
+    ctx.beginPath();
+    ctx.arc(sp.x * pxmm, sp.y * pxmm, Math.max(1.2, pxmm * 0.18), 0, TAU);
+    ctx.fill();
   }
   ctx.restore();
 }

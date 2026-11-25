@@ -33,7 +33,8 @@ function Counter({ services, store }: { services: GameServices; store: NonNullab
         const x = r.left + 22;
         const y = r.top + r.height / 2;
         if (!reduced) services.fx.burst(x, y, { kind: 'coins', count: Math.min(26, 6 + Math.round(Math.sqrt(g.delta) * 1.6)), color: '#f5b942' });
-        services.fx.floatText(`+${formatCoins(g.delta)} ✦`, r.left + r.width / 2, r.bottom + 14, { color: '#ffd27a', size: 18 });
+        // Reduced motion: the text doesn't drift, so park it clear of the wallet.
+        services.fx.floatText(`+${formatCoins(g.delta)} ✦`, r.left + r.width / 2, r.bottom + (reduced ? 24 : 14), { color: '#ffd27a', size: reduced ? 15 : 18 });
       }
       setPulse({ seq: g.seq, delta: g.delta });
       clearTimeout(timer);

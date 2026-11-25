@@ -61,11 +61,8 @@ export function quadRibbon(p0: Pt, c: Pt, p2: Pt, width: (t: number) => number, 
   return ribbon(s);
 }
 
-/** Mirror helper: right-side x offset -> absolute x for side (-1 left, 1 right). */
-export const sx = (side: number, dx: number) => CX + side * dx;
-
 /** Head silhouette (cranium + cheeks + jaw + chin), symmetric. */
-export function headPath(g: Geo, inflate = 0): string {
+export function headPath(g: Geo, inflate = 0, dx = 0, dy = 0): string {
   const W = g.headW + inflate;
   const C = g.cheekW + inflate;
   const J = g.jawW + inflate;
@@ -88,28 +85,5 @@ export function headPath(g: Geo, inflate = 0): string {
   ];
   for (const p of right) pts.push(p);
   for (let i = right.length - 2; i >= 1; i--) pts.push([2 * CX - right[i]![0], right[i]![1]]);
-  return smooth(pts, true, 1);
-}
-
-/** Lower-face silhouette used to clip beards & jaw shading. */
-export function jawPath(g: Geo, inflate = 0): string {
-  const C = g.cheekW + inflate;
-  const J = g.jawW + inflate;
-  const Y = g.chinY + inflate;
-  const cw = g.chinW + inflate * 0.5;
-  const E = g.eyeY;
-  return smooth(
-    [
-      [CX - C - 1, E + 2],
-      [CX - J - 3, Y - 26],
-      [CX - J + 3, Y - 14],
-      [CX - cw - 4, Y - 3],
-      [CX, Y],
-      [CX + cw + 4, Y - 3],
-      [CX + J - 3, Y - 14],
-      [CX + J + 3, Y - 26],
-      [CX + C + 1, E + 2],
-    ],
-    false,
-  );
+  return smooth(dx || dy ? pts.map(([x, y]) => [x + dx, y + dy] as Pt) : pts, true, 1);
 }

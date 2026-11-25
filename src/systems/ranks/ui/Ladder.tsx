@@ -24,10 +24,39 @@ export function Ladder({ info }: { info: LevelInfo }) {
               <span class="rk-rung__motto">{r.motto}</span>
               <span class="rk-rung__xp lm-num">{i === 0 ? 'Start' : `${formatNumber(at)} XP`}</span>
               {state === 'current' && <span class="rk-rung__here">You are here · {info.title}</span>}
+              {state === 'current' && <RankProgress info={info} />}
             </span>
           </li>
         );
       })}
     </ol>
+  );
+}
+
+/** Progress through the whole current rank (all three tiers), toward the next rank. */
+function RankProgress({ info }: { info: LevelInfo }) {
+  const start = xpAtLevel(info.rankIndex * TIERS_PER_RANK);
+  if (!info.nextRank) {
+    return (
+      <span class="rk-rung__prog lm-num">
+        {formatNumber(info.toNext)} XP to {info.nextTitle}
+      </span>
+    );
+  }
+  const end = xpAtLevel((info.rankIndex + 1) * TIERS_PER_RANK);
+  const pct = Math.max(0, Math.min(1, (info.xp - start) / (end - start)));
+  return (
+    <span class="rk-rung__prog">
+      <span class="rk-rung__bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct * 100)} aria-label={`Progress to ${info.nextRank.title}`}>
+        {Array.from({ length: TIERS_PER_RANK - 1 }, (_, i) => {
+          const at = (xpAtLevel(info.rankIndex * TIERS_PER_RANK + i + 1) - start) / (end - start);
+          return <i key={i} class="rk-rung__tick" style={{ left: `${at * 100}%` }} />;
+        })}
+        <span class="rk-rung__fill" style={{ width: `${pct * 100}%` }} />
+      </span>
+      <span class="rk-rung__left lm-num">
+        <b>{formatNumber(info.toNextRank)}</b> XP to {info.nextRank.title}
+      </span>
+    </span>
   );
 }

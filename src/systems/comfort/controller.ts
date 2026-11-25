@@ -1,8 +1,10 @@
 import { dayKey, type GameServices, type Signal } from '@core';
+import { RARITY_LABEL } from '@ui-kit';
 import {
   INITIAL, SLOT, SLOT_VERSION, arrive, claimGift, collect, dismissWelcome, recordCase, sanitize,
   type ComfortState, type GiftResult,
 } from './logic';
+import { weekMilestone } from './milestones';
 import { planResume, runPlan, type ResumePlan } from './resume';
 
 export const SYSTEM_ID = 'comfort';
@@ -85,7 +87,7 @@ export function createController(services: GameServices): ComfortController {
       if (result.satchel) {
         bus.emit('reward:granted', {
           source: SYSTEM_ID,
-          label: `${result.day.label} (${result.satchel.rarity})`,
+          label: `${RARITY_LABEL[result.satchel.rarity]} ${result.day.day === 7 ? 'grand satchel' : 'satchel'}`,
           value: `+${result.satchel.coins}`,
           icon: 'crate',
           color: ACCENT,
@@ -94,27 +96,25 @@ export function createController(services: GameServices): ComfortController {
       }
       bus.emit('comfort:gift-opened', { day: result.day.day, coins: result.total, satchel: result.satchel?.rarity ?? null });
       if (result.day.day === 7) {
-        bus.emit('achievement:unlocked', {
-          id: `lounge-week-${state.get().gift.totalClaims}`,
-          title: 'A Week of Evenings',
-          description: 'Opened all seven gifts on the Lounge calendar.',
-          icon: 'gift',
-          system: SYSTEM_ID,
-        });
+        const m = weekMilestone(Math.floor(state.get().gift.totalClaims / 7));
+        if (m) bus.emit('achievement:unlocked', { ...m, icon: 'gift', system: SYSTEM_ID });
       }
       return result;
     },
     collectEarnings() {
+      const kept = state.get().bonus;
       const out = collect(state.get());
       state.set(out.state);
       const paid = out.coins + out.comeback;
-      if (out.coins > 0) {
-        bus.emit('currency:grant', { amount: out.coins, reason: 'Clinic earnings while away' });
-        bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Clinic earnings', value: `+${out.coins}`, icon: 'coin', color: ACCENT, rarity: 'common' });
+      const earned = out.coins - kept;
+      const gift = out.comeback + kept;
+      if (earned > 0) {
+        bus.emit('currency:grant', { amount: earned, reason: 'Clinic earnings while away' });
+        bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Clinic earnings', value: `+${earned}`, icon: 'coin', color: ACCENT, rarity: 'common' });
       }
-      if (out.comeback > 0) {
-        bus.emit('currency:grant', { amount: out.comeback, reason: 'Welcome back bonus' });
-        bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Welcome back bonus', value: `+${out.comeback}`, icon: 'heart', color: ACCENT, rarity: 'rare' });
+      if (gift > 0) {
+        bus.emit('currency:grant', { amount: gift, reason: 'Welcome back gift' });
+        bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Welcome back gift', value: `+${gift}`, icon: 'heart', color: ACCENT, rarity: 'rare' });
       }
       return paid;
     },

@@ -15,7 +15,6 @@ export interface PatientPaneProps {
   pinholeEye: Eye | null;
   expression: AvatarExpression;
   reducedMotion: boolean;
-  size: number;
   /** null = occluder is placed automatically (pinhole module) */
   onToggleEye: ((eye: Eye) => void) | null;
 }
@@ -31,18 +30,18 @@ function Paddle(props: { eye: Eye; age: number; on: boolean; pinhole: boolean; f
   const c = eyeCentre(props.age, props.eye);
   const side = props.eye === 'OD' ? -1 : 1;
   const off = `translate(${c.x + side * 70}px, ${c.y + 150}px) rotate(${side * 32}deg)`;
-  const onT = `translate(${c.x}px, ${c.y}px) rotate(${side * 14}deg)`;
+  const onT = `translate(${c.x}px, ${c.y}px) rotate(${-side * (props.pinhole ? 24 : 16)}deg)`;
   return (
     <g
       class={`va-paddle${props.on ? ' is-on' : ''}${props.reducedMotion ? ' is-still' : ''}`}
       style={{ transform: props.on ? onT : off }}
     >
       {/* handle */}
-      <path d={`M${side * 6} 12 L${side * 15} 74 Q${side * 16} 80 ${side * 10} 80 L${side * 4} 80 Q${side * -1} 80 ${side * 0} 74 L${side * -3} 14 Z`} fill={`url(#${props.uid}-handle)`} />
+      <path d={`M${side * 6} 16 L${side * 15} 74 Q${side * 16} 80 ${side * 10} 80 L${side * 4} 80 Q${side * -1} 80 ${side * 0} 74 L${side * -3} 14 Z`} fill={`url(#${props.uid}-handle)`} />
       <g class={`va-paddle__face${props.flipping ? ' is-flipping' : ''}`}>
-        <ellipse cx="0" cy="0" rx="19" ry="16.5" fill={`url(#${props.uid}-disc)`} mask={props.pinhole ? `url(#${props.uid}-holes)` : undefined} />
-        <ellipse cx="0" cy="0" rx="18.2" ry="15.7" fill="none" stroke="rgba(255,226,170,0.55)" stroke-width="0.9" />
-        <ellipse cx="-5" cy="-6" rx="9" ry="4.5" fill="rgba(255,255,255,0.13)" transform="rotate(-18)" />
+        <ellipse cx="0" cy="0" rx="23" ry="20" fill={`url(#${props.uid}-${props.pinhole ? 'phdisc' : 'disc'})`} mask={props.pinhole ? `url(#${props.uid}-holes)` : undefined} />
+        <ellipse cx="0" cy="0" rx="22.2" ry="19.2" fill="none" stroke="rgba(255,226,170,0.55)" stroke-width="0.9" />
+        <ellipse cx="-6" cy="-8" rx="11" ry="5.5" fill="rgba(255,255,255,0.13)" transform="rotate(-18)" />
         {props.pinhole && (
           <g>
             {[[0, 0], [-6, -3.5], [6, -3.5], [-6, 3.5], [6, 3.5], [0, -7], [0, 7]].map(([x, y], i) => (
@@ -82,7 +81,7 @@ export function PatientPane(p: PatientPaneProps) {
   const age = p.patient.age;
   const eyes: Eye[] = ['OD', 'OS'];
   return (
-    <div class="va-patient__portrait" style={{ width: `${p.size}px`, height: `${p.size * 1.2}px` }}>
+    <div class="va-patient__portrait">
       <PatientAvatar
         spec={p.patient.avatar}
         age={age}
@@ -90,7 +89,7 @@ export function PatientPane(p: PatientPaneProps) {
         expression={p.expression}
         lookAt={{ x: -0.35, y: -0.3 }}
         reducedMotion={p.reducedMotion}
-        size={p.size}
+        size="100%"
         label={`${p.patient.name}, reading the chart`}
       />
       <svg class="va-occ" viewBox="0 0 200 240" aria-hidden="true">
@@ -99,6 +98,11 @@ export function PatientPane(p: PatientPaneProps) {
             <stop offset="0%" stop-color="#3a3146" />
             <stop offset="55%" stop-color="#14101c" />
             <stop offset="100%" stop-color="#050308" />
+          </radialGradient>
+          <radialGradient id={`${uid}-phdisc`} cx="35%" cy="30%" r="80%">
+            <stop offset="0%" stop-color="#6a3f86" />
+            <stop offset="55%" stop-color="#2c1640" />
+            <stop offset="100%" stop-color="#12081c" />
           </radialGradient>
           <linearGradient id={`${uid}-handle`} x1="0" x2="1">
             <stop offset="0%" stop-color="#7a5418" />

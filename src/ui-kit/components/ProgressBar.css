@@ -26,3 +26,4 @@
   background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
   animation: lm-shimmer 2.2s var(--lm-ease-in-out) infinite;
 }
+html.lm-lite .lm-progress__fill.is-shimmer::after { animation-iteration-count: 2; }

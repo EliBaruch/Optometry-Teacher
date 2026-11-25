@@ -14,6 +14,21 @@ function score(total: number, grade: Grade, opts: Partial<ScoreBreakdown> = {}):
 }
 
 describe('caseFee', () => {
+  it('consult notes restore only what the hint cost, never points lost to wasted tests', () => {
+    const eff = (points: number) => [{ id: 'efficiency' as const, label: 'Efficiency', points, max: 100 }];
+    // One hint, no waste: 100 - 20 = 80 → the note gives back the full 20.
+    const clean = caseFee({ score: score(1000, 'A', { parts: eff(80) }), coveredHints: 1 });
+    const cleanNone = caseFee({ score: score(1000, 'A', { parts: eff(80) }) });
+    expect(clean.quality).toBeCloseTo(1020 / 1300);
+    expect(clean.total).toBeGreaterThan(cleanNone.total);
+    // Four unnecessary tests already zeroed efficiency: the hint cost nothing, so nothing to restore.
+    const wasteful = caseFee({ score: score(1000, 'A', { parts: eff(0), unnecessaryTests: ['iop', 'iop', 'iop', 'iop'] as never }), coveredHints: 1 });
+    expect(wasteful.quality).toBeCloseTo(1000 / 1300);
+    // Three wasted (−75) + one hint (only −25 left to lose): restore at most 25.
+    const partial = caseFee({ score: score(1000, 'A', { parts: eff(0), unnecessaryTests: ['a', 'b', 'c'] as never }), coveredHints: 1 });
+    expect(partial.quality).toBeCloseTo(1025 / 1300);
+  });
+
   it('pays far more for accurate work than sloppy work', () => {
     const s = caseFee({ score: score(1240, 'S'), difficulty: 3 }).total;
     const c = caseFee({ score: score(700, 'C'), difficulty: 3 }).total;

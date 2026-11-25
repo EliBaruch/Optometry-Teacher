@@ -1,9 +1,10 @@
 import type { VNode } from 'preact';
-import { mix, shade } from '../../fx/color';
+import { mix, shade } from '../color';
 import { CX, VIEW_H, type Side } from '../geometry';
 import { GOLD } from '../palette';
 import { P, smooth, type Pt } from '../paths';
 import type { PaintCtx } from './ctx';
+import { RimLight } from './rim';
 
 const HAT_COLORS = ['#2c3e66', '#7a2f3f', '#2f5b4a', '#3b2f5c', '#8a6a2a', '#1f2937', '#5b3a29'] as const;
 const SCARF_COLORS = ['#6b2d4f', '#2f4f6b', '#7a4a2a', '#3f5f4a', '#5a3a7a', '#8a3a3a', '#2d5a5a'] as const;
@@ -280,7 +281,7 @@ export function Headwear({ c }: { c: PaintCtx }) {
           <path d={`M${P(CX - g.neckW - 18, g.shoulderY + 4)}Q${P(CX - g.shoulderW * 0.5, g.shoulderY + 26)} ${P(CX - g.shoulderW * 0.55, VIEW_H)}`} />
           <path d={`M${P(CX + 6, T - 4)}Q${P(CX + W, T + 4)} ${P(CX + W + 6, g.eyeY - 4)}`} />
         </g>
-        <path d={outer} fill="none" stroke={`url(#${c.id('rimBody')})`} stroke-width="1.6" />
+        <RimLight c={c} name="scarf" o={{ d: outer, dx: 2.4, dy: 1.2, cx: CX + W + 10, cy: g.eyeY + 4, r: 52, opacity: 0.6 }} />
       </g>
     );
   }

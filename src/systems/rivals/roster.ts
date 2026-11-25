@@ -8,6 +8,8 @@ export type RivalId = 'vex' | 'okafor' | 'mori' | 'reyes' | 'lindqvist';
 
 /** The classic clinical slip each colleague tends to make (each one teaches something). */
 export type SlipKind = 'skips-basics' | 'rushes-posterior' | 'over-tests' | 'under-triages' | 'anchors';
+/** Every slip a result can carry: a colleague's signature slip, or an ordinary off-day error. */
+export type ResultSlipKind = SlipKind | 'misread' | 'forgot-test' | 'mistriaged';
 
 export interface RivalAvatar {
   seed: string;
@@ -52,6 +54,18 @@ export interface Rival {
   thoroughness: number;
   /** 0..1 average test technique. */
   technique: number;
+  /** Case-to-case spread of technique (form varies; nobody is a machine). */
+  spread: number;
+  /** Fraction of key history questions they usually ask (0..1). */
+  history: number;
+  /** Chance per case of booking the urgency one notch off (outside their signature slip). */
+  triageError: number;
+  /** Which way their triage drifts when it does. */
+  triageBias: 'over' | 'under' | 'either';
+  /** Chance per case of forgetting one essential (non-decisive) test. */
+  forgets: number;
+  /** Chance per case of ordering a test the patient did not need. */
+  strayTest: number;
   /** Tests this colleague is known for — their signature. */
   signature: TestId[];
   signatureLabel: string;
@@ -86,11 +100,17 @@ export const ROSTER: readonly Rival[] = [
     accuracy: 0.9,
     speed: 1.3,
     thoroughness: 0.6,
-    technique: 0.86,
+    technique: 0.82,
+    spread: 0.08,
+    history: 0.55,
+    triageError: 0.1,
+    triageBias: 'under',
+    forgets: 0,
+    strayTest: 0.15,
     signature: ['pupils', 'visual-fields', 'color-vision'],
     signatureLabel: 'Neuro sleuth',
     slip: 'skips-basics',
-    slipRate: 0.26,
+    slipRate: 0.3,
     skipPrefs: ['tonometry', 'visual-acuity', 'pinhole', 'amsler'],
     slipLabel: 'Skips the “boring” basics',
     slipLesson: 'Acuity and pressure take two minutes each and catch the diagnoses that brilliance walks straight past.',
@@ -99,7 +119,7 @@ export const ROSTER: readonly Rival[] = [
     quips: {
       ahead: ['Close. Closer than most. Still mine.', 'I had it at “hello”. You had it at the chart. Both valid.', 'Elegant work-up. Mine was faster.'],
       behind: ['Hm. Lucky patient. …Well played.', 'Fine. I was distracted by the lighting in room 3.', 'Noted. Do not let it go to your head.'],
-      slipped: ['Pressure checks are for people who cannot read a red eye. …Apparently including me.', 'I was so sure. That is the problem, isn’t it.', 'The basics. Again. Do not say it.'],
+      slipped: ['Two minutes of routine would have saved me. Noted.', 'I was so sure. That is the problem, isn’t it.', 'The basics. Again. Do not say it.'],
     },
   },
   {
@@ -115,13 +135,19 @@ export const ROSTER: readonly Rival[] = [
       look: { skin: 5, hair: 'braids', hairColor: '#17110d', irisColor: '#4a2f1d', glasses: 'cat-eye', outfit: '#23365e', accessory: 'earrings', facialHair: 'none' },
     },
     accuracy: 0.95,
-    speed: 0.72,
+    speed: 0.5,
     thoroughness: 0.98,
-    technique: 0.9,
+    technique: 0.68,
+    spread: 0.1,
+    history: 0.95,
+    triageError: 0.35,
+    triageBias: 'over',
+    forgets: 0,
+    strayTest: 0.15,
     signature: ['tonometry', 'ophthalmoscopy', 'visual-fields'],
     signatureLabel: 'Pressure & fundus',
     slip: 'over-tests',
-    slipRate: 0.5,
+    slipRate: 0.55,
     skipPrefs: [],
     slipLabel: 'Orders one test too many',
     slipLesson: 'A focused work-up is a skill: every test should answer a question you are actually asking.',
@@ -145,14 +171,20 @@ export const ROSTER: readonly Rival[] = [
       seed: 'rival:mori', age: 29, sex: 'M',
       look: { skin: 1, hair: 'short', hairColor: '#0f0d0c', irisColor: '#2b1d14', glasses: 'round', outfit: '#4a3a12', facialHair: 'none' },
     },
-    accuracy: 0.85,
+    accuracy: 0.86,
     speed: 1.6,
-    thoroughness: 0.55,
-    technique: 0.88,
+    thoroughness: 0.5,
+    technique: 0.5,
+    spread: 0.18,
+    history: 0.25,
+    triageError: 0.3,
+    triageBias: 'either',
+    forgets: 0.35,
+    strayTest: 0.25,
     signature: ['retinoscopy', 'phoropter', 'cover-test'],
     signatureLabel: 'Lightning refraction',
     slip: 'rushes-posterior',
-    slipRate: 0.3,
+    slipRate: 0.32,
     skipPrefs: ['ophthalmoscopy', 'visual-fields', 'pupils'],
     slipLabel: 'Rushes the slow, careful exams',
     slipLesson: 'A quick refraction never explains acuity that lenses and pinhole cannot fix — check the pupils, the fields and the fundus.',
@@ -161,7 +193,7 @@ export const ROSTER: readonly Rival[] = [
     quips: {
       ahead: ['Done before the kettle boiled.', 'Speed is a skill too. Catch me if you can.', 'Next! …Oh, you are still charting.'],
       behind: ['Okay, okay — that was clean. Rematch?', 'Fast AND right. Unfair.', 'I blinked and you overtook me.'],
-      slipped: ['Should have dilated. Should always dilate.', 'Fastest wrong answer in the clinic. Not my best record.', 'Two minutes saved, one diagnosis missed. Bad trade.'],
+      slipped: ['Slow exams exist for a reason. Noted.', 'Fastest incomplete chart in the clinic. Not my best record.', 'Two minutes saved, one step missed. Bad trade.'],
     },
   },
   {
@@ -177,13 +209,19 @@ export const ROSTER: readonly Rival[] = [
       look: { skin: 2, hair: 'long', hairColor: '#3a2418', irisColor: '#5a3a22', glasses: 'half-rim', outfit: '#5b2343', accessory: 'earrings', facialHair: 'none' },
     },
     accuracy: 0.92,
-    speed: 0.95,
+    speed: 0.7,
     thoroughness: 0.88,
-    technique: 0.84,
+    technique: 0.48,
+    spread: 0.14,
+    history: 0.85,
+    triageError: 0.12,
+    triageBias: 'under',
+    forgets: 0.1,
+    strayTest: 0.3,
     signature: ['slit-lamp', 'fluorescein', 'visual-acuity'],
     signatureLabel: 'Slit-lamp artist',
     slip: 'under-triages',
-    slipRate: 0.4,
+    slipRate: 0.65,
     skipPrefs: [],
     slipLabel: 'Triages a notch too gently',
     slipLesson: 'Reassurance is kindness only when the timing is right: urgency is part of the diagnosis.',
@@ -207,14 +245,20 @@ export const ROSTER: readonly Rival[] = [
       seed: 'rival:lindqvist', age: 26, sex: 'M',
       look: { skin: 0, hair: 'curly', hairColor: '#b98a52', irisColor: '#4f7da6', glasses: 'square', outfit: '#1d4a57', facialHair: 'none' },
     },
-    accuracy: 0.74,
-    speed: 0.9,
+    accuracy: 0.84,
+    speed: 0.45,
     thoroughness: 0.8,
-    technique: 0.74,
+    technique: 0.32,
+    spread: 0.12,
+    history: 0.3,
+    triageError: 0.45,
+    triageBias: 'either',
+    forgets: 0.55,
+    strayTest: 0.65,
     signature: ['visual-acuity', 'amsler', 'motility'],
-    signatureLabel: 'Careful history',
+    signatureLabel: 'Textbook basics',
     slip: 'anchors',
-    slipRate: 0.32,
+    slipRate: 0.17,
     skipPrefs: [],
     slipLabel: 'Anchors on the first impression',
     slipLesson: 'Form a differential early, but let the findings overrule it — anchoring is the commonest diagnostic error.',

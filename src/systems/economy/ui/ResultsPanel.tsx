@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
 import { Button, CountUp, GlassPanel, useReducedMotion, useSignal } from '@ui-kit';
 import { COIN, CRATES, ECONOMY_COLOR } from '../catalog';
@@ -22,12 +22,24 @@ function Receipt({ services, store }: { services: GameServices; store: Economy }
   const session = useSignal(services.session.state);
   const reduced = useReducedMotion();
   const [opening, setOpening] = useState<string | null>(null);
+  const cratesRef = useRef<HTMLDivElement>(null);
+  const walletRef = useRef<HTMLParagraphElement>(null);
   if (!receipt) return null;
   if (session && session.caseId !== receipt.caseId) return null;
 
   const { fee } = receipt;
   const waiting = receipt.crates.filter((c) => state.crates.some((x) => x.id === c.id));
   const stagger = reduced ? 0 : 140;
+
+  /** The "Open now" button that launched the theatre is gone once opened: keep focus nearby. */
+  const closeOpening = () => {
+    setOpening(null);
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (active && active !== document.body && document.contains(active)) return;
+      (cratesRef.current?.querySelector<HTMLElement>('button') ?? walletRef.current)?.focus({ preventScroll: true });
+    }, 40);
+  };
 
   return (
     <GlassPanel class="eco-receipt" accent={ECONOMY_COLOR} glow strong eyebrow="Lumens earned" title="Consultation fee">
@@ -58,7 +70,7 @@ function Receipt({ services, store }: { services: GameServices; store: Economy }
       )}
 
       {receipt.crates.length > 0 && (
-        <div class="eco-receipt__crates">
+        <div class="eco-receipt__crates" ref={cratesRef}>
           {receipt.crates.map((c, i) => {
             const unopened = waiting.some((w) => w.id === c.id);
             return (
@@ -84,10 +96,10 @@ function Receipt({ services, store }: { services: GameServices; store: Economy }
         </div>
       )}
 
-      <p class="eco-receipt__wallet">
+      <p class="eco-receipt__wallet" ref={walletRef} tabIndex={-1}>
         Wallet <b class="lm-num">{formatCoins(state.balance)} {COIN}</b>
       </p>
-      {opening && <CrateOpening services={services} store={store} crateId={opening} onClose={() => setOpening(null)} />}
+      {opening && <CrateOpening services={services} store={store} crateId={opening} onClose={closeOpening} />}
     </GlassPanel>
   );
 }

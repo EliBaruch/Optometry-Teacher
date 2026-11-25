@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { signal, type GameServices, type Signal } from '@core';
-import { Button, IconOrText, RARITY_COLOR, RARITY_LABEL, ServicesProvider, useReducedMotion, useSignal } from '@ui-kit';
+import { Button, formatNumber, IconOrText, RARITY_COLOR, RARITY_LABEL, ServicesProvider, useReducedMotion, useSignal } from '@ui-kit';
 import type { Moment } from '../engine';
 import { Crest } from './Crest';
 import './moments.css';
@@ -60,16 +60,73 @@ export function createMomentStage(services: GameServices) {
 function Stage({ services, queue }: { services: GameServices; queue: Signal<Queued[]> }) {
   const items = useSignal(queue);
   const remove = (key: number) => queue.update((q) => q.filter((x) => x.key !== key));
-  const ceremony = items.find((x) => x.m.kind === 'rank');
-  // Trophies wait politely while a ceremony is on stage.
-  const trophies = ceremony ? [] : items.filter((x) => x.m.kind === 'trophy').slice(0, 3);
+  // One level moment at a time: a full ceremony for a new rank, a banner for a new tier.
+  const level = items.find((x) => x.m.kind === 'rank');
+  // Trophies wait politely while a level moment is on stage.
+  const trophies = level ? [] : items.filter((x) => x.m.kind === 'trophy').slice(0, 3);
   return (
     <>
-      {ceremony && ceremony.m.kind === 'rank' && <Ceremony key={ceremony.key} services={services} m={ceremony.m} onDone={() => remove(ceremony.key)} />}
+      {level && level.m.kind === 'rank' && (level.m.newRank
+        ? <Ceremony key={level.key} services={services} m={level.m} onDone={() => remove(level.key)} />
+        : <LevelBanner key={level.key} services={services} m={level.m} onDone={() => remove(level.key)} />)}
       <div class="rk-plaques" aria-live="polite">
         {trophies.map((x, i) => x.m.kind === 'trophy' && <TrophyToast key={x.key} services={services} m={x.m} index={i} onDone={() => remove(x.key)} />)}
       </div>
     </>
+  );
+}
+
+const BANNER_MS = 4200;
+
+/** A new tier inside the same rank: a luminous banner drops in, never blocks play. */
+function LevelBanner({ services, m, onDone }: { services: GameServices; m: Extract<Moment, { kind: 'rank' }>; onDone: () => void }) {
+  const reduced = useReducedMotion();
+  const ref = useRef<HTMLButtonElement>(null);
+  const [leaving, setLeaving] = useState(false);
+  const { info } = m;
+  const leave = () => {
+    setLeaving(true);
+    setTimeout(onDone, reduced ? 0 : 380);
+  };
+
+  useEffect(() => {
+    services.audio.play('levelup', { volume: 0.75 });
+    const ts = [
+      setTimeout(() => {
+        services.audio.play('sparkle', { volume: 0.6 });
+        const r = ref.current?.querySelector('.rk-banner__crest')?.getBoundingClientRect();
+        if (r && r.width > 0 && !reduced) {
+          services.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: 'stars', count: 16, color: info.rank.color });
+          services.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: 'sparks', count: 10, color: info.rank.color2 });
+        }
+      }, reduced ? 0 : 380),
+      setTimeout(() => setLeaving(true), BANNER_MS),
+      setTimeout(onDone, BANNER_MS + 400),
+    ];
+    return () => ts.forEach(clearTimeout);
+  }, []);
+
+  const toRank = info.nextRank ? `${formatNumber(info.toNextRank)} XP to ${info.nextRank.title}` : `${formatNumber(info.toNext)} XP to ${info.nextTitle}`;
+  return (
+    <button
+      ref={ref}
+      type="button"
+      role="status"
+      class={`rk-banner${leaving ? ' is-leaving' : ''}`}
+      style={{ '--rk-c': info.rank.color, '--rk-c2': info.rank.color2 }}
+      onClick={leave}
+      aria-label={`Career level ${info.number}: ${info.title}. ${toRank}.`}
+    >
+      <span class="rk-banner__crest" aria-hidden="true">
+        <Crest rankIndex={info.rankIndex} tier={info.tier} size={58} animate />
+      </span>
+      <span class="rk-banner__text" aria-hidden="true">
+        <span class="rk-banner__eyebrow">Career level <b class="lm-num">{info.number}</b></span>
+        <span class="rk-banner__title">{info.title}</span>
+        <span class="rk-banner__next lm-num">{toRank}</span>
+      </span>
+      <span class="rk-banner__shine" aria-hidden="true" />
+    </button>
   );
 }
 
@@ -131,13 +188,14 @@ function Ceremony({ services, m, onDone }: { services: GameServices; m: Extract<
   close.current = () => {
     if (leaving) return;
     setLeaving(true);
+    // The toast is the afterglow: it lands once the ceremony clears the stage.
+    services.bus.emit('toast', { message: `Promoted to ${info.rank.title}. ${info.rank.motto}`, icon: 'crown', tone: 'epic' });
     setTimeout(onDone, reduced ? 0 : 420);
   };
 
   useEffect(() => {
     const prevFocus = document.activeElement as HTMLElement | null;
     services.audio.play('drumroll', { volume: 0.5 });
-    services.bus.emit('toast', { message: newRank ? `Promoted to ${info.rank.title}` : `Career level ${info.number}: ${info.title}`, icon: 'crown', tone: 'epic' });
     const ts = [
       setTimeout(() => {
         services.audio.play('levelup');

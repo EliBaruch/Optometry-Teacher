@@ -137,8 +137,8 @@ export function eyeShape(g: Geo, side: Side, closure: number, wide: number, low:
   const ey = g.eyeY;
   const xi = ex - side * g.eyeW; // inner canthus (toward nose)
   const xo = ex + side * g.eyeW; // outer canthus
-  const yi = ey + 0.5;
-  const yo = ey - 0.9;
+  const yi = ey + 0.5 - g.eyeTilt * 0.25;
+  const yo = ey - 0.9 - g.eyeTilt;
   const w = wide;
   const h = g.eyeH * (1 + w * 0.32);
   const L = g.eyeLow * (1 - clamp(low, -1, 1) * 0.85);
@@ -158,7 +158,7 @@ export function eyeShape(g: Geo, side: Side, closure: number, wide: number, low:
   const lidEdge = `M${P(xo, yo)}C${P(ux1, ey1)} ${P(ux2, ey2)} ${P(xi, yi)}`;
   const lid = `M${P(xo, yo)}C${P(ux1, uy1 - 0.4)} ${P(ux2, uy2 - 0.4)} ${P(xi, yi)}C${P(ux2, ey2)} ${P(ux1, ey1)} ${P(xo, yo)}Z`;
   const lower = `M${P(xi, yi)}C${P(lx1, ly1)} ${P(lx2, ly2)} ${P(xo, yo)}`;
-  const ch = h * 1.42 + 3.2 - c * 1.2;
+  const ch = h * 1.42 + 3.2 + g.crease - c * 1.2;
   const crease = `M${P(xo - side * 0.6, yo - 1.6)}C${P(ux1, ey - ch)} ${P(ux2, ey - ch - 0.4)} ${P(xi + side * 1.5, yi - 3.4)}`;
   return { almond, lid, lidEdge, lower, crease };
 }
@@ -171,7 +171,7 @@ export function browPath(g: Geo, side: Side, inY: number, outY: number, knit: nu
   const t = g.browThick;
   const inner: [number, number] = [CX + side * (5.8 - knit * 0.9), by + 1.2 + inY];
   const outer: [number, number] = [CX + side * (g.eyeDX + g.eyeW + 4.2), by + 3.2 + outY];
-  const ctrl: [number, number] = [CX + side * (g.eyeDX + 2.5), by - 4.4 + (inY + outY) * 0.5];
+  const ctrl: [number, number] = [CX + side * (g.eyeDX + 2.5), by - 2.4 - g.browArch * 2 + (inY + outY) * 0.5];
   return quadRibbon(inner, ctrl, outer, (u) => (3.3 - u * 2.2 + Math.sin(u * Math.PI) * 0.6) * t, 9);
 }
 
@@ -257,15 +257,15 @@ export interface RigInput {
 
 export type AttrMap = Record<string, Record<string, string>>;
 
-export function rigAttrs(g: Geo, r: RigInput): AttrMap {
-  const p = r.params;
+/** Lids, irises and reflexes: the only parts that move on every blink/glance. */
+export function eyeAttrs(g: Geo, p: RigParams, gazeL: Gaze, gazeR: Gaze, blinkIn: number): AttrMap {
   const out: AttrMap = {};
   const eye = (side: Side, key: 'L' | 'R') => {
-    const gz = key === 'L' ? r.gazeL : r.gazeR;
+    const gz = key === 'L' ? gazeL : gazeR;
     const gy = clamp(gz.y, -1.6, 1.6);
     // the upper lid follows vertical gaze (lid–globe synergy)
     const base = clamp((key === 'L' ? p.lidL : p.lidR) + Math.max(0, gy) * 0.2, 0, 1);
-    const blink = clamp(r.blink, 0, 1);
+    const blink = clamp(blinkIn, 0, 1);
     const closure = base + (1 - base) * blink;
     const wide = ((key === 'L' ? p.wideL : p.wideR) + Math.max(0, -gy) * 0.18) * (1 - blink);
     const low = key === 'L' ? p.lowL : p.lowR;
@@ -286,6 +286,12 @@ export function rigAttrs(g: Geo, r: RigInput): AttrMap {
   };
   eye(-1, 'L');
   eye(1, 'R');
+  return out;
+}
+
+/** Brows, mouth, folds: change only while the expression is blending. */
+export function faceAttrs(g: Geo, p: RigParams): AttrMap {
+  const out: AttrMap = {};
   out.browL = { d: browPath(g, -1, p.browInL, p.browOutL, p.knit) };
   out.browR = { d: browPath(g, 1, p.browInR, p.browOutR, p.knit) };
   const m = mouthShape(g, p);
@@ -301,9 +307,45 @@ export function rigAttrs(g: Geo, r: RigInput): AttrMap {
   out.nlf = { opacity: f(clamp(0.35 + p.cheek * 0.6 + Math.max(0, -p.curve) * 0.05, 0, 1)) };
   out.fhead = { opacity: f(clamp(p.forehead, 0, 1)) };
   out.glab = { opacity: f(clamp(p.frown, 0, 1)) };
-  const by = r.breath;
-  out.body = { transform: `translate(0 ${f(by * 0.9)}) scale(1 ${f(1 + by * 0.004)})` };
-  const rot = r.sway * 1.4;
-  out.head = { transform: `translate(${f(r.sway * 0.6)} ${f(by * 0.55 + r.nod * 0.7)}) rotate(${f(rot)} ${CX} ${f(g.chinY + 6)})` };
   return out;
+}
+
+export interface Pose {
+  /** body: vertical offset (viewBox units) and vertical scale from the top */
+  bodyY: number;
+  bodyScale: number;
+  /** head: offset (viewBox units) and rotation (deg) about the chin pivot */
+  headX: number;
+  headY: number;
+  headRot: number;
+  pivotX: number;
+  pivotY: number;
+}
+
+/** Breathing + idle sway as plain numbers (applied as CSS or SVG transforms). */
+export function poseFor(g: Geo, breath: number, sway: number, nod: number): Pose {
+  return {
+    bodyY: breath * 0.9,
+    bodyScale: 1 + breath * 0.004,
+    headX: sway * 0.6,
+    headY: breath * 0.55 + nod * 0.7,
+    headRot: sway * 1.4,
+    pivotX: CX,
+    pivotY: g.chinY + 6,
+  };
+}
+
+export function poseAttrs(p: Pose): AttrMap {
+  return {
+    body: { transform: `translate(0 ${f(p.bodyY)}) scale(1 ${f(p.bodyScale)})` },
+    head: { transform: `translate(${f(p.headX)} ${f(p.headY)}) rotate(${f(p.headRot)} ${f(p.pivotX)} ${f(p.pivotY)})` },
+  };
+}
+
+export function rigAttrs(g: Geo, r: RigInput): AttrMap {
+  return {
+    ...eyeAttrs(g, r.params, r.gazeL, r.gazeR, r.blink),
+    ...faceAttrs(g, r.params),
+    ...poseAttrs(poseFor(g, r.breath, r.sway, r.nod)),
+  };
 }

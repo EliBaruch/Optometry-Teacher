@@ -5,6 +5,7 @@ import { GALLERY_COLOR, SYSTEM_ID, type CollectionStore } from '../store';
 import { GalleryScene } from './GalleryScene';
 import { LatestCard } from './LatestCard';
 import { PackReveal } from './PackReveal';
+import { ProfileShowcase } from './ProfileShowcase';
 
 /** Gate: render nothing once the system has been uninstalled (registries cannot unregister). */
 function Active(props: { store: CollectionStore; children: () => ComponentChildren }) {
@@ -51,5 +52,13 @@ export function registerUi(store: CollectionStore): void {
     order: 40,
     system: SYSTEM_ID,
     component: () => <Active store={store}>{() => <LatestCard store={store} />}</Active>,
+  });
+
+  registries.hud.register({
+    id: 'collection:profile',
+    slot: 'profile',
+    order: 50,
+    system: SYSTEM_ID,
+    component: () => <Active store={store}>{() => <ProfileShowcase store={store} />}</Active>,
   });
 }

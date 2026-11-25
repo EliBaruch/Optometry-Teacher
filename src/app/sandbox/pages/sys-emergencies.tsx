@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import type { ClinicalCase, GameServices, RewardGrant } from '@core';
+import { URGENCIES, type ClinicalCase, type GameServices, type RewardGrant, type Urgency } from '@core';
 import { Backdrop, Button, HudSlot, RewardChip, ToastHost, useRegistry, useSignal } from '@ui-kit';
 import emergencies from '../../../systems/emergencies';
 import { grandRoundsCase, INITIAL_STATS, recordOutcome } from '../../../systems/emergencies/logic';
@@ -9,16 +9,21 @@ import type { SandboxPage } from '../Sandbox';
 /**
  * Code Red (system 'emergencies') preview:
  *   ?sandbox=page/sys-emergencies
- *   &auto=arrive | short | saved | under | miss | timeout   run a scenario on load
+ *   &auto=arrive | short | saved | full | under | over | referred | miss | timeout   run a scenario on load
+ *   &dock=0                                                   hide the control dock (clean screenshots)
+ *   &case=<id>                                                pick the emergency case
  *   &stats=1                                                  seed a lived-in emergency record
  *   &view=exam | hub | results | profile                      show one slot only
  */
-type Auto = 'arrive' | 'short' | 'saved' | 'under' | 'miss' | 'timeout';
+type Auto = 'arrive' | 'short' | 'saved' | 'full' | 'under' | 'over' | 'referred' | 'miss' | 'timeout';
+type Kind = 'saved' | 'full' | 'under' | 'over' | 'referred' | 'miss';
+
+const step = (u: Urgency, d: number): Urgency => URGENCIES[Math.max(0, Math.min(URGENCIES.length - 1, URGENCIES.indexOf(u) + d))]!;
 
 function seedStats(services: GameServices, cases: ClinicalCase[]) {
   let s = INITIAL_STATS;
   const em = cases.filter((c) => c.emergency);
-  const outcomes = ['saved', 'saved', 'missed', 'saved', 'under-triaged', 'saved', 'saved', 'timeout', 'saved'] as const;
+  const outcomes = ['saved', 'saved', 'missed', 'saved', 'under-triaged', 'over-triaged', 'saved', 'referred', 'timeout', 'saved'] as const;
   outcomes.forEach((o, i) => {
     const c = em[i % em.length]!;
     s = recordOutcome(s, { caseId: c.id, diagnosisId: c.diagnosis, outcome: o, sec: 38 + i * 9, at: Date.now() - i * 3600_000 });
@@ -51,13 +56,22 @@ function Page({ services }: { services: GameServices }) {
     services.session.clear();
     services.session.start(c, 'code-red', limit);
   };
-  const submit = (kind: 'saved' | 'under' | 'miss') => {
+  /** A thorough work-up: every essential test done well and every key history question asked. */
+  const workUp = (c: ClinicalCase) => {
+    for (const h of c.history) if (h.relevance === 'key') services.session.ask(h.id);
+    for (const t of c.essentialTests) services.session.recordTest({ testId: t, accuracy: 0.92, timeMs: 9000, findings: [] });
+  };
+  const submit = (kind: Kind) => {
     const s = services.session.state.get();
     const c = s && services.registries.cases.get(s.caseId);
     if (!c || s.submitted || s.failed) return;
-    if (kind === 'saved') services.session.submit(c.diagnosis, c.urgency);
-    if (kind === 'under') services.session.submit(c.diagnosis, 'soon');
-    if (kind === 'miss') services.session.submit(c.differentials[0] ?? 'healthy-eyes', 'routine');
+    const wrong = c.differentials[0] ?? 'healthy-eyes';
+    if (kind === 'full') workUp(c);
+    if (kind === 'saved' || kind === 'full') services.session.submit(c.diagnosis, c.urgency);
+    if (kind === 'under') services.session.submit(c.diagnosis, step(c.urgency, -2));
+    if (kind === 'over') services.session.submit(c.diagnosis, c.urgency === 'emergency' ? 'emergency' : step(c.urgency, 1));
+    if (kind === 'referred') services.session.submit(wrong, c.urgency);
+    if (kind === 'miss') services.session.submit(wrong, 'routine');
   };
   const timeout = () => {
     const s = services.session.state.get();
@@ -70,13 +84,13 @@ function Page({ services }: { services: GameServices }) {
     if (q.get('stats')) seedStats(services, cases);
     const auto = q.get('auto') as Auto | null;
     if (!auto) return;
-    start(auto === 'short' ? 12 : undefined, cases[0]);
+    const pick = services.registries.cases.get(q.get('case') ?? '') ?? (auto === 'over' ? cases.find((c) => c.urgency !== 'emergency') : undefined) ?? cases[0];
+    if (pick) setCaseId(pick.id);
+    start(auto === 'short' ? 12 : undefined, pick);
     const t = setTimeout(() => {
-      if (auto === 'saved') submit('saved');
-      if (auto === 'under') submit('under');
-      if (auto === 'miss') submit('miss');
       if (auto === 'timeout') timeout();
-    }, 900);
+      else if (auto !== 'arrive' && auto !== 'short') submit(auto);
+    }, auto === 'full' ? 2400 : 900);
     return () => clearTimeout(t);
   }, [cases.length > 0]);
 
@@ -135,10 +149,10 @@ function Page({ services }: { services: GameServices }) {
         </div>
       </main>
 
-      <aside class="crsb-dock" aria-label="Sandbox controls">
+      <aside class="crsb-dock" aria-label="Sandbox controls" hidden={q.get('dock') === '0'}>
         <div class="crsb-row">
           <select value={kase?.id} onChange={(e) => setCaseId((e.target as HTMLSelectElement).value)} aria-label="Emergency case">
-            {cases.map((c) => <option key={c.id} value={c.id}>{c.id} ({c.emergency?.timeLimitSec}s)</option>)}
+            {cases.map((c) => <option key={c.id} value={c.id}>{c.id} ({c.urgency}, {c.emergency?.timeLimitSec}s)</option>)}
           </select>
         </div>
         <div class="crsb-row">
@@ -147,9 +161,14 @@ function Page({ services }: { services: GameServices }) {
           <Button size="sm" icon="crown" onClick={() => start(undefined, featured)}>Grand Rounds</Button>
         </div>
         <div class="crsb-row">
-          <Button size="sm" variant="primary" onClick={() => submit('saved')}>Correct call</Button>
+          <Button size="sm" variant="primary" onClick={() => submit('full')}>Full work-up + call</Button>
+          <Button size="sm" onClick={() => submit('saved')}>Blind correct guess</Button>
+          <Button size="sm" onClick={() => submit('over')}>Over-triage</Button>
           <Button size="sm" onClick={() => submit('under')}>Under-triage</Button>
-          <Button size="sm" onClick={() => submit('miss')}>Wrong diagnosis</Button>
+        </div>
+        <div class="crsb-row">
+          <Button size="sm" onClick={() => submit('referred')}>Wrong dx, right urgency</Button>
+          <Button size="sm" onClick={() => submit('miss')}>Wrong dx, too slow</Button>
           <Button size="sm" onClick={timeout}>Time out</Button>
         </div>
         <div class="crsb-row">
@@ -176,6 +195,7 @@ const CSS = `
 .crsb-hint { font-size: 13px; }
 .crsb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(470px, calc(100vw - 24px)); box-sizing: border-box; padding: 10px; border-radius: 14px;
   background: rgba(10, 6, 20, 0.9); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(10px); display: grid; gap: 6px; }
+.crsb-dock[hidden] { display: none; }
 .crsb-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .crsb-dock select { width: 100%; background: #1a0f2e; color: var(--lm-ivory); border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 6px; font: 12px var(--lm-font-num); }
 @media (max-width: 760px) {

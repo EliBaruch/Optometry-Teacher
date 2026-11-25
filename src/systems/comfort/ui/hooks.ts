@@ -1,9 +1,9 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
 import { useInterval, useSignal } from '@ui-kit';
 import { comfortOf, type ComfortController } from '../controller';
 import { INITIAL, type ComfortState } from '../logic';
-import { signal } from '@core';
+import { signal, type Signal } from '@core';
 
 const EMPTY = signal<ComfortState>(INITIAL);
 
@@ -42,4 +42,43 @@ export function safePlay(services: GameServices, ...args: Parameters<GameService
   } catch {
     /* ignore */
   }
+}
+
+// ── Welcome-note host lease ──────────────────────────────────────────────
+// The welcome note can be hosted by the hub banner, the lounge scene and a
+// global top-bar host. Only one may show it: the highest-priority host wins,
+// ties go to the one mounted first.
+
+interface Lease {
+  id: number;
+  priority: number;
+}
+const leases = new WeakMap<object, Signal<Lease[]>>();
+let leaseSeq = 0;
+
+function leaseSignal(key: object): Signal<Lease[]> {
+  let s = leases.get(key);
+  if (!s) {
+    s = signal<Lease[]>([]);
+    leases.set(key, s);
+  }
+  return s;
+}
+
+/** Pure: which lease currently holds the host (highest priority, then oldest). */
+export function leaseHolder(list: readonly Lease[]): number | null {
+  let best: Lease | null = null;
+  for (const l of list) if (!best || l.priority > best.priority) best = l;
+  return best?.id ?? null;
+}
+
+/** True while this component is the one that should render the shared overlay. */
+export function useHostLease(key: object, priority: number): boolean {
+  const sig = leaseSignal(key);
+  const [id] = useState(() => ++leaseSeq);
+  useEffect(() => {
+    sig.update((xs) => [...xs, { id, priority }]);
+    return () => sig.update((xs) => xs.filter((x) => x.id !== id));
+  }, [sig, priority]);
+  return leaseHolder(useSignal(sig)) === id;
 }

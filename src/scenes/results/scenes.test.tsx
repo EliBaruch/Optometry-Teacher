@@ -5,6 +5,7 @@ import { buildFindings, createServices, type ClinicalCase, type GameServices, ty
 import { ServicesProvider } from '@ui-kit';
 import scenes from './index';
 import { findRun, runLogSlot } from './run-log';
+import { Safe } from './Safe';
 
 const Results = scenes.find((s) => s.id === 'results')!.component as preact.FunctionComponent<{ services: GameServices; params: Record<string, unknown> }>;
 const Summary = scenes.find((s) => s.id === 'run-summary')!.component as preact.FunctionComponent<{ services: GameServices; params: Record<string, unknown> }>;
@@ -120,6 +121,8 @@ describe('results scene', () => {
     act(() => void vi.advanceTimersByTime(10000));
     expect(host.textContent).toContain('Out of time');
     expect(host.textContent).toContain('Myopia');
+    expect(host.textContent).toContain('Where the clock stopped');
+    expect(host.textContent).toContain('Visual Acuity'); // the essential route
     expect(services.run.state.get()!.failed).toEqual([k.id]);
   });
 
@@ -147,8 +150,34 @@ describe('run-summary scene', () => {
     expect(services.router.current.get().id).toBe('exam');
   });
 
+  it('lists missed diagnoses as a study list linking to the codex', () => {
+    services.registries.scenes.register({ id: 'codex', component: () => null });
+    const k = playCase('hyperopia');
+    mount(Results, { caseId: k.id, modeId: 'shift' });
+    act(() => render(null, host));
+    const snapshot: RunSnapshot = services.run.end()!;
+    mount(Summary, { modeId: 'shift', snapshot });
+    act(() => void vi.advanceTimersByTime(5000));
+    expect(host.textContent).toContain('Worth a second look');
+    const item = host.querySelector<HTMLButtonElement>('.sm-study__item')!;
+    expect(item.textContent).toContain('Myopia');
+    act(() => item.click());
+    expect(services.router.current.get()).toMatchObject({ id: 'codex', params: { diagnosisId: 'myopia' } });
+  });
+
   it('collapses to an empty state without a snapshot', () => {
     mount(Summary, { modeId: 'shift' });
     expect(host.textContent).toContain('No patients seen');
+  });
+});
+
+describe('Safe art boundary', () => {
+  it('swaps a crashing painter for its fallback instead of blanking the screen', () => {
+    const Boom = () => {
+      throw new Error('painter broke');
+    };
+    act(() => render(<div><Safe fallback={<i class="ph" />}><Boom /></Safe><p>review</p></div>, host));
+    expect(host.querySelector('.ph')).not.toBeNull();
+    expect(host.textContent).toContain('review');
   });
 });

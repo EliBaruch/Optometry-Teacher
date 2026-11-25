@@ -23,24 +23,58 @@ export interface CrateOpeningProps {
   onClose: () => void;
 }
 
-/** Full-screen crate-opening theatre: shake → light leaks → burst → reveal. */
+/**
+ * Full-screen crate-opening theatre: shake → light leaks → burst → reveal.
+ *
+ * The roll is only PEEKED when the player presses Open; nothing is committed to
+ * the save until the reveal, so the wallet, purse, shelf and receipt can't spoil
+ * the surprise behind the scrim. If the theatre unmounts mid-shake the crate is
+ * committed then (the roll is deterministic, so nothing can be re-rolled).
+ */
 export function CrateOpening({ services, store, crateId, onClose }: CrateOpeningProps) {
   const state = useSignal(store.state);
   const reduced = useReducedMotion();
   const [crate, setCrate] = useState<StoredCrate | undefined>(() => state.crates.find((c) => c.id === crateId) ?? state.crates[0]);
   const [phase, setPhase] = useState<Phase>('ready');
   const [drop, setDrop] = useState<CrateDrop | null>(null);
+  /** Late in the shake the light starts to take on the rarity colour. */
+  const [foreshadow, setForeshadow] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const pending = useRef<string | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const crateRef = useRef<HTMLDivElement>(null);
   useFocusTrap(root, true, '[data-autofocus]');
+  const spec = crate ? CRATES[crate.kind] : CRATES.case;
 
   const clear = () => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
   };
-  useEffect(() => clear, []);
   const later = (ms: number, fn: () => void) => timers.current.push(setTimeout(fn, ms));
+
+  /** Commit the peeked crate (once). Returns the drop actually applied. */
+  const commit = (quiet: boolean): CrateDrop | null => {
+    const id = pending.current;
+    if (!id) return null;
+    pending.current = null;
+    return store.openCrate(id, { deferPulse: quiet })?.drop ?? null;
+  };
+
+  useEffect(
+    () => () => {
+      clear();
+      commit(false); // closed mid-theatre: bank it now, the wallet celebrates normally
+    },
+    [],
+  );
+
+  // Keep keyboard focus inside the dialog as its buttons come and go.
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const target = phase === 'shaking' || phase === 'burst' ? el : el.querySelector<HTMLElement>('[data-autofocus]') ?? el;
+    if (document.activeElement !== target) target.focus({ preventScroll: true });
+  }, [phase, crate?.id]);
 
   const center = () => {
     const r = crateRef.current?.getBoundingClientRect();
@@ -49,6 +83,7 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
 
   const burst = (d: CrateDrop) => {
     clear();
+    setForeshadow(true);
     setPhase('burst');
     const color = RARITY_COLOR[d.rarity];
     const { x, y } = center();
@@ -60,10 +95,15 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
     later(BURST_MS, () => reveal(d));
   };
 
-  const reveal = (d: CrateDrop) => {
+  const reveal = (peeked: CrateDrop) => {
     clear();
+    // The moment of truth: only now does the crate leave the shelf and the lumens land.
+    const d = commit(true) ?? peeked;
+    setDrop(d);
+    setForeshadow(true);
     setPhase('reveal');
     services.audio.play(RARITY_SFX[d.rarity], { volume: 0.9 });
+    if (d.content.type === 'coins') store.pulse(d.content.amount, spec.name);
     if (d.rarity === 'legendary' && !reduced) {
       const { x, y } = center();
       later(260, () => services.fx.burst(x, y - 40, { kind: 'confetti', count: 80 }));
@@ -72,8 +112,9 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
 
   const open = () => {
     if (!crate || phase !== 'ready') return;
-    const res = store.openCrate(crate.id);
+    const res = store.peekCrate(crate.id);
     if (!res) return;
+    pending.current = crate.id;
     setDrop(res.drop);
     if (reduced) {
       reveal(res.drop);
@@ -81,6 +122,8 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
     }
     setPhase('shaking');
     services.audio.play('drumroll', { volume: 0.8 });
+    // Common crates stay in the crate's own trim; rarer light seeps out late.
+    if (res.drop.rarity !== 'common') later(SHAKE_MS * 0.68, () => setForeshadow(true));
     later(SHAKE_MS, () => burst(res.drop));
   };
 
@@ -88,6 +131,7 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
     const n = store.state.get().crates[0];
     clear();
     setDrop(null);
+    setForeshadow(false);
     setCrate(n);
     setPhase('ready');
     services.audio.play('whoosh', { volume: 0.5 });
@@ -104,32 +148,42 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
     onClose();
   };
 
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-    } else if ((e.key === ' ' || e.key === 'Enter') && (phase === 'shaking' || phase === 'burst')) {
-      e.preventDefault();
-      skip();
-    }
-  };
+  // Document-level capture: Escape / Space / Enter belong to the theatre while it
+  // is up, whatever has focus — the Screen underneath must never see them.
+  const keys = useRef({ phase, close, skip });
+  keys.current = { phase, close, skip };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const k = keys.current;
+      const busy = k.phase === 'shaking' || k.phase === 'burst';
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        k.close();
+      } else if ((e.key === ' ' || e.key === 'Enter') && busy) {
+        e.preventDefault();
+        e.stopPropagation();
+        k.skip();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, []);
 
-  const spec = crate ? CRATES[crate.kind] : CRATES.case;
-  const rarity = drop?.rarity;
+  const shown = foreshadow && drop ? drop.rarity : null;
   const remaining = state.crates.length;
   const pityLeft = Math.max(1, PITY_LIMIT - state.pity);
 
   return createPortal(
     <div
       ref={root}
-      class={`eco-open eco-open--${phase}${rarity ? ` eco-open--${rarity}` : ''}${reduced ? ' is-reduced' : ''}`}
-      style={{ '--rc': rarity ? RARITY_COLOR[rarity] : spec.trim, '--trim': spec.trim }}
+      class={`eco-open eco-open--${phase}${shown ? ` eco-open--${shown}` : ''}${reduced ? ' is-reduced' : ''}`}
+      style={{ '--rc': shown ? RARITY_COLOR[shown] : spec.trim, '--trim': spec.trim }}
       role="dialog"
       aria-modal="true"
-      aria-label={`${spec.name}`}
+      aria-label={phase === 'reveal' ? `${spec.name} opened` : spec.name}
+      aria-busy={phase === 'shaking' || phase === 'burst' || undefined}
       tabIndex={-1}
-      onKeyDown={onKey}
     >
       <div class="eco-open__scrim" onClick={phase === 'reveal' || phase === 'ready' ? close : skip} aria-hidden="true" />
       <div class="eco-open__rays" aria-hidden="true" />
@@ -137,7 +191,7 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
         <p class="eco-open__eyebrow lm-eyebrow">{spec.name}</p>
 
         {crate && phase !== 'reveal' && (
-          <div class="eco-open__crate" ref={crateRef} onClick={phase === 'ready' ? open : skip}>
+          <div class="eco-open__crate" ref={crateRef} onClick={phase === 'ready' ? open : skip} aria-hidden="true">
             <CrateArt kind={crate.kind} size="min(62vw, 260px)" />
           </div>
         )}
@@ -155,8 +209,13 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
               </p>
             </>
           )}
-          {phase === 'ready' && !crate && <p class="eco-open__hint">No crates waiting. Exemplary cases earn more.</p>}
-          {(phase === 'shaking' || phase === 'burst') && <p class="eco-open__hint eco-open__hint--skip">Tap to skip</p>}
+          {phase === 'ready' && !crate && (
+            <>
+              <p class="eco-open__hint">No crates waiting. Exemplary cases earn more.</p>
+              <Button variant="glass" icon="check" onClick={close} data-autofocus>Back to the Boutique</Button>
+            </>
+          )}
+          {(phase === 'shaking' || phase === 'burst') && <p class="eco-open__hint eco-open__hint--skip">Tap to skip<span class="eco-open__keys"> · Space</span></p>}
           {phase === 'reveal' && (
             <div class="eco-open__buttons">
               {remaining > 0 && (

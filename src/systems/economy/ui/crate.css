@@ -4,6 +4,9 @@
 @property --leak { syntax: '<number>'; inherits: true; initial-value: 0.12; }
 .eco-crate { display: block; overflow: visible; --leak: 0.12; }
 .eco-crate__seam { opacity: var(--leak); filter: drop-shadow(0 0 4px var(--trim)) drop-shadow(0 0 10px var(--trim)); transition: opacity 300ms; }
+.eco-crate__shafts { opacity: calc((var(--leak) - 0.3) * 1.4); mix-blend-mode: screen; transform-box: view-box; transform-origin: 100px 84px; }
+.eco-crate__cracks { opacity: calc((var(--leak) - 0.45) * 1.8); filter: drop-shadow(0 0 3px var(--trim)) drop-shadow(0 0 8px var(--trim)); }
+.eco-crate__keyhole { opacity: calc((var(--leak) - 0.2) * 1.2); filter: drop-shadow(0 0 4px #fff6d6) drop-shadow(0 0 10px var(--trim)); }
 .eco-crate__inner { opacity: 0; transform-box: fill-box; transform-origin: center; }
 .eco-crate__lid, .eco-crate__body { transform-box: view-box; transform-origin: 100px 84px; }
 .eco-crate__emblem { filter: drop-shadow(0 0 3px var(--trim)); }
@@ -50,8 +53,8 @@
 
 /* shaking: building tension, light leaking through the seams */
 .eco-open--shaking .eco-open__rays { opacity: 0.5; transform: scale(1); }
-.eco-open--shaking .eco-crate { animation: eco-shake 1500ms linear both, eco-leak 1500ms ease-in both; }
-@keyframes eco-leak { from { --leak: 0.2; } to { --leak: 1; } }
+.eco-open--shaking .eco-crate { animation: eco-shake 1500ms linear both, eco-leak 1500ms linear both; }
+@keyframes eco-leak { 0% { --leak: 0.2; } 25% { --leak: 0.55; } 60% { --leak: 0.8; } 100% { --leak: 1; } }
 @keyframes eco-shake {
   0% { transform: none; }
   6% { transform: translate(-2px, 0) rotate(-1deg); } 12% { transform: translate(2px, 0) rotate(1deg); }
@@ -66,6 +69,9 @@
   100% { transform: translate(0, -16px) scale(1.2); }
 }
 .eco-open--shaking .eco-crate__lid { animation: eco-lid-rattle 1500ms linear both; }
+.eco-open--shaking .eco-crate__shafts { animation: eco-shaft-flicker 180ms steps(2) infinite; }
+@keyframes eco-shaft-flicker { 50% { transform: scaleX(1.08) scaleY(0.94); } }
+.eco-open--burst .eco-crate__shafts { transform: scale(1.4, 1.6); transition: transform 480ms var(--lm-ease-out); }
 @keyframes eco-lid-rattle {
   0%, 40% { transform: none; } 50% { transform: translateY(-2px) rotate(-1deg); } 60% { transform: translateY(0); }
   70% { transform: translateY(-4px) rotate(1.5deg); } 78% { transform: translateY(-1px); } 86% { transform: translateY(-7px) rotate(-2deg); }
@@ -152,3 +158,12 @@
   .eco-crate--idle, .eco-crate__glint { animation: none !important; }
 }
 html.reduced-motion .eco-crate--idle, html.reduced-motion .eco-crate__glint { animation: none !important; }
+
+/* brass specular sweep (idle crates only; parked off-screen otherwise) */
+.eco-crate__sheen { opacity: 0.55; mix-blend-mode: overlay; }
+.eco-crate--idle .eco-crate__sheen, .eco-open--ready .eco-crate__sheen { animation: eco-sheen 4.6s var(--lm-ease-in-out) infinite; }
+@keyframes eco-sheen { 0%, 55% { transform: skewX(-18deg) translateX(0); } 100% { transform: skewX(-18deg) translateX(260px); } }
+.eco-open--burst .eco-crate__sheen-clip, .eco-open--shaking .eco-crate__sheen-clip { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .eco-crate__sheen { animation: none !important; } }
+html.reduced-motion .eco-crate__sheen { animation: none !important; }
+@media (pointer: coarse) { .eco-open__keys { display: none; } }

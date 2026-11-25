@@ -22,14 +22,15 @@ const TONE_TINT: Record<ToastTone, string> = { info: TONE_COLOR.info, good: TONE
 export interface ToastHostProps {
   /** Defaults to services.bus from the ServicesProvider. */
   bus?: EventBus;
-  position?: 'top' | 'bottom';
+  /** 'auto' (default): below the top bar, or at the bottom on touch phones. */
+  position?: 'top' | 'bottom' | 'auto';
   max?: number;
   /** ms on screen (epic toasts stay 1.5× longer) */
   duration?: number;
 }
 
 /** Stacks `toast` events from the bus; auto-dismiss, click to dismiss, tone colours. Mount once per app/scene. */
-export function ToastHost({ bus, position = 'top', max = 4, duration = 3600 }: ToastHostProps) {
+export function ToastHost({ bus, position = 'auto', max = 4, duration = 3600 }: ToastHostProps) {
   const services = useOptionalServices();
   const source = bus ?? services?.bus;
   const play = useSfx();

@@ -2,15 +2,17 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import type { ClinicalCase, GameServices, Grade, ScoreBreakdown } from '@core';
 import { HudSlot, asComponent, useSignal } from '@ui-kit';
 import collection from '../../../systems/collection';
-import { INITIAL_STATE, type CollectionState } from '../../../systems/collection/model';
+import { CARD_RARITIES, FRAME_THRESHOLDS, FRAME_TIERS, INITIAL_STATE, type CollectionState, type OwnedCard } from '../../../systems/collection/model';
+import { IrisCard } from '../../../systems/collection/ui/IrisCard';
+import { cardNumber, orderedDiagnoses } from '../../../systems/collection/catalog';
 import { SAVE_KEY, SAVE_VERSION } from '../../../systems/collection/store';
 import type { SandboxPage } from '../Sandbox';
 
 /**
  * Gallery (collection) sandbox. Query params for screenshots:
- *   &view=reveal|hub|gallery   &fill=<n> (pre-collect n cards)   &grade=S|A|B|C|miss (auto-treat one patient)
+ *   &view=reveal|hub|gallery|showcase   &fill=<n> (pre-collect n cards)   &grade=S|A|B|C|miss (auto-treat one patient)
  */
-type View = 'reveal' | 'hub' | 'gallery';
+type View = 'reveal' | 'hub' | 'gallery' | 'showcase';
 type Outcome = Grade | 'miss';
 
 const CSS = `
@@ -18,10 +20,15 @@ const CSS = `
   background: radial-gradient(120% 80% at 50% 0%, #2a1748 0%, #1a0f2e 45%, #0b0716 100%); }
 .sbc-main { max-width: 860px; margin: 0 auto; padding: 24px 16px 200px; display: grid; gap: 18px; }
 .sbc-main h1 { margin: 0; font-family: var(--lm-font-display); font-weight: 520; font-size: 30px; color: #ffd27a; }
-.sbc-main p { margin: 0; color: #a99bbd; font-size: 13px; }
+.sbc-main > p { margin: 0; color: #a99bbd; font-size: 13px; }
 .sbc-mock { padding: 18px; border-radius: 22px; background: #ffffff08; box-shadow: inset 0 0 0 1px #ffffff14; display: grid; gap: 14px; }
 .sbc-mock h2 { margin: 0; font: 600 11px/1 var(--lm-font-ui); letter-spacing: .16em; text-transform: uppercase; color: #a99bbd; }
 .sbc-hub { max-width: 360px; }
+.sbc-profile { max-width: 560px; }
+.sbc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.sbc-grid figure { margin: 0; display: grid; gap: 8px; }
+.sbc-grid figcaption { font: 600 10px/1.3 var(--lm-font-ui); letter-spacing: .12em; text-transform: uppercase; color: #a99bbd; text-align: center; }
+@media (max-width: 560px) { .sbc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
 .sbc-dock { position: fixed; z-index: 900; left: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(-50%);
   width: min(860px, calc(100% - 24px)); box-sizing: border-box; padding: 10px; border-radius: 18px; display: grid; gap: 8px;
   background: linear-gradient(180deg, #2a1846ee, #140c26f2); box-shadow: 0 20px 60px #0009, inset 0 0 0 1px #ffd27a33; backdrop-filter: blur(12px); }
@@ -54,9 +61,38 @@ function treat(services: GameServices, kase: ClinicalCase, outcome: Outcome) {
   services.bus.emit('case:completed', { caseId: kase.id, modeId: 'sandbox', score: fakeScore(kase, outcome) });
 }
 
+const IRISES = ['#5a3a22', '#3b6ea5', '#6b8e4e', '#8a6a3a', '#4a6b8a', '#2e1c12', '#7a8f9c', '#9a7b4f'];
+
+/** Every rarity × frame on real diagnoses, so reviewers can judge the art and foil without grinding. */
+function Showcase({ services }: { services: GameServices }) {
+  const catalog = orderedDiagnoses(services.registries.diagnoses.all());
+  if (!catalog.length) return <p>No diagnoses registered.</p>;
+  const cell = (i: number, rarity: (typeof CARD_RARITIES)[number], tier: (typeof FRAME_TIERS)[number]) => {
+    const dx = catalog[(i * 7) % catalog.length]!;
+    const at = Date.UTC(2026, 10, 3 + i);
+    const acq = { caseId: `showcase-${i}`, patient: ['Grace Okafor', 'Mei-Ling Chen', 'Tomás Herrera', 'Priya Raman'][i % 4]!, irisColor: IRISES[i % IRISES.length]!, grade: 'S' as const, rarity, at, seed: 1000 + i * 7919 };
+    const card: OwnedCard = { dx: dx.id, rarity, featured: acq, copies: 1 + FRAME_TIERS.indexOf(tier) * 3, shine: FRAME_THRESHOLDS[tier], bestGrade: 'S', firstAt: at, lastAt: at, history: [acq], seen: true };
+    return { dxId: dx.id, dx, card, number: cardNumber(catalog, dx.id), total: catalog.length };
+  };
+  return (
+    <section class="sbc-mock">
+      <h2>Rarity (columns) × frame (rows)</h2>
+      <div class="sbc-grid">
+        {FRAME_TIERS.flatMap((tier, row) => CARD_RARITIES.map((rarity, col) => (
+          <figure key={`${tier}-${rarity}`}>
+            <IrisCard view={cell(row * 4 + col, rarity, tier)} size="sm" ribbon={row === 0 && col === 0 ? 'NEW' : undefined} />
+            <figcaption>{rarity} · {tier}</figcaption>
+          </figure>
+        )))}
+      </div>
+    </section>
+  );
+}
+
 function CollectionSandbox({ services }: { services: GameServices }) {
   const q = useMemo(() => new URLSearchParams(location.search), []);
-  const [tab, setTab] = useState<Exclude<View, 'gallery'>>(q.get('view') === 'hub' ? 'hub' : 'reveal');
+  const initialTab = q.get('view');
+  const [tab, setTab] = useState<Exclude<View, 'gallery'>>(initialTab === 'hub' || initialTab === 'showcase' ? initialTab : 'reveal');
   const [outcome, setOutcome] = useState<Outcome>((q.get('grade') as Outcome) || 'S');
   const [log, setLog] = useState<string>('');
   const [cursor, setCursor] = useState(0);
@@ -120,21 +156,28 @@ function CollectionSandbox({ services }: { services: GameServices }) {
               <HudSlot slot="results-extra" />
             </section>
           )}
+          {view === 'showcase' && <Showcase services={services} />}
           {view === 'hub' && (
-            <section class="sbc-mock sbc-hub">
-              <h2>Hub · hub-sidebar slot</h2>
-              <HudSlot slot="hub-sidebar" />
-            </section>
+            <>
+              <section class="sbc-mock sbc-hub">
+                <h2>Hub · hub-sidebar slot</h2>
+                <HudSlot slot="hub-sidebar" />
+              </section>
+              <section class="sbc-mock sbc-profile">
+                <h2>Profile · profile slot</h2>
+                <HudSlot slot="profile" />
+              </section>
+            </>
           )}
         </main>
       )}
       <div class="sbc-dock">
         <div class="sbc-row">
           <span class="sbc-label">View</span>
-          {(['reveal', 'hub', 'gallery'] as View[]).map((v) => (
+          {(['reveal', 'hub', 'gallery', 'showcase'] as View[]).map((v) => (
             <button key={v} type="button" class="sbc-btn" aria-pressed={view === v} data-view={v}
               onClick={() => { if (v === 'gallery') services.router.go('gallery'); else { if (route.id === 'gallery') services.router.replace('sandbox'); setTab(v); } }}>
-              {v === 'reveal' ? 'Results reveal' : v === 'hub' ? 'Hub sidebar' : 'Gallery scene'}
+              {v === 'reveal' ? 'Results reveal' : v === 'hub' ? 'Hub sidebar' : v === 'gallery' ? 'Gallery scene' : 'Showcase'}
             </button>
           ))}
           <span class="sbc-meta">{owned} cards · {state.pulls} pulls</span>

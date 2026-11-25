@@ -5,7 +5,7 @@
 import type { ScoreBreakdown } from '@core';
 import { ROSTER, type Rival, type RivalId } from './roster';
 import type { RivalCaseResult } from './sim';
-import { boardPointsAt, dayKey, sampleTimes, weekEnd, weekKey, weekStart } from './week';
+import { boardPointsAt, dayKey, isoWeekStart, sampleTimes, weekEnd, weekKey, weekStart } from './week';
 
 export const PLAYER_ID = 'you';
 export type EntrantId = RivalId | typeof PLAYER_ID;
@@ -17,7 +17,15 @@ export const LATE_CREDIT = 0.4;
 export interface Comparison {
   caseId: string;
   at: number;
-  player: { total: number; max: number; grade: ScoreBreakdown['grade']; timeSec: number; diagnosisCorrect: boolean };
+  player: {
+    total: number;
+    max: number;
+    grade: ScoreBreakdown['grade'];
+    timeSec: number;
+    diagnosisCorrect: boolean;
+    /** What the player called it (older saves may lack it). */
+    chosenDiagnosisId?: string;
+  };
   points: number;
   rivals: RivalCaseResult[];
 }
@@ -29,6 +37,19 @@ export interface WeekSummary {
   points: number;
   cases: number;
   delivered: boolean;
+}
+
+/** Board progress during one shift/run, for the run summary. */
+export interface RunTally {
+  modeId: string;
+  startedAt: number;
+  points: number;
+  cases: number;
+  /** Patients where the player out-scored every colleague. */
+  best: number;
+  /** Colleagues passed on the board during the run (most recent last, unique). */
+  passed: RivalId[];
+  rankBefore: number;
 }
 
 export interface RivalsState {
@@ -53,6 +74,7 @@ export interface RivalsState {
   bestRank: number | null;
   weeksPlayed: number;
   achievements: string[];
+  run: RunTally | null;
 }
 
 export const STATE_VERSION = 1;
@@ -77,6 +99,7 @@ export function initialState(now: number): RivalsState {
     bestRank: null,
     weeksPlayed: 0,
     achievements: [],
+    run: null,
   };
 }
 
@@ -155,17 +178,18 @@ export function divisionName(scale: number): string {
 }
 
 /**
- * Close the old week if the calendar moved on. Returns the same object when nothing changed.
- * The final board is taken at the old week's end, so colleagues' totals are complete.
+ * Close the old week if the calendar moved FORWARD into a later week. Returns the same object
+ * when nothing changed. A clock that moves backwards (timezone change, corrected clock) never
+ * wipes or re-archives a week. The final board is taken at the old week's end.
  */
 export function rollWeek(state: RivalsState, now: number, roster: readonly Rival[] = ROSTER): RivalsState {
+  if (weekStart(now) <= isoWeekStart(state.weekKey)) return state;
   const wk = weekKey(now);
-  if (wk === state.weekKey) return state;
   let lastWeek: WeekSummary | null = null;
   let bestRank = state.bestRank;
   let weeksPlayed = state.weeksPlayed;
   if (state.cases > 0) {
-    const endT = weekEnd(state.log[state.log.length - 1]?.t ?? state.joinedAt) - 1;
+    const endT = weekEnd(isoWeekStart(state.weekKey)) - 1;
     const rows = standings(state, endT, roster);
     const rank = playerRank(rows);
     lastWeek = { weekKey: state.weekKey, rank, field: rows.length, points: state.points, cases: state.cases, delivered: false };
@@ -208,6 +232,7 @@ export function applyCase(
   score: ScoreBreakdown,
   rivals: RivalCaseResult[],
   roster: readonly Rival[] = ROSTER,
+  modeId?: string,
 ): { state: RivalsState; points: number; before: Standing[]; after: Standing[]; passed: Rival[]; bestOnCase: boolean } {
   let s = rollWeek(state, now, roster);
   const today = dayKey(now);
@@ -234,7 +259,14 @@ export function applyCase(
     last: {
       caseId,
       at: now,
-      player: { total: score.total, max: score.max, grade: score.grade, timeSec: score.elapsedSec, diagnosisCorrect: score.diagnosisCorrect },
+      player: {
+        total: score.total,
+        max: score.max,
+        grade: score.grade,
+        timeSec: score.elapsedSec,
+        diagnosisCorrect: score.diagnosisCorrect,
+        chosenDiagnosisId: score.chosenDiagnosisId,
+      },
       points: pts,
       rivals,
     },
@@ -242,13 +274,31 @@ export function applyCase(
   const after = standings(s, now, roster);
   const passed = overtaken(before, after);
   const rank = playerRank(after);
+  const bestOnCase = rivals.length > 0 && score.diagnosisCorrect && rivals.every((r) => score.total > r.total);
+  let run = s.run;
+  if (run && modeId && run.modeId === modeId) {
+    const ids = passed.map((r) => r.id);
+    run = {
+      ...run,
+      points: run.points + pts,
+      cases: run.cases + 1,
+      best: run.best + (bestOnCase ? 1 : 0),
+      passed: [...run.passed.filter((id) => !ids.includes(id)), ...ids],
+    };
+  }
   s = {
     ...s,
     lastRank: rank,
     trend: passed.length ? { dir: 'up', at: now } : s.trend,
+    run,
   };
-  const bestOnCase = rivals.length > 0 && score.diagnosisCorrect && rivals.every((r) => score.total > r.total);
   return { state: s, points: pts, before, after, passed, bestOnCase };
+}
+
+/** A shift/run begins: start a fresh tally (the board itself carries on). */
+export function startRun(state: RivalsState, now: number, modeId: string, roster: readonly Rival[] = ROSTER): RivalsState {
+  const s = rollWeek(state, now, roster);
+  return { ...s, run: { modeId, startedAt: now, points: 0, cases: 0, best: 0, passed: [], rankBefore: s.cases ? playerRank(standings(s, now, roster)) : 0 } };
 }
 
 /**

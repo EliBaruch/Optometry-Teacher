@@ -126,4 +126,14 @@ describe('createFxController', () => {
     expect(target.classList.contains('fx-hitstop')).toBe(false);
     fx.destroy();
   });
+
+  it('hitstop marks reduced motion from the injected callback', () => {
+    const fx = createFxController(layer, target, { reducedMotion: () => true });
+    fx.hitstop(80);
+    expect(target.classList.contains('fx-hitstop')).toBe(true);
+    expect(target.classList.contains('fx-hitstop--still')).toBe(true);
+    vi.advanceTimersByTime(200);
+    expect(target.classList.contains('fx-hitstop--still')).toBe(false);
+    fx.destroy();
+  });
 });

@@ -13,15 +13,15 @@
   content: ''; position: absolute; width: 8px; height: 8px; transform: rotate(45deg);
   background: rgba(30, 18, 52, 0.98); box-shadow: inset -1px -1px 0 var(--lm-glass-border-hi);
 }
-.lm-tip__bubble--top { bottom: calc(100% + 10px); left: 50%; transform: translate(-50%, 6px) scale(0.96); }
-.lm-tip__bubble--top.is-open { transform: translate(-50%, 0) scale(1); }
-.lm-tip__bubble--top::after { top: calc(100% - 4px); left: calc(50% - 4px); }
-.lm-tip__bubble--bottom { top: calc(100% + 10px); left: 50%; transform: translate(-50%, -6px) scale(0.96); }
-.lm-tip__bubble--bottom.is-open { transform: translate(-50%, 0) scale(1); }
-.lm-tip__bubble--bottom::after { bottom: calc(100% - 4px); left: calc(50% - 4px); transform: rotate(225deg); }
-.lm-tip__bubble--left { right: calc(100% + 10px); top: 50%; transform: translate(6px, -50%) scale(0.96); }
-.lm-tip__bubble--left.is-open { transform: translate(0, -50%) scale(1); }
-.lm-tip__bubble--left::after { left: calc(100% - 4px); top: calc(50% - 4px); transform: rotate(-45deg); }
-.lm-tip__bubble--right { left: calc(100% + 10px); top: 50%; transform: translate(-6px, -50%) scale(0.96); }
-.lm-tip__bubble--right.is-open { transform: translate(0, -50%) scale(1); }
-.lm-tip__bubble--right::after { right: calc(100% - 4px); top: calc(50% - 4px); transform: rotate(135deg); }
+.lm-tip__bubble--top, .lm-tip__bubble--bottom { left: 50%; --tx: calc(-50% + var(--tip-shift, 0px)); }
+.lm-tip__bubble--left, .lm-tip__bubble--right { top: 50%; --ty: calc(-50% + var(--tip-shift, 0px)); }
+.lm-tip__bubble--top { bottom: calc(100% + 10px); transform: translate(var(--tx), 6px) scale(0.96); transform-origin: 50% 100%; }
+.lm-tip__bubble--bottom { top: calc(100% + 10px); transform: translate(var(--tx), -6px) scale(0.96); transform-origin: 50% 0; }
+.lm-tip__bubble--top.is-open, .lm-tip__bubble--bottom.is-open { transform: translate(var(--tx), 0) scale(1); }
+.lm-tip__bubble--top::after { top: calc(100% - 4px); left: calc(50% - 4px + var(--tip-arrow, 0px)); }
+.lm-tip__bubble--bottom::after { bottom: calc(100% - 4px); left: calc(50% - 4px + var(--tip-arrow, 0px)); transform: rotate(225deg); }
+.lm-tip__bubble--left { right: calc(100% + 10px); transform: translate(6px, var(--ty)) scale(0.96); transform-origin: 100% 50%; }
+.lm-tip__bubble--right { left: calc(100% + 10px); transform: translate(-6px, var(--ty)) scale(0.96); transform-origin: 0 50%; }
+.lm-tip__bubble--left.is-open, .lm-tip__bubble--right.is-open { transform: translate(0, var(--ty)) scale(1); }
+.lm-tip__bubble--left::after { left: calc(100% - 4px); top: calc(50% - 4px + var(--tip-arrow, 0px)); transform: rotate(-45deg); }
+.lm-tip__bubble--right::after { right: calc(100% - 4px); top: calc(50% - 4px + var(--tip-arrow, 0px)); transform: rotate(135deg); }

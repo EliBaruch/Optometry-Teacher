@@ -6,7 +6,8 @@ import {
 } from '@ui-kit';
 import { demoRun } from './demo';
 import { prettyId } from './model';
-import { accuracy, bestCase, checkBest, comboPeak, findRun, runLogSlot, type BestResult, type RunLogEntry } from './run-log';
+import { accuracy, bestCase, checkBest, comboPeak, findRun, missedDiagnoses, runLogSlot, type BestResult, type RunLogEntry } from './run-log';
+import { Safe } from './Safe';
 import './summary.css';
 
 interface Row extends RunLogEntry {
@@ -73,6 +74,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
         const dxId = e.diagnosisId || kase?.diagnosis || '';
         return {
           ...e,
+          diagnosisId: dxId,
           name: kase?.patient.name ?? 'Patient',
           dxName: dxId ? services.registries.diagnoses.get(dxId)?.name ?? prettyId(dxId) : '',
           avatar: kase?.patient,
@@ -84,6 +86,11 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
   const acc = accuracy(snapshot);
   const peak = Math.max(comboPeak(entries), snapshot.combo);
   const correctN = snapshot.completed.length;
+  const hasCodex = services.registries.scenes.has('codex');
+  const study = useMemo(
+    () => missedDiagnoses(rows).map((id) => ({ id, name: services.registries.diagnoses.get(id)?.name ?? prettyId(id) })),
+    [rows],
+  );
 
   const [pb] = useState<BestResult | null>(() => {
     if (demo) return { state: { runs: [], best: {} }, isBest: true, first: false, previous: Math.round(snapshot.totalScore * 0.82) };
@@ -117,7 +124,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
     <Screen backdrop="results" eyebrow="Run complete" title={mode?.title ?? 'Shift report'} class={cx('sm-screen', reduced && 'is-instant')} contentClass="sm-content">
       <div class="sm-page">
         <header class="sm-hero" ref={totalRef}>
-          <span class="lm-eyebrow">{mode ? `${mode.title} · complete` : 'Run complete'}</span>
+          <span class="lm-eyebrow">Shift report</span>
           <div class="sm-total">
             <CountUp value={snapshot.totalScore} duration={reduced ? 1 : 1900} delay={reduced ? 0 : 500} onDone={onTotal} tickSfx="tick" />
           </div>
@@ -144,7 +151,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
             <RingMeter value={acc} size={92} thickness={7} accent={palette.normal} ariaLabel={`Accuracy ${Math.round(acc * 100)}%`}>
               <span class="sm-stat__ring lm-num">{Math.round(acc * 100)}%</span>
             </RingMeter>
-            <div>
+            <div class="sm-stat__text">
               <span class="lm-eyebrow">Accuracy</span>
               <strong>
                 {correctN} of {entries.length} correct
@@ -156,25 +163,27 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               <Icon name="flame" />
               <span class="lm-num">{peak}</span>
             </span>
-            <div>
+            <div class="sm-stat__text">
               <span class="lm-eyebrow">Combo peak</span>
               <strong>{peak >= 3 ? 'On fire' : peak >= 1 ? 'In a row' : 'Keep at it'}</strong>
             </div>
           </GlassPanel>
           <GlassPanel class="sm-stat sm-stat--best" style={{ '--n': 2 }} strong accent={best?.grade ? GRADE_COLOR[best.grade] : undefined}>
             {best?.avatar ? (
-              <AvatarBust spec={best.avatar.avatar} age={best.avatar.age} sex={best.avatar.sex} size={64} ring={palette.gold} label={best.name} />
+              <Safe fallback={<span class="sm-row__ph sm-row__ph--lg" />}>
+                <AvatarBust spec={best.avatar.avatar} age={best.avatar.age} sex={best.avatar.sex} size={64} ring={palette.gold} label={best.name} />
+              </Safe>
             ) : (
               <span class="sm-stat__big">
                 <Icon name="star" />
               </span>
             )}
-            <div>
+            <div class="sm-stat__text">
               <span class="lm-eyebrow">Best case</span>
               <strong>{best ? best.dxName || best.name : '—'}</strong>
               {best?.grade && (
                 <span class="sm-stat__sub">
-                  Grade <b style={{ color: GRADE_COLOR[best.grade] }}>{best.grade}</b> · {best.total.toLocaleString('en-US')} pts
+                  Grade <b style={{ color: GRADE_COLOR[best.grade] }}>{best.grade}</b> · case score {best.total.toLocaleString('en-US')}
                 </span>
               )}
             </div>
@@ -186,7 +195,13 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
           {rows.map((r, i) => (
             <li key={r.caseId + i} class={cx('sm-row', r.correct ? 'is-correct' : 'is-wrong', best === r && 'is-best')} style={{ '--n': i }}>
               <span class="sm-row__n lm-num">{i + 1}</span>
-              {r.avatar ? <AvatarBust spec={r.avatar.avatar} age={r.avatar.age} sex={r.avatar.sex} size={44} ring={r.correct ? palette.gold : '#6b5a88'} /> : <span class="sm-row__ph" />}
+              {r.avatar ? (
+                <Safe fallback={<span class="sm-row__ph" />}>
+                  <AvatarBust spec={r.avatar.avatar} age={r.avatar.age} sex={r.avatar.sex} size={44} ring={r.correct ? palette.gold : '#6b5a88'} />
+                </Safe>
+              ) : (
+                <span class="sm-row__ph" />
+              )}
               <span class="sm-row__who">
                 <strong>{r.name}</strong>
                 <span>{r.dxName}</span>
@@ -206,6 +221,37 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
             </li>
           ))}
         </ol>
+
+        {study.length > 0 && (
+          <section class="sm-study" aria-labelledby="sm-study-title">
+            <div class="sm-study__head">
+              <span class="sm-study__icon">
+                <Icon name="refresh" />
+              </span>
+              <div>
+                <span class="lm-eyebrow">Study list</span>
+                <h3 id="sm-study-title">Worth a second look</h3>
+                <p class="lm-muted">{study.length === 1 ? 'This diagnosis' : 'These diagnoses'} will come back for review. Five minutes in the codex now makes the next one stick.</p>
+              </div>
+            </div>
+            <ul class="sm-study__list" role="list">
+              {study.map((d, i) => (
+                <li key={d.id} style={{ '--n': i }}>
+                  {hasCodex ? (
+                    <button type="button" class="sm-study__item" onClick={() => services.router.go('codex', { diagnosisId: d.id })}>
+                      <span>{d.name}</span>
+                      <Icon name="book" />
+                    </button>
+                  ) : (
+                    <span class="sm-study__item">
+                      <span>{d.name}</span>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {widgets.length > 0 && (
           <section class="sm-extra">

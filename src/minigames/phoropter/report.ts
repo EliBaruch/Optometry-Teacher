@@ -16,6 +16,13 @@ export function normalisedRx(f: PatientFindings, eye: Eye) {
   return { sphere: quarter(l.sphere), cylinder: quarter(l.cyl) || 0, axis: l.axis };
 }
 
+/** Scissors/irregular reflex or distorted mires: spectacle refraction gives a soft, shifting endpoint. */
+export function irregular(f: PatientFindings, eye: Eye): boolean {
+  const reflex = f.retinoscopyReflex[eye];
+  const mires = f.keratometry[eye].mires;
+  return reflex === 'scissors' || reflex === 'irregular' || mires === 'irregular' || mires === 'distorted';
+}
+
 export function report(findings: PatientFindings, _patient?: PatientProfile): RevealedFinding[] {
   const out: RevealedFinding[] = [];
   for (const eye of EYES) {
@@ -24,6 +31,7 @@ export function report(findings: PatientFindings, _patient?: PatientProfile): Re
     const reduced = best > REDUCED_BCVA;
     out.push({ label: 'Manifest Rx', value: formatRx(rx), eye, flag: reduced ? 'abnormal' : 'normal' });
     out.push({ label: 'BCVA', value: formatSnellen(best), eye, flag: reduced ? 'abnormal' : 'normal' });
+    if (irregular(findings, eye)) out.push({ label: 'Endpoint', value: 'Poorly defined — irregular astigmatism', eye, flag: 'abnormal' });
   }
 
   const addOD = findings.refraction.OD.add ?? 0;

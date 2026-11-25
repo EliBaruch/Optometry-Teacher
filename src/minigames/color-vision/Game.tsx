@@ -64,7 +64,11 @@ export function ColorVisionGame({ ctx, finish }: GameProps) {
 
   const say = (text: string) => setSpeech({ text, key: ++speechKey.current });
 
-  useEffect(() => () => store.dispose(), [store]);
+  const fxTimer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => {
+    clearTimeout(fxTimer.current);
+    store.dispose();
+  }, [store]);
 
   // The patient reads the plate once it has been held in view for a moment.
   useEffect(() => {
@@ -146,7 +150,7 @@ export function ColorVisionGame({ ctx, finish }: GameProps) {
     const x = r ? r.left + r.width / 2 : innerWidth / 2;
     const y = r ? r.top + r.height * 0.3 : innerHeight / 3;
     if (s.parts.type === 1 && s.parts.eye === 1) {
-      setTimeout(() => {
+      fxTimer.current = setTimeout(() => {
         audio.play(s.perfect ? 'sparkle' : 'success');
         fx.burst(x, y, { kind: s.perfect ? 'stars' : 'sparks', count: s.perfect ? 36 : 22, color: '#ffd27a' });
         if (s.perfect) fx.floatText('Flawless', x, y - 30, { color: '#ffd27a', size: 26 });

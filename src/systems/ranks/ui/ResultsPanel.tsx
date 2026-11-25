@@ -13,6 +13,8 @@ const NEXT_STEP = [
   'Mastered. Occasional review keeps it bright.',
 ];
 
+const MISSED_STEP = 'It will return for a Second Opinion soon. Get it right then to chart its first star.';
+
 /** Results screen panel: XP gained (line by line), bar through any promotions, mastery of this diagnosis. */
 export function ResultsPanel({ services }: { services: GameServices }) {
   if (!ACTIVE.has(services)) return null;
@@ -28,6 +30,9 @@ function ResultsPanelInner({ services }: { services: GameServices }) {
   const dx = dxId ? services.registries.diagnoses.get(dxId) : undefined;
   const stars = dxId ? starsOf(services.learning, s.dx[dxId], dxId) : 0;
   const total = gain ? gain.toXp - gain.fromXp : 0;
+  const missed = session?.submitted ? !session.submitted.score.diagnosisCorrect : false;
+  const starLabel = stars === 0 && missed ? 'Not yet charted' : STAR_LABEL[stars];
+  const hint = stars === 0 && missed ? MISSED_STEP : NEXT_STEP[stars];
 
   return (
     <GlassPanel class="rk-results" accent={CAREER_COLOR} glow eyebrow="Career" title={info.title} actions={<Crest rankIndex={info.rankIndex} tier={info.tier} size={44} animate />}>
@@ -57,9 +62,9 @@ function ResultsPanelInner({ services }: { services: GameServices }) {
           </div>
           <div class="rk-results__mastery-row">
             <Stars value={stars} size={22} delay={1400} />
-            <span class="rk-results__star-label">{STAR_LABEL[stars]}</span>
+            <span class="rk-results__star-label">{starLabel}</span>
           </div>
-          <p class="rk-results__hint">{NEXT_STEP[stars]}</p>
+          <p class="rk-results__hint">{hint}</p>
         </div>
       )}
     </GlassPanel>

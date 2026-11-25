@@ -189,17 +189,19 @@ export function paintIris(ctx: CanvasRenderingContext2D, cx: number, cy: number,
   };
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  // fibre count scales with resolution; a separate stream keeps every other feature identical at any DPR
+  const frng = createRng((o.seed ^ 0x9e3779b9) >>> 0);
   const nf = Math.round(Math.max(140, Math.min(520, R * 2.3)));
   for (let i = 0; i < nf; i++) {
-    const a = (i / nf) * Math.PI * 2 + rng.float(-0.01, 0.01);
-    fibre(rng, a, pr * rng.float(1.0, 1.15), R * rng.float(0.86, 1.0), rng.float(0.8, 2.4) * k, look.fibreDark, look.dark ? 0.35 : 0.28);
+    const a = (i / nf) * Math.PI * 2 + frng.float(-0.01, 0.01);
+    fibre(frng, a, pr * frng.float(1.0, 1.15), R * frng.float(0.86, 1.0), frng.float(0.8, 2.4) * k, look.fibreDark, look.dark ? 0.35 : 0.28);
   }
   for (let i = 0; i < nf * 0.8; i++) {
-    const a = rng.float(0, Math.PI * 2);
-    const outer = rng.chance(0.75);
-    const r0 = outer ? collR * rng.float(0.98, 1.08) : pr * rng.float(1.05, 1.2);
-    const r1 = outer ? R * rng.float(0.78, 0.97) : collR * rng.float(0.92, 1.02);
-    fibre(rng, a, r0, r1, rng.float(0.5, 1.6) * k, look.fibreLight, (look.dark ? 0.16 : 0.3) * rng.float(0.5, 1));
+    const a = frng.float(0, Math.PI * 2);
+    const outer = frng.chance(0.75);
+    const r0 = outer ? collR * frng.float(0.98, 1.08) : pr * frng.float(1.05, 1.2);
+    const r1 = outer ? R * frng.float(0.78, 0.97) : collR * frng.float(0.92, 1.02);
+    fibre(frng, a, r0, r1, frng.float(0.5, 1.6) * k, look.fibreLight, (look.dark ? 0.16 : 0.3) * frng.float(0.5, 1));
   }
   // thicker trabecular bundles with glints
   for (let i = 0; i < 46; i++) {
@@ -270,11 +272,14 @@ export function paintIris(ctx: CanvasRenderingContext2D, cx: number, cy: number,
   }
   ctx.beginPath();
   smoothClosedPath(ctx, cpts);
-  ctx.strokeStyle = rgba(look.collar, look.dark ? 0.5 : 0.7);
-  ctx.lineWidth = 5 * k;
+  ctx.strokeStyle = rgba(look.collar, look.dark ? 0.32 : 0.42);
+  ctx.lineWidth = 7 * k;
   ctx.stroke();
-  ctx.strokeStyle = rgba(mix(look.collar, [255, 255, 255], 0.5), look.dark ? 0.18 : 0.45);
-  ctx.lineWidth = 1.4 * k;
+  ctx.strokeStyle = rgba(look.collar, look.dark ? 0.4 : 0.5);
+  ctx.lineWidth = 3.2 * k;
+  ctx.stroke();
+  ctx.strokeStyle = rgba(mix(look.collar, [255, 255, 255], 0.45), look.dark ? 0.12 : 0.26);
+  ctx.lineWidth = 1.1 * k;
   ctx.stroke();
   // shadow just outside the collarette (it is raised)
   ctx.save();
@@ -388,25 +393,63 @@ interface CacheEntry { canvas: HTMLCanvasElement | OffscreenCanvas; key: string 
 const cache: CacheEntry[] = [];
 const CACHE_MAX = 36;
 
+/** Effective device-pixel scale of the current transform (DPR × zoom × fore-shortening), bucketed. */
+export function transformScale(ctx: CanvasRenderingContext2D): number {
+  let k = 1;
+  try {
+    const m = ctx.getTransform?.();
+    if (m) k = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c));
+  } catch {
+    k = 1;
+  }
+  if (!Number.isFinite(k) || k <= 0) k = 1;
+  // buckets of 0.25 keep the cache small while staying crisp
+  return Math.max(1, Math.min(6, Math.ceil(k * 4 - 0.15) / 4));
+}
+
+const MAX_TEX = 2048;
+
 /**
- * Cached iris texture (square, 2R+2 px). `pupilR` is bucketed to ~0.5px so
- * smooth pupil animation re-uses recent textures.
+ * Cached iris texture painted at device resolution. `scale` is the device
+ * pixels per CSS pixel the texture will be drawn at (see transformScale);
+ * the texture is (2R+2)·k px square and must be drawn back into a
+ * (2R+2)-unit square — use drawIrisTexture(). `pupilR` is bucketed to ~0.5px.
  */
-export function irisTexture(R: number, pupilR: number, o: IrisPaintOptions): HTMLCanvasElement | OffscreenCanvas | null {
+export function irisTexture(R: number, pupilR: number, o: IrisPaintOptions, scale = 1): HTMLCanvasElement | OffscreenCanvas | null {
   const Rq = Math.max(4, Math.round(R));
+  const k = Math.max(1, Math.min(scale, MAX_TEX / (Rq * 2 + 2)));
+  const kq = Math.round(k * 4) / 4;
   const pq = Math.round(pupilR * 2) / 2;
-  const key = [Rq, pq, o.color, o.seed, o.pupilShape ?? 'round', o.rubeosis ? 1 : 0, o.nevus ? 1 : 0, (o.palette ?? []).join(','), o.exotic ?? 0].join('|');
+  const key = [Rq, kq, pq, o.color, o.seed, o.pupilShape ?? 'round', o.rubeosis ? 1 : 0, o.nevus ? 1 : 0, (o.palette ?? []).join(','), o.exotic ?? 0].join('|');
   const hit = cache.findIndex((c) => c.key === key);
   if (hit >= 0) {
     const [e] = cache.splice(hit, 1);
     cache.push(e!);
     return e!.canvas;
   }
-  const size = Rq * 2 + 2;
+  const RK = Rq * kq;
+  const size = Math.ceil(RK * 2 + 2 * kq);
   const off = makeCanvas(size, size);
   if (!off) return null;
-  paintIris(off.ctx, Rq + 1, Rq + 1, Rq, pq * (Rq / R), o);
+  paintIris(off.ctx, RK + kq, RK + kq, RK, pq * (RK / R), o);
   cache.push({ canvas: off.canvas, key });
   if (cache.length > CACHE_MAX) cache.shift();
   return off.canvas;
+}
+
+/**
+ * Draw a crisp cached iris centred at (cx,cy) with outer radius R in the
+ * current coordinate system, building the texture at the device scale.
+ * Returns false when no texture could be made (caller paints directly).
+ */
+export function drawIrisTexture(ctx: CanvasRenderingContext2D, cx: number, cy: number, R: number, pupilR: number, o: IrisPaintOptions): boolean {
+  const tex = irisTexture(R, pupilR, o, transformScale(ctx));
+  if (!tex) return false;
+  const Rq = Math.max(4, Math.round(R));
+  const half = (Rq + 1) * (R / Rq);
+  const prev = ctx.imageSmoothingQuality;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(tex as CanvasImageSource, cx - half, cy - half, half * 2, half * 2);
+  ctx.imageSmoothingQuality = prev;
+  return true;
 }

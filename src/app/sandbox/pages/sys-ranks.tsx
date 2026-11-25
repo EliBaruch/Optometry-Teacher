@@ -67,6 +67,15 @@ function seedDemo(services: GameServices): Map<string, number> {
   return mastery;
 }
 
+/** Park XP just short of the next tier / rank, then grant the rest so the real engine stages the moment. */
+function bumpTo(services: GameServices, what: 'tier' | 'rank') {
+  const slot = ranksSlot(services);
+  const i = levelInfo(slot.get().xp);
+  const target = what === 'rank' && i.nextRank ? i.xp + i.toNextRank : i.levelEndXp;
+  slot.update((s) => ({ ...s, xp: Math.max(s.xp, target - 40) }));
+  services.bus.emit('xp:grant', { amount: 60, reason: what === 'rank' ? 'Promotion review' : 'Mentor feedback' });
+}
+
 function SysRanksPage({ services }: { services: GameServices }) {
   const q = new URLSearchParams(location.search);
   const route = useSignal(services.router.current);
@@ -142,10 +151,8 @@ function SysRanksPage({ services }: { services: GameServices }) {
             <Button icon="refresh" onClick={() => run('perfect', () => true, 'review')} data-sb="review">Second Opinion case</Button>
             <Button icon="target" onClick={() => services.bus.emit('practice:completed', { testId: 'tonometry', result: { testId: 'tonometry', accuracy: 1, timeMs: 9000, findings: [], perfect: true } })} data-sb="practice">Flawless practice</Button>
             <Button icon="plus" onClick={() => services.bus.emit('xp:grant', { amount: 250, reason: 'Daily gift' })} data-sb="grant">xp:grant +250</Button>
-            <Button icon="crown" onClick={() => {
-              const i = levelInfo(ranksSlot(services).get().xp);
-              services.bus.emit('xp:grant', { amount: Math.min(1000, (i.nextRank ? i.toNextRank : i.toNext) + 5), reason: 'Promotion test' });
-            }} data-sb="rankup">Rank-up</Button>
+            <Button icon="trophy" onClick={() => bumpTo(services, 'tier')} data-sb="tierup">Tier level-up</Button>
+            <Button icon="crown" onClick={() => bumpTo(services, 'rank')} data-sb="rankup">Promotion</Button>
             <Button icon="sparkle" onClick={() => setDemo(seedDemo(services))} data-sb="demo">Seed demo career</Button>
             <Button variant="ghost" icon="refresh" onClick={() => { ranksSlot(services).set(initialState()); setDemo(null); }} data-sb="reset">Reset</Button>
             <Button variant="glass" trailingIcon="arrow-right" onClick={() => services.router.go('career')} data-sb="open">Open Career scene</Button>

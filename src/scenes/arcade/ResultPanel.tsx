@@ -9,6 +9,7 @@ export interface PracticeOutcome {
   score: number;
   previousBest: number;
   isBest: boolean;
+  firstPlay: boolean;
   bestAccuracy: number;
 }
 
@@ -23,7 +24,7 @@ export function ResultPanel(props: {
   onHarder: () => void;
   onExit: () => void;
 }) {
-  const { result, scenario, score, isBest, previousBest, bestAccuracy } = props.outcome;
+  const { result, scenario, score, isBest, firstPlay, previousBest, bestAccuracy } = props.outcome;
   const acc = Math.max(0, Math.min(1, result.accuracy || 0));
   const medal = medalFor(bestAccuracy);
   const ring = acc >= 0.85 ? '#5eead4' : acc >= 0.6 ? '#ffd27a' : '#fb923c';
@@ -56,6 +57,7 @@ export function ResultPanel(props: {
               <span class="lm-num arcade-result__points"><CountUp value={score} delay={250} /></span>
               <span class="arcade-result__unit">points</span>
               {isBest && <Badge tone="gold" variant="solid" icon="trophy" class="arcade-result__best">{previousBest > 0 ? 'New best!' : 'First score!'}</Badge>}
+              {!isBest && firstPlay && <Badge tone="info" variant="soft" icon="book" class="arcade-result__best">First attempt logged</Badge>}
             </div>
             <div class="arcade-result__meta">
               <span><Icon name="clock" /> {formatSeconds(result.timeMs)}</span>
@@ -82,12 +84,13 @@ export function ResultPanel(props: {
         )}
 
         <div class="arcade-result__actions" ref={againRef}>
-          <Button variant="primary" icon="refresh" onClick={props.onAgain} sfx="select">Again <Kbd class="arcade-result__kbd">R</Kbd></Button>
+          <Button variant="primary" icon="refresh" onClick={props.onAgain} sfx="select" aria-keyshortcuts="R">Again</Button>
           {props.harder && acc >= 0.7 && (
             <Button variant="glass" icon="lightning" onClick={props.onHarder} style={{ '--h': props.harder.accent }}>Try {props.harder.label}</Button>
           )}
           <Button variant="ghost" icon="chevron-left" onClick={props.onExit} sfx="back">All instruments</Button>
         </div>
+        <p class="arcade-result__hint" aria-hidden="true">Press <Kbd>R</Kbd> for a fresh patient</p>
       </div>
     </div>
   );

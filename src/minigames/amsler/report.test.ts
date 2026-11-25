@@ -48,7 +48,7 @@ describe('describeAmsler / flag', () => {
 
   it('dense loss of the whole grid is critical', () => {
     const f = { result: 'central-scotoma' as const, center: { x: 0, y: 0 }, radius: 10 };
-    expect(describeAmsler(f, 'OD')).toBe('Central scotoma — whole grid');
+    expect(describeAmsler(f, 'OD')).toBe('Central scotoma — fills the grid');
     expect(flagOf(f)).toBe('critical');
     expect(flagOf({ result: 'central-scotoma', center: { x: 0, y: 0 }, radius: 3 })).toBe('abnormal');
   });

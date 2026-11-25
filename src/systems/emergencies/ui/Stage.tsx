@@ -13,23 +13,27 @@ import './stage.css';
 
 const ARRIVAL_MS = 2700;
 const SAVED_MS = 3600;
+/** A thin (unproven) save gets a shorter, quieter finale. */
+const THIN_MS = 2800;
 const LEAVE_MS = 420;
 
-function useLifecycle(total: number, onDone: () => void) {
+/** Plays for `total` ms then leaves; `cut` ends it early with the same exit transition. */
+function useLifecycle(total: number, onDone: () => void, cut = false) {
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
-    const a = setTimeout(() => setLeaving(true), Math.max(0, total - LEAVE_MS));
-    const b = setTimeout(onDone, total);
+    const ms = cut ? LEAVE_MS : total;
+    const a = setTimeout(() => setLeaving(true), Math.max(0, ms - LEAVE_MS));
+    const b = setTimeout(onDone, ms);
     return () => {
       clearTimeout(a);
       clearTimeout(b);
     };
-  }, []);
+  }, [cut]);
   return leaving;
 }
 
-export function ArrivalBanner({ info, onDone }: { info: ArrivalInfo; onDone: () => void }) {
-  const leaving = useLifecycle(ARRIVAL_MS, onDone);
+export function ArrivalBanner({ info, onDone, cut }: { info: ArrivalInfo; onDone: () => void; cut?: boolean }) {
+  const leaving = useLifecycle(ARRIVAL_MS, onDone, cut);
   const p = info.kase?.patient;
   return (
     <div class={`cr-arrival${leaving ? ' is-leaving' : ''}${info.reduced ? ' is-still' : ''}`} role="alert">
@@ -84,11 +88,15 @@ function Rays() {
 }
 
 export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => void }) {
-  const leaving = useLifecycle(SAVED_MS, onDone);
-  const p = info.kase?.patient;
   const { reward } = info;
+  const leaving = useLifecycle(reward.thin ? THIN_MS : SAVED_MS, onDone);
+  const p = info.kase?.patient;
   return (
-    <div class={`cr-saved${leaving ? ' is-leaving' : ''}${info.reduced ? ' is-still' : ''}`} role="status" aria-live="polite">
+    <div
+      class={`cr-saved cr-saved--${reward.rarity}${reward.thin ? ' is-thin' : ''}${leaving ? ' is-leaving' : ''}${info.reduced ? ' is-still' : ''}`}
+      role="status"
+      aria-live="polite"
+    >
       <div class="cr-saved__veil" aria-hidden="true" />
       <div class="cr-saved__rays" aria-hidden="true">
         <Rays />
@@ -102,16 +110,17 @@ export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => vo
             </span>
           )}
         </div>
-        <span class="cr-saved__eyebrow">Code Red · Resolved</span>
+        <span class="cr-saved__eyebrow">{reward.rarity === 'legendary' ? 'Code Red · Flawless work-up' : 'Code Red · Resolved'}</span>
         <h2 class="cr-saved__title">Sight saved</h2>
         <p class="cr-saved__dx">
-          {info.dxName} <span aria-hidden="true">·</span> called in <span class="lm-num">{formatDuration(info.sec)}</span>
+          {info.dxName} <span aria-hidden="true">·</span> called in <span class="lm-num">{info.sec < 1 ? "under a second" : formatDuration(info.sec)}</span>
         </p>
         <div class="cr-saved__chips">
           <span class="cr-saved__chip cr-saved__chip--gold" style={{ '--i': 0 }}>+{reward.coins} ✦</span>
           <span class="cr-saved__chip" style={{ '--i': 1 }}>+{reward.xp} XP</span>
           {reward.grandCoins > 0 && <span class="cr-saved__chip cr-saved__chip--grand" style={{ '--i': 2 }}>Grand Rounds +{reward.grandCoins} ✦</span>}
         </div>
+        {info.note && <p class="cr-saved__note">{info.note}</p>}
       </div>
     </div>
   );
@@ -122,6 +131,8 @@ export function createDomStage(): Stage {
   if (typeof document === 'undefined') return { arrival() {}, saved() {}, destroy() {} };
   let host: HTMLDivElement | null = null;
   let seq = 0;
+  /** The arrival on screen (so it can be cut short), or null. */
+  let arriving: { k: number; info: ArrivalInfo } | null = null;
   const ensure = () => {
     if (!host) {
       host = document.createElement('div');
@@ -131,19 +142,30 @@ export function createDomStage(): Stage {
     return host;
   };
   const clear = (token: number) => () => {
-    if (token === seq && host) render(null, host);
+    if (token !== seq) return;
+    arriving = null;
+    if (host) render(null, host);
   };
   return {
     arrival(info) {
       const k = ++seq;
+      arriving = { k, info };
       render(<ArrivalBanner key={`a${k}`} info={info} onDone={clear(k)} />, ensure());
     },
     saved(info) {
       const k = ++seq;
+      arriving = null;
       render(<SightSaved key={`s${k}`} info={info} onDone={clear(k)} />, ensure());
+    },
+    dismissArrival() {
+      const a = arriving;
+      if (!a || a.k !== seq || !host) return;
+      arriving = null;
+      render(<ArrivalBanner key={`a${a.k}`} info={a.info} onDone={clear(a.k)} cut />, host);
     },
     destroy() {
       seq++;
+      arriving = null;
       if (host) {
         render(null, host);
         host.remove();

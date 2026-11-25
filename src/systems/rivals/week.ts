@@ -32,6 +32,20 @@ export function weekKey(t: number): string {
   return `${day.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
 }
 
+/**
+ * Local midnight of the Monday that starts ISO week `key` ("2026-W48"), the inverse of weekKey().
+ * Returns -Infinity for an unreadable key (so any real week counts as later).
+ */
+export function isoWeekStart(key: string): number {
+  const m = /^(\d{4})-W(\d{1,2})$/.exec(key);
+  if (!m) return -Infinity;
+  const year = Number(m[1]);
+  const week = Number(m[2]);
+  const jan4 = new Date(year, 0, 4);
+  const dow = (jan4.getDay() + 6) % 7; // Mon=0
+  return new Date(year, 0, 4 - dow + (week - 1) * 7).getTime();
+}
+
 /** Week number for display ("Week 48"). */
 export function weekNumber(key: string): number {
   return Number(key.split('-W')[1] ?? 0);
@@ -41,13 +55,6 @@ export function weekNumber(key: string): number {
 export function dayKey(t: number): string {
   const d = new Date(t);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-/** 0..1 position in the week (local, DST-safe enough for a game board). */
-export function weekProgress(t: number): number {
-  const s = weekStart(t);
-  const e = weekEnd(t);
-  return Math.min(1, Math.max(0, (t - s) / (e - s)));
 }
 
 /** "3d 4h" / "5h 12m" / "8m" until the board resets. */

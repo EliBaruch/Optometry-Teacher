@@ -13,7 +13,7 @@ import { PlayerPortrait, RivalPortrait, Sparkline, ordinal, useRivals } from './
 const MEDAL = ['#ffd27a', '#d9e2ef', '#e0a36b'];
 
 export function RivalsScene({ services }: SceneProps) {
-  const { state, now } = useRivals(services, 20_000);
+  const { ctl, state, now } = useRivals(services, 20_000);
   const settings = useSignal(services.settings);
   const reduced = useReducedMotion();
   const play = useSfx();
@@ -30,7 +30,11 @@ export function RivalsScene({ services }: SceneProps) {
   const showCard = (id: string) => {
     play('select');
     setFocus(id);
-    cards.current[id]?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
+    const el = cards.current[id];
+    if (!el) return;
+    el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
+    // Move keyboard focus with the highlight so screen-reader and keyboard users land on the profile.
+    el.focus({ preventScroll: true });
   };
 
   return (
@@ -111,6 +115,7 @@ export function RivalsScene({ services }: SceneProps) {
                 i={i}
                 row={rows.find((x) => x.id === r.id)!}
                 state={state}
+                accuracy={ctl.accuracy(r.id)}
                 focused={focus === r.id}
                 reduced={reduced}
                 ref_={(el) => (cards.current[r.id] = el)}
@@ -163,11 +168,32 @@ function BoardRow(props: { row: Standing; i: number; state: RivalsState; playerN
   );
 }
 
-function StatBar(props: { label: string; value: number; color: string }) {
-  return <ProgressBar value={props.value} max={1} label={props.label} accent={props.color} size="sm" ariaLabel={props.label} />;
+/** Words for a 0..1 trait, so the bar reads aloud and at a glance ("Pace · Very fast"). */
+export function traitWord(kind: 'accuracy' | 'pace' | 'thoroughness', v: number): string {
+  const band = v >= 0.9 ? 3 : v >= 0.75 ? 2 : v >= 0.55 ? 1 : 0;
+  const words = {
+    accuracy: ['Still learning', 'Solid', 'Sharp', 'Exceptional'],
+    pace: ['Unhurried', 'Steady', 'Quick', 'Very fast'],
+    thoroughness: ['Focused', 'Selective', 'Thorough', 'Exhaustive'],
+  }[kind];
+  return words[band]!;
 }
 
-function ProfileCard(props: { rival: Rival; i: number; row: Standing; state: RivalsState; focused: boolean; reduced: boolean; ref_: (el: HTMLElement | null) => void }) {
+function StatBar(props: { label: string; value: number; color: string; word: string }) {
+  return (
+    <ProgressBar
+      value={props.value}
+      max={1}
+      label={props.label}
+      valueText={props.word}
+      accent={props.color}
+      size="sm"
+      ariaLabel={`${props.label}: ${props.word}`}
+    />
+  );
+}
+
+function ProfileCard(props: { rival: Rival; i: number; row: Standing; state: RivalsState; accuracy: number; focused: boolean; reduced: boolean; ref_: (el: HTMLElement | null) => void }) {
   const { rival: r, state } = props;
   const h = state.h2h[r.id];
   return (
@@ -204,9 +230,9 @@ function ProfileCard(props: { rival: Rival; i: number; row: Standing; state: Riv
         </div>
         <div class="rv-card__col">
           <div class="rv-card__stats">
-            <StatBar label="Diagnostic accuracy" value={r.accuracy} color={r.color} />
-            <StatBar label="Pace" value={Math.min(1, r.speed / 1.7)} color={r.color} />
-            <StatBar label="Thoroughness" value={r.thoroughness} color={r.color} />
+            <StatBar label="Diagnostic accuracy" value={props.accuracy} color={r.color} word={`${traitWord('accuracy', props.accuracy)} · ${Math.round(props.accuracy * 100)}%`} />
+            <StatBar label="Pace" value={Math.min(1, r.speed / 1.7)} color={r.color} word={traitWord('pace', Math.min(1, r.speed / 1.7))} />
+            <StatBar label="Thoroughness" value={r.thoroughness} color={r.color} word={traitWord('thoroughness', r.thoroughness)} />
           </div>
           <div class="rv-card__slip">
             <div class="rv-card__label"><Icon name="info" size={13} /> Classic slip · {r.slipLabel}</div>

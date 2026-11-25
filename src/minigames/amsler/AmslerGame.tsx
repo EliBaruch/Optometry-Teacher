@@ -57,6 +57,12 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
   const [examTime, setExamTime] = useState(0);
   const [choice, setChoice] = useState<string | null>(null);
   const lastTick = useRef(0);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  /** CSS selector to focus after the next render (keeps keyboard users inside the game). */
+  const focusNext = useRef<string | null>(tutorialSeen() ? '[data-testid="amsler-ask"]' : null);
+  const requestFocus = (sel: string) => {
+    focusNext.current = sel;
+  };
 
   const practice = ctx.mode === 'practice';
   const challenge = useMemo(() => (practice ? buildChallenge(ctx.findings, ctx.rng.fork('amsler-challenge')) : null), []);
@@ -90,6 +96,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
     setRippleKey((k) => k + 1);
     play('lens-click');
     play('whoosh', { volume: 0.35 });
+    requestFocus('.amsler-card__canvas');
     rerender();
   };
 
@@ -98,6 +105,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
     setEye(e);
     play('lens-click', { pitch: e === 'OD' ? 1 : 1.12 });
     if (phase === 'exam' && work.current[e].asked) setRippleKey((k) => k + 1);
+    if (phase === 'exam' && !work.current[e].asked && document.activeElement === document.body) requestFocus('[data-testid="amsler-ask"]');
   };
 
   const onStroke = (ax: number, ay: number, bx: number, by: number, start: boolean) => {
@@ -157,11 +165,25 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
     setExamTime(performance.now() - t0.current);
     setView('patient');
     play('stamp');
-    if (practice) {
+    if (practice && challenge) {
+      // show the grid the question is about, through the patient's eye
+      if (challenge.eye !== eye) {
+        setEye(challenge.eye);
+        setRippleKey((k) => k + 1);
+      }
       setPhase('challenge');
+      requestFocus('[data-testid="amsler-quiz-0"]');
     } else {
       revealDebrief(s);
     }
+    revealCardOnPhone();
+  };
+
+  /** On phones the card sits above the side panel: bring it back into view for the reveal. */
+  const revealCardOnPhone = () => {
+    const body = bodyRef.current;
+    if (!body || body.scrollTop <= 0) return;
+    body.scrollTo({ top: 0, behavior: ctx.reducedMotion ? 'auto' : 'smooth' });
   };
 
   const celebrate = (s: Record<Eye, EyeScore>) => {
@@ -175,6 +197,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
 
   const revealDebrief = (s: Record<Eye, EyeScore>) => {
     setPhase('debrief');
+    requestFocus('[data-testid="amsler-finish"]');
     play('reveal');
     celebrate(s);
     if (EYES.some((e) => !s[e].classOk)) ctx.fx.shake(ctx.reducedMotion ? 0 : 0.3, 220);
@@ -194,6 +217,8 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
       ctx.fx.shake(ctx.reducedMotion ? 0 : 0.4, 240);
     }
     setPhase('debrief');
+    requestFocus('[data-testid="amsler-finish"]');
+    revealCardOnPhone();
     celebrate(scores);
   };
 
@@ -240,6 +265,8 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
     return true;
   };
 
+  const onKeyRef = useRef(onKey);
+  onKeyRef.current = onKey;
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
@@ -247,10 +274,21 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
       const t = e.target as HTMLElement | null;
       if (t?.closest('.amsler-card__canvas, .amsler-dial__knob, .amsler-tutorial')) return;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
-      onKey(e);
+      onKeyRef.current(e);
     };
     el.addEventListener('keydown', h);
     return () => el.removeEventListener('keydown', h);
+  }, []);
+
+  // honour focus requests once the DOM for the new state exists
+  useEffect(() => {
+    const sel = focusNext.current;
+    if (!sel || tutorial) return;
+    const el = rootRef.current?.querySelector<HTMLElement>(sel);
+    if (el && !(el as HTMLButtonElement).disabled) {
+      focusNext.current = null;
+      el.focus({ preventScroll: true });
+    }
   });
 
   const external = { ...(ctx.findings.external ?? {}), eyePatch: otherEye(eye) };
@@ -292,7 +330,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
         </div>
       </header>
 
-      <div class="amsler__body">
+      <div class="amsler__body" ref={bodyRef}>
         <section class="amsler__stage">
           <Card
             finding={finding}
@@ -301,7 +339,8 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
             strength={phase === 'exam' ? strength : 1}
             rippleKey={rippleKey}
             mask={w.mask}
-            maskVersion={w.version + (eye === 'OS' ? 100000 : 0)}
+            maskKey={`${eye}:${w.version}`}
+            sideLabels={sideLabels}
             showTruth={phase === 'debrief'}
             idle={!w.asked}
             tool={tool}
@@ -311,6 +350,11 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
             onStroke={onStroke}
             onStrokeEnd={() => rerender()}
             onKey={onKey}
+            onWheelBrush={(dir) => setBrush((b) => {
+              const nb = Math.max(0.5, Math.min(4, b + dir * 0.25));
+              if (nb !== b) play('dial', { volume: 0.45, pitch: 0.8 + nb / 6 });
+              return nb;
+            })}
             label={`Amsler grid, ${EYE_NAME[eye]}. ${w.asked ? 'Patient’s view shown. Arrow keys move the brush, hold Space to mark.' : 'Ask the patient to fixate the dot first.'}`}
           />
           {!w.asked && phase === 'exam' && (
@@ -321,12 +365,10 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
               <span class="amsler__ask-hint">Testing the {EYE_NAME[eye]} · <Kbd>A</Kbd></span>
             </div>
           )}
-          {(
-            <div class={`amsler__viewtoggle${w.asked ? '' : ' is-hidden'}`} role="group" aria-label="View" aria-hidden={!w.asked}>
-              <button type="button" class={view === 'patient' ? 'is-on' : ''} aria-pressed={view === 'patient'} disabled={!w.asked} onClick={() => { setView('patient'); play('lens-click'); }}>Patient’s view</button>
-              <button type="button" class={view === 'card' ? 'is-on' : ''} aria-pressed={view === 'card'} disabled={!w.asked} onClick={() => { setView('card'); play('lens-click', { pitch: 0.9 }); }}>Printed card</button>
-            </div>
-          )}
+          <div class={`amsler__viewtoggle${w.asked ? '' : ' is-hidden'}`} role="group" aria-label="View" aria-hidden={!w.asked}>
+            <button type="button" class={view === 'patient' ? 'is-on' : ''} aria-pressed={view === 'patient'} disabled={!w.asked} onClick={() => { setView('patient'); play('lens-click'); }}>Patient’s view</button>
+            <button type="button" class={view === 'card' ? 'is-on' : ''} aria-pressed={view === 'card'} disabled={!w.asked} onClick={() => { setView('card'); play('lens-click', { pitch: 0.9 }); }}>Printed card</button>
+          </div>
         </section>
 
         <aside class="amsler__side">
@@ -462,7 +504,16 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
         </div>
       </footer>
 
-      {tutorial && <Tutorial reducedMotion={ctx.reducedMotion} onClose={() => { setTutorial(false); play('click'); }} />}
+      {tutorial && (
+        <Tutorial
+          reducedMotion={ctx.reducedMotion}
+          onClose={() => {
+            setTutorial(false);
+            play('click');
+            requestFocus(w.asked ? '.amsler-card__canvas' : '[data-testid="amsler-ask"]');
+          }}
+        />
+      )}
     </div>
   );
 }

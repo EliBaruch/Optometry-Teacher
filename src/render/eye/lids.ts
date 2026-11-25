@@ -3,7 +3,7 @@
  * throw onto the globe.
  */
 import { createRng } from '@core';
-import { hexToRgb, mix, rgba, shade, smoothOpenPath, type RGB } from './color';
+import { hexToRgb, mix, rgba, shade, smoothClosedPath, smoothOpenPath, type RGB } from './color';
 import type { EyeGeometry } from './geometry';
 import type { EyeState } from './types';
 
@@ -187,14 +187,16 @@ export function drawLidMargins(ctx: CanvasRenderingContext2D, g: EyeGeometry, s:
     const tip: [number, number] = [x + fan * L * 0.95, y - L * (0.75 - Math.abs(fan) * 0.2)];
     taperedLash(ctx, root, ctrl, tip, pxmm * rng.float(0.1, 0.15), `rgba(22,14,10,${rng.float(0.8, 0.98).toFixed(2)})`);
   }
-  for (let i = 0; i < 40; i++) {
-    const u = 0.12 + (0.76 * i) / 39 + rng.float(-0.006, 0.006);
+  // lower lashes: fewer, shorter, finer, irregularly spaced and curving down-and-out
+  for (let i = 0; i < 34; i++) {
+    const u = 0.14 + (0.72 * i) / 33 + rng.float(-0.012, 0.012);
     const [x, y] = lerpPt(lowerOuter, u);
     const hx = (x - g.cx) / (pxmm * 15);
-    if (hx * g.nasal > 0.5 && rng.chance(0.6)) continue;
-    const L = pxmm * rng.float(0.8, 1.4) * (1 - Math.max(0, hx * g.nasal) * 0.4);
-    const fan = hx * 1.1;
-    taperedLash(ctx, [x, y - pxmm * 0.15], [x + fan * L * 0.4, y + L * 0.5], [x + fan * L, y + L * 0.95], pxmm * 0.07, `rgba(30,20,16,${rng.float(0.5, 0.8).toFixed(2)})`);
+    if (hx * g.nasal > 0.45 && rng.chance(0.7)) continue;
+    if (rng.chance(0.2)) continue;
+    const L = pxmm * rng.float(0.7, 1.5) * (1 - Math.max(0, hx * g.nasal) * 0.5) * (1 - Math.abs(hx) * 0.25);
+    const fan = hx * 1.2 + rng.float(-0.18, 0.18);
+    taperedLash(ctx, [x, y - pxmm * 0.2], [x + fan * L * 0.2, y + L * 0.55], [x + fan * L * 0.8, y + L * 0.92], pxmm * rng.float(0.045, 0.07), `rgba(36,24,18,${rng.float(0.45, 0.75).toFixed(2)})`);
   }
   // blepharitis scurf at lash bases
   if (s.lidMarginRed) {
@@ -209,23 +211,45 @@ export function drawLidMargins(ctx: CanvasRenderingContext2D, g: EyeGeometry, s:
 
   // discharge
   if (s.discharge === 'mucopurulent') {
+    // creamy yellow-green pus pooled at the medial canthus and crusting the lashes
     const mc = g.medialCanthus;
-    for (let i = 0; i < 9; i++) {
-      const gx = mc[0] - g.nasal * pxmm * rng.float(0.5, 3.5);
-      const gy = mc[1] + pxmm * rng.float(-0.4, 1.4);
-      const gr = ctx.createRadialGradient(gx, gy, 0, gx, gy, pxmm * rng.float(0.6, 1.2));
-      gr.addColorStop(0, 'rgba(240,230,160,0.95)');
-      gr.addColorStop(1, 'rgba(230,215,140,0)');
-      ctx.fillStyle = gr;
-      ctx.beginPath();
-      ctx.arc(gx, gy, pxmm * 1.2, 0, TAU);
-      ctx.fill();
+    const pool: [number, number][] = [];
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * TAU;
+      const k = 1 + rng.float(-0.25, 0.25);
+      pool.push([mc[0] - g.nasal * pxmm * 2.3 + Math.cos(a) * pxmm * 1.3 * k, mc[1] + pxmm * 0.35 + Math.sin(a) * pxmm * 0.7 * k]);
     }
-    for (let i = 0; i < 12; i++) {
-      const [x, y] = lerpPt(lowerOuter, rng.float(0.2, 0.8));
-      ctx.fillStyle = 'rgba(235,225,165,0.9)';
+    ctx.beginPath();
+    smoothClosedPath(ctx, pool);
+    const pg = ctx.createRadialGradient(mc[0] - g.nasal * pxmm * 2.5, mc[1] + pxmm * 0.1, 0, mc[0] - g.nasal * pxmm * 2.3, mc[1] + pxmm * 0.35, pxmm * 1.5);
+    pg.addColorStop(0, 'rgba(246,238,178,0.97)');
+    pg.addColorStop(0.7, 'rgba(222,206,120,0.9)');
+    pg.addColorStop(1, 'rgba(200,180,96,0.5)');
+    ctx.fillStyle = pg;
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,245,0.7)';
+    ctx.beginPath();
+    ctx.ellipse(mc[0] - g.nasal * pxmm * 2.6, mc[1] + pxmm * 0.05, pxmm * 0.4, pxmm * 0.15, -0.3, 0, TAU);
+    ctx.fill();
+    // matted, glistening crusts caught in the lower lashes (irregular, uneven)
+    for (let i = 0; i < 3; i++) {
+      const u = 0.3 + i * 0.2 + rng.float(-0.06, 0.06);
+      const [x, y] = lerpPt(lowerOuter, u);
+      const pts: [number, number][] = [];
+      const rx = pxmm * rng.float(0.9, 1.6);
+      const ry = pxmm * rng.float(0.3, 0.5);
+      for (let k = 0; k < 12; k++) {
+        const a = (k / 12) * TAU;
+        const j = 1 + rng.float(-0.3, 0.3);
+        pts.push([x + Math.cos(a) * rx * j, y - pxmm * 0.25 + Math.sin(a) * ry * j]);
+      }
       ctx.beginPath();
-      ctx.ellipse(x, y + pxmm * 0.4, pxmm * 0.35, pxmm * 0.2, 0, 0, TAU);
+      smoothClosedPath(ctx, pts);
+      ctx.fillStyle = 'rgba(232,214,140,0.55)';
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,250,225,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(x - rx * 0.3, y - pxmm * 0.32, rx * 0.25, ry * 0.25, 0, 0, TAU);
       ctx.fill();
     }
   }

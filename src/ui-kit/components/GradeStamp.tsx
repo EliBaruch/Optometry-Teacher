@@ -1,5 +1,7 @@
-import { useEffect, useId } from 'preact/hooks';
+import { useEffect, useId, useRef } from 'preact/hooks';
 import type { Grade } from '@core';
+import { useInView } from '../hooks/useInView';
+import { useLiteRendering } from '../hooks/useLiteRendering';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useFx, useSfx } from '../hooks/useSfx';
 import { GRADE_COLOR, GRADE_WORD } from '../lib/palette';
@@ -34,6 +36,17 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
   const anim = animate && !reduced;
   const isS = grade === 'S';
   const doShake = shake ?? (grade === 'S' || grade === 'A' || grade === 'F');
+  const root = useRef<HTMLDivElement>(null);
+  const svg = useRef<SVGSVGElement>(null);
+  // Decorative S loops (rays, glare, gradient drift) pause while off screen.
+  const inView = useInView(root);
+  const lite = useLiteRendering();
+  useEffect(() => {
+    const el = svg.current;
+    if (!el || !isS || typeof el.pauseAnimations !== 'function') return;
+    if (inView) el.unpauseAnimations();
+    else el.pauseAnimations();
+  }, [inView, isS]);
 
   useEffect(() => {
     if (!animate) return;
@@ -49,7 +62,8 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
   const ink = isS ? `url(#${uid}-iri)` : 'currentColor';
   return (
     <div
-      class={cx('lm-stamp', `lm-stamp--${grade}`, anim && 'is-anim', klass)}
+      ref={root}
+      class={cx('lm-stamp', `lm-stamp--${grade}`, anim && 'is-anim', !inView && 'is-idle', klass)}
       style={{ width: size, '--stamp-c': GRADE_COLOR[grade], '--d': `${delay}ms` }}
       role="img"
       aria-label={`Grade ${grade}: ${GRADE_WORD[grade]}`}
@@ -61,7 +75,7 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
           <i key={i} style={{ '--a': `${i * 36 + (i % 2) * 14}deg`, '--r': `${58 + (i % 3) * 9}%` }} />
         ))}
       </span>
-      <svg class="lm-stamp__svg" viewBox="0 0 200 200" aria-hidden="true">
+      <svg ref={svg} class="lm-stamp__svg" viewBox="0 0 200 200" aria-hidden="true">
         <defs>
           <filter id={`${uid}-ink`} x="-10%" y="-10%" width="120%" height="120%">
             <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={grade.charCodeAt(0)} result="n" />
@@ -79,7 +93,9 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
               <stop offset="0.58" stop-color="#bba6ff" />
               <stop offset="0.76" stop-color="#8fe9ff" />
               <stop offset="1" stop-color="#ffe08a" />
-              {!reduced && <animateTransform attributeName="gradientTransform" type="translate" values="-200 -200; 0 0; -200 -200" dur="6s" repeatCount="indefinite" />}
+              {/* The gradient sits inside the ink filter, so each frame of drift re-runs the
+                  turbulence. Drift for a few cycles after the slam, then hold (the glare keeps it alive). */}
+              {!reduced && !lite && <animateTransform attributeName="gradientTransform" type="translate" values="-200 -200; 0 0; -200 -200" dur="6s" begin={`${(delay + STAMP_IMPACT_MS) / 1000}s`} repeatCount="2" fill="freeze" />}
             </linearGradient>
           )}
         </defs>

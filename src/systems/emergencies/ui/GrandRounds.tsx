@@ -40,10 +40,8 @@ export function GrandRoundsBanner({ services }: { services: GameServices }) {
   const claimed = grandRoundsClaimed(stats, week);
   const p = kase.patient;
   const weekNo = week.split('-W')[1];
-  const open = () => {
-    services.audio.play('alarm', { volume: 0.35 });
-    playSingleCase(services, kase.id);
-  };
+  // The exam's own arrival klaxon plays on start; the button's 'select' sfx is the only hub sound.
+  const open = () => playSingleCase(services, kase.id);
 
   return (
     <section class={`cr-grand${claimed ? ' is-claimed' : ''}${reduced ? ' is-still' : ''}`} aria-labelledby="cr-grand-title">

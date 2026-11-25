@@ -5,10 +5,12 @@
  *
  * It only DISPLAYS time — the exam scene enforces the timeout.
  */
-import type { ClinicalCase, GameServices, ScoreBreakdown } from '@core';
+import { TEST_CATALOG, type ClinicalCase, type GameServices, type ScoreBreakdown, type Urgency } from '@core';
+import { prefersReducedMotion } from '@ui-kit';
 import {
-  classify, clockPhase, grandRoundsCase, grandRoundsClaimed, heartbeatIntervalMs, intensity, keyRedFlag,
-  newMilestones, recordOutcome, remainingSec, rescueReward, teachingMessage, weekKey, type Outcome, type RescueReward,
+  classify, clockPhase, confirmLine, grandRoundsCase, grandRoundsClaimed, heartbeatIntervalMs, intensity, keyRedFlag,
+  newMilestones, priorSavesThisWeek, recordOutcome, remainingSec, rescueReward, teachingMessage, weekKey,
+  type Outcome, type RescueReward,
 } from './logic';
 import { ACCENT, SYSTEM_ID, statsSlot } from './state';
 
@@ -16,6 +18,8 @@ import { ACCENT, SYSTEM_ID, statsSlot } from './state';
 export interface Stage {
   arrival(info: ArrivalInfo): void;
   saved(info: SavedInfo): void;
+  /** The case resolved or left the chair: fade the arrival banner out early (no-op otherwise). */
+  dismissArrival?(): void;
   destroy(): void;
 }
 
@@ -31,6 +35,8 @@ export interface SavedInfo {
   dxName: string;
   sec: number;
   reward: RescueReward;
+  /** Shown under the title after a thin save: how to prove it next time. */
+  note?: string;
   reduced: boolean;
 }
 
@@ -40,6 +46,9 @@ interface Active {
   startedAt: number;
   /** Week key when this is the current, unclaimed Grand Rounds case */
   grandWeek?: string;
+  /** Urgency the player chose (from diagnosis:submitted) */
+  chosen?: Urgency;
+  chosenDx?: string;
 }
 
 export interface EngineOptions {
@@ -54,7 +63,8 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
   const stage = opts.stage;
   const reduced = () => {
     try {
-      return opts.reducedMotion ? opts.reducedMotion() : services.settings.get().reducedMotion;
+      // Mirrors ui-kit's useReducedMotion: the in-game setting, the html class or the OS preference.
+      return opts.reducedMotion ? opts.reducedMotion() : services.settings.get().reducedMotion || prefersReducedMotion();
     } catch {
       return false;
     }
@@ -152,7 +162,11 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     if (!s || s.caseId !== active.caseId) {
       stopPulse();
       active = null;
-    } else if (s.submitted || s.failed) stopPulse();
+      safe(() => stage?.dismissArrival?.());
+    } else if (s.submitted || s.failed) {
+      stopPulse();
+      safe(() => stage?.dismissArrival?.());
+    }
   });
 
   // ── Resolve ───────────────────────────────────────────────────────────
@@ -166,22 +180,37 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     for (const m of earned) bus.emit('achievement:unlocked', { ...m, system: SYSTEM_ID });
   };
 
-  const teach = (outcome: Exclude<Outcome, 'saved'>, kase: ClinicalCase | undefined) => {
+  const teach = (outcome: Exclude<Outcome, 'saved'>, kase: ClinicalCase | undefined, chosenDx?: string) => {
     if (!kase) return;
     bus.emit('toast', {
-      message: teachingMessage(outcome, dxName(kase.diagnosis), kase.urgency, keyRedFlag(kase)),
-      icon: 'alert',
+      message: teachingMessage(outcome, {
+        dxName: dxName(kase.diagnosis),
+        urgency: kase.urgency,
+        // Over-triage was safe: no red-flag lecture, just the calibration.
+        flag: outcome === 'over-triaged' ? undefined : keyRedFlag(kase),
+        chosenDxName: chosenDx ? dxName(chosenDx) : undefined,
+      }),
+      icon: outcome === 'over-triaged' || outcome === 'referred' ? 'info' : 'alert',
       tone: 'info',
     });
   };
 
   const celebrate = (a: Active, kase: ClinicalCase | undefined, score: ScoreBreakdown, sec: number) => {
-    const reward = rescueReward(score, sec, a.limitSec, !!a.grandWeek);
+    const repeats = priorSavesThisWeek(stats.get(), a.caseId, weekKey(clock.now()));
+    const reward = rescueReward(score, sec, a.limitSec, !!a.grandWeek, repeats);
+    const note = reward.thin
+      ? confirmLine(score.essentialMissed.map((t) => TEST_CATALOG[t]?.name ?? t))
+      : repeats > 0
+        ? 'Repeat case this week · reduced bonus'
+        : undefined;
     // Rewards are emitted synchronously so the case session collects them for the results screen.
     bus.emit('currency:grant', { amount: reward.coins, reason: 'Code Red: sight saved' });
     bus.emit('xp:grant', { amount: reward.xp, reason: 'Code Red: sight saved' });
     bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Sight saved', value: `+${reward.coins} ✦`, icon: 'heart', color: ACCENT, rarity: reward.rarity });
-    bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Emergency XP', value: `+${reward.xp} XP`, icon: 'lightning', color: '#fb923c', rarity: 'rare' });
+    bus.emit('reward:granted', {
+      source: SYSTEM_ID, label: 'Emergency XP', value: `+${reward.xp} XP`, icon: 'lightning', color: '#fb923c',
+      rarity: reward.thin ? 'common' : 'rare',
+    });
     if (a.grandWeek) {
       bus.emit('currency:grant', { amount: reward.grandCoins, reason: 'Grand Rounds' });
       bus.emit('xp:grant', { amount: reward.grandXp, reason: 'Grand Rounds' });
@@ -191,19 +220,22 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
       });
     }
     // Cinematic: freeze-frame, white-gold flash, sparks; the stage plays the finale card.
+    // The spectacle scales with the work-up: a thin (unproven) save gets a quieter finale.
     const r = reduced();
-    safe(() => audio.play('success', { volume: 0.9 }));
-    if (!r) safe(() => fx.hitstop(140));
+    const big = !reward.thin;
+    safe(() => audio.play('success', { volume: big ? 0.9 : 0.6 }));
+    if (!r && big) safe(() => fx.hitstop(140));
     later(() => {
-      safe(() => audio.play(reward.rarity === 'legendary' || a.grandWeek ? 'legendary' : 'rare', { volume: 0.8 }));
-      safe(() => fx.flash('#fff1d6', 460));
+      if (big) safe(() => audio.play(reward.rarity === 'legendary' || a.grandWeek ? 'legendary' : 'rare', { volume: 0.8 }));
+      safe(() => fx.flash('#fff1d6', big ? 460 : 260));
       if (!r && typeof window !== 'undefined') {
         const x = window.innerWidth / 2;
         const y = window.innerHeight * 0.36; // the finale's eye emblem
-        safe(() => fx.burst(x, y, { kind: 'sparks', count: 90, color: '#ffd27a' }));
-        later(() => safe(() => fx.burst(x, y, { kind: 'stars', count: 28, color: '#fff1c2' })), 140);
+        const k = reward.rarity === 'legendary' ? 1.4 : reward.rarity === 'epic' ? 1.15 : big ? 1 : 0.35;
+        safe(() => fx.burst(x, y, { kind: 'sparks', count: Math.round(90 * k), color: '#ffd27a' }));
+        if (big) later(() => safe(() => fx.burst(x, y, { kind: 'stars', count: Math.round(28 * k), color: '#fff1c2' })), 140);
       }
-      safe(() => stage?.saved({ kase, dxName: dxName(score.correctDiagnosisId), sec, reward, reduced: r }));
+      safe(() => stage?.saved({ kase, dxName: dxName(score.correctDiagnosisId), sec, reward, note, reduced: r }));
     }, r ? 0 : 150);
     return reward;
   };
@@ -214,14 +246,23 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     stopPulse();
     active = null;
     const sec = Math.min(a.limitSec, Math.max(0, p.score.elapsedSec || (clock.now() - a.startedAt) / 1000));
-    const outcome = classify(p.score);
     const kase = caseOf(p.caseId);
+    const chosen = a.chosen ?? session.state.get()?.submitted?.urgency;
+    const outcome = classify(p.score, chosen, kase?.urgency);
     if (outcome === 'saved') {
       const reward = celebrate(a, kase, p.score, sec);
       record(a, outcome, sec, p.score.correctDiagnosisId, { reward, score: p.score });
     } else {
       record(a, outcome, sec, p.score.correctDiagnosisId, { score: p.score });
-      teach(outcome, kase);
+      teach(outcome, kase, p.score.chosenDiagnosisId);
+    }
+  });
+
+  // The submitted urgency (diagnosis:submitted always precedes case:completed).
+  const onSubmitted = bus.on('diagnosis:submitted', (p) => {
+    if (active && active.caseId === p.caseId) {
+      active.chosen = p.urgency;
+      active.chosenDx = p.diagnosisId;
     }
   });
 
@@ -240,6 +281,7 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     onStarted();
     onCompleted();
     onFailed();
+    onSubmitted();
     onSession();
     stopPulse();
     for (const t of timers) clearTimeout(t);

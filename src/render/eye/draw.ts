@@ -8,7 +8,7 @@ import { grainPattern } from './color';
 import { drawCornealFindings, drawLensInPupil, drawStain } from './cornea';
 import { eyeGeometry, type EyeGeometry } from './geometry';
 import { drawPterygium, drawSclera } from './globe';
-import { irisTexture, paintIris } from './iris';
+import { drawIrisTexture, paintIris } from './iris';
 import { drawLidMargins, drawLidShadows, drawSkin, drawStringyMucus, fillAll, fissurePath } from './lids';
 import { drawSlitBeam, type SlitBeam } from './slit';
 import type { EyeState } from './types';
@@ -26,11 +26,9 @@ function drawIrisLayer(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeStat
     color: s.irisColor, seed: s.irisSeed, pupilShape: s.pupilShape ?? 'round',
     rubeosis: s.irisNeovascularization, nevus: s.irisNevus,
   } as const;
-  const tex = irisTexture(R, g.pupilR, opts);
   const haze = Math.min(1, s.cornealHaze);
   if ('filter' in ctx && haze > 0.15) ctx.filter = `blur(${(haze * R * 0.018).toFixed(2)}px)`;
-  if (tex) ctx.drawImage(tex as CanvasImageSource, -Math.round(R) - 1, -Math.round(R) - 1, Math.round(R) * 2 + 2, Math.round(R) * 2 + 2);
-  else paintIris(ctx, 0, 0, R, g.pupilR, opts);
+  if (!drawIrisTexture(ctx, 0, 0, R, g.pupilR, opts)) paintIris(ctx, 0, 0, R, g.pupilR, opts);
   if ('filter' in ctx) ctx.filter = 'none';
 
   drawLensInPupil(ctx, s, g.pxmm, g.pupilR, LENS_BRIGHTNESS[s.lighting]);

@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createServices, memoryStorage, type EventName, type GameServices, type Grade, type ScoreBreakdown } from '@core';
 import economy from './index';
-import { economyFor } from './store';
+import { DAILY_FULL_RATE, DAILY_PRACTICE_CAP, MAX_UNOPENED } from './catalog';
+import { activeEconomy, economyFor } from './store';
 
 function score(grade: Grade, correct = true, perfect = false): ScoreBreakdown {
   const total = { S: 1250, A: 1080, B: 900, C: 700, D: 400, F: 150 }[grade];
@@ -97,6 +98,38 @@ describe('economy system', () => {
     b.uninstall();
   });
 
+  it('peeking a crate changes nothing on display until the reveal commits it', () => {
+    const { services, store, uninstall } = setup('pulse');
+    cleanup = uninstall;
+    const pulses: number[] = [];
+    const changes: number[] = [];
+    store.gain.subscribe((g) => g && pulses.push(g.delta));
+    services.bus.on('currency:changed', (e) => changes.push(e.delta));
+    let paid = 0;
+    for (let i = 0; i < 12 && !paid; i++) {
+      services.bus.emit('rank:changed', { level: i + 2, title: 'R' });
+      const snapshot = store.state.get();
+      const peek = store.peekCrate()!;
+      // The theatre is shaking: wallet, shelf, receipt and pity are all untouched.
+      expect(store.state.get()).toBe(snapshot);
+      expect(store.balance).toBe(snapshot.balance);
+      expect(store.state.get().crates.some((c) => c.id === peek.crate.id)).toBe(true);
+      expect(changes).toEqual([]);
+      // Reveal: the committed drop is exactly what was peeked.
+      const res = store.openCrate(peek.crate.id, { deferPulse: true })!;
+      expect(res.drop).toEqual(peek.drop);
+      if (res.drop.content.type === 'coins') {
+        paid = res.drop.content.amount;
+        expect(store.balance).toBe(snapshot.balance + paid);
+        expect(changes).toEqual([paid]);
+      }
+    }
+    expect(paid).toBeGreaterThan(0);
+    expect(pulses).toEqual([]); // deferPulse: the theatre fires the celebration itself
+    store.pulse(paid, 'Promotion crate');
+    expect(pulses).toEqual([paid]);
+  });
+
   it('buys and equips cosmetics; refuses when short of funds', () => {
     const { services, store, uninstall } = setup();
     cleanup = uninstall;
@@ -128,9 +161,13 @@ describe('economy system', () => {
   it('install is idempotent and uninstall unsubscribes everything', () => {
     const services = createServices();
     const u1 = economy.install(services);
+    const registrations: number[] = [];
+    const offs = [services.registries.hud, services.registries.hub, services.registries.scenes].map((r) => r.onChange(() => registrations.push(1)));
     const u2 = economy.install(services);
-    expect(services.registries.hud.all().filter((w) => w.system === 'economy').length).toBeGreaterThan(0);
-    const hudCount = services.registries.hud.all().length;
+    expect(registrations).toEqual([]); // second install registers nothing again
+    expect(services.registries.hud.all().filter((w) => w.system === 'economy').map((w) => w.id).sort()).toEqual(
+      ['economy:receipt', 'economy:wallet', 'economy:wardrobe'],
+    );
     services.bus.emit('currency:grant', { amount: 10, reason: 'x' });
     expect(economyFor(services).balance).toBe(10); // not double-paid
     u1();
@@ -140,7 +177,65 @@ describe('economy system', () => {
     u2();
     services.bus.emit('currency:grant', { amount: 10, reason: 'x' });
     expect(economyFor(services).balance).toBe(20);
-    expect(services.registries.hud.all().length).toBe(hudCount);
+    expect(activeEconomy(services)).toBeNull(); // widgets render nothing now
+    offs.forEach((off) => off());
+  });
+
+  it('theme preview shows a theme and restores the equipped one', () => {
+    const { store, uninstall } = setup();
+    cleanup = uninstall;
+    const root = document.documentElement;
+    store.preview('aurora');
+    expect(root.getAttribute('data-theme')).toBe('aurora');
+    expect(store.state.get().equipped.theme).toBe('candlelight'); // preview never equips
+    store.preview(null);
+    expect(root.hasAttribute('data-theme')).toBe(false);
+  });
+
+  it('caps practice pay per day through the bus', () => {
+    const { services, store, uninstall } = setup();
+    cleanup = uninstall;
+    const practice = () =>
+      services.bus.emit('practice:completed', { testId: 'tonometry', result: { testId: 'tonometry', accuracy: 1, timeMs: 5000, findings: [] } });
+    for (let i = 0; i < 40; i++) practice();
+    expect(store.balance).toBe(DAILY_PRACTICE_CAP);
+    expect(store.state.get().day.practiceCoins).toBe(DAILY_PRACTICE_CAP);
+  });
+
+  it('A grades sometimes earn a lucky crate (seeded), B grades never do', () => {
+    let lucky = 0;
+    for (let i = 0; i < 30; i++) {
+      const { services, store, uninstall } = setup(`lucky-${i}`);
+      complete(services, 'A', true, 'a');
+      lucky += store.state.get().crates.filter((c) => c.kind === 'case').length;
+      complete(services, 'B', false, 'b');
+      expect(store.state.get().crates.filter((c) => c.kind === 'case').length).toBeLessThanOrEqual(1);
+      uninstall();
+    }
+    expect(lucky).toBeGreaterThan(0);
+    expect(lucky).toBeLessThan(15); // ~20%, never every time
+  });
+
+  it('pays lumens instead of a crate when storage is full', () => {
+    const { store, uninstall } = setup();
+    cleanup = uninstall;
+    for (let i = 0; i < MAX_UNOPENED; i++) expect(store.earnCrate('case', 'x')).not.toBeNull();
+    const before = store.balance;
+    expect(store.earnCrate('case', 'overflow')).toBeNull();
+    expect(store.state.get().crates).toHaveLength(MAX_UNOPENED);
+    expect(store.balance).toBeGreaterThan(before);
+  });
+
+  it('halves fees past the daily full rate, and shows it on the receipt', () => {
+    const { services, store, uninstall } = setup();
+    cleanup = uninstall;
+    store.state.update((s) => ({ ...s, day: { key: '2026-11-24', caseCoins: DAILY_FULL_RATE, practiceCoins: 0 } }));
+    complete(services, 'A', true, 'late');
+    const fee = store.lastCase.get()!.fee;
+    expect(fee.lines.some((l) => l.id === 'late')).toBe(true);
+    const full = fee.lines.filter((l) => l.id !== 'late').reduce((a, l) => a + l.amount, 0);
+    expect(fee.total).toBe(full - Math.floor(full / 2));
+    expect(store.balance).toBe(fee.total);
   });
 
   it('persists across a reload of the same storage', () => {

@@ -2,10 +2,11 @@ import { useState } from 'preact/hooks';
 import type { GameServices } from '@core';
 import { Button, Icon, useRegistry, useSignal } from '@ui-kit';
 import { ACCENT } from '../controller';
-import { REST_AFTER_CASES, casesToday, formatDuration, giftReady, msUntilTomorrow, nextGift } from '../logic';
+import { REST_AFTER_CASES, casesToday, collectable, jarCapacity, ratePerHour, formatDuration, giftReady, grandSatchelHint, msUntilTomorrow, nextGift } from '../logic';
 import { GiftBox } from './GiftBox';
 import { GiftCalendar } from './GiftCalendar';
 import { GiftReveal } from './GiftReveal';
+import { Jar } from './Jar';
 import { Portal } from './Portal';
 import { WelcomeBack } from './WelcomeBack';
 import { safePlay, useComfort, useNow } from './hooks';
@@ -30,6 +31,7 @@ export function LoungeBanner(props: { services: GameServices }) {
   const plan = ctl.plan();
   const seen = casesToday(state, now);
   const rest = seen >= REST_AFTER_CASES;
+  const jarCoins = collectable(state);
 
   const openGift = () => {
     safePlay(services, 'pop');
@@ -60,10 +62,32 @@ export function LoungeBanner(props: { services: GameServices }) {
             ? `Evening ${next.day} of 7 · ✦ ${next.coins}${next.satchel ? ' + satchel' : ''}`
             : rest
               ? `${seen} patients seen today. The clinic will keep — rest those eyes.`
-              : `Next gift in ${formatDuration(msUntilTomorrow(now))}${state.jar >= 1 ? ` · ✦ ${Math.floor(state.jar)} in the jar` : ''}`}
+              : `Next gift in ${formatDuration(msUntilTomorrow(now))}${jarCoins >= 1 ? ` · ✦ ${jarCoins} in the jar` : ''}`}
         </p>
-        <GiftCalendar next={state.gift.next} ready={ready} totalClaims={state.gift.totalClaims} compact class="cf-banner__cal" />
+        <div class="cf-banner__calrow">
+          <GiftCalendar next={state.gift.next} ready={ready} totalClaims={state.gift.totalClaims} compact class="cf-banner__cal" />
+          <span class="cf-banner__goal">
+            <Icon name="crate" size={13} />
+            {grandSatchelHint(state, ready)}
+          </span>
+        </div>
       </div>
+      <button
+        type="button"
+        class="cf-banner__jar"
+        onClick={() => services.router.go('lounge')}
+        aria-label={`Clinic jar: ${jarCoins} coins. Open the Lounge`}
+      >
+        <Jar fill={Math.min(1, state.jar / jarCapacity(state))} size={50} />
+        <span class="cf-banner__jar-text">
+          <span class="cf-banner__jar-k">Clinic jar</span>
+          <span class="cf-banner__jar-v lm-num">✦ {jarCoins}</span>
+          <span class="cf-banner__meter" aria-hidden="true">
+            <span style={{ width: `${Math.round(Math.min(1, state.jar / jarCapacity(state)) * 100)}%` }} />
+          </span>
+          <span class="cf-banner__jar-rate lm-num">✦ {ratePerHour(state).toFixed(1)} / hour away</span>
+        </span>
+      </button>
       <div class="cf-banner__cta">
         {plan && (
           <Button
@@ -85,7 +109,7 @@ export function LoungeBanner(props: { services: GameServices }) {
       </div>
       <Portal>
         <GiftReveal services={services} open={gift} onClose={() => setGift(false)} />
-        <WelcomeBack services={services} />
+        <WelcomeBack services={services} host="banner" />
       </Portal>
     </section>
   );

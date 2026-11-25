@@ -17,23 +17,22 @@ import type { SandboxPage } from '../Sandbox';
 
 type Quality = 'great' | 'average' | 'wrong';
 
-function fakeScore(kase: ClinicalCase, q: Quality, elapsedScale = 1): ScoreBreakdown {
+function fakeWorkup(kase: ClinicalCase, q: Quality, elapsedScale = 1): { score: ScoreBreakdown; tests: TestId[]; asked: string[]; elapsedSec: number; diagnosisId: string; urgency: ClinicalCase['urgency'] } {
   const essentials = q === 'average' ? kase.essentialTests.slice(0, Math.max(0, kase.essentialTests.length - 1)) : kase.essentialTests;
   const testsDone: Partial<Record<TestId, MiniGameResult>> = {};
   for (const t of [...essentials, ...(q === 'great' ? kase.helpfulTests.slice(0, 1) : [])]) {
     testsDone[t] = { testId: t, accuracy: q === 'great' ? 0.95 : 0.75, timeMs: 1000, findings: [] };
   }
   const keyQs = kase.history.filter((h) => h.relevance === 'key').map((h) => h.id);
-  return scoreCase({
-    kase,
-    diagnosisId: q === 'wrong' ? kase.differentials[0] ?? 'healthy-eyes' : kase.diagnosis,
-    urgency: q === 'wrong' ? 'routine' : kase.urgency,
-    testsDone,
-    askedQuestions: q === 'great' ? keyQs : keyQs.slice(0, Math.ceil(keyQs.length / 2)),
-    elapsedSec: Math.round((60 + kase.difficulty * 30) * (q === 'great' ? 0.7 : 1.3) * elapsedScale),
-    hintsUsed: 0,
-  });
+  const asked = q === 'great' ? keyQs : keyQs.slice(0, Math.ceil(keyQs.length / 2));
+  const diagnosisId = q === 'wrong' ? kase.differentials[0] ?? 'healthy-eyes' : kase.diagnosis;
+  const urgency = q === 'wrong' ? 'routine' : kase.urgency;
+  const elapsedSec = Math.round((60 + kase.difficulty * 30) * (q === 'great' ? 0.7 : 1.3) * elapsedScale);
+  const score = scoreCase({ kase, diagnosisId, urgency, testsDone, askedQuestions: asked, elapsedSec, hintsUsed: 0 });
+  return { score, tests: Object.keys(testsDone) as TestId[], asked, elapsedSec, diagnosisId, urgency };
 }
+
+const fakeScore = (kase: ClinicalCase, q: Quality, elapsedScale = 1) => fakeWorkup(kase, q, elapsedScale).score;
 
 const CSS = `
 .sbrv { position: absolute; inset: 0; overflow: auto; color: #f6efe4; font-family: var(--lm-font-ui);
@@ -43,7 +42,7 @@ const CSS = `
 .sbrv-sub { color: #a99bbd; font-size: 13px; margin: 4px 0 0; }
 .sbrv-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; padding: 0 16px; border-radius: 16px;
   background: linear-gradient(180deg, rgba(6,3,13,.7), rgba(6,3,13,.2)); box-shadow: inset 0 0 0 1px #ffd27a22; }
-.sbrv-bar span { font: 600 10px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: #a99bbd; }
+.sbrv-bar > span { font: 600 10px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: #a99bbd; }
 .sbrv-bar .hud-slot { display: flex; gap: 8px; align-items: center; }
 .sbrv-grid { display: grid; grid-template-columns: 340px 1fr; gap: 18px; align-items: start; }
 .sbrv-ctl { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px; border-radius: 16px; background: #ffffff08; box-shadow: inset 0 0 0 1px #ffffff14; }
@@ -59,7 +58,9 @@ function SysRivalsPage({ services }: { services: GameServices }) {
   const q = useMemo(() => new URLSearchParams(location.search), []);
   const [rewards, setRewards] = useState<string[]>([]);
   const [clockLabel, setClockLabel] = useState('');
+  const [exam, setExam] = useState<string | null>(null);
   const route = useSignal(services.router.current);
+  const home = useMemo(() => services.router.current.get().id, []);
   const scenes = useRegistry(services.registries.scenes);
   const cases = services.registries.cases.all();
 
@@ -78,10 +79,45 @@ function SysRivalsPage({ services }: { services: GameServices }) {
 
   const tick = () => setClockLabel(new Date(services.clock.now()).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }));
 
+  /** Run a real case session end to end (start → history → tests → submit), on the sandbox clock. */
+  const begin = (kase: ClinicalCase) => {
+    services.session.start(kase, 'shift');
+    setExam(kase.id);
+  };
+  const finish = (kase: ClinicalCase, quality: Quality) => {
+    const w = fakeWorkup(kase, quality);
+    if (services.session.state.get()?.caseId !== kase.id || services.session.state.get()?.submitted) begin(kase);
+    for (const id of w.asked) services.session.ask(id);
+    for (const t of w.tests) services.session.recordTest({ testId: t, accuracy: quality === 'great' ? 0.95 : 0.75, timeMs: 1000, findings: [] });
+    // The core session times the case with Date.now(): move it forward for the submit only, so the
+    // player's time is believable; then keep the sandbox clock in step.
+    const real = Date.now;
+    Date.now = () => real.call(Date) + w.elapsedSec * 1000;
+    try {
+      services.session.submit(w.diagnosisId, w.urgency);
+    } finally {
+      Date.now = real;
+    }
+    offset.current += w.elapsedSec * 1000;
+    setExam(null);
+    tick();
+  };
+
   const complete = (quality: Quality) => {
+    const live = exam ? services.registries.cases.get(exam) : undefined;
+    const kase = live ?? cases[Math.floor(Math.random() * cases.length)];
+    if (kase) finish(kase, quality);
+  };
+  const startExam = () => {
     const kase = cases[Math.floor(Math.random() * cases.length)];
-    if (!kase) return;
-    services.bus.emit('case:completed', { caseId: kase.id, modeId: 'shift', score: fakeScore(kase, quality) });
+    if (kase) begin(kase);
+  };
+  const startShift = () => {
+    services.bus.emit('mode:started', { modeId: 'shift' });
+    setRewards((l) => ['— shift started —', ...l]);
+  };
+  const toggleSummary = () => {
+    services.router.replace(route.id === 'run-summary' ? home : 'run-summary');
   };
 
   /** A believable week so far: a few sessions spread over the elapsed days, then one live case. */
@@ -100,8 +136,8 @@ function SysRivalsPage({ services }: { services: GameServices }) {
       s = applyCase(s, t, kase.id, fakeScore(kase, quality), ctl.simulate(kase.id)).state;
     }
     ctl.state.set(s);
-    const kase = cases.find((c) => c.id === 'ant-angle-closure-cinema') ?? cases[0];
-    if (kase) services.bus.emit('case:completed', { caseId: kase.id, modeId: 'shift', score: fakeScore(kase, 'great') });
+    const kase = cases.find((c) => c.id === (q.get('case') ?? 'ant-angle-closure-cinema')) ?? cases[0];
+    if (kase) finish(kase, q.get('quality') === 'average' ? 'average' : 'great');
   }
 
   const shift = (ms: number) => {
@@ -147,6 +183,14 @@ function SysRivalsPage({ services }: { services: GameServices }) {
               <Button size="sm" variant="primary" onClick={() => complete('great')}>Excellent case</Button>
               <Button size="sm" onClick={() => complete('average')}>Average case</Button>
               <Button size="sm" onClick={() => complete('wrong')}>Wrong diagnosis</Button>
+            </div>
+            <div class="sbrv-ctl">
+              <b>Exam &amp; shift</b>
+              <Button size="sm" onClick={startExam} disabled={!!exam}>{exam ? 'Exam in progress' : 'Start an exam'}</Button>
+              <Button size="sm" onClick={startShift}>Start a shift</Button>
+              <Button size="sm" variant={route.id === 'run-summary' ? 'primary' : 'glass'} onClick={toggleSummary}>
+                {route.id === 'run-summary' ? 'Show results view' : 'Show run-summary view'}
+              </Button>
             </div>
             <div class="sbrv-ctl">
               <b>Time</b>

@@ -48,6 +48,8 @@ export interface EyeState {
   keraticPrecipitates?: boolean;
   abrasion?: boolean;
   foreignBody?: boolean;
+  /** orange-brown iron ring around (or left after) a metallic foreign body */
+  rustRing?: boolean;
   punctateKeratitis?: boolean;
   arcus?: boolean;
 

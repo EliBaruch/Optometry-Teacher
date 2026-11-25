@@ -118,6 +118,14 @@
   box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.16), 0 1.4cqi 3cqi rgba(0, 0, 0, 0.55);
 }
 .gc-art img, .gc-art canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.gc-art { /* placeholder glow in the card's own colours while the painting is queued */
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--gc-iris, #4a6b8a) 55%, transparent) 0 22%, transparent 36%),
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--gc-acc, #f472b6) 22%, transparent), transparent 62%),
+    #07040f;
+}
+.gc-art img { animation: gc-art-in 420ms var(--lm-ease-out) both; }
+@keyframes gc-art-in { from { opacity: 0; filter: blur(6px) brightness(1.4); } to { opacity: 1; filter: none; } }
 .gc-art::after { /* glass vitrine */
   content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.16), transparent 32%, transparent 70%, rgba(255, 255, 255, 0.05));
@@ -148,10 +156,10 @@
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .gc-meta {
-  margin: 0; text-align: center; font-size: 4.3cqi; line-height: 1.25; color: var(--lm-muted);
+  margin: 0; text-align: center; font-size: 4.8cqi; line-height: 1.25; font-weight: 600; color: var(--lm-ivory-dim);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.gc-meta b { color: var(--lm-ivory-dim); font-weight: 600; }
+.gc-date { flex: 1; min-width: 0; text-align: center; font: 500 3.9cqi/1 var(--lm-font-num); letter-spacing: 0.04em; color: var(--lm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 2cqi; }
 .gc-pips { display: inline-flex; gap: 1.3cqi; align-items: center; }
 .gc-pips i {
@@ -166,6 +174,7 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gc-grade, var(--lm-gold)) 55%, transparent);
   background: color-mix(in srgb, var(--gc-grade, var(--lm-gold)) 12%, transparent);
 }
+@container (max-width: 240px) { .gc-frame-name { display: none; } }
 .gc-copies { font: 600 3.2cqi/1 var(--lm-font-num); color: var(--lm-muted); }
 
 /* ── holographic layers ────────────────────────────────────────────────── */
@@ -211,14 +220,28 @@
   50% { --gc-rx: -3deg; --gc-ry: 9deg; --gc-mx: 78%; --gc-my: 68%; --gc-hyp: 0.6; }
 }
 
-/* NEW ribbon */
-.gc-ribbon {
-  position: absolute; z-index: 5; top: 4.4cqi; right: -9cqi; width: 36cqi; transform: rotate(38deg);
-  text-align: center; padding: 1.2cqi 0;
-  font: 800 3cqi/1 var(--lm-font-ui); letter-spacing: 0.22em; color: #2a0a1c;
+/* NEW tag: hangs in the vitrine's corner, never over the card's text */
+.gc-new {
+  position: absolute; z-index: 2; top: 2.6cqi; left: 2.6cqi;
+  padding: 1.3cqi 2.4cqi 1.2cqi; border-radius: 99px;
+  font: 800 3.4cqi/1 var(--lm-font-ui); letter-spacing: 0.2em; color: #2a0a1c;
   background: linear-gradient(90deg, #ff9ad5, #ffd27a);
-  box-shadow: 0 1cqi 3cqi rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 0.4cqi rgba(255, 255, 255, 0.35), 0 1cqi 2cqi rgba(0, 0, 0, 0.5);
 }
+.gc-new::before { /* breathing glow — opacity only, so it stays on the compositor */
+  content: ''; position: absolute; inset: -1cqi; z-index: -1; border-radius: inherit;
+  box-shadow: 0 0 6cqi 1cqi rgba(255, 154, 213, 0.9);
+  opacity: 0.4; animation: gc-new-pulse 2.4s var(--lm-ease-in-out) infinite;
+}
+@keyframes gc-new-pulse { 50% { opacity: 1; } }
+
+/* mini: a thumbnail that is all art (sidebar tiles) — text would be illegible at this size */
+.gc-card.is-mini .gc-front { padding: 0; }
+.gc-card.is-mini .gc-head, .gc-card.is-mini .gc-pill, .gc-card.is-mini .gc-name,
+.gc-card.is-mini .gc-meta, .gc-card.is-mini .gc-foot, .gc-card.is-mini .gc-clue { display: none; }
+.gc-card.is-mini .gc-art { flex: 1; aspect-ratio: auto; border-radius: 3.6cqi; }
+.gc-card.is-mini .gc-art img { object-fit: cover; }
+.gc-mini-gem { position: absolute; z-index: 2; right: 5cqi; top: 5cqi; width: 10cqi; height: 10cqi; }
 
 /* ── back ──────────────────────────────────────────────────────────────── */
 .gc-back {

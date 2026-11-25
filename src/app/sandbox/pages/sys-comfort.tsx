@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'preact/hooks';
 import { beginRun, type GameServices, type ModeModule, type RewardGrant, type ScoreBreakdown } from '@core';
-import { Button, HudSlot, RewardChip, useSignal } from '@ui-kit';
+import { Button, HudSlot, RewardChip, Screen, useSignal } from '@ui-kit';
 import comfort, { comfortOf } from '../../../systems/comfort';
 import { LoungeScene } from '../../../systems/comfort/ui/LoungeScene';
-import { SLOT } from '../../../systems/comfort/logic';
+import { INITIAL, SLOT } from '../../../systems/comfort/logic';
 import type { SandboxPage } from '../Sandbox';
 
 /**
  * Lounge (system 'comfort') preview:
  *   ?sandbox=page/sys-comfort            hub banner + controls
  *   ?sandbox=page/sys-comfort&view=scene the lounge scene
+ *   ?sandbox=page/sys-comfort&view=other a plain screen (welcome note via the top-bar host)
  *   &away=9h | 4d                        simulate an absence on load (welcome back modal)
  */
 const MODE_LOADERS = import.meta.glob<{ default: ModeModule }>('../../../modes/*/index.ts');
@@ -32,7 +33,10 @@ function parseAway(v: string | null): number {
 
 function Page({ services }: { services: GameServices }) {
   const q = new URLSearchParams(location.search);
-  const [view, setView] = useState(q.get('view') === 'scene' ? 'scene' : 'banner');
+  const [view, setView] = useState(() => {
+    const v = q.get('view');
+    return v === 'scene' || v === 'other' ? v : 'banner';
+  });
   const [ready, setReady] = useState(false);
   const [rewards, setRewards] = useState<RewardGrant[]>([]);
   const [log, setLog] = useState<string[]>([]);
@@ -72,7 +76,9 @@ function Page({ services }: { services: GameServices }) {
   };
   const tomorrow = () => ctl.state.update((s) => ({ ...s, gift: { ...s.gift, lastClaimDay: '2000-01-01' } }));
   const reset = () => {
-    ctl.state.set({ ...ctl.state.get(), jar: 0, recent: [], gift: { lastClaimDay: null, next: 0, totalClaims: 0 }, welcome: null, comebackAt: null, dailyDoneDay: null, today: { day: null, cases: 0 } });
+    // back to a brand-new player (jar, kept gift, calendar, notes, lifetime) — only the clock anchor and quiet toggle stay
+    const cur = ctl.state.get();
+    ctl.state.set({ ...INITIAL, lastSeenAt: services.clock.now(), quiet: cur.quiet });
     setRewards([]);
   };
   const complete = (g: 'S' | 'B' | 'F') => services.bus.emit('case:completed', { caseId: 'sandbox', modeId: 'shift', score: fakeScore(g) });
@@ -83,6 +89,7 @@ function Page({ services }: { services: GameServices }) {
       <div class="cfsb-row">
         <Button size="sm" variant={view === 'banner' ? 'primary' : 'glass'} onClick={() => setView('banner')}>Hub banner</Button>
         <Button size="sm" variant={view === 'scene' ? 'primary' : 'glass'} onClick={() => setView('scene')}>Lounge scene</Button>
+        <Button size="sm" variant={view === 'other' ? 'primary' : 'glass'} onClick={() => setView('other')}>Other screen</Button>
       </div>
       <div class="cfsb-row">
         <span>Away:</span>
@@ -113,6 +120,10 @@ function Page({ services }: { services: GameServices }) {
       <style>{CSS}</style>
       {view === 'scene' ? (
         <LoungeScene services={services} params={{}} />
+      ) : view === 'other' ? (
+        <Screen eyebrow="Any other screen" title="Stand-in scene" backdrop="calm">
+          <p style={{ padding: 24, color: 'var(--lm-muted)' }}>No hub banner here: the welcome note is hosted by the invisible top-bar widget.</p>
+        </Screen>
       ) : (
         <div class="cfsb-hub">
           <h1 class="cfsb-h">Hub preview · <span>hub-banner slot</span></h1>

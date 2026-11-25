@@ -1,8 +1,10 @@
 import type { VNode } from 'preact';
 import { createRng } from '@core';
-import { mix, shade } from '../../fx/color';
+import { luminance, mix, shade } from '../color';
+import { GOLD } from '../palette';
+import { RimLight } from './rim';
 import { CX, VIEW_H, VIEW_W, type Geo } from '../geometry';
-import { P, smooth, type Pt } from '../paths';
+import { P, ribbon, smooth, type Pt } from '../paths';
 import type { PaintCtx } from './ctx';
 
 export function hairDefs(c: PaintCtx) {
@@ -21,10 +23,6 @@ export function hairDefs(c: PaintCtx) {
       <pattern id={c.id('stipple')} width="2.4" height="2.4" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
         <circle cx="0.6" cy="0.6" r="0.45" fill={shade(h, -0.4)} />
         <circle cx="1.8" cy="1.7" r="0.35" fill={shade(h, 0.25)} />
-      </pattern>
-      <pattern id={c.id('strandTex')} width="4.2" height="26" patternUnits="userSpaceOnUse" patternTransform={`rotate(${c.t.partLeft ? 18 : -18})`}>
-        <path d="M2.1,0C0.8,6.5 3.4,13 2.1,19.5S0.8,26 2.1,26" stroke={shade(h, -0.5)} stroke-width="0.55" fill="none" opacity="0.7" />
-        <path d="M0.4,4C-0.4,10 1.2,15 0.4,22" stroke={shade(h, 0.35)} stroke-width="0.35" fill="none" opacity="0.5" />
       </pattern>
       <pattern id={c.id('stubble')} width="1.5" height="1.5" patternUnits="userSpaceOnUse" patternTransform="rotate(33)">
         <circle cx="0.4" cy="0.4" r="0.26" fill={shade(h, -0.35)} />
@@ -52,6 +50,10 @@ interface CapOpts {
   extra?: number;
   /** x of a side part (adds a notch to the hairline) */
   part?: number;
+  /** clumped, gently scalloped crown silhouette (px) */
+  bumps?: number;
+  /** temple recession: pulls the hairline corners up and back (0..1) */
+  recede?: number;
 }
 
 /** Hair hugging the cranium, ending in a hairline across the forehead. */
@@ -60,14 +62,36 @@ export function capPath(g: Geo, o: CapOpts): string {
   const T = g.headTop - o.lift;
   const H = o.hairline;
   const E = o.temple;
-  const right: Pt[] = [
+  const rc = o.recede ?? 0;
+  const outer: Pt[] = [
     [CX, T],
     [CX + W * 0.62, T + 3 + o.lift * 0.15],
     [CX + W * 0.97, T + (g.eyeY - T) * 0.38],
     [CX + W + 0.6, E],
+  ];
+  let top: Pt[] = outer;
+  if (o.bumps) {
+    // insert midpoints pushed out/in from the skull centre -> clumped silhouette
+    const oc: Pt = [CX, g.eyeY - 8];
+    top = [outer[0]!];
+    for (let i = 1; i < outer.length; i++) {
+      const a = outer[i - 1]!;
+      const b = outer[i]!;
+      for (const [f, k] of [[0.33, 1], [0.66, -0.35]] as const) {
+        const x = a[0] + (b[0] - a[0]) * f;
+        const y = a[1] + (b[1] - a[1]) * f;
+        const l = Math.hypot(x - oc[0], y - oc[1]) || 1;
+        const amt = o.bumps * k * (i === outer.length - 1 ? 0.5 : 1);
+        top.push([x + ((x - oc[0]) / l) * amt, y + ((y - oc[1]) / l) * amt]);
+      }
+      top.push(b);
+    }
+  }
+  const right: Pt[] = [
+    ...top,
     [CX + g.headW - 2.4, E + 0.5],
-    [CX + g.headW - 4.5, H + 9],
-    [CX + g.headW * 0.62, H + 1.5],
+    [CX + g.headW - 4.5 - rc * 3, H + 9 - rc * 7],
+    [CX + g.headW * 0.62 - rc * 2, H + 1.5 - rc * 3],
     [CX + g.headW * 0.25, H - 0.5],
   ];
   const pts: Pt[] = [...right];
@@ -77,15 +101,168 @@ export function capPath(g: Geo, o: CapOpts): string {
   return smooth(pts, true, 0.95);
 }
 
-/** Hair mass: feathered edge + gradient fill + fine strand texture. */
-function mass(c: PaintCtx, d: string, key?: string): VNode {
+type Pair = readonly [Pt, Pt];
+
+const quad = (a: Pt, k: Pt, b: Pt, t: number): Pt => {
+  const u = 1 - t;
+  return [u * u * a[0] + 2 * u * t * k[0] + t * t * b[0], u * u * a[1] + 2 * u * t * k[1] + t * t * b[1]];
+};
+
+/** Ribbon along part [t0, t1] of a quadratic, tapering to points at both ends. */
+function strand(a: Pt, k: Pt, b: Pt, t0: number, t1: number, w: number, taperIn = true): string {
+  const s: [number, number, number][] = [];
+  const n = 7;
+  for (let i = 0; i <= n; i++) {
+    const u = i / n;
+    const [x, y] = quad(a, k, b, t0 + (t1 - t0) * u);
+    const prof = taperIn ? Math.sin(Math.PI * u) : Math.sin((Math.PI / 2) * (1 - u)) * 0.85 + 0.15 * (1 - u);
+    s.push([x, y, Math.max(0.05, w * Math.pow(Math.max(0, prof), 0.7))]);
+  }
+  return ribbon(s);
+}
+
+function ctrlFor(a: Pt, b: Pt, bend: number): Pt {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  return [(a[0] + b[0]) / 2 - dy * bend, (a[1] + b[1]) / 2 + dx * bend];
+}
+
+/** Evenly spaced points along a polyline (hairline/temple contour). */
+export function along(poly: readonly Pt[], n: number): Pt[] {
+  const seg: number[] = [];
+  let total = 0;
+  for (let i = 1; i < poly.length; i++) {
+    const l = Math.hypot(poly[i]![0] - poly[i - 1]![0], poly[i]![1] - poly[i - 1]![1]);
+    seg.push(l);
+    total += l;
+  }
+  const out: Pt[] = [];
+  for (let k = 0; k < n; k++) {
+    let d = (total * k) / Math.max(1, n - 1);
+    let i = 0;
+    while (i < seg.length - 1 && d > seg[i]!) d -= seg[i++]!;
+    const f = seg[i] ? d / seg[i]! : 0;
+    const a = poly[i]!;
+    const b = poly[i + 1]!;
+    out.push([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+  }
+  return out;
+}
+
+export interface LockOpts {
+  /** flow lines, root -> tip */
+  flow: readonly Pair[];
+  /** curvature of every lock (+/- bends opposite ways) */
+  bend?: number;
+  /** where along each lock the sheen band sits (0 root .. 1 tip) */
+  band?: [number, number];
+  /** pointed lock ends breaking the silhouette at the tips */
+  tips?: number;
+  /** key-light rim hot spot */
+  rim?: Pt;
+  /** base fill (defaults to the lit hair gradient) */
+  fill?: string;
+}
+
+/**
+ * Hair as clumped locks: a gradient mass, alternating light/dark lock bodies,
+ * tapered separations, a broken sheen band and pointed tips — no repeating
+ * texture, so it reads as hair rather than a ribbed cap.
+ */
+function mass(c: PaintCtx, d: string, o: LockOpts, key: string): VNode {
+  const h = c.hair;
+  const lum = luminance(h);
+  const light = lum > 0.55;
+  const clip = c.id(`hm-${key}`);
+  const bend = o.bend ?? 0.12;
+  const [b0, b1] = o.band ?? [0.22, 0.5];
+  const r = createRng((c.t.seed ^ (key.length * 977 + key.charCodeAt(0) * 13)) >>> 0);
+  let bodiesL = '';
+  let bodiesD = '';
+  let seps = '';
+  let sheen = '';
+  let sheenHot = '';
+  let tips = '';
+  const xs = o.flow.map(([, b]) => b[0]);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  o.flow.forEach(([a, b], i) => {
+    const jitter = r.float(-0.35, 0.35);
+    const k = ctrlFor(a, b, bend + jitter * 0.12);
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const w = Math.min(5.2, Math.max(2.6, len * 0.16));
+    const body = strand(a, k, b, 0, 1, w * r.float(0.9, 1.25));
+    if (i % 2) bodiesL += body;
+    else bodiesD += body;
+    // separation between this lock and the next
+    const nb = o.flow[i + 1];
+    if (nb) {
+      const ma: Pt = [(a[0] + nb[0][0]) / 2, (a[1] + nb[0][1]) / 2];
+      const mb: Pt = [(b[0] + nb[1][0]) / 2, (b[1] + nb[1][1]) / 2];
+      seps += strand(ma, ctrlFor(ma, mb, bend + jitter * 0.1), mb, r.float(0.05, 0.25), r.float(0.82, 1), r.float(0.55, 0.95));
+    }
+    // sheen: brighter toward the key light (viewer right)
+    const xr = maxX > minX ? (b[0] - minX) / (maxX - minX) : 0.5;
+    const t0 = b0 + r.float(-0.07, 0.05);
+    const t1 = b1 + r.float(-0.05, 0.08);
+    // light catches the lock as a long thin glint, sometimes split in two
+    const off = (w * 0.22) / Math.max(1, len) * len;
+    const a2: Pt = [a[0] + off * 0.3, a[1]];
+    const seg = strand(a, k, b, t0, t1, w * 0.3 * r.float(0.8, 1.25)) + (r.chance(0.45) ? strand(a2, k, [b[0] + off, b[1]], t0 + 0.06, t1 - 0.04, w * 0.18) : '');
+    if (xr > 0.5 && r.chance(0.8)) sheenHot += seg;
+    else if (r.chance(0.8)) sheen += seg;
+    if (o.tips && r.chance(0.7)) {
+      const dx = b[0] - k[0];
+      const dy = b[1] - k[1];
+      const l = Math.hypot(dx, dy) || 1;
+      const reach = o.tips * r.float(0.55, 1.1);
+      const ext: Pt = [b[0] + (dx / l) * reach, b[1] + (dy / l) * reach];
+      const back: Pt = [b[0] - (dx / l) * 7, b[1] - (dy / l) * 7];
+      tips += strand(back, [(back[0] + ext[0]) / 2 + (-dy / l) * 0.8, (back[1] + ext[1]) / 2 + (dx / l) * 0.8], ext, 0, 1, w * 0.55, false);
+    }
+  });
+  const sepCol = shade(h, light ? -0.32 : -0.5);
+  const sheenCol = light ? mix(h, '#ffffff', 0.55) : mix(shade(h, 0.32), GOLD, 0.18);
+  const hotCol = light ? '#ffffff' : mix(shade(h, 0.5), GOLD, 0.3);
+  const rim = o.rim;
   return (
     <g key={key}>
-      <path d={d} fill="none" stroke={c.hair} stroke-opacity="0.4" stroke-width="1.8" stroke-linejoin="round" />
-      <path d={d} fill={`url(#${c.id('hair')})`} />
-      <path d={d} fill={`url(#${c.id('strandTex')})`} opacity="0.45" />
+      <clipPath id={clip}>
+        <path d={d} />
+      </clipPath>
+      <path d={d} fill={o.fill ?? c.url('hair')} />
+      <g clip-path={`url(#${clip})`}>
+        <path d={bodiesD} fill={shade(h, light ? -0.1 : -0.16)} opacity="0.55" />
+        <path d={bodiesL} fill={shade(h, light ? 0.08 : 0.1)} opacity="0.45" />
+        <path d={seps} fill={sepCol} opacity={light ? 0.5 : 0.7} />
+        <path d={sheen} fill={sheenCol} opacity={light ? 0.4 : 0.32} />
+        <path d={sheenHot} fill={hotCol} opacity={light ? 0.55 : 0.42} />
+      </g>
+      {tips && <path d={tips} fill={c.url('hair')} />}
+      {tips && <path d={tips} fill={sepCol} opacity="0.18" />}
+      {rim && <RimLight c={c} name={`h${clip}`} o={{ d, dx: 2.2, dy: 1.4, cx: rim[0], cy: rim[1], r: 34, opacity: 0.6 }} />}
     </g>
   );
+}
+
+/** Temple -> hairline -> temple contour (left to right). */
+function hairlinePoly(W: number, H: number, temple: number): Pt[] {
+  return [
+    [CX - W, temple],
+    [CX - W * 0.93, H + 8],
+    [CX - W * 0.62, H + 1.5],
+    [CX - W * 0.25, H - 0.4],
+    [CX, H],
+    [CX + W * 0.25, H - 0.4],
+    [CX + W * 0.62, H + 1.5],
+    [CX + W * 0.93, H + 8],
+    [CX + W, temple],
+  ];
+}
+
+/** Soft contact shadow the hair casts on the forehead / temples. */
+function castShadow(c: PaintCtx, d: string): VNode {
+  return <path d={d} fill={c.skin.deep} opacity="0.28" transform="translate(-0.8 2.2)" clip-path={c.url('headClip')} />;
 }
 
 /** Deterministic scatter of tiny coils, clipped by the caller. */
@@ -114,16 +291,6 @@ function coilScatter(c: PaintCtx, cx: number, cy: number, rx: number, ry: number
       <path d={light} stroke={shade(c.hair, 0.4)} stroke-width="0.45" stroke-opacity="0.6" />
     </g>
   );
-}
-
-function strands(c: PaintCtx, from: Pt[], to: Pt[], o = 0.3): VNode {
-  const d = from.map((a, i) => {
-    const b = to[i]!;
-    const mx = (a[0] + b[0]) / 2 + (b[1] - a[1]) * 0.12;
-    const my = (a[1] + b[1]) / 2 - Math.abs(b[0] - a[0]) * 0.08;
-    return `M${P(a[0], a[1])}Q${P(mx, my)} ${P(b[0], b[1])}`;
-  }).join('');
-  return <path d={d} fill="none" stroke={shade(c.hair, -0.45)} stroke-opacity={o} stroke-width="0.8" stroke-linecap="round" />;
 }
 
 function sheen(c: PaintCtx, x: number, y: number, w: number, rot = -12): VNode {
@@ -198,33 +365,33 @@ export function hairLayers(c: PaintCtx): HairLayers {
       };
     }
     case 'short': {
-      const d = capPath(g, { lift: 6, hairline: H, temple: E - 7, extra: 1.6 });
-      const px = CX + side * 13;
-      const tuft = smooth([[px, H - 8], [CX - side * 4, H - 6], [CX - side * W * 0.62, H + 1], [CX - side * (W - 3), H + 8], [CX - side * (W - 6), H - 4], [CX - side * W * 0.4, H - 11], [px, H - 11]], true);
+      const d = capPath(g, { lift: 6, hairline: H, temple: E - 10, extra: 1.6, bumps: 1.6, recede: c.sex === 'M' ? 0.6 : 0.2 });
+      const crown: Pt = [CX + side * 12, T - 4];
+      const flow = along(hairlinePoly(W + 1, H + 1, E - 7), 17).map((b) => [crown, b] as Pair);
       return {
         back: null,
         front: (
           <g>
-            {mass(c, d)}
-            {mass(c, tuft)}
-            <path d={`M${P(px, H - 10)}Q${P(px + side * 1, T + 8)} ${P(px - side * 3, T - 2)}`} stroke={shade(c.hair, -0.45)} stroke-width="1" stroke-opacity="0.5" fill="none" />
-            {strands(c, [[px - side * 3, H - 9], [px - side * 9, H - 8], [px - side * 16, H - 6]], [[CX - side * W * 0.7, H + 3], [CX - side * W * 0.8, H + 5], [CX - side * (W - 2), H + 9]], 0.35)}
-            {sheen(c, CX + 12, T + 6, 13, -18)}
+            {castShadow(c, d)}
+            {mass(c, d, { flow, bend: 0.13 * side, band: [0.18, 0.5], tips: 2.4, rim: [CX + W + 2, T + 16] }, 'short')}
+            <path d={`M${P(crown[0], crown[1] + 3)}Q${P(crown[0] - side * 1.5, T + 9)} ${P(crown[0] - side * 4.5, H - 9)}`} stroke={shade(c.hair, -0.5)} stroke-width="0.9" stroke-opacity="0.45" fill="none" stroke-linecap="round" />
           </g>
         ),
       };
     }
     case 'swept': {
-      const d = capPath(g, { lift: 9, hairline: H - 1, temple: E - 7, extra: 1.8 });
+      const d = capPath(g, { lift: 9, hairline: H - 1, temple: E - 10, extra: 1.8, bumps: 1.2, recede: c.sex === 'M' ? 0.7 : 0.2 });
       const quiff = smooth([[CX - W * 0.95, H + 2], [CX - W * 0.85, T + 6], [CX - W * 0.25, T - 14], [CX + W * 0.4, T - 13], [CX + W * 0.95, T + 6], [CX + W * 0.75, H - 4], [CX + W * 0.1, H - 6], [CX - W * 0.5, H - 3]], true);
+      const roots = along(hairlinePoly(W - 1, H - 1, E - 8), 15);
+      const ends = along([[CX - W * 1.02, T + 8], [CX - W * 0.55, T - 9], [CX + W * 0.1, T - 14.5], [CX + W * 0.7, T - 7], [CX + W * 1.02, T + 10]], 15);
+      const flow = roots.map((a, i) => [a, ends[i]!] as Pair);
       return {
         back: null,
         front: (
           <g>
-            {mass(c, d)}
-            {mass(c, quiff)}
-            {strands(c, [[CX - W * 0.7, H - 1], [CX - W * 0.35, H - 4], [CX, H - 5], [CX + W * 0.35, H - 4]], [[CX - W * 0.2, T - 10], [CX + W * 0.15, T - 11], [CX + W * 0.55, T - 6], [CX + W * 0.85, T + 4]], 0.4)}
-            {sheen(c, CX + 4, T - 6, 18, -8)}
+            {castShadow(c, d)}
+            {mass(c, d, { flow, bend: -0.08, band: [0.5, 0.82], rim: [CX + W + 2, T + 10] }, 'swept')}
+            {mass(c, quiff, { flow, bend: -0.1, band: [0.5, 0.86], rim: [CX + W, T] }, 'quiff')}
           </g>
         ),
       };
@@ -235,7 +402,8 @@ export function hairLayers(c: PaintCtx): HairLayers {
         back: curlRing(c, CX, T + (E - T) * 0.5, W + 4, (E - T) * 0.62, Math.PI * 0.92, Math.PI * 2.08, 15, 7.2, seed),
         front: (
           <g>
-            {mass(c, d)}
+            {castShadow(c, d)}
+            {mass(c, d, { flow: along(hairlinePoly(W + 2, H + 1, E - 5), 13).map((b) => [[CX + side * 6, T - 6], b] as Pair), bend: 0.05, band: [0.15, 0.4], rim: [CX + W + 3, T + 14] }, 'curly')}
             {curlRing(c, CX, T + (E - T) * 0.5, W + 1, (E - T) * 0.58, Math.PI * 1.05, Math.PI * 1.95, 11, 6.2, seed + 1)}
             {curlRing(c, CX, H + 14, W * 0.8, 15, Math.PI * 1.12, Math.PI * 1.88, 8, 4.6, seed + 2)}
           </g>
@@ -312,22 +480,29 @@ export function hairLayers(c: PaintCtx): HairLayers {
       const bangs = isBob
         ? smooth([[CX - W + 2, g.browY - 6], [CX - W * 0.5, g.browY - 8.5], [CX, g.browY - 7], [CX + W * 0.5, g.browY - 8.5], [CX + W - 2, g.browY - 6], [CX + W * 0.6, H - 6], [CX - W * 0.6, H - 6]], true)
         : null;
+      const part: Pt = [CX + side * 6, T - 3];
+      const capFlow = along([[CX - W - 2, E + 2], [CX - W, E - 10], [CX - W * 0.62, H + 2], [CX, H], [CX + W * 0.62, H + 2], [CX + W, E - 10], [CX + W + 2, E + 2]], 17).map((b) => [part, b] as Pair);
+      const curtainFlow = (sd: number) => {
+        const tops = along([[CX + sd * 6, H - 2], [CX + sd * W * 0.75, H + 3], [CX + sd * (W + 1), E - 2], [CX + sd * (W + 3), E + 14]], 8);
+        const bots = along([[CX + sd * (W - 5), bottom - (isBob ? 4 : 12)], [CX + sd * (W + 2), bottom - 2], [CX + sd * (W + (isBob ? 6 : 8)), bottom]], 8);
+        return tops.map((a, i) => [a, bots[i]!] as Pair);
+      };
+      const bangFlow = along([[CX - W + 2, g.browY - 6], [CX, g.browY - 7], [CX + W - 2, g.browY - 6]], 11).map((b) => [[CX + side * 8, H - 9], b] as Pair);
+      const backFlow = along([[CX - outW + 3, E - 6], [CX - outW * 0.6, T + 2], [CX + outW * 0.6, T + 2], [CX + outW - 3, E - 6]], 14).map((a) => [a, [CX + (a[0] - CX) * 1.12, bottom + (isBob ? 0 : 4)]] as Pair);
       return {
         back: (
           <g>
-            <path d={backShape} fill={back} />
-            {strands(c, [[CX - outW + 4, E], [CX - outW + 7, E + 20], [CX + outW - 4, E], [CX + outW - 7, E + 20]], [[CX - outW + 2, bottom - 4], [CX - outW + 9, bottom], [CX + outW - 2, bottom - 4], [CX + outW - 9, bottom]], 0.3)}
+            {mass(c, backShape, { flow: backFlow, bend: 0.03, band: [0.08, 0.22], fill: back }, 'back')}
           </g>
         ),
         front: (
           <g>
-            {mass(c, capD)}
-            {mass(c, curtain(-1))}
-            {mass(c, curtain(1))}
-            {bangs && mass(c, bangs)}
+            {castShadow(c, capD)}
+            {mass(c, capD, { flow: capFlow, bend: 0.06 * side, band: [0.18, 0.42], rim: [CX + W + 4, T + 18] }, 'cap')}
+            {mass(c, curtain(-1), { flow: curtainFlow(-1), bend: -0.04, band: [0.12, 0.3], tips: 3, rim: [CX - W, E] }, 'curtL')}
+            {mass(c, curtain(1), { flow: curtainFlow(1), bend: 0.04, band: [0.12, 0.3], tips: 3, rim: [CX + W + 6, E - 4] }, 'curtR')}
+            {bangs && mass(c, bangs, { flow: bangFlow, bend: 0.08 * side, band: [0.25, 0.5], tips: 2.4 }, 'bangs')}
             {!isBob && <path d={`M${P(CX + side * 6, H - 4)}Q${P(CX + side * 7, T + 8)} ${P(CX + side * 2, T - 3)}`} stroke={shade(c.hair, -0.5)} stroke-width="1" stroke-opacity="0.5" fill="none" />}
-            {strands(c, [[CX + 8, H], [CX + W * 0.6, H + 4], [CX - 8, H], [CX - W * 0.6, H + 4]], [[CX + W + 2, E + 20], [CX + W + 5, bottom - 8], [CX - W - 2, E + 20], [CX - W - 5, bottom - 8]], 0.28)}
-            {sheen(c, CX + 12, T + 7, 15, -20)}
           </g>
         ),
       };
@@ -344,9 +519,8 @@ export function hairLayers(c: PaintCtx): HairLayers {
         ),
         front: (
           <g>
-            {mass(c, capD)}
-            {strands(c, [[CX - W * 0.6, H + 2], [CX - W * 0.2, H], [CX + W * 0.2, H], [CX + W * 0.6, H + 2]], [[CX - 6, T + 1], [CX - 2, T - 1], [CX + 3, T - 1], [CX + 8, T + 1]], 0.35)}
-            {sheen(c, CX + 12, T + 7, 12, -20)}
+            {castShadow(c, capD)}
+            {mass(c, capD, { flow: along(hairlinePoly(W + 1, H - 1, E - 7), 16).map((a) => [a, [CX + 2, T - 6]] as Pair), bend: 0.03, band: [0.4, 0.72], rim: [CX + W + 2, T + 14] }, 'bun')}
           </g>
         ),
       };
@@ -358,15 +532,13 @@ export function hairLayers(c: PaintCtx): HairLayers {
       return {
         back: (
           <g>
-            <path d={tail} fill={back} />
-            {strands(c, [[CX + s * (W + 4), T + 30], [CX + s * (W + 6), E]], [[CX + s * (W + 3), g.chinY], [CX + s * (W + 5), g.chinY - 8]], 0.35)}
+            {mass(c, tail, { flow: along([[CX + s * W * 0.6, T + 17], [CX + s * (W + 6), T + 29], [CX + s * (W + 1), E - 2]], 7).map((a) => [a, [CX + s * (W + 3), g.chinY + 2]] as Pair), bend: 0.05 * s, band: [0.15, 0.35], tips: 3, fill: back }, 'tail')}
           </g>
         ),
         front: (
           <g>
-            {mass(c, capD)}
-            {strands(c, [[CX - W * 0.6, H + 2], [CX, H], [CX + W * 0.6, H + 2]], [[CX + s * W * 0.7, T + 16], [CX + s * W * 0.75, T + 18], [CX + s * W * 0.8, T + 20]], 0.35)}
-            {sheen(c, CX + 10, T + 6, 13, -18)}
+            {castShadow(c, capD)}
+            {mass(c, capD, { flow: along(hairlinePoly(W + 1, H - 1, E - 7), 16).map((a) => [a, [CX + s * W * 0.75, T + 12]] as Pair), bend: -0.06 * s, band: [0.42, 0.75], rim: [CX + W + 2, T + 14] }, 'pony')}
           </g>
         ),
       };
@@ -400,7 +572,8 @@ export function hairLayers(c: PaintCtx): HairLayers {
         back: <g>{braids}</g>,
         front: (
           <g>
-            {mass(c, capD)}
+            {castShadow(c, capD)}
+            {mass(c, capD, { flow: along(hairlinePoly(W, H, E - 6), 9).map((a) => [a, [CX + (a[0] - CX) * 0.3, T - 2]] as Pair), bend: 0, band: [0.45, 0.7], rim: [CX + W + 2, T + 14] }, 'braids')}
             <path d={rows.join('')} fill="none" stroke={shade(c.hair, -0.5)} stroke-width="1.1" stroke-opacity="0.55" stroke-linecap="round" />
             <path d={rows.join('')} fill="none" stroke={shade(c.hair, 0.3)} stroke-width="0.5" stroke-opacity="0.35" transform="translate(2 0)" />
             {sheen(c, CX + 10, T + 6, 12, -20)}

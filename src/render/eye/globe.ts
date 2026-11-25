@@ -5,7 +5,7 @@
  * Everything here is drawn inside the palpebral fissure clip.
  */
 import { createRng, type Rng } from '@core';
-import { rgba, smoothClosedPath, type RGB } from './color';
+import { rgba, smoothClosedPath, smoothOpenPath, type RGB } from './color';
 import type { EyeGeometry } from './geometry';
 import type { EyeState } from './types';
 
@@ -43,57 +43,93 @@ export function drawSclera(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: Eye
   void cx; void cy;
 }
 
-/** Conjunctival vessels: from the fornices/canthi toward the limbus, tortuous, branching. */
+/** A tapered vessel filled as one smooth polygon (no overlapping joints → no banding). */
+function taper(ctx: CanvasRenderingContext2D, pts: [number, number][], w0: number, w1: number): void {
+  const n = pts.length;
+  if (n < 2) return;
+  const left: [number, number][] = [];
+  const right: [number, number][] = [];
+  for (let j = 0; j < n; j++) {
+    const p = pts[Math.max(0, j - 1)]!;
+    const q = pts[Math.min(n - 1, j + 1)]!;
+    const dx = q[0] - p[0];
+    const dy = q[1] - p[1];
+    const L = Math.hypot(dx, dy) || 1;
+    const hw = Math.max(0.3, w0 + (w1 - w0) * (j / (n - 1))) / 2;
+    left.push([pts[j]![0] - (dy / L) * hw, pts[j]![1] + (dx / L) * hw]);
+    right.push([pts[j]![0] + (dy / L) * hw, pts[j]![1] - (dx / L) * hw]);
+  }
+  ctx.beginPath();
+  smoothOpenPath(ctx, left);
+  smoothOpenPath(ctx, right.reverse(), false);
+  ctx.closePath();
+  ctx.fill();
+}
+
+/**
+ * Bulbar conjunctival vessels: arborising trees that enter from the fornices
+ * and canthi and taper toward the limbus (posterior conjunctival vessels).
+ * Calibre, number and colour scale with the injection; ciliary flush and
+ * sectoral injection only lightly engorge them.
+ */
 function drawConjVessels(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeState, rng: Rng): void {
   const { pxmm, ix, iy, irisR } = g;
   const red = s.redness;
-  const diffuse = s.rednessPattern === 'diffuse' ? red : red * 0.35;
-  const n = Math.round(12 + diffuse * 70);
+  const diffuse = s.rednessPattern === 'diffuse' ? red : red * 0.4;
+  const n = Math.round(9 + diffuse * 26);
+  ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  for (let i = 0; i < n; i++) {
-    // start angle biased to the exposed nasal & temporal sclera
-    const side = rng.chance(0.5) ? 0 : Math.PI;
-    const a = side + rng.float(-0.95, 0.95);
-    let r = pxmm * rng.float(13, 16.5);
-    let ang = a;
-    let x = ix + Math.cos(ang) * r;
-    let y = iy + Math.sin(ang) * r * 0.6;
-    const stopR = irisR * rng.float(1.05, 1.55);
+  const trees: { pts: [number, number][]; w: number; col: RGB; a: number }[] = [];
+  const walk = (x: number, y: number, h: number, len: number, w: number, depth: number, col: RGB, a: number) => {
     const pts: [number, number][] = [[x, y]];
-    while (r > stopR) {
-      r -= pxmm * rng.float(0.5, 1.0);
-      ang += rng.float(-0.12, 0.12);
-      x = ix + Math.cos(ang) * r + rng.float(-0.3, 0.3) * pxmm;
-      y = iy + Math.sin(ang) * r * (0.55 + 0.45 * (1 - r / (pxmm * 16))) + rng.float(-0.3, 0.3) * pxmm;
+    const steps = Math.max(4, Math.round(len / (pxmm * 0.45)));
+    const bend = rng.float(-0.05, 0.05);
+    for (let i = 0; i < steps; i++) {
+      // drift toward the limbus, meandering
+      const toL = Math.atan2(iy - y, ix - x);
+      let d = toL - h;
+      while (d > Math.PI) d -= Math.PI * 2;
+      while (d < -Math.PI) d += Math.PI * 2;
+      h += d * 0.06 + bend + rng.float(-0.32, 0.32);
+      x += Math.cos(h) * pxmm * 0.45;
+      y += Math.sin(h) * pxmm * 0.45;
+      const dl = Math.hypot((x - ix) / g.foreX, (y - iy) / g.foreY);
+      if (dl < irisR * 1.04) break;
       pts.push([x, y]);
-    }
-    const thick = rng.float(0.04, 0.12) * pxmm * (1 + diffuse * 1.6);
-    const alpha = rng.float(0.25, 0.55) * (0.3 + diffuse * 1.3);
-    const col: RGB = rng.chance(0.3) ? [150, 40, 50] : [196, 52, 52];
-    ctx.strokeStyle = rgba(col, Math.min(0.9, alpha));
-    ctx.lineWidth = thick;
-    ctx.beginPath();
-    ctx.moveTo(pts[0]![0], pts[0]![1]);
-    for (let j = 1; j < pts.length - 1; j++) {
-      const mx = (pts[j]![0] + pts[j + 1]![0]) / 2;
-      const my = (pts[j]![1] + pts[j + 1]![1]) / 2;
-      ctx.quadraticCurveTo(pts[j]![0], pts[j]![1], mx, my);
-    }
-    ctx.stroke();
-    // twigs
-    if (pts.length > 4) {
-      ctx.lineWidth = thick * 0.55;
-      for (let k = 0; k < 2; k++) {
-        const p = pts[rng.int(1, pts.length - 2)]!;
-        const ta = rng.float(0, TAU);
-        ctx.beginPath();
-        ctx.moveTo(p[0], p[1]);
-        ctx.quadraticCurveTo(p[0] + Math.cos(ta) * pxmm * 0.8, p[1] + Math.sin(ta) * pxmm * 0.8, p[0] + Math.cos(ta + 0.5) * pxmm * 1.6, p[1] + Math.sin(ta + 0.5) * pxmm * 1.4);
-        ctx.stroke();
+      if (depth < 2 && i > 1 && rng.chance(depth === 0 ? 0.22 : 0.12)) {
+        walk(x, y, h + (rng.chance(0.5) ? 1 : -1) * rng.float(0.5, 1.2), len * rng.float(0.25, 0.5), w * rng.float(0.45, 0.7), depth + 1, col, a * 0.9);
       }
     }
+    if (pts.length > 2) trees.push({ pts, w, col, a });
+  };
+  for (let i = 0; i < n; i++) {
+    // roots along the exposed nasal & temporal sclera, a few from the fornices
+    const side = rng.chance(0.5) ? 0 : Math.PI;
+    const a = side + rng.float(-0.8, 0.8) + (rng.chance(0.2) ? (rng.chance(0.5) ? 1 : -1) * 1.2 : 0);
+    const r = pxmm * rng.float(11.5, 15.5);
+    const x = ix + Math.cos(a) * r;
+    const y = iy + Math.sin(a) * r * 0.55;
+    const h = Math.atan2(iy - y, ix - x) + rng.float(-0.5, 0.5);
+    const w = pxmm * rng.float(0.07, 0.15) * (1 + diffuse * 1.4);
+    const col: RGB = rng.chance(0.35) ? [150, 38, 52] : [192, 50, 52];
+    const alpha = rng.float(0.3, 0.55) * (0.35 + diffuse * 1.1);
+    walk(x, y, h, pxmm * rng.float(5, 10), w, 0, col, Math.min(0.9, alpha));
   }
+  // deep, soft blur pass (engorged episcleral glow), then the crisp vessels
+  if (diffuse > 0.25 && 'filter' in ctx) {
+    ctx.filter = `blur(${(pxmm * 0.25).toFixed(1)}px)`;
+    for (const t of trees) {
+      ctx.fillStyle = rgba(t.col, t.a * 0.35 * diffuse);
+      taper(ctx, t.pts, t.w * 2.6, t.w * 1.2);
+    }
+    ctx.filter = 'none';
+  }
+  for (const t of trees) {
+    ctx.fillStyle = rgba(t.col, t.a);
+    taper(ctx, t.pts, t.w, t.w * 0.3);
+  }
+  ctx.restore();
 }
 
 function drawInjection(ctx: CanvasRenderingContext2D, g: EyeGeometry, s: EyeState): void {
@@ -171,10 +207,10 @@ function drawSubconj(ctx: CanvasRenderingContext2D, g: EyeGeometry, _s: EyeState
   const x0 = ix + Math.cos(dir) * d;
   const y0 = iy + Math.sin(dir) * d * 0.6;
   const lobes: [number, number, number][] = [];
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 34; i++) {
     const a = rng.float(0, TAU);
     const rr = Math.sqrt(rng.next());
-    lobes.push([x0 + Math.cos(a) * rr * pxmm * 4.2, y0 + Math.sin(a) * rr * pxmm * 3.2, pxmm * rng.float(1.2, 2.4)]);
+    lobes.push([x0 + Math.cos(a) * rr * pxmm * 4.4, y0 + Math.sin(a) * rr * pxmm * 3.0, pxmm * rng.float(0.9, 1.9)]);
   }
   ctx.save();
   // keep a thin white rim at the limbus
@@ -197,6 +233,29 @@ function drawSubconj(ctx: CanvasRenderingContext2D, g: EyeGeometry, _s: EyeState
     ctx.arc(x, y, r, 0, TAU);
   }
   ctx.fill();
+  // mottled density: thicker pools and thinner, brighter spreading edges
+  for (let i = 0; i < 10; i++) {
+    const [x, y, r] = lobes[rng.int(0, lobes.length - 1)]!;
+    const m = ctx.createRadialGradient(x, y, 0, x, y, r * 1.2);
+    const dark = rng.chance(0.5);
+    m.addColorStop(0, dark ? 'rgba(110,0,10,0.35)' : 'rgba(240,60,60,0.25)');
+    m.addColorStop(1, dark ? 'rgba(110,0,10,0)' : 'rgba(240,60,60,0)');
+    ctx.fillStyle = m;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 1.2, 0, TAU);
+    ctx.fill();
+  }
+  // a few conjunctival vessels still run OVER the blood (it lies beneath the conjunctiva)
+  ctx.strokeStyle = 'rgba(150,10,20,0.6)';
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const [x, y] = lobes[rng.int(0, lobes.length - 1)]!;
+    ctx.lineWidth = pxmm * rng.float(0.05, 0.09);
+    ctx.beginPath();
+    ctx.moveTo(x - pxmm * 2, y + rng.float(-1, 1) * pxmm);
+    ctx.quadraticCurveTo(x, y + rng.float(-1, 1) * pxmm, x + pxmm * 2, y + rng.float(-1, 1) * pxmm);
+    ctx.stroke();
+  }
   // denser centre, slight sheen
   const gr = ctx.createRadialGradient(x0, y0, 0, x0, y0, pxmm * 5);
   gr.addColorStop(0, 'rgba(120,0,8,0.45)');

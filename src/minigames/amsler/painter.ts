@@ -5,7 +5,7 @@
  * true defect outline during the debrief.
  */
 import type { AmslerFinding, Eye } from '@core';
-import { HALF_DEG, MASK_N, normalizeAmsler, scotomaEdge, warpOffset, type Mask } from './geometry';
+import { HALF_DEG, maskContours, normalizeAmsler, regionRadiusAt, scotomaEdge, smoothLoop, warpOffset, type Loop, type Mask } from './geometry';
 
 export interface CardState {
   finding: AmslerFinding;
@@ -17,7 +17,13 @@ export interface CardState {
   /** 0..1 progress of the lens ripple, or -1 when idle */
   ripple: number;
   mask: Mask;
-  maskVersion: number;
+  /** changes whenever the mask's contents (or the eye it belongs to) change */
+  maskKey: string;
+  /**
+   * Side margin labels: 'field' = TEMPORAL / NASAL for this eye (teaching),
+   * 'patient' = the patient's LEFT / RIGHT only (when the flip is being tested).
+   */
+  sideLabels: 'field' | 'patient';
   /** 0..1 — alpha of the true-region outline (debrief) */
   truth: number;
   cursor: { x: number; y: number; r: number; erase: boolean; keyboard: boolean } | null;
@@ -46,24 +52,20 @@ export function toDeg(l: CardLayout, px: number, py: number): { x: number; y: nu
 }
 
 const MARK_RGB = [244, 114, 182] as const; // rose
-const MASK_UP = 4;
 const TRUTH = '#5eead4';
 
 export class CardPainter {
   private lines = document.createElement('canvas');
   private tintA = document.createElement('canvas');
   private tintB = document.createElement('canvas');
-  private maskCanvas = document.createElement('canvas');
-  private rimCanvas = document.createElement('canvas');
-  private maskDrawn = -1;
+  private maskDrawn = '';
+  private loops: Loop[] = [];
+  private maskPath: Path2D | null = null;
+  private maskPathKey = '';
   private hasFilter: boolean;
 
   constructor(private canvas: HTMLCanvasElement) {
-    this.maskCanvas.width = MASK_N * MASK_UP;
-    this.maskCanvas.height = MASK_N * MASK_UP;
-    this.rimCanvas.width = MASK_N * MASK_UP;
-    this.rimCanvas.height = MASK_N * MASK_UP;
-    const probe = this.maskCanvas.getContext('2d');
+    const probe = canvas.getContext('2d');
     this.hasFilter = !!probe && 'filter' in probe;
   }
 
@@ -133,6 +135,7 @@ export class CardPainter {
     // field labels in the margin
     if (s.eye) {
       const temporalRight = s.eye === 'OD';
+      const field = s.sideLabels === 'field';
       const fs = Math.max(8, Math.round(l.g * 0.026));
       ctx.save();
       ctx.font = `600 ${fs}px "Space Grotesk", "Inter Variable", sans-serif`;
@@ -140,8 +143,8 @@ export class CardPainter {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const midY = l.gy + l.g / 2;
-      const left = temporalRight ? 'NASAL' : 'TEMPORAL';
-      const right = temporalRight ? 'TEMPORAL' : 'NASAL';
+      const left = !field ? 'PATIENT’S LEFT' : temporalRight ? 'NASAL' : 'TEMPORAL';
+      const right = !field ? 'PATIENT’S RIGHT' : temporalRight ? 'TEMPORAL' : 'NASAL';
       const mx = l.gx / 2;
       for (const [x, label, rot] of [[mx, left, -Math.PI / 2], [W - mx, right, Math.PI / 2]] as const) {
         ctx.save();
@@ -239,29 +242,45 @@ export class CardPainter {
     }
   }
 
-  /** Organic soft blob in degrees, alpha falls off from 0.72r to 1.12r. */
-  private blob(c: CanvasRenderingContext2D, l: CardLayout, x: number, y: number, r: number, alpha: number, rgb: readonly [number, number, number], seed = 0.7) {
+  /**
+   * Organic soft blob in degrees: the outline is the same organic edge the
+   * truth mask uses; a gaussian feather straddles it (50% on the line), so the
+   * patch has no hard rim. Big defects get a proportionally tighter feather.
+   */
+  private blob(c: CanvasRenderingContext2D, l: CardLayout, x: number, y: number, r: number, alpha: number, rgb: readonly [number, number, number], seed?: number) {
     const [px, py] = this.px(l, x, y);
     const scale = l.g / (2 * HALF_DEG);
-    const R = r * 1.18 * scale;
-    const g = c.createRadialGradient(px, py, 0, px, py, R);
     const col = (a: number) => `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
-    g.addColorStop(0, col(alpha));
-    g.addColorStop(0.62, col(alpha));
-    g.addColorStop(0.82, col(alpha * 0.55));
-    g.addColorStop(1, col(0));
-    c.fillStyle = g;
-    c.beginPath();
-    for (let k = 0; k <= 48; k++) {
-      const th = (k / 48) * Math.PI * 2;
-      const rr = R * scotomaEdge(th, seed);
-      const ax = px + Math.cos(th) * rr;
-      const ay = py - Math.sin(th) * rr;
-      if (k === 0) c.moveTo(ax, ay);
-      else c.lineTo(ax, ay);
+    const featherDeg = Math.min(r * 0.2, 0.9);
+    c.save();
+    if (this.hasFilter) {
+      c.filter = `blur(${Math.max(1, featherDeg * 0.5 * scale).toFixed(1)}px)`;
+      c.fillStyle = col(alpha);
+      c.beginPath();
+      for (let k = 0; k <= 72; k++) {
+        const th = (k / 72) * Math.PI * 2;
+        const rr = r * scale * scotomaEdge(th, seed);
+        const ax = px + Math.cos(th) * rr;
+        const ay = py - Math.sin(th) * rr;
+        if (k === 0) c.moveTo(ax, ay);
+        else c.lineTo(ax, ay);
+      }
+      c.closePath();
+      c.fill();
+    } else {
+      const R = (r + featherDeg) * scale;
+      const g = c.createRadialGradient(px, py, 0, px, py, R);
+      const mid = r / (r + featherDeg);
+      g.addColorStop(0, col(alpha));
+      g.addColorStop(Math.max(0, mid - (featherDeg / (r + featherDeg))), col(alpha));
+      g.addColorStop(mid, col(alpha * 0.5));
+      g.addColorStop(1, col(0));
+      c.fillStyle = g;
+      c.beginPath();
+      c.arc(px, py, R, 0, Math.PI * 2);
+      c.fill();
     }
-    c.closePath();
-    c.fill();
+    c.restore();
   }
 
   private paintScotomaHaze(ctx: CanvasRenderingContext2D, l: CardLayout, s: CardState) {
@@ -271,8 +290,11 @@ export class CardPainter {
     ctx.beginPath();
     ctx.rect(l.gx - 2, l.gy - 2, l.g + 4, l.g + 4);
     ctx.clip();
-    this.blob(ctx, l, n.center.x, n.center.y, n.radius, 0.42 * s.perception * (0.6 + 0.4 * s.strength), [92, 86, 104]);
-    this.blob(ctx, l, n.center.x, n.center.y, n.radius * 0.7, 0.18 * s.perception, [150, 140, 160], 2.1);
+    // a dense loss (artery occlusion, large atrophy) reads dark; a small one as a grey smudge
+    const big = Math.max(0, Math.min(1, (n.radius - 5) / 4));
+    const haze: [number, number, number] = [Math.round(92 - 64 * big), Math.round(86 - 62 * big), Math.round(104 - 66 * big)];
+    this.blob(ctx, l, n.center.x, n.center.y, n.radius, (0.42 + 0.45 * big) * s.perception * (0.6 + 0.4 * s.strength), haze);
+    this.blob(ctx, l, n.center.x, n.center.y, n.radius * 0.7, 0.18 * (1 - big * 0.7) * s.perception, [150, 140, 160], 2.1);
     ctx.restore();
   }
 
@@ -296,58 +318,60 @@ export class CardPainter {
   }
 
   private paintMask(ctx: CanvasRenderingContext2D, l: CardLayout, s: CardState) {
-    const mc = this.maskCanvas.getContext('2d');
-    if (!mc) return;
-    if (this.maskDrawn !== s.maskVersion) {
-      this.maskDrawn = s.maskVersion;
-      // Union of soft discs at 4x the mask resolution -> smooth, organic outline.
-      const S = MASK_UP;
-      mc.setTransform(1, 0, 0, 1, 0, 0);
-      mc.clearRect(0, 0, MASK_N * S, MASK_N * S);
-      const m = s.mask;
-      const discs = (c: CanvasRenderingContext2D, rad: number) => {
-        c.beginPath();
-        for (let j = 0; j < MASK_N; j++) {
-          for (let i = 0; i < MASK_N; i++) {
-            if (!m[j * MASK_N + i]) continue;
-            const x = (i + 0.5) * S;
-            const y = (j + 0.5) * S;
-            c.moveTo(x + rad, y);
-            c.arc(x, y, rad, 0, Math.PI * 2);
-          }
-        }
-        c.fill();
-      };
-      mc.fillStyle = `rgb(${MARK_RGB[0]},${MARK_RGB[1]},${MARK_RGB[2]})`;
-      discs(mc, S * 0.78);
-      // rim = slightly dilated union minus the union itself
-      const rc = this.rimCanvas.getContext('2d');
-      if (rc) {
-        rc.globalCompositeOperation = 'source-over';
-        rc.clearRect(0, 0, MASK_N * S, MASK_N * S);
-        rc.fillStyle = '#ffd1ea';
-        discs(rc, S * 1.15);
-        rc.globalCompositeOperation = 'destination-out';
-        rc.fillStyle = '#000';
-        discs(rc, S * 0.78);
-        rc.globalCompositeOperation = 'source-over';
+    if (this.maskDrawn !== s.maskKey) {
+      this.maskDrawn = s.maskKey;
+      this.loops = maskContours(s.mask).map((lp) => smoothLoop(lp, 3));
+      this.maskPath = null;
+    }
+    if (!this.loops.length) return;
+    const geomKey = `${l.g}:${l.gx}`;
+    if (!this.maskPath || this.maskPathKey !== geomKey) {
+      const path = new Path2D();
+      for (const loop of this.loops) {
+        loop.forEach((pt, k) => {
+          const [x, y] = this.px(l, pt.x, pt.y);
+          if (k === 0) path.moveTo(x, y);
+          else path.lineTo(x, y);
+        });
+        path.closePath();
       }
+      this.maskPath = path;
+      this.maskPathKey = geomKey;
     }
+    const path = this.maskPath;
+    const [r, g, b] = MARK_RGB;
     ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    if (this.hasFilter) {
-      ctx.filter = `blur(${Math.round(6 * l.dpr)}px)`;
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.5;
-      ctx.drawImage(this.maskCanvas, l.gx, l.gy, l.g, l.g);
-      ctx.filter = 'none';
+    ctx.beginPath();
+    ctx.rect(l.gx - 1, l.gy - 1, l.g + 2, l.g + 2);
+    ctx.clip();
+    // translucent wash
+    ctx.fillStyle = `rgba(${r},${g},${b},0.2)`;
+    ctx.fill(path, 'evenodd');
+    // clinician's pen hatching, clipped to the marked region
+    ctx.save();
+    ctx.clip(path, 'evenodd');
+    const gap = Math.max(5, l.g / 90);
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.32)`;
+    ctx.lineWidth = Math.max(1, l.dpr);
+    ctx.beginPath();
+    for (let d = -l.g; d < l.g * 2; d += gap) {
+      ctx.moveTo(l.gx + d, l.gy);
+      ctx.lineTo(l.gx + d - l.g, l.gy + l.g);
     }
+    ctx.stroke();
+    ctx.restore();
+    // luminous outline: soft halo + crisp rim
+    ctx.lineJoin = 'round';
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.28)`;
+    ctx.lineWidth = 7 * l.dpr;
+    ctx.stroke(path);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = 0.4;
-    ctx.drawImage(this.maskCanvas, l.gx, l.gy, l.g, l.g);
-    ctx.globalAlpha = 0.95;
-    ctx.drawImage(this.rimCanvas, l.gx, l.gy, l.g, l.g);
+    ctx.strokeStyle = '#ffc6e6';
+    ctx.shadowColor = `rgba(${r},${g},${b},0.95)`;
+    ctx.shadowBlur = 10 * l.dpr;
+    ctx.lineWidth = 1.7 * l.dpr;
+    ctx.stroke(path);
     ctx.restore();
   }
 
@@ -355,7 +379,7 @@ export class CardPainter {
     if (s.truth <= 0 || s.finding.result === 'normal') return;
     const n = normalizeAmsler(s.finding);
     const [cx, cy] = this.px(l, n.center.x, n.center.y);
-    const R = n.radius * (l.g / (2 * HALF_DEG));
+    const scale = l.g / (2 * HALF_DEG);
     ctx.save();
     ctx.beginPath();
     ctx.rect(l.gx, l.gy, l.g, l.g);
@@ -367,7 +391,15 @@ export class CardPainter {
     ctx.lineWidth = 2.2 * l.dpr;
     ctx.setLineDash([7 * l.dpr, 6 * l.dpr]);
     ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    for (let k = 0; k <= 96; k++) {
+      const th = (k / 96) * Math.PI * 2;
+      const R = regionRadiusAt(s.finding, th) * scale;
+      const x = cx + Math.cos(th) * R;
+      const y = cy - Math.sin(th) * R;
+      if (k === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
     ctx.stroke();
     ctx.restore();
   }

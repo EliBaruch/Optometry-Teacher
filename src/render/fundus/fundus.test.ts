@@ -7,13 +7,15 @@ import { fundusMap, paintFundus } from './paint';
 const post = (p: DeepPartial<PosteriorSegment> = {}): PosteriorSegment =>
   buildFindings(60, { posterior: { OD: p } }).posterior.OD;
 
-const ALL_LESIONS: LesionType[] = [
-  'dot-blot-hemorrhage', 'flame-hemorrhage', 'microaneurysm', 'cotton-wool-spot', 'hard-exudate',
-  'drusen-small', 'drusen-large', 'geographic-atrophy', 'subretinal-hemorrhage', 'neovascularization',
-  'retinal-tear', 'lattice', 'nevus', 'pigment-clumping', 'laser-scars', 'hollenhorst-plaque',
-  'retinal-whitening', 'cherry-red-spot', 'macular-edema', 'epiretinal-membrane', 'macular-hole',
-  'disc-hemorrhage', 'venous-beading',
-];
+/** Exhaustive: adding a LesionType to core without rendering it fails to compile here. */
+const LESION_SET: Record<LesionType, true> = {
+  'dot-blot-hemorrhage': true, 'flame-hemorrhage': true, 'microaneurysm': true, 'cotton-wool-spot': true, 'hard-exudate': true,
+  'drusen-small': true, 'drusen-large': true, 'geographic-atrophy': true, 'subretinal-hemorrhage': true, 'neovascularization': true,
+  'retinal-tear': true, 'lattice': true, 'nevus': true, 'pigment-clumping': true, 'laser-scars': true, 'hollenhorst-plaque': true,
+  'retinal-whitening': true, 'cherry-red-spot': true, 'macular-edema': true, 'epiretinal-membrane': true, 'macular-hole': true,
+  'disc-hemorrhage': true, 'venous-beading': true, 'irma': true, 'preretinal-hemorrhage': true,
+};
+const ALL_LESIONS = Object.keys(LESION_SET) as LesionType[];
 
 /** A recording stand-in for CanvasRenderingContext2D (no canvas in tests). */
 function mockCtx(): { ctx: CanvasRenderingContext2D; calls: string[] } {
@@ -152,6 +154,27 @@ describe('fundus geometry', () => {
     expect(r1.calls.join('\n')).toBe(r2.calls.join('\n'));
     expect(m1).toEqual(m2);
     expect(m1.disc.x).toBeLessThan(m1.fovea.x);
+  });
+
+  it('visibly paints every lesion type', () => {
+    for (const type of ALL_LESIONS) {
+      const base = mockCtx();
+      paintFundus(base.ctx, 300, 300, post(), { eye: 'OD', seed: 5 });
+      const r = mockCtx();
+      paintFundus(r.ctx, 300, 300, post({ lesions: [{ type, zone: type === 'disc-hemorrhage' ? 'disc' : 'superotemporal', density: 3 }] }), { eye: 'OD', seed: 5 });
+      // beading modulates the vein calibre (same calls, different widths); everything else adds marks
+      if (type === 'venous-beading') expect(r.calls.join('\n'), type).not.toBe(base.calls.join('\n'));
+      else expect(r.calls.length, type).toBeGreaterThan(base.calls.length);
+    }
+  });
+
+  it('places flame haemorrhages along the nerve-fibre direction and near veins', () => {
+    const m = computeFundusLayout(post({ lesions: [{ type: 'flame-hemorrhage', zone: 'inferotemporal', density: 4 }] }), 'OD', 12);
+    expect(m.lesions.length).toBe(13);
+    for (const l of m.lesions) {
+      const radial = Math.atan2(l.y - m.a.disc.y, l.x - m.a.disc.x);
+      expect(Math.abs(Math.sin(l.a - radial))).toBeLessThan(1e-9);
+    }
   });
 
   it('computes a full pathological layout quickly', () => {

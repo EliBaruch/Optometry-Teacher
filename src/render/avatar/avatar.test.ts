@@ -8,7 +8,7 @@ import { EXPRESSIONS, eyeShape, rigAttrs, targetRig } from './rig';
 import { PatientAvatar } from './PatientAvatar';
 import { AvatarBust } from './AvatarBust';
 import { activeTickers } from './ticker';
-import { signSideFor } from './PatientAvatar';
+import { describeSigns, signSideFor } from './PatientAvatar';
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
@@ -101,6 +101,25 @@ describe('rig', () => {
     expect(s.almond.endsWith('Z')).toBe(true);
   });
 
+  it('describes visible signs with patient laterality for screen readers', () => {
+    expect(describeSigns({ ptosis: ['OS'] })).toEqual(['drooping left upper eyelid']);
+    expect(describeSigns({ redEye: ['OD', 'OS'] })).toEqual(['both eyes red']);
+    expect(describeSigns(undefined, undefined, { OD: 1.6 })).toEqual(['large right pupil']);
+    expect(describeSigns({ templeTenderness: true, redEye: ['OS'] })).toContain('prominent, tortuous left temple artery');
+    expect(describeSigns(undefined)).toEqual([]);
+  });
+
+  it('faces differ meaningfully between patients', () => {
+    const geos = many(11, 40).filter((p) => p.age >= 20).map((p) => buildGeo(p.age, p.sex, traitsFor(p.spec, p.age, p.sex)));
+    const spread = (k: 'jawW' | 'noseW' | 'chinY' | 'eyeW' | 'eyeTilt' | 'earW') => Math.max(...geos.map((g) => g[k])) - Math.min(...geos.map((g) => g[k]));
+    expect(spread('jawW')).toBeGreaterThan(5);
+    expect(spread('noseW')).toBeGreaterThan(2.5);
+    expect(spread('chinY')).toBeGreaterThan(6);
+    expect(spread('eyeW')).toBeGreaterThan(1.2);
+    expect(spread('eyeTilt')).toBeGreaterThan(1.5);
+    expect(spread('earW')).toBeGreaterThan(1.8);
+  });
+
   it('places unilateral skin signs on the affected side (OD = viewer left)', () => {
     expect(signSideFor({ redEye: ['OS'] })).toBe(1);
     expect(signSideFor({ redEye: ['OD'] })).toBe(-1);
@@ -109,16 +128,25 @@ describe('rig', () => {
 });
 
 describe('<PatientAvatar/>', () => {
-  it('renders an accessible SVG with rig parts and cleans up its ticker', () => {
+  it('renders accessible stacked layers with rig parts and cleans up its ticker', () => {
     const host = document.createElement('div');
     document.body.appendChild(host);
     const spec: AvatarSpec = { skin: 3, hair: 'braids', hairColor: '#2a1d16', irisColor: '#5a3a22', outfit: '#3d5a80', glasses: 'cat-eye', headwear: 'none', accessory: 'earrings', facialHair: 'none' };
-    act(() => render(h(PatientAvatar, { spec, age: 34, sex: 'F', expression: 'worried', external: { redEye: ['OD'], tearing: ['OD'], rash: 'forehead-dermatomal', eyePatch: 'OS', photophobia: true }, strabismus: { eye: 'OD', direction: 'out' } }), host));
-    const svg = host.querySelector('svg')!;
-    expect(svg).not.toBeNull();
-    expect(svg.getAttribute('role')).toBe('img');
-    for (const k of ['lidL', 'lidR', 'irisL', 'browL', 'mUpper', 'head', 'body']) expect(svg.querySelector(`[data-r="${k}"]`)).not.toBeNull();
-    expect(svg.innerHTML).not.toMatch(/NaN/);
+    act(() => render(h(PatientAvatar, { spec, age: 34, sex: 'F', expression: 'worried', external: { redEye: ['OD'], tearing: ['OD'], rash: 'forehead-dermatomal', eyePatch: 'OS', photophobia: true, templeTenderness: true }, strabismus: { eye: 'OD', direction: 'out' } }), host));
+    const root = host.querySelector('.lav-portrait')!;
+    expect(root.getAttribute('role')).toBe('img');
+    const label = root.getAttribute('aria-label')!;
+    expect(label).toMatch(/red right eye/);
+    expect(label).toMatch(/patch over the left eye/);
+    expect(label).toMatch(/right eye turned out/);
+    for (const k of ['lidL', 'lidR', 'irisL', 'browL', 'mUpper']) expect(root.querySelector(`[data-r="${k}"]`)).not.toBeNull();
+    // lids/irises live in their own layer so a blink repaints only that layer
+    const eyes = root.querySelector('.lav-eyes')!;
+    expect(eyes.querySelector('[data-r="lidL"]')).not.toBeNull();
+    expect(eyes.querySelector('[data-r="browL"]')).toBeNull();
+    // breathing/sway wrappers are plain divs moved by CSS transforms
+    expect(root.querySelectorAll('div.lav-rig').length).toBe(2);
+    expect(root.innerHTML).not.toMatch(/NaN|undefined|mix-blend/);
     expect(activeTickers()).toBe(1);
     act(() => render(null, host));
     expect(activeTickers()).toBe(0);
@@ -135,7 +163,10 @@ describe('<PatientAvatar/>', () => {
       }
     }
     render(h(AvatarBust, { spec: { skin: 5, hair: 'afro', hairColor: '#1c1410', irisColor: '#3f2a1a', outfit: '#2f6b5e' }, age: 6, sex: 'X', ring: '#a78bfa' }), host);
-    expect(host.querySelector('.lav-bust')).not.toBeNull();
+    const bust = host.querySelector('svg.lav-bust')!;
+    expect(bust).not.toBeNull();
+    expect(bust.getAttribute('role')).toBe('img');
+    expect(bust.innerHTML.match(/#a78bfa/g)?.length).toBe(1);
     render(null, host);
   });
 });

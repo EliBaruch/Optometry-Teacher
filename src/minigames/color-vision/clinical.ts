@@ -3,7 +3,7 @@
  * player's technique score. No DOM.
  */
 import type { ColorVision, Eye, PatientFindings, PatientProfile, RevealedFinding } from '@core';
-import { BOOKLET, RED_GREEN_KINDS, canonicalPlates, deficit, respond, type EyeVision, type Plate, type PlateKind } from './plates';
+import { BOOKLET, RED_GREEN_KINDS, canonicalPlates, respond, type EyeVision, type Plate, type PlateKind } from './plates';
 
 export type CvClass = 'normal' | 'protan' | 'deutan' | 'tritan' | 'acquired';
 export type CvEye = Eye | 'OU';
@@ -131,7 +131,7 @@ export function report(f: PatientFindings, _patient?: PatientProfile): RevealedF
   for (const eye of desat) {
     const other: Eye = eye === 'OD' ? 'OS' : 'OD';
     const pct = redSaturationPct(f.colorVision[eye]);
-    out.push({ label: 'Red desaturation', value: `Red cap ≈ ${pct}% vs ${other}`, eye, flag: 'critical' });
+    out.push({ label: 'Red desaturation', value: `Red cap ≈ ${pct}% of ${other} saturation`, eye, flag: 'critical' });
   }
   const interp = interpret(f);
   const cvOd = f.colorVision.OD;

@@ -5,7 +5,7 @@
   --am-rose: #f472b6;
   --am-teal: var(--lm-normal, #5eead4);
   --am-panel: linear-gradient(160deg, rgba(58, 38, 96, 0.42), rgba(20, 12, 38, 0.62));
-  position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto;
+  position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr);
   color: var(--lm-ivory, #f6efe4); font-family: var(--lm-font-ui, system-ui, sans-serif);
   background:
     radial-gradient(120% 80% at 30% 40%, rgba(80, 48, 140, 0.28), transparent 60%),
@@ -68,10 +68,10 @@
   box-shadow: inset 0 0 0 1px rgba(40, 24, 4, 0.6), inset 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 .amsler-card__canvas {
-  display: block; border-radius: 12px; touch-action: none; outline: none;
+  display: block; border-radius: 12px; touch-action: pan-y; outline: none;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.8);
 }
-.amsler-card__canvas.is-live { cursor: none; }
+.amsler-card__canvas.is-live { cursor: none; touch-action: none; }
 .amsler-card__canvas:focus-visible { box-shadow: 0 0 0 2px var(--lm-gold), 0 0 22px rgba(255, 210, 122, 0.5); }
 .amsler-card__sheen {
   position: absolute; inset: 12px; border-radius: 12px; pointer-events: none;
@@ -230,7 +230,7 @@
 
 /* ── footer ─────────────────────────────────────────────────────────────── */
 .amsler__foot {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 18px; min-height: 62px; box-sizing: border-box;
   border-top: 1px solid var(--lm-hairline, rgba(255, 236, 210, 0.09));
   background: linear-gradient(0deg, rgba(30, 18, 54, 0.75), rgba(16, 9, 30, 0.3));
 }
@@ -287,9 +287,14 @@
 @media (max-width: 720px) {
   .amsler__head { padding: 8px 12px; }
   .amsler__title p { display: none; }
-  .amsler__body { grid-template-columns: 1fr; grid-template-rows: auto auto; overflow-y: auto; }
-  .amsler__stage { padding: 10px 12px 6px; height: min(100vw, 62vh); flex: none; }
-  .amsler__side { overflow: visible; padding: 4px 12px 14px; }
+  .amsler__head { gap: 8px; }
+  .amsler__title h2 { font-size: 1rem; }
+  .amsler-eyes__btn { padding: 7px 11px; }
+  .amsler-eyes__name { display: none; }
+  .amsler__body { display: block; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .amsler__stage { padding: 10px 12px 6px; height: min(calc(100vw + 30px), 64vh); }
+  .amsler__side { overflow: visible; padding: 6px 12px 16px; }
+  .amsler-progress__pip { display: none; }
   .amsler-patient__portrait { width: 64px; }
   .amsler__foot { padding: 8px 12px; }
   .amsler-tools__hint { display: none; }

@@ -97,3 +97,10 @@ export function checkBest(state: RunLogState, modeId: string, seed: string, scor
   }
   return { state, isBest: false, first: false, previous: prev.score };
 }
+
+/** Diagnoses the player missed this run (unique, in the order met) — the run's study list. */
+export function missedDiagnoses(entries: readonly Pick<RunLogEntry, 'correct' | 'diagnosisId'>[]): string[] {
+  const out: string[] = [];
+  for (const e of entries) if (!e.correct && e.diagnosisId && !out.includes(e.diagnosisId)) out.push(e.diagnosisId);
+  return out;
+}

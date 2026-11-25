@@ -29,6 +29,13 @@ export function pinholeVerdict(f: PatientFindings, eye: 'OD' | 'OS'): PinholeVer
   return f.va[eye].uncorrected - pinholeLogmar(f, eye) >= PINHOLE_GAIN - 1e-9 ? 'improves' : 'no-improvement';
 }
 
+/** What the player should conclude for one eye: improves / NI, or not needed when VA sc is already ≤ 20/25. */
+export type PinholeCall = PinholeVerdict | 'not-needed';
+
+export function pinholeExpected(f: PatientFindings, eye: 'OD' | 'OS'): PinholeCall {
+  return f.va[eye].uncorrected <= PINHOLE_INDICATED + 1e-9 ? 'not-needed' : pinholeVerdict(f, eye);
+}
+
 export function reportPinhole(f: PatientFindings, p: PatientProfile): RevealedFinding[] {
   return EYES.map((eye) => {
     const sc = f.va[eye].uncorrected;

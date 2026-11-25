@@ -57,7 +57,7 @@ describe('report', () => {
     const lines = report(neuritis);
     expect(lines.find((l) => l.label === 'Colour plates' && l.eye === 'OD')!.flag).toBe('normal');
     expect(lines.find((l) => l.label === 'Colour plates' && l.eye === 'OS')!.flag).toBe('critical');
-    expect(lines.find((l) => l.label === 'Red desaturation')).toEqual({ label: 'Red desaturation', value: 'Red cap ≈ 45% vs OD', eye: 'OS', flag: 'critical' });
+    expect(lines.find((l) => l.label === 'Red desaturation')).toEqual({ label: 'Red desaturation', value: 'Red cap ≈ 45% of OD saturation', eye: 'OS', flag: 'critical' });
     expect(lines.at(-1)).toMatchObject({ value: 'Acquired red-green defect, moderate', eye: 'OS', flag: 'critical' });
   });
 

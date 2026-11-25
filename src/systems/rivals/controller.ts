@@ -4,9 +4,10 @@
  */
 import type { GameServices, Signal } from '@core';
 import {
-  PLAYER_ID, STATE_VERSION, applyCase, checkSlipped, initialState, playerRank, rollWeek, standings, weekReward,
+  PLAYER_ID, STATE_VERSION, applyCase, checkSlipped, initialState, playerRank, rollWeek, standings, startRun, weekReward,
   type RivalsState, type Standing,
 } from './league';
+import { isoWeekStart } from './week';
 import { RIVAL_BY_ID, ROSTER, type Rival } from './roster';
 import { humanizeId, simulateRival, simulateRivalGeneric, type RivalCaseResult } from './sim';
 
@@ -16,31 +17,56 @@ export const SLOT = `sys:${SYSTEM_ID}`;
 
 export interface RivalsController {
   state: Signal<RivalsState>;
+  /** The game clock, never earlier than the start of the stored week (a clock moved back can't rewind the board). */
   now(): number;
+  /** The state as it should be displayed at `at`: a finished week already reads as rolled. */
+  view(at?: number): RivalsState;
   standings(at?: number): Standing[];
   rank(at?: number): number;
   rival(id: string): Rival | undefined;
   /** How every colleague did on a case (deterministic). */
   simulate(caseId: string): RivalCaseResult[];
+  /** Share of the registered cases this colleague diagnoses correctly (their profile figure). */
+  accuracy(id: Rival['id']): number;
   diagnosisName(id: string): string;
 }
 
 const controllers = new WeakMap<GameServices, RivalsController>();
 
 export function createController(services: GameServices): RivalsController {
-  const now = () => services.clock.now();
-  const state = services.save.slot<RivalsState>(SLOT, initialState(now()), { version: STATE_VERSION });
+  const clock = () => services.clock.now();
+  const state = services.save.slot<RivalsState>(SLOT, initialState(clock()), { version: STATE_VERSION });
+  const now = () => Math.max(clock(), isoWeekStart(state.get().weekKey));
+  const view = (at = now()) => rollWeek(state.get(), at);
   const diagnosisName = (id: string) => services.registries.diagnoses.get(id)?.name ?? humanizeId(id);
+  let accCache: { n: number; byId: Map<string, number> } | null = null;
   const ctl: RivalsController = {
     state,
     now,
-    standings: (at = now()) => standings(state.get(), at),
-    rank: (at = now()) => playerRank(standings(state.get(), at)),
+    view,
+    standings: (at = now()) => standings(view(at), at),
+    rank: (at = now()) => playerRank(standings(view(at), at)),
     rival: (id) => RIVAL_BY_ID[id as Rival['id']],
     diagnosisName,
     simulate(caseId) {
       const kase = services.registries.cases.get(caseId);
-      return ROSTER.map((r) => (kase ? simulateRival(r, kase, { diagnosisName }) : simulateRivalGeneric(r, caseId)));
+      const diagnosis = (id: string) => services.registries.diagnoses.get(id);
+      return ROSTER.map((r) => (kase ? simulateRival(r, kase, { diagnosisName, diagnosis }) : simulateRivalGeneric(r, caseId)));
+    },
+    accuracy(id) {
+      const cases = services.registries.cases.all();
+      const fallback = RIVAL_BY_ID[id]?.accuracy ?? 0;
+      if (!cases.length) return fallback;
+      if (!accCache || accCache.n !== cases.length) {
+        const byId = new Map<string, number>();
+        const diagnosis = (d: string) => services.registries.diagnoses.get(d);
+        for (const r of ROSTER) {
+          const ok = cases.filter((k) => simulateRival(r, k, { diagnosisName, diagnosis }).diagnosisCorrect).length;
+          byId.set(r.id, ok / cases.length);
+        }
+        accCache = { n: cases.length, byId };
+      }
+      return accCache.byId.get(id) ?? fallback;
     },
   };
   return ctl;
@@ -117,8 +143,10 @@ export function bindRivals(services: GameServices): () => void {
     if (r.state !== ctl.state.get()) ctl.state.set(r.state);
     if (r.passedBy?.rival && r.gap !== undefined) {
       const gap = Math.max(1, r.gap);
+      // One excellent case earns up to ~160 points; don't promise more than that.
+      const close = gap <= 150 ? 'one sharp work-up closes that gap' : gap <= 320 ? 'a couple of focused work-ups will close it' : 'a few careful patients will reel them back in';
       bus.emit('toast', {
-        message: `${r.passedBy.rival.short} edged ahead by ${gap} pts — one sharp work-up closes that gap.`,
+        message: `${r.passedBy.rival.short} edged ahead by ${gap.toLocaleString('en')} pts. ${close[0]!.toUpperCase()}${close.slice(1)}.`,
         icon: 'users',
         tone: 'info',
       });
@@ -126,9 +154,9 @@ export function bindRivals(services: GameServices): () => void {
   };
 
   offs.push(
-    bus.on('case:completed', ({ caseId, score }) => {
+    bus.on('case:completed', ({ caseId, modeId, score }) => {
       const rivals = ctl.simulate(caseId);
-      const res = applyCase(ctl.state.get(), ctl.now(), caseId, score, rivals);
+      const res = applyCase(ctl.state.get(), ctl.now(), caseId, score, rivals, undefined, modeId);
       ctl.state.set(res.state);
       const rank = playerRank(res.after);
 
@@ -186,6 +214,7 @@ export function bindRivals(services: GameServices): () => void {
     }),
   );
   offs.push(bus.on('case:started', () => settleWeek()));
+  offs.push(bus.on('mode:started', ({ modeId }) => ctl.state.set(startRun(ctl.state.get(), ctl.now(), modeId))));
 
   // Close a stale week straight away (silently; the toast waits for the first scene).
   const rolled = rollWeek(ctl.state.get(), ctl.now());

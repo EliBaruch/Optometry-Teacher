@@ -33,7 +33,7 @@ const STEPS: { icon: IconName; title: string; body: string }[] = [
   {
     icon: 'amsler',
     title: 'Map it, name it',
-    body: 'Paint over the affected area (drag, or arrows + Space), choose what they report, then test the other eye and record.',
+    body: 'Paint over the affected area (drag, or arrows + Space; the wheel or the brass knob sizes the brush), choose what they report, then test the other eye and record.',
   },
 ];
 

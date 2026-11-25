@@ -20,7 +20,7 @@ const CSS = `
   background: linear-gradient(180deg, #fff6df, #ffd27a); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .sbav-sub { color: #a99bbd; font-size: 13px; margin: 0 0 16px; }
 .sbav-card { border-radius: 22px; padding: 16px; background: linear-gradient(180deg, #ffffff10, #ffffff05); border: 1px solid #ffd27a2e;
-  box-shadow: 0 24px 60px #0007, inset 0 1px 0 #ffffff1a; backdrop-filter: blur(12px); }
+  box-shadow: 0 24px 60px #0007, inset 0 1px 0 #ffffff1a; }
 .sbav-portrait { border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px #ffd27a40, 0 20px 50px #0009; aspect-ratio: 5 / 6; }
 .sbav-name { display: flex; align-items: baseline; justify-content: space-between; margin: 12px 2px 8px; }
 .sbav-name b { font-family: 'Fraunces Variable', serif; font-size: 20px; font-weight: 500; }

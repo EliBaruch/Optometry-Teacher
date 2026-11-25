@@ -115,12 +115,56 @@ function grow(g: GenCtx, kind: VesselKind, x: number, y: number, heading: number
   if (pts.length > 2) g.out.push({ kind, pts, w: ws, depth });
 }
 
+/** Cup boundary distance (mm) from the disc centre along a disc-local direction (tx temporal, ty inferior). */
+export type CupRadiusMm = (tx: number, ty: number) => number;
+
+/**
+ * Route a trunk's first control points through the optic cup: trunks leave the
+ * central stem on the cup floor (nasalised in large cups), and where they climb
+ * the steep wall of a large cup they "bayonet" — a sharp double kink as the
+ * vessel disappears under the overhanging rim and re-emerges displaced.
+ */
+function throughCup(ctrl: [number, number][], origin: [number, number], cupMm: CupRadiusMm | undefined, cdr: number, jog: number): [number, number][] {
+  const out: [number, number][] = [origin];
+  const rest = ctrl.slice(1);
+  if (!cupMm || cdr < 0.55) return out.concat(rest);
+  // first control point outside the cup gives the trunk's direction up the wall
+  const idx = rest.findIndex(([x, y]) => Math.hypot(x, y) > cupMm(x, y));
+  if (idx < 0) return out.concat(rest);
+  const [ex, ey] = rest[idx]!;
+  const [px, py] = idx > 0 ? rest[idx - 1]! : origin;
+  // intersection with the cup outline (bisection along the segment)
+  let lo = 0;
+  let hi = 1;
+  for (let k = 0; k < 20; k++) {
+    const m = (lo + hi) / 2;
+    const x = px + (ex - px) * m;
+    const y = py + (ey - py) * m;
+    if (Math.hypot(x, y) > cupMm(x, y)) hi = m;
+    else lo = m;
+  }
+  const hx = px + (ex - px) * lo;
+  const hy = py + (ey - py) * lo;
+  const dl = Math.hypot(ex - px, ey - py) || 1;
+  const ux = (ex - px) / dl;
+  const uy = (ey - py) / dl;
+  const strength = Math.min(1, (cdr - 0.5) / 0.3);
+  const j = jog * strength;
+  // on the cup floor the vessel runs along the nasal wall; then it bends sharply at the rim
+  for (let i = 0; i < idx; i++) out.push(rest[i]!);
+  out.push([hx - ux * 0.06, hy - uy * 0.06]);
+  out.push([hx + ux * 0.05 - uy * j, hy + uy * 0.05 + ux * j]);
+  out.push([hx + ux * 0.2 - uy * j * 0.8, hy + uy * 0.2 + ux * j * 0.8]);
+  return out.concat(rest.slice(idx));
+}
+
 /** A main arcade from the disc following anatomical control points (mm, temporal +x', inferior +y'). */
 function arcade(g: GenCtx, kind: VesselKind, ctrlMm: [number, number][], w0: number, seed: number, macularSide: 1 | -1 | 0): void {
   const { a, rng } = g;
   const toWorld = ([tx, ty]: [number, number]): [number, number] => [a.disc.x - a.nasal * tx * U, a.disc.y + ty * U];
-  const jittered = ctrlMm.map(([x, y], i) => (i < 2 ? [x, y] : [x + rng.float(-0.35, 0.35), y + rng.float(-0.3, 0.3)]) as [number, number]);
-  const base = catmull(jittered.map(toWorld), STEP);
+  // keep the course on the disc anatomical; jitter only beyond it
+  const jittered = ctrlMm.map(([x, y]) => (Math.hypot(x, y) < 1.4 ? [x, y] : [x + rng.float(-0.35, 0.35), y + rng.float(-0.3, 0.3)]) as [number, number]);
+  const base = catmull(jittered.map(toWorld), STEP * 0.6);
   const amp = (kind === 'vein' ? 0.07 : 0.05) * U * (1 + g.tort * 2.6);
   const pts = wiggle(base, seed, amp, 1 / (1.1 * U));
   const ws: number[] = [];
@@ -149,37 +193,69 @@ function arcade(g: GenCtx, kind: VesselKind, ctrlMm: [number, number][], w0: num
   g.out.push({ kind, pts, w: ws, depth: 0 });
 }
 
-// Control polylines (mm from the disc centre; +x' = temporal, +y' = inferior)
-// All trunks emerge from the central vessel stem, just nasal to the cup centre (−0.15 mm).
-const O: [number, number] = [-0.15, 0.05];
-const ST: [number, number][] = [O, [-0.12, -0.5], [0.1, -1.3], [0.9, -2.6], [2.7, -3.5], [4.8, -3.8], [7.3, -3.4], [9.8, -2.9], [13, -2.2]];
-const SN: [number, number][] = [O, [-0.2, -0.5], [-0.5, -1.2], [-1.4, -2.3], [-3.0, -3.3], [-5.0, -4.6], [-7, -6.2]];
-const NAS: [number, number][] = [O, [-0.6, -0.05], [-1.4, -0.2], [-3, -0.5], [-6, -0.9]];
-const MAC: [number, number][] = [O, [0.3, -0.05], [0.9, -0.05], [1.7, -0.15], [2.4, -0.2]];
-const flipY = (c: [number, number][]) => c.map(([x, y], i) => (i === 0 ? [x, y] : [x, -y + 0.1]) as [number, number]);
+// Control polylines (mm from the disc centre; +x' = temporal, +y' = inferior).
+// The central retinal artery and vein divide on the disc into superior and
+// inferior papillary trunks, which split into temporal and nasal arcades near
+// the margin; the small nasal and macular vessels are side branches of those
+// trunks — nothing leaves the stem horizontally.
+const ST: [number, number][] = [[0, 0], [-0.05, -0.42], [0.05, -0.85], [0.45, -1.55], [1.2, -2.55], [2.7, -3.45], [4.8, -3.8], [7.3, -3.4], [9.8, -2.9], [13, -2.2]];
+const SN: [number, number][] = [[0, 0], [-0.08, -0.42], [-0.2, -0.85], [-0.6, -1.4], [-1.4, -2.3], [-3.0, -3.3], [-5.0, -4.6], [-7, -6.2]];
+const NAS: [number, number][] = [[0, 0], [-0.06, -0.3], [-0.35, -0.5], [-0.95, -0.42], [-1.8, -0.35], [-3.2, -0.55], [-6, -0.95]];
+const MAC: [number, number][] = [[0, 0], [-0.04, -0.33], [0.28, -0.55], [0.9, -0.45], [1.6, -0.38], [2.3, -0.3]];
+const flipY = (c: [number, number][]) => c.map(([x, y]) => [x, -y] as [number, number]);
 
-export function buildVessels(a: Anatomy, post: PosteriorSegment, seed: number): VesselTree {
+export interface VesselOptions {
+  /** cup boundary for routing trunks (bayoneting & nasalisation in large cups) */
+  cupMm?: CupRadiusMm;
+  cdr?: number;
+}
+
+/** Where the central vessel stem emerges (mm, disc-local): just nasal to centre, nasalised in large cups. */
+export function stemMm(cdr: number): [number, number] {
+  return [-0.14 - Math.max(0, cdr - 0.45) * 0.75, 0.04];
+}
+
+export function buildVessels(a: Anatomy, post: PosteriorSegment, seed: number, vo: VesselOptions = {}): VesselTree {
   const v = post.vessels;
   const tort = v.tortuosity === 'increased' || v.venousDilation ? 1 : 0;
-  const veinW = 0.135 * U * (v.venousDilation ? 1.5 : 1);
-  const artW = 0.135 * U * Math.max(0.3, Math.min(1, v.avRatio));
+  const veinW = 0.15 * U * (v.venousDilation ? 1.5 : 1);
+  const artW = 0.15 * U * Math.max(0.3, Math.min(1, v.avRatio));
+  const cdr = vo.cdr ?? post.disc.cdr;
   const out: Vessel[] = [];
   const bif: { x: number; y: number }[] = [];
   const mk = (salt: string, kind: VesselKind): GenCtx => ({
     a, rng: createRng(seed).fork(salt), out, bif: kind === 'artery' ? bif : [], tort: kind === 'vein' ? tort : tort * 0.5, minW: 0.022 * U,
   });
-  const off = (c: [number, number][], dx: number, dy: number) => c.map(([x, y], i) => (i === 0 ? [x, y] : i === 1 ? [x + dx * 0.5, y] : [x + dx, y + dy]) as [number, number]);
-  // veins: slightly nasal in the cup, running beside the arteries
+  const [sx, sy] = stemMm(cdr);
+  // the vein emerges a hair temporal of the artery within the stem
+  const stem = (kind: VesselKind): [number, number] => (kind === 'vein' ? [sx + 0.07, sy] : [sx, sy]);
+  const shifted = (c: [number, number][], kind: VesselKind, dx: number, dy: number): [number, number][] =>
+    c.map(([x, y], i) => {
+      if (i === 0) return stem(kind);
+      const r = Math.hypot(x, y);
+      // veins run beside the arteries: offset grows from 0 on the disc to (dx,dy) beyond it
+      const k = Math.min(1, r / 1.6);
+      // trunks shift nasally with the stem, easing back by the disc margin
+      const nasalise = Math.max(0, 1 - r / 1.1) * sx;
+      return [x + dx * k + nasalise + (kind === 'vein' ? 0.06 * Math.max(0, 1 - r) : 0), y + dy * k];
+    });
+  const jog = (salt: number) => 0.1 + ((seed * 31 + salt * 17) % 7) * 0.012;
+  const route = (c: [number, number][], salt: number) => throughCup(c, c[0]!, vo.cupMm, cdr, jog(salt) * (c[2]![0] >= 0 ? 1 : -1));
   for (const [name, ctrl, side] of [
     ['st', ST, 1], ['it', flipY(ST), -1], ['sn', SN, 0], ['in', flipY(SN), 0],
   ] as const) {
-    arcade(mk(`v-${name}`, 'vein'), 'vein', off(ctrl as [number, number][], -0.12, name.startsWith('s') ? -0.35 : 0.35), veinW * (name.endsWith('n') ? 0.8 : 1), seed + name.length * 13 + 1, side as 1 | -1 | 0);
-    arcade(mk(`a-${name}`, 'artery'), 'artery', ctrl as [number, number][], artW * (name.endsWith('n') ? 0.8 : 1), seed + name.length * 7 + 5, side as 1 | -1 | 0);
+    const sup = name.startsWith('s');
+    const vc = route(shifted(ctrl as [number, number][], 'vein', -0.12, sup ? -0.35 : 0.35), name.length + (sup ? 1 : 2));
+    const ac = route(shifted(ctrl as [number, number][], 'artery', 0, 0), name.length + (sup ? 3 : 4));
+    arcade(mk(`v-${name}`, 'vein'), 'vein', vc, veinW * (name.endsWith('n') ? 0.8 : 1), seed + name.length * 13 + 1, side as 1 | -1 | 0);
+    arcade(mk(`a-${name}`, 'artery'), 'artery', ac, artW * (name.endsWith('n') ? 0.8 : 1), seed + name.length * 7 + 5, side as 1 | -1 | 0);
   }
-  arcade(mk('v-nas', 'vein'), 'vein', off(NAS, 0, 0.3), veinW * 0.55, seed + 91, 0);
-  arcade(mk('a-nas', 'artery'), 'artery', NAS, artW * 0.55, seed + 93, 0);
-  arcade(mk('v-mac', 'vein'), 'vein', off(MAC, 0, 0.35), veinW * 0.42, seed + 95, 0);
-  arcade(mk('a-mac', 'artery'), 'artery', MAC, artW * 0.42, seed + 97, 0);
+  // nasal arteriole off the superior trunk, nasal venule into the inferior one
+  arcade(mk('a-nas', 'artery'), 'artery', route(shifted(NAS, 'artery', 0, 0), 11), artW * 0.55, seed + 93, 0);
+  arcade(mk('v-nas', 'vein'), 'vein', route(shifted(flipY(NAS), 'vein', 0, 0.1), 12), veinW * 0.55, seed + 91, 0);
+  // superior macular arteriole and inferior macular venule toward the fovea
+  arcade(mk('a-mac', 'artery'), 'artery', route(shifted(MAC, 'artery', 0, 0), 13), artW * 0.42, seed + 97, 0);
+  arcade(mk('v-mac', 'vein'), 'vein', route(shifted(flipY(MAC), 'vein', 0, 0.1), 14), veinW * 0.42, seed + 95, 0);
 
   return { vessels: out, crossings: [], bifurcations: bif };
 }

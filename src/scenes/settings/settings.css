@@ -186,6 +186,10 @@
 .settings-credits dt { font-size: var(--lm-fs-2xs); font-weight: 650; letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: var(--lm-gold); padding-top: 3px; }
 .settings-credits dd { margin: 0; font-size: var(--lm-fs-sm); color: var(--lm-text-muted); }
 
+/* Inline transfer glyphs sit inside the button label */
+.settings-actions .lm-btn__label { display: inline-flex; align-items: center; gap: 8px; }
+.settings-glyph { flex: none; color: var(--lm-gold); }
+
 /* ── Modals ─────────────────────────────────────────────────────────── */
 .settings-modal { display: flex; flex-direction: column; gap: var(--lm-sp-3); }
 .settings-modal__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--lm-sp-2); margin-top: var(--lm-sp-3); }
@@ -209,7 +213,10 @@
   position: absolute; inset: 0; z-index: -1; transform-origin: left center; transform: scaleX(var(--p));
   background: linear-gradient(90deg, #be123c, #f43f5e 80%, #fda4af);
 }
-.settings-hold__label { display: inline-flex; align-items: center; gap: 8px; }
+.settings-hold__labels { display: inline-grid; justify-items: center; }
+.settings-hold__label { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; transition: opacity var(--lm-dur-fast); }
+.settings-hold__label.is-hidden { opacity: 0; visibility: hidden; }
+.settings-modal__foot .settings-hold { flex: none; min-width: 172px; }
 .settings-hold.is-holding { animation: settings-tremble 120ms linear infinite; }
 @keyframes settings-tremble { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(0.6px); } }
 
@@ -226,4 +233,19 @@
   .settings-actions .lm-btn { flex: 1 1 140px; }
   .settings-name__input { font-size: var(--lm-fs-xl); }
   .settings-danger .lm-btn { width: 100%; }
+  .settings-modal__foot { flex-direction: column-reverse; align-items: stretch; }
+  .settings-modal__foot > * { width: 100%; justify-content: center; }
+}
+
+/* ── Reopening overlay (after import / reset) ───────────────────────── */
+.settings-restart {
+  position: fixed; inset: 0; z-index: calc(var(--lm-z-modal) + 10); display: grid; place-content: center; justify-items: center; gap: var(--lm-sp-4);
+  background: radial-gradient(circle at 50% 45%, rgba(26, 15, 46, 0.92), rgba(6, 3, 13, 0.98));
+  animation: lm-fade-up var(--lm-dur-med) var(--lm-ease-out) both;
+}
+.settings-restart p { font-family: var(--lm-font-display); font-size: var(--lm-fs-xl); color: var(--lm-ivory); }
+.settings-restart__lens {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.3), transparent 45%), radial-gradient(circle, #2a1846, #0b0716 80%);
+  box-shadow: 0 0 0 3px #c9962f, 0 0 40px -4px rgba(255, 210, 122, 0.7); animation: lm-pulse 1.2s ease-in-out infinite;
 }

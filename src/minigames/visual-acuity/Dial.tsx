@@ -28,7 +28,7 @@ export function Dial(p: DialProps) {
   const span = p.max - p.min;
   for (let i = 0; i <= span; i++) {
     const a = -135 + (270 * i) / Math.max(1, span);
-    ticks.push(<span key={i} class={`va-dial__tick${i + p.min === p.value ? ' is-on' : ''}`} style={{ transform: `rotate(${a}deg) translateY(-50px)` }} />);
+    ticks.push(<span key={i} class={`va-dial__tick${i + p.min === p.value ? ' is-on' : ''}`} style={{ transform: `rotate(${a}deg) translateY(-38px)` }} />);
   }
   const rot = -135 + (270 * (p.value - p.min)) / Math.max(1, span);
 

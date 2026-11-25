@@ -3,6 +3,7 @@ import type { JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { makeCanvas } from '../eye/color';
 import { canvasToFundus, hitTestFundus } from './geometry';
+import { createTapGesture } from './gesture';
 import { fundusMap, paintFundus } from './paint';
 import type { FundusMap, FundusMark, FundusViewport } from './types';
 
@@ -45,6 +46,8 @@ export function FundusView(props: FundusViewProps) {
   const viewRef = useRef<FundusViewport>(props.view ?? props.initialView ?? { cx: 0.5, cy: 0.5, zoom: 1 });
   const targetZoom = useRef(viewRef.current.zoom);
   const api = useRef<{ redraw: () => void } | null>(null);
+  // repaint the world texture only when the patient actually changes, not on a fresh object identity
+  const postKey = JSON.stringify(props.post);
 
   // controlled view
   useEffect(() => {
@@ -57,7 +60,13 @@ export function FundusView(props: FundusViewProps) {
 
   useEffect(() => {
     latest.current.onMap?.(fundusMap(props.post, props.eye, props.seed));
-  }, [props.post, props.eye, props.seed]);
+  }, [postKey, props.eye, props.seed]);
+
+  // view-only changes (BIO inversion, aperture, light circle size) redraw without repainting the texture
+  const lensKey = typeof props.lensView === 'object' ? `${props.lensView.radius ?? ''}|${props.lensView.follow ?? ''}` : String(!!props.lensView);
+  useEffect(() => {
+    api.current?.redraw();
+  }, [props.inverted, props.frame, lensKey]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -188,7 +197,7 @@ export function FundusView(props: FundusViewProps) {
 
     // ── input
     const pts = new Map<number, { x: number; y: number }>();
-    let moved = 0;
+    const tap = createTapGesture(6);
     let pinch0 = 0;
     let zoom0 = 1;
     const local = (e: PointerEvent | WheelEvent) => {
@@ -198,7 +207,7 @@ export function FundusView(props: FundusViewProps) {
     const onDown = (e: PointerEvent) => {
       canvas.setPointerCapture?.(e.pointerId);
       pts.set(e.pointerId, local(e));
-      moved = 0;
+      tap.down(e.pointerId);
       if (pts.size === 2) {
         const [a, b] = [...pts.values()];
         pinch0 = Math.hypot(a!.x - b!.x, a!.y - b!.y);
@@ -207,7 +216,8 @@ export function FundusView(props: FundusViewProps) {
     };
     const onMove = (e: PointerEvent) => {
       const q = local(e);
-      pointer = toScreen(q.x, q.y);
+      // the light circle is drawn in screen space, so it tracks the raw pointer (even when inverted)
+      pointer = q;
       const prev = pts.get(e.pointerId);
       if (!prev) {
         if (lens()?.follow === 'pointer') schedule();
@@ -224,23 +234,25 @@ export function FundusView(props: FundusViewProps) {
       const inv = latest.current.inverted ? -1 : 1;
       const dx = (q.x - prev.x) * inv;
       const dy = (q.y - prev.y) * inv;
-      moved += Math.abs(dx) + Math.abs(dy);
+      tap.move(e.pointerId, Math.abs(dx) + Math.abs(dy));
       const v = viewRef.current;
       const S = Math.min(W, H) * v.zoom;
       viewRef.current = clampView({ ...v, cx: v.cx - dx / S, cy: v.cy - dy / S });
       interacted();
     };
-    const onUp = (e: PointerEvent) => {
+    const release = (e: PointerEvent, cancelled: boolean) => {
       const q = local(e);
       pts.delete(e.pointerId);
       if (pts.size < 2) pinch0 = 0;
-      if (moved < 6 && pts.size === 0) {
+      if (tap.up(e.pointerId, cancelled)) {
         const s = toScreen(q.x, q.y);
         const w = canvasToFundus(viewRef.current, W, H, s.x, s.y);
         const map = fundusMap(latest.current.post, latest.current.eye, latest.current.seed, viewRef.current);
         latest.current.onTap?.({ x: w.x, y: w.y, marks: hitTestFundus(map, w.x, w.y, 0.006 / viewRef.current.zoom) });
       }
     };
+    const onUp = (e: PointerEvent) => release(e, false);
+    const onCancel = (e: PointerEvent) => release(e, true);
     const onLeave = () => {
       pointer = null;
       if (lens()?.follow === 'pointer') schedule();
@@ -281,7 +293,7 @@ export function FundusView(props: FundusViewProps) {
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerup', onUp);
-    canvas.addEventListener('pointercancel', onUp);
+    canvas.addEventListener('pointercancel', onCancel);
     canvas.addEventListener('pointerleave', onLeave);
     canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('keydown', onKey);
@@ -295,12 +307,12 @@ export function FundusView(props: FundusViewProps) {
       canvas.removeEventListener('pointerdown', onDown);
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerup', onUp);
-      canvas.removeEventListener('pointercancel', onUp);
+      canvas.removeEventListener('pointercancel', onCancel);
       canvas.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('wheel', onWheel);
       canvas.removeEventListener('keydown', onKey);
     };
-  }, [props.post, props.eye, props.seed, props.width, props.height, props.redFree, props.inverted, props.frame, !!props.lensView]);
+  }, [postKey, props.eye, props.seed, props.width, props.height, props.redFree, !!props.lensView]);
 
   return (
     <canvas

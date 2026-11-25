@@ -21,6 +21,8 @@ import { SpeechBubble } from './SpeechBubble';
 import { Tabs } from './Tabs';
 import { ToastHost } from './ToastHost';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useLiteRendering } from '../hooks/useLiteRendering';
+import { resetQualityForTests, setLiteRendering } from '../lib/quality';
 
 /*
  * Vitest runs with CSS processing off, so `?raw` CSS imports come back empty.
@@ -169,6 +171,63 @@ describe('Modal isolation', () => {
     expect(host.querySelector('[inert]')).toBeNull();
     expect(document.documentElement.style.overflow).toBe('');
   });
+
+  it('focuses the least destructive footer action first', () => {
+    mount(
+      <Modal
+        open
+        title="Erase all progress?"
+        onClose={() => {}}
+        footer={
+          <>
+            <Button variant="danger">Erase</Button>
+            <Button variant="glass">Keep my progress</Button>
+          </>
+        }
+      >
+        <p>This cannot be undone.</p>
+      </Modal>,
+    );
+    act(() => {
+      vi.advanceTimersByTime(60);
+    });
+    expect(document.activeElement?.textContent).toContain('Keep my progress');
+  });
+
+  it('descends into a sibling that holds a live region: controls go inert, the live span stays live', () => {
+    const ui = (open: boolean) => (
+      <div>
+        <section id="settings">
+          <div class="row">
+            <button id="mute">Mute</button>
+            <input id="vol" type="range" />
+          </div>
+          <footer id="wrap">
+            <span id="saved" aria-live="polite">Saved</span>
+            <button id="reset">Reset</button>
+          </footer>
+        </section>
+        <Modal open={open} title="Erase all progress?" onClose={() => {}}>
+          <button>inside</button>
+        </Modal>
+      </div>
+    );
+    mount(ui(true));
+    const $ = (s: string) => host.querySelector(s)!;
+    // Each control outside the dialog is inside an inert subtree…
+    for (const id of ['#mute', '#vol', '#reset']) expect($(id).closest('[inert]')).not.toBeNull();
+    // …but the live region and its wrapper chain are not.
+    expect($('#saved').closest('[inert]')).toBeNull();
+    expect($('#wrap').hasAttribute('inert')).toBe(false);
+    expect($('#settings').hasAttribute('inert')).toBe(false);
+    expect($('#reset').hasAttribute('inert')).toBe(true);
+    expect($('.row').hasAttribute('inert')).toBe(true);
+    mount(ui(false));
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(host.querySelector('[inert]')).toBeNull();
+  });
 });
 
 describe('interactive Card', () => {
@@ -258,5 +317,24 @@ describe('useReducedMotion', () => {
     await new Promise((r) => setTimeout(r, 0));
     act(() => {});
     expect(value).toBe(true);
+  });
+});
+
+describe('useLiteRendering', () => {
+  it('follows setLiteRendering and the html class', () => {
+    resetQualityForTests();
+    let value: boolean | null = null;
+    const Probe = () => {
+      value = useLiteRendering();
+      return null;
+    };
+    act(() => render(<Probe />, host));
+    expect(value).toBe(false);
+    act(() => setLiteRendering(true));
+    expect(value).toBe(true);
+    expect(document.documentElement.classList.contains('lm-lite')).toBe(true);
+    act(() => setLiteRendering(false));
+    expect(value).toBe(false);
+    resetQualityForTests();
   });
 });

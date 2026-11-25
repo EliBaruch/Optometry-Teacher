@@ -190,6 +190,14 @@ html.high-contrast {
   --lm-focus-glow: 0 0 0 1px #000;
 }
 
+/* ── Lite rendering (set by the Backdrop when the device cannot keep up):
+      no live blur behind glass, slightly denser surfaces so text stays crisp. */
+html.lm-lite {
+  --lm-glass-blur: none;
+  --lm-glass-bg: linear-gradient(160deg, rgba(52, 34, 88, 0.86) 0%, rgba(27, 16, 48, 0.9) 46%, rgba(16, 9, 30, 0.92) 100%);
+  --lm-glass-bg-strong: linear-gradient(160deg, rgba(58, 38, 96, 0.94) 0%, rgba(29, 17, 52, 0.96) 50%, rgba(17, 10, 32, 0.97) 100%);
+}
+
 /* ── Reduced motion: the app's setting class or the OS preference ────────── */
 html.reduced-motion {
   --lm-dur-instant: 1ms;

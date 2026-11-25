@@ -1,8 +1,9 @@
 import type { GameServices, SystemModule } from '@core';
 import { ACCENT, SYSTEM_ID, attach, comfortOf, createController, register, unregister } from './controller';
-import { giftReady } from './logic';
+import { collectable, giftReady } from './logic';
 import { LoungeBanner } from './ui/LoungeBanner';
 import { LoungeScene } from './ui/LoungeScene';
+import { WelcomeHostWidget } from './ui/WelcomeHost';
 
 export { comfortOf } from './controller';
 
@@ -24,6 +25,8 @@ const comfort: SystemModule = {
 
     const r = services.registries;
     r.hud.register({ id: 'comfort:banner', slot: 'hub-banner', order: 10, system: SYSTEM_ID, component: LoungeBanner });
+    // invisible: hosts the welcome-back note on screens without the banner
+    r.hud.register({ id: 'comfort:welcome', slot: 'topbar-right', order: 99, system: SYSTEM_ID, component: WelcomeHostWidget });
     r.scenes.register({ id: 'lounge', component: LoungeScene });
     r.hub.register({
       id: 'lounge',
@@ -39,7 +42,8 @@ const comfort: SystemModule = {
         if (!c) return undefined;
         const st = c.state.get();
         if (giftReady(st, s.clock.now())) return 'GIFT';
-        return st.jar >= 1 ? `✦ ${Math.floor(st.jar)}` : undefined;
+        const c2 = collectable(st);
+        return c2 >= 1 ? `✦ ${c2}` : undefined;
       },
     });
 

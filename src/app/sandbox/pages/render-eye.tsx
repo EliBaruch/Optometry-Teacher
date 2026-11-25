@@ -21,6 +21,7 @@ interface Preset {
 
 const PRESETS: Preset[] = [
   { id: 'normal', title: 'Healthy eye', note: 'Quiet white conjunctiva, clear cornea, crisp iris architecture.', age: 28, iris: '#4f7ea6' },
+  { id: 'dark', title: 'Dark brown iris', note: 'Heavily pigmented iris: velvety stroma, few visible crypts, near-black ruff.', age: 35, iris: '#3a2416' },
   { id: 'nuclear', title: 'Nuclear cataract', note: 'Brunescent yellow-brown nucleus glowing in the pupil (penlight).', age: 74, lighting: 'penlight', iris: '#6d5a3a',
     patch: { anterior: { OD: { lens: ['nuclear-sclerosis'], lensGrade: 3 } } } },
   { id: 'cortical', title: 'Cortical cataract', note: 'White cuneiform spokes pointing to the centre (dilated).', age: 68, iris: '#5f7f6a', lighting: 'dim',
@@ -31,7 +32,7 @@ const PRESETS: Preset[] = [
     patch: { anterior: { OD: { conjunctiva: ['ciliary-flush'], cornea: ['keratic-precipitates'], iris: ['posterior-synechiae'], anteriorChamber: { cells: 3, flare: 2, hypopyon: true } } }, pupils: { sizeLightMm: { OD: 2.5 } } } },
   { id: 'uveitis-slit', title: 'Cells & flare (slit)', note: 'Conical beam through the AC: drifting cells (SUN 3+) and flare haze.', age: 34, iris: '#7a5a3c',
     patch: { anterior: { OD: { conjunctiva: ['ciliary-flush'], cornea: ['keratic-precipitates'], anteriorChamber: { cells: 3, flare: 2 } } } },
-    beam: { x: 0.05, width: 1, angleDeg: 45, height: 3, mag: 2.6 } },
+    lighting: 'slit', beam: { x: 0.05, width: 1, angleDeg: 45, height: 3, mag: 2.6 } },
   { id: 'conj', title: 'Bacterial conjunctivitis', note: 'Diffuse injection maximal in the fornices, mucopurulent discharge.', age: 22, iris: '#3d6d9a',
     patch: { anterior: { OD: { conjunctiva: ['diffuse-injection', 'papillae', 'discharge-mucopurulent'] } } } },
   { id: 'abrasion', title: 'Abrasion (cobalt)', note: 'Sharp-edged geographic epithelial defect fluoresces green.', age: 31, lighting: 'cobalt', iris: '#4f7ea6',
@@ -46,15 +47,17 @@ const PRESETS: Preset[] = [
     patch: { anterior: { OD: { anteriorChamber: { hyphema: true, cells: 2 } } } } },
   { id: 'ulcer', title: 'Microbial keratitis', note: 'Dense white stromal infiltrate with overlying epithelial defect.', age: 27, iris: '#3f6f98',
     patch: { anterior: { OD: { cornea: ['ulcer'], conjunctiva: ['ciliary-flush'], anteriorChamber: { cells: 1 } } } } },
+  { id: 'fb', title: 'Metallic foreign body', note: 'Embedded dark speck with a rust ring; under cobalt a small focal stain surrounds it.', age: 38, iris: '#5a7a4e',
+    patch: { anterior: { OD: { cornea: ['foreign-body', 'rust-ring'], conjunctiva: ['diffuse-injection'], fluorescein: 'focal' } } } },
   { id: 'eso', title: 'Left esotropia (Hirschberg)', note: 'Penlight reflex decentred temporally in the turned-in left eye (~30Δ).', age: 6, lighting: 'penlight', eye: 'OS', iris: '#5b7da0',
     patch: { motility: { distance: { horizontal: 30, vertical: 0, type: 'tropia', deviatingEye: 'OS' } } } },
   { id: 'vh1', title: 'Van Herick grade 1', note: 'Peripheral optic section: AC gap < ¼ corneal thickness.', age: 70, iris: '#6b5134',
-    patch: { anterior: { OD: { anteriorChamber: { vanHerick: 1, depth: 'shallow' } } } }, beam: { x: -0.95, width: 0.15, angleDeg: 60, mag: 3.2 } },
+    patch: { anterior: { OD: { anteriorChamber: { vanHerick: 1, depth: 'shallow' } } } }, lighting: 'slit', beam: { x: -0.95, width: 0.15, angleDeg: 60, mag: 3.2 } },
   { id: 'vh4', title: 'Van Herick grade 4', note: 'Peripheral optic section: AC gap ≥ corneal thickness.', age: 30, iris: '#4f7ea6',
-    beam: { x: -0.95, width: 0.15, angleDeg: 60, mag: 3.2 } },
+    lighting: 'slit', beam: { x: -0.95, width: 0.15, angleDeg: 60, mag: 3.2 } },
 ];
 
-const STAINS: StainPattern[] = ['none', 'inferior-punctate', 'diffuse-punctate', 'interpalpebral', 'linear-abrasion', 'dendritic', 'round-ulcer', 'vertical-linear-scratches'];
+const STAINS: StainPattern[] = ['none', 'inferior-punctate', 'diffuse-punctate', 'interpalpebral', 'linear-abrasion', 'dendritic', 'round-ulcer', 'vertical-linear-scratches', 'focal'];
 const LIGHTS: EyeLighting[] = ['room', 'penlight', 'slit', 'cobalt', 'dim'];
 const IRIS_SWATCHES = ['#4f7ea6', '#3d6d9a', '#6a8f7a', '#7d8f5a', '#8a6a3c', '#5b3d26', '#2e1c12', '#7d8a96'];
 const ART: { rarity: IrisRarity; palette: string[] }[] = [

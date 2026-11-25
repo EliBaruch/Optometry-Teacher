@@ -150,11 +150,17 @@ export class Economy {
     return this.state.get().balance;
   }
 
-  credit(amount: number, reason: string): void {
+  /** Pay lumens. `quiet` skips the wallet's coin-burst (the caller calls pulse() at its own dramatic moment). */
+  credit(amount: number, reason: string, quiet = false): void {
     if (amount <= 0) return;
     this.state.update((s) => ({ ...s, balance: s.balance + amount, lifetimeEarned: s.lifetimeEarned + amount }));
     this.services.bus.emit('currency:changed', { balance: this.balance, delta: amount });
-    this.gain.set({ delta: amount, seq: ++this.gainSeq, reason });
+    if (!quiet) this.pulse(amount, reason);
+  }
+
+  /** Make the wallet celebrate a gain (count-up, coin burst, sound). */
+  pulse(delta: number, reason: string): void {
+    if (delta > 0) this.gain.set({ delta, seq: ++this.gainSeq, reason });
   }
 
   private spend(amount: number): boolean {
@@ -219,12 +225,28 @@ export class Economy {
     return crate;
   }
 
-  /** Open a crate (first unopened when no id). Applies the contents and returns them. */
-  openCrate(id?: string): { crate: StoredCrate; drop: CrateDrop } | null {
+  /**
+   * What a crate holds, WITHOUT opening it: nothing in the state changes, so the
+   * wallet, purse, shelf and receipt stay exactly as they were while the opening
+   * theatre plays. Rolls are pure, so openCrate() later yields the same drop.
+   */
+  peekCrate(id?: string): { crate: StoredCrate; drop: CrateDrop } | null {
     const s = this.state.get();
     const crate = id ? s.crates.find((c) => c.id === id) : s.crates[0];
     if (!crate) return null;
-    const drop = rollCrate(crate.seed, crate.kind, s.pity, s.owned);
+    return { crate, drop: rollCrate(crate.seed, crate.kind, s.pity, s.owned) };
+  }
+
+  /**
+   * Open a crate (first unopened when no id). Applies the contents and returns them.
+   * The theatre peeks first and only commits at the reveal; with `deferPulse`
+   * the wallet's coin-burst is skipped so the caller can fire it itself.
+   */
+  openCrate(id?: string, opts?: { deferPulse?: boolean }): { crate: StoredCrate; drop: CrateDrop } | null {
+    const peek = this.peekCrate(id);
+    if (!peek) return null;
+    const { crate, drop } = peek;
+    const s = this.state.get();
     const c = drop.content;
     this.state.set({
       ...s,
@@ -235,7 +257,7 @@ export class Economy {
       owned: c.type === 'cosmetic' && !s.owned.includes(c.itemId) ? [...s.owned, c.itemId] : s.owned,
       drops: [{ kind: crate.kind, rarity: drop.rarity, content: c, at: this.services.clock.now() }, ...s.drops].slice(0, 12),
     });
-    if (c.type === 'coins') this.credit(c.amount, CRATES[crate.kind].name);
+    if (c.type === 'coins') this.credit(c.amount, CRATES[crate.kind].name, !!opts?.deferPulse);
     this.flag('first-crate', 'Special delivery', 'Opened your first supply crate.', 'crate');
     if (drop.rarity === 'legendary') this.flag('legendary', 'Museum piece', 'Found a legendary treasure in a supply crate.', 'crown');
     return { crate, drop };
