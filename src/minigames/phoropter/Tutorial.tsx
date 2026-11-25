@@ -4,7 +4,7 @@ import { Button, Kbd } from '@ui-kit';
 const STEPS = [
   {
     title: 'You see what they see',
-    body: 'The chart on the right is the patient’s view through the lenses you dial. Turn the knobs by dragging around them, with the mouse wheel, or with the arrow keys.',
+    body: 'The chart is the patient’s view through the lenses you dial. Turn the knobs by dragging around them, with the mouse wheel, or with the arrow keys.',
     keys: ['←', '→'],
   },
   {

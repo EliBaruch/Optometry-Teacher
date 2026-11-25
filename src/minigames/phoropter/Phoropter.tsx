@@ -164,7 +164,7 @@ export function Phoropter(p: PhoropterProps) {
   const on = (e: Eye) => p.active === 'OU' || p.active === e;
   const jccEye = p.active === 'OU' ? null : p.active;
   return (
-    <svg class="php-phoropter" viewBox="0 0 640 330" role="img" aria-label={`Refractor head. OD ${fmt(p.lenses.OD)}, OS ${fmt(p.lenses.OS)}.`}>
+    <svg class="php-phoropter" viewBox="0 0 640 404" role="img" aria-label={`Refractor head. OD ${fmt(p.lenses.OD)}, OS ${fmt(p.lenses.OS)}.`}>
       <defs>
         <linearGradient id="php-brass" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#fff0c2" />
@@ -213,6 +213,11 @@ export function Phoropter(p: PhoropterProps) {
           <stop offset="0.86" stop-color="#ffd27a" stop-opacity="0.28" />
           <stop offset="1" stop-color="#ffd27a" stop-opacity="0" />
         </radialGradient>
+        <radialGradient id="php-floor" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#ffd27a" stop-opacity="0.28" />
+          <stop offset="0.6" stop-color="#a78bfa" stop-opacity="0.1" />
+          <stop offset="1" stop-color="#a78bfa" stop-opacity="0" />
+        </radialGradient>
         <filter id="php-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8" /></filter>
       </defs>
 
@@ -234,6 +239,27 @@ export function Phoropter(p: PhoropterProps) {
 
       {/* face opening between the batteries */}
       <path d="M 284 330 C 286 284, 300 252, 320 250 C 340 252, 354 284, 356 330" fill="rgba(5,3,9,0.92)" stroke="url(#php-brass)" stroke-width="2" />
+
+      {/* forehead rest: rod, pad and thumbwheel between the batteries */}
+      <g class="php-forehead">
+        <rect x="311" y="66" width="18" height="40" fill="url(#php-drum)" stroke="#5a3a0c" stroke-width="0.8" />
+        <rect x="296" y="104" width="48" height="26" rx="13" fill="url(#php-brass)" stroke="#5a3a0c" stroke-width="1" />
+        <rect x="302" y="108" width="36" height="14" rx="7" fill="#1c1228" stroke="rgba(255,226,170,0.35)" />
+        <circle cx="320" cy="138" r="9" fill="url(#php-brass-r)" stroke="#5a3a0c" stroke-width="1" />
+        <line x1="314" y1="138" x2="326" y2="138" stroke="#4a2e06" stroke-width="1.4" />
+      </g>
+
+      {/* base: maker's rail, engraved plaque and a warm pool of light */}
+      <ellipse cx="320" cy="372" rx="262" ry="26" fill="url(#php-floor)" />
+      <g class="php-base">
+        <rect x="150" y="344" width="340" height="30" rx="15" fill="rgba(0,0,0,0.5)" filter="url(#php-soft)" transform="translate(0 4)" />
+        <rect x="150" y="340" width="340" height="30" rx="15" fill="url(#php-brass)" stroke="#5a3a0c" stroke-width="1" />
+        <rect x="158" y="343" width="324" height="4" rx="2" fill="rgba(255,255,255,0.35)" />
+        <rect x="204" y="350" width="232" height="15" rx="4" fill="#120c1c" stroke="rgba(255,226,170,0.4)" />
+        <text x="320" y="361" text-anchor="middle" class="php-plaque">LUMEN · REFRACTOR · MODEL IV</text>
+        {[170, 470].map((x) => <Screw key={x} x={x} y={355} a={x} />)}
+      </g>
+      <rect x="311" y="330" width="18" height="12" fill="url(#php-drum)" />
 
       <Battery eye="OD" lens={p.lenses.OD} on={on('OD')} occluded={p.occluded.OD} jcc={jccEye === 'OD' ? p.jcc : null} jccRed={jccEye === 'OD' ? p.jccRed : null} flipKey={p.flipKey} prism={p.prism} />
       <Battery eye="OS" lens={p.lenses.OS} on={on('OS')} occluded={p.occluded.OS} jcc={jccEye === 'OS' ? p.jcc : null} jccRed={jccEye === 'OS' ? p.jccRed : null} flipKey={p.flipKey} prism={p.prism} />

@@ -345,7 +345,8 @@
   .rt-head__hint { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; font-size: 0.8rem; }
   .rt-head__title { margin-right: auto; }
   .rt-stage { grid-template-columns: 1fr; grid-template-rows: auto auto; gap: 10px; padding: 8px 10px; overflow-y: auto; align-content: start; }
-  .rt-scope { height: min(92cqw, 48vh); }
+  .rt-scope { position: sticky; top: 0; z-index: 3; height: min(80cqw, 38vh); background-color: #0b0716; }
+  .rt-bezel { width: min(100cqw - 16px, 100cqh - 16px); }
   .rt-panel { overflow: visible; padding: 10px 12px; gap: 8px; }
   .rt-foot { gap: 10px; padding: 8px 10px; padding-bottom: max(8px, var(--lm-safe-bottom, 0px)); }
   .rt-progress { gap: 6px; }

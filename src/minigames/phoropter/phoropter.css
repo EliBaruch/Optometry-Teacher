@@ -8,7 +8,7 @@
   --php-ice: #7dd3fc;
   --php-panel: linear-gradient(165deg, rgba(52, 34, 88, 0.42), rgba(18, 11, 34, 0.66));
   position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
-  container-type: inline-size; container-name: php;
+  container-type: size; container-name: php;
   color: var(--lm-ivory, #f6efe4); font-family: var(--lm-font-ui, system-ui, sans-serif);
   background:
     radial-gradient(90% 70% at 28% 42%, rgba(120, 78, 190, 0.22), transparent 62%),
@@ -81,7 +81,17 @@
   box-shadow: inset 0 0 0 1px var(--lm-hairline), inset 0 1px 0 rgba(255, 245, 230, 0.05), var(--lm-shadow-2);
 }
 .php-instr__head { display: flex; justify-content: center; padding: 8px 10px 0; }
-.php-instr__body { position: relative; flex: 1; min-height: 180px; }
+.php-instr__body {
+  position: relative; flex: 1; min-height: 180px;
+  background:
+    radial-gradient(46% 38% at 50% 50%, rgba(255, 214, 140, 0.13), transparent 72%),
+    radial-gradient(70% 16% at 50% 100%, rgba(167, 139, 250, 0.16), transparent 75%),
+    repeating-linear-gradient(90deg, rgba(255, 236, 200, 0.018) 0 1px, transparent 1px 38px);
+}
+.php-instr__body::after {
+  content: ''; position: absolute; left: 6%; right: 6%; bottom: 0; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 210, 122, 0.5), transparent);
+}
 .php-instr__body > .php-phoropter { position: absolute; inset: 4px 8px; width: calc(100% - 16px); height: calc(100% - 8px); }
 
 .php-slip {
@@ -103,6 +113,7 @@
 .php-win__k { font: 700 9px var(--lm-font-ui); fill: rgba(255, 214, 140, 0.7); letter-spacing: 0.1em; }
 .php-win__v { font: 700 12.5px var(--lm-font-num, sans-serif); fill: #fff4da; }
 .php-eye-label { font: 600 15px var(--lm-font-display, serif); fill: rgba(255, 232, 190, 0.55); letter-spacing: 0.12em; transition: fill var(--lm-dur-ui); }
+.php-plaque { font: 700 8.5px var(--lm-font-ui); letter-spacing: 0.2em; fill: rgba(255, 220, 160, 0.78); }
 .php-pd { font: 700 9px var(--lm-font-num); fill: rgba(42, 26, 5, 0.85); letter-spacing: 0.08em; }
 .php-bat__aura { fill: url(#php-aura); opacity: 0; transition: opacity var(--lm-dur-med) var(--lm-ease-out); }
 .php-bat.is-on .php-bat__aura { opacity: 1; animation: php-breathe 3.6s ease-in-out infinite; }
@@ -371,43 +382,86 @@
   .php-dial__knob { width: 66px; height: 66px; }
   .php-deck { gap: 12px; }
 }
+.php-short, .php-view__q { display: none; }
 @container php (max-width: 680px) {
-  .php-head { flex-wrap: wrap; gap: 6px 10px; padding: 8px 12px; }
+  .php-short { display: inline; }
+  .php-long { display: none; }
+  .php-view__q { display: inline; }
+  .php-head { flex-wrap: wrap; gap: 2px 10px; padding: 6px 12px 7px; }
   .php-head__title { font-size: 0.98rem; }
-  .php-head__hint { order: 3; flex-basis: 100%; padding: 0; border: 0; font-size: 0.8rem; }
-  .php-head .php-seg { margin-left: auto; }
-  .php-stage { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; overscroll-behavior: contain; padding: 8px 10px 12px; }
-  .php-instr, .php-view { display: contents; }
-  .php-patient { order: 1; min-height: 0; }
-  .php-stage > *, .php-instr > *, .php-view > * { flex-shrink: 0; }
-  .php-patient {
-    position: sticky; top: -8px; z-index: 3; margin: -8px -10px 0; padding: 8px 10px 8px;
-    background: linear-gradient(180deg, rgba(14, 8, 25, 0.97) 80%, rgba(14, 8, 25, 0));
+  .php-head__hint {
+    order: 3; flex-basis: 100%; padding: 0; border: 0; font-size: 0.78rem; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .php-head .php-seg__b { padding: 0 10px; }
+  .php-head .php-seg { margin-left: auto; }
+  .php-head .php-seg__b { padding: 0 11px; min-height: 30px; }
+  /* No scrolling: patient strip, chart (takes the slack), asks and the dial deck are all on screen at once. */
+  .php-stage { display: flex; flex-direction: column; gap: 6px; overflow: hidden; padding: 6px 10px 6px; }
+  .php-instr, .php-view { display: contents; }
+  .php-stage > *, .php-instr > *, .php-view > * { flex-shrink: 0; min-width: 0; }
+  .php-patient { order: 1; min-height: 0; gap: 8px; align-items: center; }
+  .php-patient__avatar { width: 46px; height: 46px; }
+  .php-patient__avatar svg { width: 100%; height: 100%; }
+  .php-patient__say .lm-speech { padding: 6px 11px 7px; border-radius: 14px; }
+  .php-patient__say .lm-speech__text { font-size: 0.86rem; line-height: 1.28; }
+  .php-patient__say .lm-speech__speaker { margin-bottom: 0; font-size: 0.6rem; }
+  .php-you { margin: 0; padding: 7px 11px; font-size: 0.86rem; }
+  .php-thinking { margin: 0 0 0 6px; padding: 8px 12px; }
   .php-view__label { order: 2; }
-  .php-chart { order: 3; flex: none; height: 200px; min-height: 0; margin: 4px; }
-  .php-asks { order: 4; }
-  .php-deck { order: 5; border-radius: 16px; border: 0; background: linear-gradient(180deg, rgba(20, 12, 36, 0.6), rgba(8, 4, 16, 0.75)); box-shadow: inset 0 0 0 1px var(--lm-hairline); gap: 10px 14px; padding: 10px; }
-  .php-instr__body { order: 6; flex: none; padding: 0; }
-  .php-instr__head { order: 7; padding: 0; }
-  .php-dial { flex-direction: column; gap: 4px; text-align: center; }
+  .php-view__label .php-eyebrow { font-size: 0.62rem; }
+  .php-chart { order: 3; flex: 1 1 0; min-height: 64px; height: auto; margin: 3px 4px; }
+  .php-chart__labels span { font-size: 8px; left: 5px; }
+  .php-asks { order: 4; padding: 0 4px; gap: 6px; }
+  .php-asks .php-ask { min-width: 0; }
+  .php-deck {
+    order: 5; flex-wrap: wrap; gap: 4px 4px; padding: 6px 6px 7px; border: 0; border-radius: 16px;
+    background: linear-gradient(180deg, rgba(20, 12, 36, 0.6), rgba(8, 4, 16, 0.78)); box-shadow: inset 0 0 0 1px var(--lm-hairline);
+  }
+  .php-deck > .php-dial { flex: 1 1 0; justify-content: center; }
+  .php-instr__body { display: none; order: 6; flex: none; min-height: 0; height: 92px; padding: 0; }
+  .php-instr__head { display: none; }
+  .php-dial { flex-direction: column; gap: 2px; text-align: center; }
   .php-dial__meta { align-items: center; min-width: 0; }
   .php-dial__sub { display: none; }
-  .php-dial--lg .php-dial__knob, .php-dial__knob { width: 72px; height: 72px; }
-  .php-dial--lg .php-dial__value, .php-dial__value { font-size: 1.1rem; }
-  .php-tools { flex-direction: row; flex-wrap: wrap; justify-content: center; flex-basis: 100%; }
-  .php-tools .lm-kbd { display: none; }
-  .php-asks .lm-kbd { display: none; }
-  .php-foot { gap: 10px; padding: 8px 10px; padding-bottom: max(8px, var(--lm-safe-bottom, 0px)); }
-  .php-progress { gap: 4px; flex-direction: column; }
-  .php-pip { padding: 2px 5px 2px 4px; font-size: 0.6rem; }
+  .php-dial--lg .php-dial__knob, .php-dial__knob { width: 56px; height: 56px; }
+  .php-dial--lg .php-dial__value, .php-dial__value { font-size: 1rem; }
+  .php-dial__label { font-size: 0.58rem; }
+  .php-tools { flex-direction: row; flex-wrap: nowrap; justify-content: center; flex-basis: 100%; gap: 6px; }
+  .php-tools .lm-kbd, .php-asks .lm-kbd { display: none; }
+  .php-tools .php-seg__k { display: none; }
+  .php-tools .php-seg--sm .php-seg__b { padding: 0 9px; min-height: 32px; }
+  .php-toggle { min-height: 34px; padding: 0 10px; font-size: 0.78rem; }
+  .php-deck--ou { flex-wrap: wrap; justify-content: space-around; }
+  .php-deck--ou > .php-dial { flex: 0 0 auto; }
+  .php-nudges { flex-direction: column; gap: 4px; }
+  .php-nudge { gap: 4px; }
+  .php-nudge__eye { width: auto; }
+  .php-nudge button { min-height: 32px; padding: 0 8px; }
+  .php-nudge output { min-width: 44px; }
+  .php-foot { gap: 8px; padding: 6px 10px; padding-bottom: max(6px, var(--lm-safe-bottom, 0px)); }
+  .php-progress { gap: 0; flex-wrap: nowrap; }
+  .php-progress:not(.php-progress--ou) .php-pips:not(.is-active) { display: none; }
+  .php-progress--ou { flex-direction: column; gap: 3px; }
+  .php-progress--ou .php-pip { padding: 1px 4px 1px 3px; }
+  .php-pips { gap: 3px; opacity: 1; }
+  .php-pips__eye { margin-right: 2px; font-size: 0.74rem; }
+  .php-pip { gap: 3px; padding: 3px 5px 3px 4px; font-size: 0.6rem; letter-spacing: 0.01em; }
+  .php-pip i { width: 6px; height: 6px; }
   .php-steps { display: none; }
+  .php-foot .lm-btn { padding-inline: 12px; }
   .php-challenge__opts, .php-result__eyes { grid-template-columns: 1fr; }
   .php-tut__card, .php-debrief__card { padding: 18px 16px 14px; }
 }
+/* tall phones: the refractor head fits above the dial deck too */
+@container php (max-width: 680px) and (min-height: 760px) {
+  .php-instr__body { display: block; }
+  .php-patient__avatar { width: 54px; height: 54px; }
+}
 @container php (max-width: 400px) {
-  .php-pip { font-size: 0; gap: 0; padding: 4px; }
-  .php-pip i { width: 8px; height: 8px; }
+  .php-pip { padding: 3px 4px 3px 3px; font-size: 0.56rem; }
   .php-slip { font-size: 0.66rem; gap: 8px; }
+}
+@container php (max-width: 680px) and (max-height: 470px) {
+  .php-patient__avatar { display: none; }
+  .php-view__label { display: none; }
 }

@@ -24,10 +24,14 @@ import { Tutorial } from './Tutorial';
 type Present = { kind: 'lens' | 'jcc'; phase: 1 | 2 } | { kind: 'think' };
 
 const TUT_KEY = 'lumen.phoropter.tutorial.v1';
+/** In-memory fallback so Skip sticks for the session even when storage is blocked. */
+let tutSeenInSession = false;
 function tutorialSeen(): boolean {
+  if (tutSeenInSession) return true;
   try { return localStorage.getItem(TUT_KEY) === '1'; } catch { return false; }
 }
 function markTutorialSeen(): void {
+  tutSeenInSession = true;
   try { localStorage.setItem(TUT_KEY, '1'); } catch { /* private mode */ }
 }
 
@@ -317,7 +321,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
               badge={badge}
             />
           </div>
-          <div class="php-deck">
+          <div class={`php-deck${single ? '' : ' php-deck--ou'}`}>
             {single ? (
               <>
                 <Dial id="php-sph" label="Sphere" size="lg" value={lens.sphere} min={-20} max={20} rotation={lens.sphere * 4 * 15} display={formatDiopters(lens.sphere)} onStep={(n) => onSphere(n)} disabled={busy} sub="0.25 D clicks" />
@@ -369,13 +373,15 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
               ) : present ? (
                 <p class="php-you">{present.phase === 1 ? 'You: “Number one…”' : 'You: “…or number two?”'}</p>
               ) : (
-                <SpeechBubble key={speech.id} text={speech.text} speaker={first} tail="left" voice={false} speed={ctx.reducedMotion ? 400 : 70} />
+                <SpeechBubble key={speech.id} text={speech.text} speaker={first} tail="left" voice={false} speed={ctx.reducedMotion ? 400 : 130} />
               )}
             </div>
           </div>
           <div class="php-view__label">
             <span class="php-eyebrow">Patient&rsquo;s view · {s.active}{s.duo ? ' · duochrome' : s.prism ? ' · dissociated' : ''}</span>
-            <span class="php-view__va" title="What the patient can currently resolve">sees ≈ <b class="php-num">{vaNow >= 1.25 ? '<20/200' : snellen(vaNow)}</b></span>
+            <span class="php-view__va" title="What the patient can currently resolve">
+              <span class="php-view__q php-num">{steps} Q · </span>sees ≈ <b class="php-num">{vaNow >= 1.25 ? '<20/200' : snellen(vaNow)}</b>
+            </span>
           </div>
           <ChartView frame={frame} reducedMotion={ctx.reducedMotion} badge={badge} />
           <div class="php-asks">
@@ -390,21 +396,25 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       </main>
 
       <footer class="php-foot">
-        <div class="php-progress" aria-label="Protocol progress">
+        <div class={`php-progress${single ? '' : ' php-progress--ou'}`} aria-label="Protocol progress">
           {EYES.map((e) => {
             const st = stages(s, e);
-            const items: [string, boolean][] = [['Fog', st.fog], ['Sphere', st.sphere], ['Axis', st.axis], ['Power', st.power], ['Duo', st.duo]];
+            const items: [string, string, boolean][] = [['Fog', 'Fog', st.fog], ['Sphere', 'Sph', st.sphere], ['Axis', 'Axis', st.axis], ['Power', 'Pwr', st.power], ['Duo', 'Duo', st.duo]];
             return (
-              <div class={`php-pips${s.active === e ? ' is-active' : ''}`} key={e}>
+              <div class={`php-pips${s.active === e ? ' is-active' : ''}`} key={e} role="list" aria-label={`${e} protocol stages`}>
                 <span class="php-pips__eye">{e}</span>
-                {items.map(([l, ok]) => <span key={l} class={`php-pip${ok ? ' is-done' : ''}`} title={l}><i />{l}</span>)}
+                {items.map(([l, short, ok]) => (
+                  <span key={l} role="listitem" class={`php-pip${ok ? ' is-done' : ''}`} title={l} aria-label={`${e} ${l}: ${ok ? 'done' : 'not yet'}`}>
+                    <i aria-hidden="true" /><span class="php-long" aria-hidden="true">{l}</span><span class="php-short" aria-hidden="true">{short}</span>
+                  </span>
+                ))}
               </div>
             );
           })}
         </div>
         <span class="php-steps php-num" title="Questions asked">{steps} Q</span>
         <div ref={recordBtn}>
-          <Button variant="primary" size="md" sfx={false} icon="chart" onClick={record} disabled={busy}>Record findings</Button>
+          <Button variant="primary" size="md" sfx={false} icon="chart" onClick={record} disabled={busy} aria-label="Record findings"><span class="php-long">Record findings</span><span class="php-short">Record</span></Button>
         </div>
       </footer>
 

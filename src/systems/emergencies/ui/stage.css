@@ -93,7 +93,7 @@
 .cr-eye__rays { transform-origin: 0 0; animation: cr-rays-pop 900ms 380ms var(--lm-ease-spring) both; }
 .cr-eye__pupil { transform-origin: 0 0; animation: cr-pupil 900ms 500ms var(--lm-ease-out) both; }
 .cr-saved__bust { position: absolute; right: -30px; bottom: 14px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(11, 7, 22, 0.9), 0 0 22px rgba(94, 234, 212, 0.5); animation: lm-pop-in 600ms 700ms var(--lm-ease-spring) both; }
-.cr-saved__eyebrow { position: relative; z-index: 2; margin-bottom: 8px; padding: 6px 14px; border-radius: 999px; background: #0b0716; box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.35); font: 650 var(--lm-fs-2xs)/1 var(--lm-font-ui); letter-spacing: 0.24em; text-transform: uppercase; color: #5eead4; text-shadow: 0 0 12px rgba(6, 3, 13, 0.95), 0 1px 2px #000; animation: lm-fade-up 500ms 300ms var(--lm-ease-out-expo) both; }
+.cr-saved__eyebrow { position: relative; z-index: 2; margin-bottom: 30px; padding: 6px 14px; border-radius: 999px; background: #0b0716; box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.35); font: 650 var(--lm-fs-2xs)/1 var(--lm-font-ui); letter-spacing: 0.24em; text-transform: uppercase; color: #5eead4; text-shadow: 0 0 12px rgba(6, 3, 13, 0.95), 0 1px 2px #000; animation: lm-fade-up 500ms 300ms var(--lm-ease-out-expo) both; }
 .cr-saved__title {
   margin: 0; padding: 0.08em 0.1em 0.14em; font: 600 clamp(2.7rem, 1.4rem + 6vw, 5.4rem)/1.1 var(--lm-font-display); letter-spacing: -0.01em; font-optical-sizing: auto;
   background: linear-gradient(180deg, #fffaf0 0%, #ffe7b3 45%, #ffd27a 70%, #d9962a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;

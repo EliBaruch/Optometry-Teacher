@@ -282,7 +282,7 @@ export function createScope(canvas: HTMLCanvasElement): ScopeArt {
       g.clip();
       g.globalCompositeOperation = 'lighter';
       const q = sc.quality;
-      const dull = q === 'dull' ? 0.38 : 1;
+      const dull = q === 'dull' ? 0.55 : 1;
       const bands = bandsFor(q, sc.e1, sc.e2);
       const fillCap = q === 'scissors' || q === 'irregular' ? 0.45 : 1;
       let fillAmt = 0;
@@ -314,11 +314,11 @@ export function createScope(canvas: HTMLCanvasElement): ScopeArt {
       }
       g.globalCompositeOperation = 'source-over';
       if (q === 'dull' && haze) {
-        g.globalAlpha = 0.55;
+        g.globalAlpha = 0.34;
         g.drawImage(haze, ctr.x - haze.width / 2, ctr.y - haze.height / 2);
         g.globalAlpha = 1;
         const hz = g.createRadialGradient(ctr.x, ctr.y, 0, ctr.x, ctr.y, Rp0);
-        hz.addColorStop(0, 'rgba(210,190,140,0.26)');
+        hz.addColorStop(0, 'rgba(210,170,120,0.12)');
         hz.addColorStop(1, 'rgba(150,120,80,0.1)');
         g.fillStyle = hz;
         g.fillRect(ctr.x - Rp0, ctr.y - Rp0, Rp0 * 2, Rp0 * 2);
