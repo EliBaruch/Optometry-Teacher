@@ -34,7 +34,7 @@ export const ACH_HE: Record<string, { title: string; description: string }> = {
   'textbook-ten': { title: 'עשר כמו בספר', description: '10 ציוני S.' },
   flawless: { title: 'עבודה ללא רבב', description: 'תיק מושלם: אבחנה נכונה, דחיפות נכונה, כל הבדיקות החיוניות — ובלי אף בדיקה מיותרת.' },
   'five-perfect': { title: 'חמישה בלי רבב', description: '5 תיקים מושלמים.' },
-  'hat-trick': { title: 'האט-טריק של צלילות', description: '3 תיקים מושלמים ברצף.' },
+  'hat-trick': { title: 'שלוש בלי כתם', description: '3 תיקים מושלמים ברצף.' },
   unbroken: { title: 'שרשרת שלא נקטעת', description: '10 אבחנות נכונות ברצף.' },
 
   'full-tray': { title: 'מגש מכשירים מלא', description: 'בצעו בעצמכם כל בדיקה קלינית במרפאה, לפחות פעם אחת.' },
@@ -75,7 +75,7 @@ export const ACH_HE: Record<string, { title: string; description: string }> = {
   'living-atlas': { title: 'אטלס חי', description: 'אבחנו נכון כל מצב שקיים במרפאה.' },
   'grand-master': { title: 'גראנד מאסטר', description: 'שלושה כוכבי שליטה בכל אבחנה.' },
 
-  'full-shift': { title: 'סוף משמרת', description: 'העבירו משמרת במרפאה עד שעת הסגירה.' },
+  'full-shift': { title: 'סוף משמרת', description: 'סיימו משמרת במרפאה עד שעת הסגירה.' },
   'daily-rounds': { title: 'סבב בוקר', description: 'סיימו סבב יומי.' },
   'code-red-veteran': { title: 'קור רוח בלחץ', description: 'סיימו ריצת קוד אדום.' },
   'rank-intern': { title: 'החלוק הלבן', description: 'הגיעו לדרגת סטאז׳ר.' },

@@ -253,7 +253,7 @@ export function SettingsScene({ services }: SceneProps) {
               </div>
             </div>
             <dl class="settings-credits">
-              {t.credits.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+              {t.credits.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{isolateLatin(v)}</dd></div>)}
             </dl>
             <div class="settings-actions">
               <Button size="sm" variant="ghost" icon="play" onClick={() => {
@@ -301,4 +301,14 @@ export function SettingsScene({ services }: SceneProps) {
       )}
     </Screen>
   );
+}
+
+/**
+ * Wrap Latin runs (font and library names) in <bdi dir="ltr"> so Hebrew prefixes such as "ו-"
+ * and trailing punctuation stay on the correct side in the RTL edition. No-op for pure-Latin text.
+ */
+function isolateLatin(text: string) {
+  if (!/[\u0590-\u05FF]/.test(text)) return text;
+  const parts = text.split(/([A-Za-z][A-Za-z0-9 .'()]*[A-Za-z0-9)])/g);
+  return parts.map((p, i) => (i % 2 ? <bdi key={i} dir="ltr">{p}</bdi> : p));
 }

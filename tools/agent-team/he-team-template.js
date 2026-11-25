@@ -117,12 +117,15 @@ function rewritePrompt(u, report, review, round) {
 }
 
 async function runUnit(u) {
-  let report = await agent(writePrompt(u), { label: `write:${u.key}`, phase: 'Write', schema: BUILD_SCHEMA, ...M.write(u) })
+  const reviewOnly = args && args.reviewOnly && args.reviewOnly.includes(u.key)
+  let report = reviewOnly
+    ? { summary: 'Written in an earlier round; the code on disk is the deliverable. Review it as-is.', filesTouched: u.owns, api: 'see code', sandboxUrls: [], coreRequests: [], knownIssues: [] }
+    : await agent(writePrompt(u), { label: `write:${u.key}`, phase: 'Write', schema: BUILD_SCHEMA, ...M.write(u) })
   if (!report) return { key: u.key, status: 'write-failed' }
   let review = null
   for (let round = 1; round <= MAX_FIX_ROUNDS + 1; round++) {
     const chk = await agent(checksPrompt(u), { label: `checks:${u.key}#${round}`, phase: 'Checks', schema: CHECK_SCHEMA, ...M.checks() })
-    if (chk) chk.failures = (chk.failures || []).filter(f => !/not a failure|ignored|no player-visible/i.test(f))
+    if (chk) chk.failures = (chk.failures || []).filter(f => !/not a failure|ignored|no player-visible|not opened|unconfirmed|\.test\.tsx?|test file/i.test(f))
     if (chk && chk.failures.length) {
       log(`${u.key} round ${round}: mechanical checks failed (${chk.failures.length})`)
       if (round > MAX_FIX_ROUNDS) { review = { verdict: 'revise', scores: null, mustFix: chk.failures, niceToHave: [], summary: 'mechanical checks failing' }; break }

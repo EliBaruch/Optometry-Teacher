@@ -225,3 +225,6 @@ html.reduced-motion {
   --lm-font-display: 'Frank Ruhl Libre', 'Fraunces Variable', 'David Libre', serif;
   --lm-font-ui: 'Heebo Variable', 'Heebo', 'Inter Variable', system-ui, sans-serif;
 }
+
+/* Hebrew has no case and letter-spacing breaks its word shapes: neutralise caps styling app-wide. */
+:root:lang(he) body * { letter-spacing: normal !important; text-transform: none !important; }
