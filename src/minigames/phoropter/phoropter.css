@@ -536,3 +536,4 @@
 .php-root .php-num, .php-root .php-dial__value, .php-root .php-slip__v, .php-root .php-nudge output { direction: ltr; unicode-bidi: isolate; }
 .php-root .php-phoropter { direction: ltr; }
 .php-root .php-steps, .php-root .php-view__q { direction: inherit; unicode-bidi: normal; }
+.php-root .php-dial__steps { direction: ltr; }
