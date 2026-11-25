@@ -187,7 +187,8 @@ export function bindRivals(services: GameServices): () => void {
           rarity: rank === 1 ? 'epic' : 'rare',
         });
         unlock('first-pass', 'Fresh Competition', 'Overtake a colleague on the weekly board.', 'trophy');
-        later(() => {
+        // Celebrate only on a correct diagnosis: confetti over a missed case teaches the wrong lesson.
+        if (score.diagnosisCorrect) later(() => {
           bus.emit('toast', {
             message: rank === 1 ? `You passed ${lead.short} — top of the board!` : `You passed ${names.length === 1 ? lead.short : names.join(' and ')}! Now #${rank}.`,
             icon: rank === 1 ? 'crown' : 'trophy',
