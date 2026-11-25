@@ -9,7 +9,9 @@ import { flagFor, METHOD_LABEL as METHOD_NAME, type Method } from './optics';
 export const ASYMMETRY_NOTE = 4;
 export const ASYMMETRY_ABNORMAL = 6;
 
-export function buildReport(findings: PatientFindings, method: Method = 'goldmann'): RevealedFinding[] {
+export interface ReportOpts { method?: Method; /** clock time of the measurement, e.g. '10:42' */ time?: string }
+
+export function buildReport(findings: PatientFindings, method: Method = 'goldmann', time?: string): RevealedFinding[] {
   const out: RevealedFinding[] = [];
   const iop = findings.iop;
   for (const eye of EYES) {
@@ -19,6 +21,7 @@ export function buildReport(findings: PatientFindings, method: Method = 'goldman
   }
   if (out.length === 0) return out;
   out.push({ label: 'IOP method', value: METHOD_NAME[method], eye: 'OU', flag: 'normal' });
+  if (time) out.push({ label: 'IOP time', value: time, eye: 'OU', flag: 'normal' });
   if (typeof iop.OD === 'number' && typeof iop.OS === 'number') {
     const d = Math.abs(Math.round(iop.OD) - Math.round(iop.OS));
     if (d >= ASYMMETRY_NOTE) {
@@ -29,6 +32,11 @@ export function buildReport(findings: PatientFindings, method: Method = 'goldman
   return out;
 }
 
-export function report(findings: PatientFindings, _patient?: PatientProfile): RevealedFinding[] {
-  return buildReport(findings, 'goldmann');
+export function report(findings: PatientFindings, _patient?: PatientProfile, opts: ReportOpts = {}): RevealedFinding[] {
+  return buildReport(findings, opts.method ?? 'goldmann', opts.time);
+}
+
+/** Local clock time as HH:MM (diurnal IOP varies, so the chart records when). */
+export function clockTime(d: Date = new Date()): string {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }

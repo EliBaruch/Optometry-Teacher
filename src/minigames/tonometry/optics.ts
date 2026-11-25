@@ -40,7 +40,7 @@ export function dyeBias(amount: number): number {
 }
 export const dyeInBand = (a: number) => a >= DYE_BAND.lo && a <= DYE_BAND.hi;
 /** Mire thickness as a fraction of the ring (centre-line) radius. */
-export const mireWidth = (amount: number) => 0.06 + 0.3 * clamp01(amount);
+export const mireWidth = (amount: number) => 0.03 + 0.3 * Math.pow(clamp01(amount), 2.2);
 
 export type DyeState = 'thin' | 'good' | 'thick';
 export const dyeState = (a: number): DyeState => (a < DYE_BAND.lo ? 'thin' : a > DYE_BAND.hi ? 'thick' : 'good');

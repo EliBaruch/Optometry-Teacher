@@ -7,6 +7,8 @@ export interface ChartViewProps {
   reducedMotion: boolean;
   /** badge shown over the chart while presenting ("1" / "2") */
   badge?: string | null;
+  /** small read-out over the chart's corner (phones, where the label row is dropped) */
+  caption?: string;
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -18,7 +20,7 @@ function lerpKernel(a: BlurKernel, b: BlurKernel, t: number): BlurKernel {
 }
 
 function lerpFrame(a: ChartFrame, b: ChartFrame, t: number): ChartFrame {
-  if (a.layout !== b.layout || !!a.dark !== !!b.dark) return b;
+  if (a.layout !== b.layout || !!a.dark !== !!b.dark || a.win !== b.win) return b;
   return {
     layout: b.layout,
     dark: b.dark,
@@ -27,11 +29,12 @@ function lerpFrame(a: ChartFrame, b: ChartFrame, t: number): ChartFrame {
     scale: lerp(a.scale, b.scale, t),
     haze: lerp(a.haze, b.haze, t),
     dim: lerp(a.dim, b.dim, t),
+    win: b.win,
   };
 }
 
 /** The patient's view of the projected chart, with eased focus changes. */
-export function ChartView({ frame, reducedMotion, badge }: ChartViewProps) {
+export function ChartView({ frame, reducedMotion, badge, caption }: ChartViewProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const painter = useRef<ChartPainter | null>(null);
@@ -120,6 +123,7 @@ export function ChartView({ frame, reducedMotion, badge }: ChartViewProps) {
         </div>
       )}
       {frame.dark && <div class="php-chart__dark">Occluded</div>}
+      {caption && <div class="php-chart__cap php-num" aria-hidden="true">{caption}</div>}
       {badge && <div class="php-chart__badge" key={badge}>{badge}</div>}
       <div class="php-chart__vignette" aria-hidden="true" />
     </div>

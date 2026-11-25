@@ -13,7 +13,7 @@ import {
 } from './optics';
 import { assess, type EyeMeasure } from './scoring';
 import { makeChallenge } from './practice';
-import { buildReport } from './report';
+import { buildReport, clockTime } from './report';
 
 interface Sim {
   t: number;
@@ -200,6 +200,15 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     setUi((u) => ({ ...u, dial: nv }));
   };
 
+  const scopeRef = useRef<HTMLElement>(null);
+  const glow = () => {
+    const el = scopeRef.current;
+    if (!el || reduced) return;
+    el.classList.remove('is-bloom');
+    void el.offsetWidth;
+    el.classList.add('is-bloom');
+  };
+
   const burstAtScope = (kind: 'sparks' | 'stars' | 'confetti') => {
     const r = canvasRef.current?.getBoundingClientRect();
     if (r) fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind, count: 26, color: '#ffd27a' });
@@ -217,6 +226,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       centreErr: centreError(st.x + dr.x + S.hx, st.y + dr.y + S.hy), dye: S.dye, contactS: S.contact,
     };
     play('lens-click');
+    glow();
     const err = Math.abs(m.reading - T);
     if (err <= 1 && alignQuality(m.centreErr) > 0.85) { play('success'); burstAtScope('stars'); fx.floatText(`${m.reading} mmHg`, innerWidth / 2, innerHeight / 2, { color: '#ffd27a', size: 28 }); }
     setMeasures((p) => ({ ...p, [e]: m }));
@@ -293,7 +303,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       testId: 'tonometry',
       accuracy: clamp(accuracy, 0, 1),
       timeMs: Math.round(S.active * 1000),
-      findings: buildReport(ctx.findings, method),
+      findings: buildReport(ctx.findings, method, clockTime()),
       perfect,
     });
   };
@@ -338,9 +348,10 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             onNumb={() => setNumbed(true)} onDye={(v) => { S.dye = v; setDyeUi(v); }} onDone={enterMeasure} play={play} />
         ) : (
           <>
-            <section class="tn-scope" aria-label={`${eye} slit-lamp field`}>
+            <section ref={scopeRef} class="tn-scope" aria-label={`${eye} slit-lamp field`}>
               <canvas ref={canvasRef} class="tn-canvas" role="img" aria-label={method === 'goldmann' ? 'Fluorescein semicircles in the biprism' : 'Cornea with iCare probe'} />
               <span class="tn-scope__eye">{eye}</span>
+              <span class="tn-vignette" aria-hidden="true" />
               {method === 'goldmann' && (
                 <span class={`tn-chip tn-chip--contact${longContact ? ' is-warn' : ''}${ui.contact > CONTACT_LIMIT_S ? ' is-bad' : ''}`}>
                   <Icon name="clock" /> {ui.contact.toFixed(0)}s contact
@@ -355,6 +366,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
                     <span class="tn-lcd__big tn-num">{Math.round(ui.dial)}<small> mmHg</small></span>
                     <span class="tn-lcd__sub">{fmtGrams(ui.dial)} on the drum</span>
                     <span class="tn-ep">Read at mid-pulse</span>
+                    <span class="tn-keys">Drum: drag, wheel or arrow keys</span>
                   </>
                 ) : (
                   <>

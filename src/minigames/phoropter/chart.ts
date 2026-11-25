@@ -23,6 +23,16 @@ export interface ChartFrame {
   dim: number;
   /** occluded: nothing to see */
   dark?: boolean;
+  /** which window of chart lines a short, wide frame shows (0 = big letters .. 2 = small letters) */
+  win?: 0 | 1 | 2;
+}
+
+/** Index ranges of CHART_LINES shown in a compact (short, wide) frame, so letters stay legible. */
+export const COMPACT_WINDOWS: readonly (readonly [number, number])[] = [[0, 4], [2, 7], [4, 9]];
+
+/** Pick the compact window that brackets the patient's current acuity (logMAR; larger = worse). */
+export function windowFor(logmar: number): 0 | 1 | 2 {
+  return logmar > 0.5 ? 0 : logmar > 0.12 ? 1 : 2;
 }
 
 const SAMPLES = 28;
@@ -34,6 +44,9 @@ export class ChartPainter {
   private small = document.createElement('canvas');
   private acc = document.createElement('canvas');
   private key = '';
+  private win: 0 | 1 | 2 = 1;
+  /** a short, wide frame (phone): show a window of lines at a larger size */
+  compact = false;
   private w = 0;
   private h = 0;
   private dpr = 1;
@@ -47,13 +60,14 @@ export class ChartPainter {
     this.w = Math.max(1, Math.round(w));
     this.h = Math.max(1, Math.round(h));
     this.dpr = Math.min(2, Math.max(1, dpr));
+    this.compact = this.w / this.h > 1.5 && this.h < 300;
     this.canvas.width = Math.round(this.w * this.dpr);
     this.canvas.height = Math.round(this.h * this.dpr);
     this.key = '';
   }
 
   private build(layout: ChartLayout): void {
-    const key = `${layout}:${this.w}x${this.h}@${this.dpr}`;
+    const key = `${layout}:${this.w}x${this.h}@${this.dpr}:${this.compact ? this.win : '-'}`;
     if (key === this.key) return;
     this.key = key;
     const s = this.sharp;
@@ -92,7 +106,8 @@ export class ChartPainter {
     }
 
     // Snellen-style layout; letter height ∝ denominator, letters one width apart.
-    const lines = layout === 'duochrome' ? CHART_LINES.slice(3, 8) : CHART_LINES;
+    const [w0, w1] = COMPACT_WINDOWS[this.win]!;
+    const lines = layout === 'duochrome' ? (this.compact ? CHART_LINES.slice(4, 8) : CHART_LINES.slice(3, 8)) : this.compact ? CHART_LINES.slice(w0, w1) : CHART_LINES;
     const gapK = 0.62;
     const sumH = lines.reduce((a, l) => a + l.denom * (1 + gapK), 0) - lines[lines.length - 1]!.denom * gapK;
     const widest = Math.max(...lines.map((l) => l.denom * (l.letters.length * 2 - 1)));
@@ -119,6 +134,7 @@ export class ChartPainter {
       ctx.fillRect(0, 0, W, H);
       return [];
     }
+    this.win = f.win ?? 1;
     this.build(f.layout);
     ctx.save();
     // magnification about the centre

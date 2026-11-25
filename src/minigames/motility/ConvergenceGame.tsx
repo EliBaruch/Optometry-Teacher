@@ -8,7 +8,7 @@ import {
 import { convergenceAccuracy } from './scoring';
 import { reportConvergence } from './report';
 import { convergenceChallenge } from './practice';
-import { Debrief, EyePair, Face, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
+import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
 
 const STEPS: TutStep[] = [
   { title: 'Bring the target in slowly', body: 'Hold the approach button (or the left arrow) to slide the accommodative target toward the nose at a steady 2–5 cm per second. Too fast and you will overshoot the true break.', keys: ['← hold', 'Drag'] },
@@ -99,7 +99,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     for (const e of ['OD', 'OS'] as Eye[]) {
       const b = base[e];
       const drift = L.phase !== 'amp' && e === truth.deviatingEye ? sim.current.drift : 0;
-      out[e] = { ...b, gaze: { x: nasalSign(e) * k.cg * (1 - 1.7 * drift), y: 0.05 + 0.08 * prox }, pupilMm: Math.max(2, b.pupilMm - 1.4 * prox) };
+      out[e] = { ...b, lidAperture: openLid(b.lidAperture), gaze: { x: nasalSign(e) * k.cg * (1 - 1.7 * drift), y: 0.05 + 0.08 * prox }, pupilMm: Math.max(2, b.pupilMm - 1.4 * prox) };
     }
 
     // DOM: ruler handle, front-view card, readouts
@@ -230,15 +230,16 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
         <div class="mot-wrap">
           <div class="mot-stage mot-stage--conv" style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}>
             <Face />
-            <EyePair frame={frame} flag={phase === 'amp' ? null : flag} covered={phase === 'amp' ? OTHER(ampEye) : null} />
+            <EyePair frame={frame} flag={phase === 'amp' || ctx.mode !== 'practice' ? null : flag} covered={phase === 'amp' ? OTHER(ampEye) : null} />
             <div ref={cardRef} class="mot-tcard" aria-hidden="true"><div ref={lettersRef} class="mot-tcard__l">E F P T</div></div>
             {say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}
           </div>
           <div class="mot-ruler" aria-label="Ruler">
-            <div class="mot-ruler__eye" aria-hidden="true"><Icon name="eye" size={22} /><small>{phase === 'amp' ? 'eye' : 'nose'}</small></div>
+            <div class="mot-ruler__eye" aria-hidden="true"><Icon name="eye" size={20} /><small>{phase === 'amp' ? 'eye' : 'nose'}</small><span ref={readRef} class="mot-ruler__read mot-num">40.0 cm</span></div>
             <div ref={trackRef} class="mot-ruler__track" onPointerDown={(e) => { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); c.current.drag = true; rulerTo(e.clientX); rootRef.current?.focus({ preventScroll: true }); }}
               onPointerMove={(e) => { if (c.current.drag) rulerTo(e.clientX); }} onPointerUp={() => { c.current.drag = false; }} onPointerCancel={() => { c.current.drag = false; }}
               onWheel={(e) => { e.preventDefault(); c.current.td += Math.sign(e.deltaY) * 0.5; }}>
+              <div class="mot-scale">
               <div class="mot-ticks" aria-hidden="true">
                 {ticks.map((t) => <i key={t} class={t % labelEvery === 0 ? 'is-l' : t % 5 === 0 ? 'is-m' : ''} style={{ left: `${(t / max) * 100}%` }}>{t % labelEvery === 0 ? <b>{t}</b> : null}</i>)}
               </div>
@@ -246,7 +247,8 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
               {marks.rec != null && phase !== 'amp' ? <span class="mot-pin mot-pin--r" style={{ left: `${(marks.rec / max) * 100}%` }}>R {fmt(marks.rec)}</span> : null}
               {phase === 'amp' && amp(ampEye) != null ? <span class="mot-pin mot-pin--b" style={{ left: `${(100 / amp(ampEye)! / max) * 100}%` }}>{fmt(amp(ampEye)!)} D</span> : null}
               <div ref={handleRef} class="mot-handle" role="slider" aria-label="Target distance in centimetres" aria-valuemin={1.5} aria-valuemax={max} aria-valuenow={Math.round(c.current.td)}>
-                <span class="mot-handle__card">E</span><span ref={readRef} class="mot-handle__read mot-num">40.0 cm</span>
+                <span class="mot-handle__card">E</span>
+              </div>
               </div>
             </div>
           </div>
@@ -271,7 +273,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
         </aside>
       </div>
       <footer class="mot-foot">
-        <div class="mot-foot__bar"><ProgressBar value={stepsDone} max={4} label="Measurements" valueText={`${stepsDone} / 4`} accent="#ffd27a" size="sm" /></div>
+        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{stepsDone}/4 measured</span><ProgressBar value={stepsDone} max={4} ariaLabel="Measurements completed" accent="#ffd27a" size="sm" /></div>
         <span class="mot-foot__note" role="status">{nudge}</span>
         <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief}>Record findings</Button>
       </footer>

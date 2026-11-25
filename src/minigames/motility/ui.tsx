@@ -7,6 +7,9 @@ import type { Challenge } from './practice';
 
 export const SKIN_HEX = ['#f7dccb', '#eec3a2', '#d6a27a', '#b77d55', '#8c5a3b', '#5f3b26'];
 
+/** Rest aperture for the examination: a normal wide palpebral fissure unless the case has true ptosis or lid swelling. */
+export const openLid = (a: number) => (a < 0.7 ? a : Math.max(a, 1.08));
+
 export interface EyeFrame { OD: EyeState; OS: EyeState }
 /**
  * Two live eye canvases (OD on the examiner's left). `frame` is called once per animation frame
@@ -32,15 +35,15 @@ export function EyePair({ frame, covered, flag }: { frame: (dtMs: number, nowMs:
     measure();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
     ro?.observe(cells.OD.current!);
-    let raf = 0, last = performance.now(), nextBlink = last + 2500 + Math.random() * 2500, blinkAt = -1;
+    let raf = 0, last = performance.now(), nextBlink = last + 3500 + Math.random() * 3500, blinkAt = -1;
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
       const dt = Math.min(64, now - last); last = now;
       if (blinkAt < 0 && now > nextBlink) { blinkAt = now; nextBlink = now + 3000 + Math.random() * 3500; }
       let blink = 1;
       if (blinkAt >= 0) {
-        const p = (now - blinkAt) / 170;
-        if (p >= 1) blinkAt = -1; else blink = Math.max(0.04, Math.abs(p * 2 - 1));
+        const p = (now - blinkAt) / 140;
+        if (p >= 1) blinkAt = -1; else blink = Math.max(0.1, Math.abs(p * 2 - 1));
       }
       const st = live.current(dt, now);
       for (const e of ['OD', 'OS'] as Eye[]) {

@@ -9,7 +9,7 @@ import {
 import { gradingScore, motilityAccuracy } from './scoring';
 import { reportMotility } from './report';
 import { motilityChallenge, motilityTeach } from './practice';
-import { Debrief, EyePair, Face, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
+import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
 
 const STEPS: TutStep[] = [
   { title: 'Lead the eyes through the H', body: 'Drag the glowing wand, or use the arrow keys, to the nine positions of gaze: straight ahead, right, left, up, down and the four diagonals. Hold briefly at each one so the patient can follow.', keys: ['Drag', '← ↑ → ↓', '1–9'] },
@@ -17,6 +17,11 @@ const STEPS: TutStep[] = [
   { title: 'Grade every gaze for each eye', body: 'Pick a cell on the OD or OS chart, then grade it: 0 is full movement, −1 to −4 is increasing underaction, +1 to +4 overaction. Record when you are done.', keys: ['+', '−', '0'] },
 ];
 const DIP_WORD = { horizontal: 'side by side', vertical: 'one above the other', oblique: 'at a slant' } as const;
+const whereName = (x: number, y: number) => {
+  const u = x < -0.35 ? -1 : x > 0.35 ? 1 : 0, v = y < -0.35 ? -1 : y > 0.35 ? 1 : 0;
+  const n = NODES.find((q) => q.u === u && q.v === v)!;
+  return n.id === 'primary' ? 'Straight ahead' : n.name.replace(/^./, (c) => c.toUpperCase());
+};
 const ID = (id: string) => `mot-${id}`;
 type GradeSel = { eye: Eye; gaze: Gaze } | null;
 const GRADES = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
@@ -35,7 +40,7 @@ function HChart({ eye, grid, truth, sel, onSel }: { eye: Eye; grid: Record<Gaze,
           return (
             <button key={n.id} type="button" class={`mot-cellc${on ? ' is-sel' : ''}${state}`} data-g={truth ? t : g} disabled={!onSel}
               aria-label={`${eye} ${n.name} gaze, grade ${gradeText(truth ? t! : g)}`} aria-pressed={on} onClick={() => onSel?.(n.id as Gaze)}>
-              <span class="mot-num">{gradeText(truth ? t! : g)}</span>
+              <span class="mot-num" key={truth ? t : g}>{gradeText(truth ? t! : g)}</span>
               {truth && g !== t ? <small>you {gradeText(g)}</small> : null}
             </button>
           );
@@ -67,6 +72,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const [debrief, setDebrief] = useState<{ grading: number; technique: number } | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const [nudge, setNudge] = useState('');
+  const [log, setLog] = useState<{ id: number; where: string; text: string }[]>([]);
   const [tab, setTab] = useState<'sweep' | 'grade'>('sweep');
   const autoTab = useRef(false);
 
@@ -82,7 +88,11 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const timers = useRef<number[]>([]);
   sim.current.tutorial = tutorial; sim.current.debrief = !!debrief;
 
-  const speak = (text: string) => setSay({ id: ++sim.current.sayId, text });
+  const speak = (text: string, where = '') => {
+    const id = ++sim.current.sayId;
+    setSay({ id, text });
+    setLog((l) => [...l.slice(-5), { id, where, text }]);
+  };
   const play = (id: Parameters<typeof audio.play>[0], o?: { volume?: number; pitch?: number }) => audio.play(id, o);
 
   useEffect(() => {
@@ -126,7 +136,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
       const x = Math.max(-1, Math.min(1, b.gaze.x + g.x + nys));
       const y = Math.max(-1, Math.min(1, b.gaze.y + g.y));
       fin[e] = { x, y };
-      out[e] = { ...b, gaze: { x, y }, lidAperture: b.lidAperture * (now < s.painUntil ? 0.82 : 1), pupilMm: b.pupilMm };
+      out[e] = { ...b, gaze: { x, y }, lidAperture: openLid(b.lidAperture) * (now < s.painUntil ? 0.82 : 1), pupilMm: b.pupilMm };
     }
     const mis = misalignment(fin.OD, fin.OS);
     const seesDouble = f.motility.diplopia !== 'none' && mis.kind != null;
@@ -138,8 +148,10 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
     if (ghostEl.current) {
       const devOD = Math.hypot(fin.OD.x - w.px * GAZE_X, fin.OD.y - w.py * GAZE_Y) > Math.hypot(fin.OS.x - w.px * GAZE_X, fin.OS.y - w.py * GAZE_Y);
       const sgn = devOD ? -1 : 1;
-      const gx = Math.max(-W / 2 + 14 - wx + W / 2, Math.min(W - 14 - wx, Math.max(-64, Math.min(64, sgn * mis.dx * 150)))), gy = Math.max(-64, Math.min(64, sgn * mis.dy * 150));
-      ghostEl.current.style.transform = `translate(${(wx + gx).toFixed(1)}px, ${(wy + gy).toFixed(1)}px)`;
+      // separation is drawn in proportion to the true misalignment; where the outer nodes leave no room it folds back inside the stage
+      const room = (v: number, pos: number, size: number) => { const t = pos + v; return t < 16 ? pos + Math.abs(v) : t > size - 16 ? pos - Math.abs(v) : t; };
+      const ghx = room(sgn * mis.dx * 0.2 * W, wx, W), ghy = room(sgn * mis.dy * 0.2 * W, wy, H);
+      ghostEl.current.style.transform = `translate(${ghx.toFixed(1)}px, ${ghy.toFixed(1)}px)`;
       ghostEl.current.style.opacity = seesDouble ? '0.8' : '0';
     }
     if (!active) return out;
@@ -152,19 +164,18 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
         s.seen.add(n.id);
         setVisited([...s.seen]);
         play('lens-click', { pitch: 1 + s.seen.size * 0.04 });
-        const r = stageRef.current!.getBoundingClientRect();
-        fx.burst(r.left + wx, r.top + wy, { kind: 'sparks', count: 14, color: '#ffd27a' });
+        try { if (!ctx.reducedMotion) navigator.vibrate?.(8); } catch { /* optional */ }
       }
     }
     // the patient reports what the patient would feel
     if (seesDouble && !s.dip && now - s.dipAt > 1800) {
       s.dip = true; s.dipAt = now;
-      speak(`I see two! ${DIP_WORD[mis.kind!].replace(/^./, (c) => c.toUpperCase())}.`);
+      speak(`I see two! ${DIP_WORD[mis.kind!].replace(/^./, (c) => c.toUpperCase())}.`, whereName(w.x, w.y));
       play('pop', { pitch: 0.8 });
     } else if (!seesDouble && s.dip) s.dip = false;
     if (f.motility.painOnMovement && speed > 0.25 && Math.hypot(w.x, w.y) > 0.45 && now - s.painAt > 3500) {
       s.painAt = now; s.painUntil = now + 900;
-      speak('Ow — it hurts when I move my eyes that way.');
+      speak('Ow — it hurts when I move my eyes that way.', whereName(w.x, w.y));
       play('thud', { volume: 0.5 });
     }
     return out;
@@ -192,7 +203,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const onKeyUp = (e: KeyboardEvent) => { keys.current.delete(e.key); };
 
   const grade = (v: number) => {
-    if (!sel) return;
+    if (!sel) { setNudge('Tap a cell on the OD or OS chart first, then choose its grade.'); play('error', { volume: 0.4 }); return; }
     const nv = Math.max(-4, Math.min(4, v));
     setMine((m) => ({ ...m, [sel.eye]: { ...m[sel.eye], [sel.gaze]: nv } }));
     play('dial', { pitch: 0.9 + (nv + 4) * 0.04 });
@@ -236,7 +247,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const cur = sel ? mine[sel.eye][sel.gaze] : 0;
 
   return (
-    <div class="mot-root" onKeyDown={onRootKey}>
+    <div class={`mot-root${ctx.reducedMotion ? ' is-rm' : ''}`} onKeyDown={onRootKey}>
       <header class="mot-head">
         <div class="mot-head__title"><Icon name="motility" size={20} /> Extraocular motility</div>
         <p class="mot-head__hint" key={hint} aria-live="polite">{hint}</p>
@@ -275,15 +286,22 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
             <p class="mot-eyebrow">{sel ? `${sel.eye} · ${NODES.find((n) => n.id === sel.gaze)!.name} gaze` : 'Tap a cell, then grade it'}</p>
             <div class="mot-strip__row">
               {GRADES.map((g) => (
-                <button key={g} type="button" disabled={!sel} class={`mot-g${sel && cur === g ? ' is-on' : ''}`} data-g={g} aria-pressed={!!sel && cur === g} aria-label={`Grade ${gradeText(g)}`} onClick={() => grade(g)}>{gradeText(g)}</button>
+                <button key={g} type="button" class={`mot-g${sel && cur === g ? ' is-on' : ''}`} data-g={g} aria-pressed={!!sel && cur === g} aria-label={`Grade ${gradeText(g)}`} onClick={() => grade(g)}>{gradeText(g)}</button>
               ))}
             </div>
             <p class="mot-legend"><span>underaction</span><span>full</span><span>overaction</span></p>
           </div>
+          <div class="mot-log" aria-label="Patient reports">
+            <p class="mot-eyebrow">Patient reports</p>
+            {log.length ? (
+              <ul>{log.slice().reverse().map((l) => <li key={l.id}>{l.where ? <b>{l.where}</b> : null}{l.text}</li>)}</ul>
+            ) : <p class="mot-log__empty">Nothing yet. Double vision or pain on moving the eyes will appear here, with the gaze where it happened.</p>}
+          </div>
+          <p class="mot-key"><b>Grading key.</b> −1 slight, −2 moderate, −3 marked, −4 no movement beyond the midline. +1 to +4 overaction of the same degree.</p>
         </aside>
       </div>
       <footer class="mot-foot">
-        <div class="mot-foot__bar"><ProgressBar value={visited.length} max={9} label="Positions examined" valueText={`${visited.length} / 9`} accent="#ffd27a" size="sm" /></div>
+        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{visited.length}/9 positions</span><ProgressBar value={visited.length} max={9} ariaLabel="Positions of gaze examined" accent="#ffd27a" size="sm" /></div>
         <span class="mot-foot__note" role="status">{nudge || `${gradedCount} cells graded`}</span>
         <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief}>Record findings</Button>
       </footer>

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { buildFindings, createRng } from '@core';
-import { apparentOffset, classify, dyeBias, endpointOf, flagFor, icareMean, icareShot, pulse, pulseAmp } from './optics';
+import { mireWidth, apparentOffset, classify, dyeBias, endpointOf, flagFor, icareMean, icareShot, pulse, pulseAmp } from './optics';
 import { assess, endpointScore, scoreEye } from './scoring';
-import { buildReport, report } from './report';
+import { buildReport, clockTime, report } from './report';
 import { makeChallenge, makeScenario } from './practice';
 
 describe('optics', () => {
@@ -32,6 +32,15 @@ describe('optics', () => {
     expect(icareShot(15, 0.6, 0).accepted).toBe(false);
     expect(icareMean([icareShot(15, 0, 0), icareShot(15, 0, 0)])).toBe(15);
     expect(icareMean([icareShot(15, 0.9, 0)])).toBeNull();
+  });
+});
+
+describe('mire thickness', () => {
+  it('good band is fine, thick dye is clearly fatter', () => {
+    expect(mireWidth(0.5)).toBeLessThan(0.11);
+    expect(mireWidth(0.64)).toBeLessThan(0.16);
+    expect(mireWidth(0.95)).toBeGreaterThan(0.25);
+    expect(mireWidth(0.05)).toBeLessThan(mireWidth(0.5));
   });
 });
 
@@ -70,6 +79,20 @@ describe('report', () => {
   });
 });
 
+describe('report method and time', () => {
+  it('module report honours method and time', () => {
+    const f = buildFindings(30);
+    const lines = report(f, undefined, { method: 'icare', time: '09:05' });
+    expect(lines.find((l) => l.label === 'IOP method')!.value).toBe('iCare rebound');
+    expect(lines.find((l) => l.label === 'IOP time')).toMatchObject({ value: '09:05', eye: 'OU' });
+    expect(report(f, undefined).find((l) => l.label === 'IOP method')!.value).toBe('Goldmann applanation');
+  });
+  it('buildReport adds the time line and clockTime formats', () => {
+    expect(buildReport(buildFindings(30), 'goldmann', '14:30').map((l) => l.label)).toContain('IOP time');
+    expect(clockTime(new Date(2024, 0, 1, 7, 4))).toBe('07:04');
+  });
+});
+
 describe('practice', () => {
   it('generates coherent varied scenarios and valid challenges', () => {
     const kinds = new Set<string>();
@@ -86,5 +109,27 @@ describe('practice', () => {
       expect(new Set(c.options).size).toBe(c.options.length);
     }
     expect(kinds.size).toBe(4);
+  });
+});
+
+describe('mount / cleanup', () => {
+  it('renders into the host, never calls done on its own, and cleanup empties the host', async () => {
+    const { default: mod } = await import('./index');
+    const rng = createRng(7);
+    const sc = makeScenario(rng, 0.4);
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    let calls = 0;
+    const audio = { play() {}, music() {}, unlock() {}, setVolumes() {} };
+    const fx = { shake() {}, flash() {}, burst() {}, floatText() {}, hitstop() {}, vignette() {} };
+    const cleanup = mod.mount(host, { patient: sc.patient, findings: sc.findings, mode: 'practice', difficulty: 0.4, rng, audio, fx, reducedMotion: true } as never, () => { calls++; });
+    await new Promise((r) => setTimeout(r, 30));
+    expect(host.querySelector('.tn-root')).not.toBeNull();
+    expect(calls).toBe(0);
+    cleanup();
+    expect(host.childElementCount).toBe(0);
+    expect(host.classList.contains('tn-host')).toBe(false);
+    expect(calls).toBe(0);
+    host.remove();
   });
 });

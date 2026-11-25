@@ -291,6 +291,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             version={0}
           />
           <span class="kr-scope__eye" aria-hidden="true">{eye}</span>
+          <span class="kr-scope__legend" aria-hidden="true"><i class="is-h" />plus signs<i class="is-v" />minus signs</span>
           {locked && <span class="kr-scope__lock"><Icon name="lock" /> Locked</span>}
         </section>
 
@@ -318,6 +319,12 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             <div><span>K1 flat</span><b class="kr-num">{rd.k1.toFixed(2)}</b><em class="kr-num">@ {String(rd.axisK1).padStart(3, '0')}</em></div>
             <div><span>K2 steep</span><b class="kr-num">{rd.k2.toFixed(2)}</b><em class="kr-num">@ {String(wrapAxis(rd.axisK1 + 90)).padStart(3, '0')}</em></div>
             <div class="kr-readout__cyl"><span>Cyl = K2 − K1</span><b class="kr-num">{cylNow.toFixed(2)}</b><em>D</em></div>
+          </div>
+
+          <div class="kr-cylbar" aria-hidden="true" title="Corneal cylinder">
+            <i style={{ width: `${Math.min(100, (cylNow / 6) * 100)}%` }} />
+            <span style={{ left: `${(1 / 6) * 100}%` }} /><span style={{ left: `${(3 / 6) * 100}%` }} />
+            <em>0</em><em style={{ left: '16.7%' }}>1 D</em><em style={{ left: '50%' }}>3 D</em><em style={{ right: 0 }}>6 D</em>
           </div>
 
           <div class="kr-mires">
@@ -350,7 +357,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             return (
               <span key={e} class={`kr-progress__e${l ? ' is-done' : ''}${e === eye ? ' is-cur' : ''}`}>
                 <b>{e}</b>
-                <span class="kr-num">{l ? `${readingOf(l.ins).k1.toFixed(2)} / ${readingOf(l.ins).k2.toFixed(2)} @ ${String(readingOf(l.ins).axisK1).padStart(3, '0')}` : 'not measured'}</span>
+                <span class={`kr-num${l ? '' : ' kr-progress__nm'}`}>{l ? <>{readingOf(l.ins).k1.toFixed(2)} / {readingOf(l.ins).k2.toFixed(2)}<small class="kr-ax"> @ {String(readingOf(l.ins).axisK1).padStart(3, '0')}</small></> : 'not measured'}</span>
               </span>
             );
           })}

@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { EYES, formatDiopters, formatRx, type AudioPort, type Eye } from '@core';
 import { Button, CountUp, Icon, RingMeter } from '@ui-kit';
 import { perceivedVA, snellen, type EyeModel, type Lens } from './optics';
@@ -37,8 +37,12 @@ function lessons(p: DebriefProps): string[] {
 
 export function Debrief(p: DebriefProps) {
   const [picked, setPicked] = useState<number | null>(null);
+  // Technique first: the player sees how their own refraction compares, then the recognition check.
+  const [stage, setStage] = useState<'result' | 'challenge'>('result');
   const ch = p.challenge;
-  const answered = !ch || picked !== null;
+  const explain = useRef<HTMLParagraphElement>(null);
+  // On a short phone screen the explanation sits below the fold: bring it into view.
+  useEffect(() => { if (picked !== null) explain.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }); }, [picked]);
   const correct = ch && picked !== null ? picked === ch.correct : null;
 
   const choose = (i: number) => {
@@ -49,35 +53,10 @@ export function Debrief(p: DebriefProps) {
 
   return (
     <div class="php-debrief" role="dialog" aria-modal="true" aria-labelledby="php-debrief-title">
-      <div class="php-debrief__card">
-        {ch && (
-          <section class="php-challenge" aria-live="polite">
-            <p class="php-eyebrow">Recognition check</p>
-            <h3 class="php-challenge__q">{ch.question}</h3>
-            <div class="php-challenge__opts">
-              {ch.options.map((o, i) => (
-                <button
-                  key={o}
-                  type="button"
-                  class={`php-opt${picked !== null && i === ch.correct ? ' is-right' : ''}${picked === i && i !== ch.correct ? ' is-wrong' : ''}`}
-                  disabled={picked !== null}
-                  onClick={() => choose(i)}
-                >
-                  <span class="php-opt__key">{String.fromCharCode(65 + i)}</span>
-                  {o}
-                </button>
-              ))}
-            </div>
-            {picked !== null && (
-              <p class={`php-challenge__explain${correct ? ' is-right' : ''}`}>
-                <Icon name={correct ? 'check' : 'info'} /> {correct ? 'Correct. ' : `It's ${ch.options[ch.correct]}. `}{ch.explain}
-              </p>
-            )}
-          </section>
-        )}
-
-        {answered && (
+      <div class="php-debrief__card" key={stage}>
+        {stage === 'result' && (
           <section class="php-result">
+            <div class="php-scroll">
             <header class="php-result__head">
               <RingMeter value={p.assessment.accuracy} size={96} accent={p.assessment.perfect ? 'var(--lm-gold)' : 'var(--lm-normal)'} ariaLabel="Technique score">
                 <span class="php-result__pct"><CountUp value={Math.round(p.assessment.accuracy * 100)} />%</span>
@@ -110,11 +89,49 @@ export function Debrief(p: DebriefProps) {
             <ul class="php-lessons">
               {lessons(p).map((l) => <li key={l}>{l}</li>)}
             </ul>
-            <div class="php-result__foot">
-              <Button variant="primary" size="lg" icon="chart" sfx={false} onClick={() => { p.audio.play('stamp'); p.onFinish(correct); }} autoFocus>
-                {p.mode === 'case' ? 'Write to chart' : 'Finish'}
-              </Button>
             </div>
+            <div class="php-result__foot">
+              {ch ? (
+                <Button variant="primary" size="lg" icon="arrow-right" sfx={false} onClick={() => { p.audio.play('select'); setStage('challenge'); }} autoFocus>
+                  Recognition check
+                </Button>
+              ) : (
+                <Button variant="primary" size="lg" icon="chart" sfx={false} onClick={() => { p.audio.play('stamp'); p.onFinish(null); }} autoFocus>Finish</Button>
+              )}
+            </div>
+          </section>
+        )}
+
+        {stage === 'challenge' && ch && (
+          <section class="php-challenge" aria-live="polite">
+            <div class="php-scroll">
+            <p class="php-eyebrow">Recognition check</p>
+            <h3 id="php-debrief-title" class="php-challenge__q">{ch.question}</h3>
+            <div class="php-challenge__opts">
+              {ch.options.map((o, i) => (
+                <button
+                  key={o}
+                  type="button"
+                  class={`php-opt${picked !== null && i === ch.correct ? ' is-right' : ''}${picked === i && i !== ch.correct ? ' is-wrong' : ''}`}
+                  disabled={picked !== null}
+                  onClick={() => choose(i)}
+                >
+                  <span class="php-opt__key">{String.fromCharCode(65 + i)}</span>
+                  {o}
+                </button>
+              ))}
+            </div>
+            {picked !== null && (
+              <p ref={explain} class={`php-challenge__explain${correct ? ' is-right' : ''}`}>
+                <Icon name={correct ? 'check' : 'info'} /> {correct ? 'Correct. ' : `It's ${ch.options[ch.correct]}. `}{ch.explain}
+              </p>
+            )}
+            </div>
+            {picked !== null && (
+              <div class="php-result__foot">
+                <Button variant="primary" size="lg" icon="chart" sfx={false} onClick={() => { p.audio.play('stamp'); p.onFinish(correct); }} autoFocus>Finish</Button>
+              </div>
+            )}
           </section>
         )}
       </div>

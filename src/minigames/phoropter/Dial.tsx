@@ -27,6 +27,10 @@ export interface DialProps {
   dragSign?: 1 | -1;
   /** 'line' draws the indicator through the centre (an axis is a line, not a ray) */
   mark?: 'notch' | 'line';
+  /** panel key used by the phone tab deck */
+  pane?: string;
+  /** also offer ±1 buttons for fine steps (axis) */
+  fine?: boolean;
 }
 
 const DEG_PER_STEP = 16;
@@ -122,7 +126,7 @@ export function Dial(p: DialProps) {
   for (let i = 0; i < nTicks; i++) ticks.push(<line key={i} x1="50" y1="3.5" x2="50" y2="9" transform={`rotate(${(i * 360) / nTicks} 50 50)`} />);
 
   return (
-    <div class={`php-dial php-dial--${p.size ?? 'md'}${p.disabled ? ' is-disabled' : ''}`} style={p.accent ? { '--php-accent': p.accent } : undefined}>
+    <div class={`php-dial php-dial--${p.size ?? 'md'}${p.disabled ? ' is-disabled' : ''}`} data-pane={p.pane} style={p.accent ? { '--php-accent': p.accent } : undefined}>
       <div
         ref={ref}
         id={p.id}
@@ -167,6 +171,13 @@ export function Dial(p: DialProps) {
         <span class="php-dial__label">{p.label}</span>
         <output class="php-dial__value" for={p.id}>{p.display}</output>
         {p.sub && <span class="php-dial__sub">{p.sub}</span>}
+      </div>
+      {/* Touch steppers: shown on phones, where a drag around a small knob is fiddly. */}
+      <div class="php-dial__steps" role="group" aria-label={`${p.label} steps`}>
+        {p.fine && <button type="button" class="php-step php-step--fine" disabled={p.disabled} aria-label={`${p.label} down 1`} onClick={() => p.onStep(-1, true)}>−1</button>}
+        <button type="button" class="php-step" disabled={p.disabled} aria-label={`${p.label} down`} onClick={() => p.onStep(-1, false)}>−</button>
+        <button type="button" class="php-step" disabled={p.disabled} aria-label={`${p.label} up`} onClick={() => p.onStep(1, false)}>+</button>
+        {p.fine && <button type="button" class="php-step php-step--fine" disabled={p.disabled} aria-label={`${p.label} up 1`} onClick={() => p.onStep(1, true)}>+1</button>}
       </div>
     </div>
   );

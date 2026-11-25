@@ -124,7 +124,7 @@ export class FieldPainter {
       // glow
       ctx.shadowColor = 'rgba(90, 230, 70, 0.8)';
       ctx.shadowBlur = S * 0.03;
-      ctx.lineWidth = w * 1.5;
+      ctx.lineWidth = w * 1.25;
       ctx.strokeStyle = 'rgba(70, 230, 80, 0.13)';
       ctx.beginPath();
       ctx.arc(rx + sx, ry, r, 0, Math.PI * 2);

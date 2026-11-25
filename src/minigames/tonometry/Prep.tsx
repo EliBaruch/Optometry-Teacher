@@ -44,9 +44,12 @@ export function Prep(p: PrepProps) {
     const stop = () => { hold.current = false; setHolding(false); };
     const kd = (e: KeyboardEvent) => { if ((e.key === 'f' || e.key === 'F') && live.current.numbed) { hold.current = true; setHolding(true); } };
     window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
+    window.addEventListener('blur', stop);
+    document.addEventListener('visibilitychange', stop);
     window.addEventListener('keyup', stop);
     window.addEventListener('keydown', kd);
-    return () => { window.removeEventListener('pointerup', stop); window.removeEventListener('keyup', stop); window.removeEventListener('keydown', kd); };
+    return () => { window.removeEventListener('pointerup', stop); window.removeEventListener('pointercancel', stop); window.removeEventListener('blur', stop); document.removeEventListener('visibilitychange', stop); window.removeEventListener('keyup', stop); window.removeEventListener('keydown', kd); };
   }, []);
 
   const st = dyeState(p.dye);

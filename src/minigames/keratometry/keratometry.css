@@ -71,6 +71,10 @@
   box-shadow: inset 0 0 0 1px var(--lm-hairline), inset 0 1px 0 rgba(255, 245, 230, 0.05), var(--lm-shadow-2);
   container-type: size;
 }
+.kr-scope__legend { position: absolute; left: 14px; bottom: 12px; display: flex; align-items: center; gap: 6px; font: 600 0.62rem var(--lm-font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--lm-muted); }
+.kr-scope__legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--kr-gold); box-shadow: 0 0 6px var(--kr-gold); }
+.kr-scope__legend i.is-v { margin-left: 8px; background: var(--kr-ice); box-shadow: 0 0 6px var(--kr-ice); }
+@container kr (max-width: 760px) { .kr-scope__legend { display: none; } }
 .kr-scope.is-switching .kr-eyepiece { animation: kr-blink 520ms var(--lm-ease-out) both; }
 .kr-scope__eye {
   position: absolute; top: 12px; left: 14px; font: 600 1.4rem/1 var(--lm-font-display, serif); letter-spacing: 0.08em;
@@ -321,24 +325,45 @@
   .kr-root *, .kr-root *::before, .kr-root *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
 
+.kr-cylbar { position: relative; height: 6px; margin: 4px 2px 14px; border-radius: 4px; background: rgba(255, 236, 210, 0.1); flex: none; }
+.kr-cylbar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: linear-gradient(90deg, var(--lm-normal, #5eead4), var(--kr-gold) 50%, #fb7185); box-shadow: 0 0 10px rgba(255, 200, 100, 0.4); transition: width 160ms var(--lm-ease-out); }
+.kr-cylbar span { position: absolute; top: -2px; bottom: -2px; width: 1px; background: rgba(255, 236, 210, 0.35); }
+.kr-cylbar em { position: absolute; top: 9px; font: 600 0.58rem var(--lm-font-num); font-style: normal; color: var(--lm-muted); transform: translateX(-30%); }
+.kr-panel > * { flex-shrink: 0; }
+
 /* ── responsive ─────────────────────────────────────────────────────────── */
 @container kr (max-width: 760px) {
-  .kr-root { grid-template-rows: auto minmax(0, 1fr) auto; }
-  .kr-head { flex-wrap: wrap; gap: 6px 10px; padding: 8px 12px; }
+  .kr-head { flex-wrap: wrap; gap: 4px 10px; padding: 6px 12px; }
   .kr-head__hint { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; font-size: 0.8rem; }
   .kr-head__title { margin-right: auto; }
-  .kr-stage { grid-template-columns: 1fr; grid-template-rows: auto auto; gap: 10px; padding: 8px 10px; overflow-y: auto; align-content: start; }
-  .kr-scope { height: min(92cqw, 48vh); }
-  .kr-panel { overflow: visible; padding: 10px 12px; gap: 8px; }
-  .kr-drum__barrel { height: 42px; }
+  .kr-stage { display: flex; flex-direction: column; gap: 6px; padding: 6px 10px; overflow: hidden; min-height: 0; }
+  .kr-scope { flex: none; height: min(62cqw, 27vh); width: 100%; }
+  .kr-eyepiece { width: min(100cqw - 36px, 100cqh - 60px); margin-bottom: 18px; }
+  .kr-panel { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px; gap: 8px; }
+  .kr-readout { order: -1; position: sticky; top: -10px; z-index: 2; box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 236, 210, 0.08); }
+  .kr-readout .kr-readout__cyl { background: #1c1206 !important; }
+  .kr-readout > div { background: #0b0614; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; padding: 4px 8px; }
+  .kr-readout em { font-size: 0.64rem; }
+  .kr-readout span { flex-basis: 100%; font-size: 0.54rem; }
+  .kr-cylbar { display: none; }
+  .kr-drum__barrel { height: 34px; }
+  .kr-drum { gap: 3px; }
   .kr-foot { gap: 10px; padding: 8px 10px; padding-bottom: max(8px, var(--lm-safe-bottom, 0px)); }
-  .kr-progress { gap: 6px; }
+  .kr-progress { gap: 6px; flex-wrap: nowrap; }
   .kr-progress__e { padding: 4px 8px 4px 4px; font-size: 0.7rem; }
   .kr-card { padding: 18px 16px 14px; }
 }
 @container kr (max-width: 420px) {
-  .kr-progress__e span { display: none; }
+  .kr-progress__nm { display: none; }
+  .kr-progress__e:not(.is-done) b { background: transparent; }
   .kr-readout b { font-size: 1rem; }
-  .kr-readout > div { padding: 6px 8px; }
   .kr-scope__eye { font-size: 1.1rem; top: 8px; left: 10px; }
+  .kr-foot .kr-num { font-size: 0.56rem; white-space: nowrap; word-spacing: -0.25em; }
+  .kr-progress__e { gap: 4px; padding: 3px 7px 3px 3px; }
+  .kr-progress__e b { width: 22px; height: 20px; font-size: 0.62rem; }
+  .kr-progress { gap: 4px; }
+  .kr-foot { gap: 6px; }
+  .kr-progress { overflow: hidden; min-width: 0; }
+  .kr-ax { display: none; }
+  .kr-foot { min-width: 0; }
 }
