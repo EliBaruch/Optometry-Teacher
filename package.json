@@ -6,7 +6,8 @@
   "description": "Lumen — an animated optometry diagnosis game",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "build": "vite build",
+    "build:checked": "tsc --noEmit -p tsconfig.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check:mod": "node scripts/check-module.mjs",
