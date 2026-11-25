@@ -8,6 +8,7 @@ import { IconButton } from './IconButton';
 import { cx } from '../lib/cx';
 import { isolate } from '../lib/isolate';
 import './Modal.css';
+import { useUiStrings } from '../strings';
 
 export interface ModalProps {
   open: boolean;
@@ -46,6 +47,7 @@ export function Modal({
   open, onClose, title, eyebrow, icon, ariaLabel, children, footer, size = 'md', accent, dismissible = true,
   closeOnBackdrop = true, initialFocus, flush, class: klass,
 }: ModalProps) {
+  const ui = useUiStrings();
   const reduced = useReducedMotion();
   const play = useSfx();
   const [mounted, setMounted] = useState(open);
@@ -120,7 +122,7 @@ export function Modal({
                 </h2>
               )}
             </div>
-            {dismissible && <IconButton class="lm-modal__close" icon="close" label="Close" variant="ghost" size="sm" sfx="back" onClick={onClose} />}
+            {dismissible && <IconButton class="lm-modal__close" icon="close" label={ui.close} variant="ghost" size="sm" sfx="back" onClick={onClose} />}
           </header>
         )}
         <div class="lm-modal__body">{children}</div>

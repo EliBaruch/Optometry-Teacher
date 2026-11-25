@@ -46,7 +46,7 @@
 .ttl-mark { text-align: center; transition: opacity 0.5s, transform 0.8s; }
 .ttl-mark.is-out, .ttl-cta.is-out, .ttl-links.is-out { opacity: 0; transform: translateY(14px); pointer-events: none; }
 .ttl-mark__eyebrow { margin-bottom: 2px; }
-.ttl-mark__word { margin: 0; font-family: var(--lm-font-display); font-weight: 560; font-size: clamp(54px, 11vw, 132px); letter-spacing: 0.22em; padding-left: 0.22em; line-height: 1; display: flex; justify-content: center; }
+.ttl-mark__word { margin: 0; font-family: var(--lm-font-display); font-weight: 560; font-size: clamp(54px, 11vw, 132px); letter-spacing: 0.22em; padding-inline-start: 0.22em; line-height: 1; display: flex; justify-content: center; }
 .ttl-mark__ch { background: linear-gradient(100deg, #b79b63 0%, #fff6df 35%, #ffd27a 50%, #fff6df 65%, #b79b63 100%); background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: ttl-shimmer 6.5s ease-in-out infinite; animation-delay: calc(var(--i) * 0.07s); filter: drop-shadow(0 4px 24px rgba(255, 210, 122, 0.35)); }
 @keyframes ttl-shimmer { 0% { background-position: 130% 0; } 45%, 100% { background-position: -30% 0; } }
 .ttl-mark__sub { margin: 8px 0 0; display: flex; justify-content: center; align-items: center; gap: 14px; font-family: var(--lm-font-display); font-style: italic; font-size: clamp(16px, 2.4vw, 24px); color: var(--lm-muted, #a99bbd); letter-spacing: 0.08em; }
@@ -124,3 +124,13 @@
 .ttl.is-reduced .ttl__motes i { animation: none; opacity: calc(var(--o) * 0.6); }
 .ttl-flare__streak { height: 6px; }
 @media (max-width: 639px) { .ttl__stage { padding-bottom: 44px; } }
+
+/* Hebrew edition */
+.ttl:lang(he) .ttl-mark__sub, .ttl:lang(he) .ttl-mark__eyebrow, .ttl:lang(he) .ttl-cta__hint, .ttl:lang(he) .ttl-cta__touch, .ttl:lang(he) .ttl-link { letter-spacing: 0.02em; font-style: normal; }
+.ttl:lang(he) .ttl-mark__word { letter-spacing: 0.12em; }
+.ttl:lang(he) .ttl-mark__ch { background-size: 260% 100%; }
+.ttl-mark__word, .ttl-cta__hint kbd { direction: ltr; }
+html[dir='rtl'] .ttl-mark__word { direction: rtl; }
+html[dir='rtl'] .ttl-mark__sub i:first-child { transform: scaleX(-1); }
+html[dir='rtl'] .ttl-mark__sub i:last-child { transform: none; }
+html[dir='rtl'] .ttl-intro__card p { line-height: 1.75; }

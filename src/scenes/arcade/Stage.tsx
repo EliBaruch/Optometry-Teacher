@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices, MiniGameModule, MiniGameResult, PracticeScenario } from '@core';
-import { Icon } from '@ui-kit';
+import { Icon, useStrings } from '@ui-kit';
+import { S } from './strings';
 import type { Difficulty } from './logic';
 
 export interface StageProps {
@@ -19,6 +20,7 @@ export interface StageProps {
  * `done` is honoured at most once per run, and the mini-game's cleanup always runs.
  */
 export function Stage({ services, mg, diff, run, reducedMotion, onDone, onScenario }: StageProps) {
+  const t = useStrings(S);
   const host = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
   const latestDone = useRef(onDone);
@@ -76,8 +78,8 @@ export function Stage({ services, mg, diff, run, reducedMotion, onDone, onScenar
       {failed && (
         <div class="arcade-stage__failed" role="alert">
           <Icon name="warning" size={32} />
-          <h3>This instrument needs calibrating</h3>
-          <p>It could not start just now. Try another instrument, or come back shortly.</p>
+          <h3>{t.failedTitle}</h3>
+          <p>{t.failedBody}</p>
         </div>
       )}
     </div>

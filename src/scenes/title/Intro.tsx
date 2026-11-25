@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { Button, Icon, useFocusTrap, useSfx } from '@ui-kit';
-import { INTRO_CARDS } from './logic';
+import { Button, Icon, useFocusTrap, useLocale, useSfx, useStrings } from '@ui-kit';
+import { introCards } from './logic';
+import { S } from './strings';
 
 export interface IntroProps {
   onDone: () => void;
@@ -8,6 +9,10 @@ export interface IntroProps {
 
 /** First-visit orientation: three elegant cards. Enter/→ advance, Esc skips. */
 export function Intro({ onDone }: IntroProps) {
+  const t = useStrings(S);
+  const locale = useLocale();
+  const rtl = locale === 'he';
+  const INTRO_CARDS = introCards(locale);
   const [i, setI] = useState(0);
   const play = useSfx();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -35,8 +40,8 @@ export function Intro({ onDone }: IntroProps) {
     finish();
   };
 
-  const act = useRef({ next, skip, i });
-  act.current = { next, skip, i };
+  const act = useRef({ next, skip, i, rtl });
+  act.current = { next, skip, i, rtl };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -44,10 +49,10 @@ export function Intro({ onDone }: IntroProps) {
       if (e.key === 'Escape') {
         e.preventDefault();
         a.skip();
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === (a.rtl ? 'ArrowLeft' : 'ArrowRight')) {
         e.preventDefault();
         a.next();
-      } else if (e.key === 'ArrowLeft' && a.i > 0) {
+      } else if (e.key === (a.rtl ? 'ArrowRight' : 'ArrowLeft') && a.i > 0) {
         e.preventDefault();
         setI(a.i - 1);
       }
@@ -57,13 +62,13 @@ export function Intro({ onDone }: IntroProps) {
   }, []);
 
   return (
-    <div ref={rootRef} class="ttl-intro" role="dialog" aria-modal="true" aria-label="Welcome to Lumen">
+    <div ref={rootRef} class="ttl-intro" role="dialog" aria-modal="true" aria-label={t.introLabel}>
       <div class="ttl-intro__card" key={i}>
         <div class="ttl-intro__icon"><Icon name={card.icon} size={30} /></div>
         <div class="lm-eyebrow">{card.eyebrow}</div>
         <h2>{card.title}</h2>
         <p>{card.body}</p>
-        {'steps' in card && card.steps && (
+        {card.steps && (
           <ol class="ttl-intro__steps">
             {card.steps.map((s, n) => (
               <li key={s} style={{ '--n': n } as never}>
@@ -75,13 +80,13 @@ export function Intro({ onDone }: IntroProps) {
         )}
       </div>
       <div class="ttl-intro__foot">
-        <div class="ttl-intro__dots" aria-label={`Step ${i + 1} of ${INTRO_CARDS.length}`}>
+        <div class="ttl-intro__dots" aria-label={t.step(i + 1, INTRO_CARDS.length)}>
           {INTRO_CARDS.map((_, n) => <i key={n} class={n === i ? 'is-on' : ''} />)}
         </div>
         <div class="ttl-intro__btns">
-          <Button variant="ghost" size="sm" onClick={skip} sfx={false}>Skip</Button>
+          <Button variant="ghost" size="sm" onClick={skip} sfx={false}>{t.skip}</Button>
           <button type="button" class="ttl-intro__next" onClick={next}>
-            {last ? 'Begin' : 'Next'}
+            {last ? t.begin : t.next}
           </button>
         </div>
       </div>

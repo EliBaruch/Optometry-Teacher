@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ClinicalCase, GameServices, MiniGameModule, MiniGameResult } from '@core';
-import { TEST_CATALOG } from '@core';
+import { pickStrings, TEST_CATALOG } from '@core';
 import { Button, Icon, Modal, isIconName } from '@ui-kit';
+import { S } from './strings';
 import { testName } from './logic';
 
 /** True when an error's stack or source file points into a mini-game plugin. */
@@ -101,6 +102,7 @@ export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTec
   }, [mg, el]);
 
   const info = shown ? TEST_CATALOG[shown.id] : undefined;
+  const t = pickStrings(S, services.locale);
   return (
     <Modal
       open={!!mg}
@@ -108,9 +110,9 @@ export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTec
       size="stage"
       flush
       icon={shown && isIconName(shown.id) ? shown.id : undefined}
-      eyebrow={info ? `Examining  ·  ${info.minutes} min` : 'Examining'}
+      eyebrow={t.stageExamining(info?.minutes)}
       title={kase.patient.name}
-      ariaLabel={shown ? `${testName(shown.id, shown)} for ${kase.patient.name}` : 'Instrument'}
+      ariaLabel={shown ? t.stageAria(testName(shown.id, shown, services.locale), kase.patient.name) : t.stageInstrument}
       class="exm-stage-modal"
     >
       <div class="exm-stage-host-wrap">
@@ -118,15 +120,15 @@ export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTec
         {failed && mg && (
           <div class="exm-stage-failed" role="alert">
             <Icon name="warning" size={34} />
-            <h3>This instrument needs calibrating</h3>
-            <p>It would not start just now. You can skip this test{techOk ? ' or let the technician take it' : ''}.</p>
+            <h3>{t.stageFailedTitle}</h3>
+            <p>{t.stageFailedBody(techOk)}</p>
             <div class="exm-stage-failed__actions">
               {techOk && (
                 <Button variant="primary" icon="user" onClick={() => onTech(mg)}>
-                  Ask the technician
+                  {t.techFull}
                 </Button>
               )}
-              <Button variant="glass" onClick={onClose}>Skip this test</Button>
+              <Button variant="glass" onClick={onClose}>{t.stageSkip}</Button>
             </div>
           </div>
         )}

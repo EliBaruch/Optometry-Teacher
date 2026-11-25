@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { beginRun, type ModeModule, type SceneProps } from '@core';
-import { Divider, HudSlot, IconButton, Screen, useReducedMotion, useRegistry, useSignal } from '@ui-kit';
+import { beginRun, modeText, type ModeModule, type SceneProps } from '@core';
+import { Divider, HudSlot, IconButton, Screen, useReducedMotion, useRegistry, useSignal, useStrings } from '@ui-kit';
+import { S } from './strings';
 import { useNarrow } from './useNarrow';
 import { ModeCard, SoonCard, WingTile } from './Cards';
 import { DoorTransition } from './DoorTransition';
@@ -11,6 +12,8 @@ import './hub.css';
 const DOOR_MS = 760;
 
 export function HubScene({ services }: SceneProps) {
+  const t = useStrings(S);
+  const locale = services.locale;
   const reduced = useReducedMotion();
   const narrow = useNarrow(960);
   const settings = useSignal(services.settings);
@@ -38,8 +41,8 @@ export function HubScene({ services }: SceneProps) {
   const sceneIds = useMemo(() => new Set(scenes.map((s) => s.id)), [scenes]);
   const { playable, soon } = useMemo(() => splitModes(modes, (m) => m.locked?.(services)), [modes, services]);
   const wings = useMemo(
-    () => buildWings(entries, (id) => sceneIds.has(id), { badge: (e) => e.badge?.(services), locked: (e) => e.locked?.(services) }),
-    [entries, sceneIds, services],
+    () => buildWings(entries, (id) => sceneIds.has(id), { badge: (e) => e.badge?.(services), locked: (e) => e.locked?.(services) }, locale),
+    [entries, sceneIds, services, locale],
   );
   const hasBanner = hud.some((w) => w.slot === 'hub-banner');
   const hasSidebar = hud.some((w) => w.slot === 'hub-sidebar');
@@ -63,54 +66,54 @@ export function HubScene({ services }: SceneProps) {
   };
   const open = (w: WingView) => services.router.go(w.sceneId, w.params);
 
-  const name = settings.playerName || 'Doctor';
+  const name = (settings.playerName && settings.playerName !== 'Doctor' ? settings.playerName : t.doctor);
   const none = modes.length === 0;
 
   return (
     <Screen
       backdrop="hub" class="hub" contentClass="hub-content"
-      left={<button type="button" class="hub-who" onClick={() => services.router.go('profile')} aria-label={`${name}, open profile`} disabled={!sceneIds.has('profile')}>
+      left={<button type="button" class="hub-who" onClick={() => services.router.go('profile')} aria-label={t.openProfile(name)} disabled={!sceneIds.has('profile')}>
         <span class="hub-who__dot" aria-hidden="true">{name.trim().charAt(0).toUpperCase()}</span>
         <span class="hub-who__name">{name}</span>
       </button>}
-      right={sceneIds.has('settings') ? <IconButton icon="settings" label="Settings" onClick={() => services.router.go('settings')} /> : undefined}
+      right={sceneIds.has('settings') ? <IconButton icon="settings" label={t.settings} onClick={() => services.router.go('settings')} /> : undefined}
     >
       <div class="hub-grid">
         <header class="hub-hero">
-          <div class="lm-eyebrow">Lumen · The Eye Clinic</div>
-          <h1 class="hub-hero__title">{greetingFor(new Date().getHours())}, <em>{name}</em></h1>
-          <p class="hub-hero__sub">The waiting room is filling up. Who will you see first?</p>
+          <div class="lm-eyebrow">{t.eyebrow}</div>
+          <h1 class="hub-hero__title">{greetingFor(new Date().getHours(), locale)}, <em>{name}</em></h1>
+          <p class="hub-hero__sub">{t.sub}</p>
         </header>
 
-        <section class="hub-modes" aria-label="Choose a session">
-          {none && <p class="hub-empty">The clinic is being prepared. Check back in a moment.</p>}
+        <section class="hub-modes" aria-label={t.chooseSession}>
+          {none && <p class="hub-empty">{t.preparing}</p>}
           {playable.map((m, i) => <ModeCard key={m.id} mode={m} index={i} pending={!!door} onStart={start} />)}
         </section>
 
         {soon.length > 0 && (
-          <section class="hub-soon-wrap" aria-label="Coming up">
-            <div class="hub-soon-head lm-eyebrow">Coming up</div>
+          <section class="hub-soon-wrap" aria-label={t.comingUp}>
+            <div class="hub-soon-head lm-eyebrow">{t.comingUp}</div>
             <div class="hub-soon-list">
-              {soon.map((s) => <SoonCard key={s.mode.id} mode={s.mode} reason={s.reason} onDenied={(m, r) => setSoonNote(`${m.title}: ${r}`)} />)}
+              {soon.map((s) => <SoonCard key={s.mode.id} mode={s.mode} reason={s.reason} onDenied={(m, r) => setSoonNote(`${modeText(m, locale).title}: ${r}`)} />)}
             </div>
             <p class="hub-soon-note" role="status" aria-live="polite">{soonNote}</p>
           </section>
         )}
 
         {wings.length > 0 && (
-          <section class="hub-wings-wrap" aria-label="Clinic wings">
-            <Divider label="The clinic wings" />
+          <section class="hub-wings-wrap" aria-label={t.wingsLabel}>
+            <Divider label={t.wingsHeading} />
             <div class="hub-wings">
               {wings.map((w, i) => <WingTile key={w.key} wing={w} index={i + playable.length} onOpen={open} />)}
             </div>
           </section>
         )}
 
-        {hasBanner && <section class="hub-banner" aria-label="Today"><HudSlot slot="hub-banner" /></section>}
+        {hasBanner && <section class="hub-banner" aria-label={t.today}><HudSlot slot="hub-banner" /></section>}
 
         <div class="hub-aside">
           <WaitingRoom compact={narrow} />
-          {hasSidebar && <section class="hub-side" aria-label="At a glance"><HudSlot slot="hub-sidebar" /></section>}
+          {hasSidebar && <section class="hub-side" aria-label={t.glance}><HudSlot slot="hub-sidebar" /></section>}
         </div>
       </div>
       {door && <DoorTransition accent={door} onCancel={cancel} />}

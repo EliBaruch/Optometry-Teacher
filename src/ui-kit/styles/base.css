@@ -98,3 +98,14 @@ html.reduced-motion *, html.reduced-motion *::before, html.reduced-motion *::aft
     transition-duration: 1ms !important; scroll-behavior: auto !important;
   }
 }
+
+/* ── RTL: directional icons mirror; clinical/spatial content opts out with dir="ltr" ── */
+[dir='rtl'] .lm-icon[data-icon='chevron-left'],
+[dir='rtl'] .lm-icon[data-icon='chevron-right'],
+[dir='rtl'] .lm-icon[data-icon='arrow-left'],
+[dir='rtl'] .lm-icon[data-icon='arrow-right'] { scale: -1 1; }
+/* a trailing icon nudges toward the reading direction */
+[dir='rtl'] .lm-btn:hover:not(:disabled) .lm-btn__icon--trail { transform: translateX(-3px); }
+/* Latin/number runs keep their own direction */
+bdi, .lm-ltr { unicode-bidi: isolate; }
+.lm-ltr { direction: ltr; }

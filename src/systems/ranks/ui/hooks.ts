@@ -9,7 +9,7 @@ export const ACTIVE = new WeakSet<GameServices>();
 
 export function useRanks(services: GameServices): { s: RanksState; info: LevelInfo } {
   const s = useSignal(ranksSlot(services));
-  const info = useMemo(() => levelInfo(s.xp), [s.xp]);
+  const info = useMemo(() => levelInfo(s.xp, services.locale), [s.xp, services.locale]);
   return { s, info };
 }
 

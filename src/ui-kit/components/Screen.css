@@ -33,7 +33,7 @@
 .lm-screen--bare .lm-screen__content { padding-top: calc(var(--lm-sp-5) + var(--lm-safe-top)); }
 @media (max-width: 640px) {
   .lm-screen__bar { grid-template-columns: auto 1fr auto; gap: var(--lm-sp-2); }
-  .lm-screen__title { text-align: left; }
+  .lm-screen__title { text-align: start; }
   .lm-screen__title h1 { font-size: var(--lm-fs-lg); }
   .lm-screen__title .lm-eyebrow { display: none; }
 }

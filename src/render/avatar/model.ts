@@ -67,8 +67,44 @@ function eyesPhrase(list: Eye[] | undefined, one: string, both: string): string 
 }
 
 /** Screen-reader description of the visible clinical clues (patient's right/left). */
-export function describeSigns(ext: External | undefined, strab?: Strabismus, pupils?: Partial<Record<Eye, number>>): string[] {
+/** Edition language for built-in labels: the render layer has no services, so it reads <html lang>. */
+export function renderLocale(): 'en' | 'he' {
+  return typeof document !== 'undefined' && document.documentElement.lang === 'he' ? 'he' : 'en';
+}
+
+const HE_EYE: Record<Eye, string> = { OD: 'ימין', OS: 'שמאל' };
+const HE_DIR: Record<Strabismus['direction'], string> = { in: 'פנימה', out: 'החוצה', up: 'למעלה', down: 'למטה' };
+const HE_EXPR: Record<Expression, string> = {
+  neutral: 'רגוע', worried: 'מודאג', pain: 'כאב', happy: 'שמח', relieved: 'מרוגע', squint: 'פוזל מאור', surprised: 'מופתע',
+};
+function describeSignsHe(ext: External | undefined, strab?: Strabismus, pupils?: Partial<Record<Eye, number>>): string[] {
+  const e = ext ?? {};
+  const out: string[] = [];
+  const both = (l: Eye[] | undefined, one: (s: string) => string, two: string) => {
+    if (!l || !l.length) return;
+    out.push(l.length > 1 ? two : one(HE_EYE[l[0]!]));
+  };
+  both(e.redEye, (s) => `עין ${s} אדומה`, 'שתי העיניים אדומות');
+  both(e.tearing, (s) => `עין ${s} דומעת`, 'שתי העיניים דומעות');
+  both(e.ptosis, (s) => `עפעף עליון ${s} צונח`, 'שני העפעפיים העליונים צונחים');
+  both(e.proptosis, (s) => `עין ${s} בולטת`, 'שתי העיניים בולטות');
+  if (e.squinting) out.push('פוזל מאור');
+  if (e.photophobia) out.push('מגן על העיניים מפני האור');
+  if (e.eyePatch) out.push(`רטייה על עין ${HE_EYE[e.eyePatch]}`);
+  if (e.rash === 'forehead-dermatomal') out.push(`פריחה שלפוחית במצח ${HE_EYE[signSideFor(e) < 0 ? 'OD' : 'OS']}`);
+  if (e.templeTenderness) out.push(`עורק רקה ${HE_EYE[signSideFor(e) < 0 ? 'OD' : 'OS']} בולט ומפותל`);
+  if (strab) out.push(`עין ${HE_EYE[strab.eye]} סוטה ${HE_DIR[strab.direction]}`);
+  for (const eye of ['OD', 'OS'] as const) {
+    const k = pupils?.[eye];
+    if (k && k > 1.2) out.push(`אישון ${HE_EYE[eye]} רחב`);
+    else if (k && k < 0.8) out.push(`אישון ${HE_EYE[eye]} צר`);
+  }
+  return out;
+}
+
+export function describeSigns(ext: External | undefined, strab?: Strabismus, pupils?: Partial<Record<Eye, number>>, locale: 'en' | 'he' = 'en'): string[] {
   if (!ext && !strab && !pupils) return [];
+  if (locale === 'he') return describeSignsHe(ext, strab, pupils);
   const e = ext ?? {};
   const out: string[] = [];
   const push = (s: string | null) => s && out.push(s);
@@ -153,8 +189,11 @@ export function useAvatarModel(props: AvatarModelProps): AvatarModel {
 
   const s = st.current;
   const a = rigAttrs(geo, { params: s.params, gazeL: s.gaze, gazeR: s.gaze, blink: 0, breath: 0, sway: 0, nod: 0 });
-  const signs = describeSigns(external, strabismus, pupils);
-  const label = props.label ?? `Patient portrait, ${expression === 'neutral' ? 'calm' : expression} expression${signs.length ? `; ${signs.join(', ')}` : ''}`;
+  const loc = renderLocale();
+  const signs = describeSigns(external, strabismus, pupils, loc);
+  const label = props.label ?? (loc === 'he'
+    ? `דיוקן המטופל, הבעה: ${HE_EXPR[expression]}${signs.length ? `; ${signs.join(', ')}` : ''}`
+    : `Patient portrait, ${expression === 'neutral' ? 'calm' : expression} expression${signs.length ? `; ${signs.join(', ')}` : ''}`);
 
   // Synchronous + idempotent so the very first paint is already laid out.
   if (typeof document !== 'undefined') ensureAvatarStyles();

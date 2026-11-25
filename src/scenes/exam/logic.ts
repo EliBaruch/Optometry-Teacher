@@ -1,24 +1,17 @@
 import {
-  createRng, TEST_CATALOG, URGENCIES,
-  type ClinicalCase, type Confidence, type Diagnosis, type DiagnosisCategory, type HistoryCategory, type HistoryQuestion,
+  createRng, pickStrings, TEST_CATALOG, testText, URGENCIES,
+  type ClinicalCase, type Confidence, type Diagnosis, type DiagnosisCategory, type HistoryCategory, type HistoryQuestion, type Locale,
   type MiniGameModule, type MiniGameResult, type ModeModule, type RevealedFinding, type RunSnapshot, type TestCategory, type TestId, type Urgency,
 } from '@core';
 import type { AvatarExpression } from '@render';
 import type { IconName } from '@ui-kit';
+import { S } from './strings';
 
 /* ── History ─────────────────────────────────────────────────────────────── */
 
 export const HISTORY_ORDER: readonly HistoryCategory[] = ['onset', 'symptoms', 'ocular-history', 'medical', 'medications', 'family', 'social'];
 
-export const HISTORY_LABEL: Record<HistoryCategory, string> = {
-  onset: 'Onset',
-  symptoms: 'Symptoms',
-  'ocular-history': 'Eye history',
-  medical: 'Medical history',
-  medications: 'Medications',
-  family: 'Family history',
-  social: 'Lifestyle & work',
-};
+export const HISTORY_LABEL: Record<HistoryCategory, string> = S.en.historyLabel;
 
 export interface HistoryGroup {
   category: HistoryCategory;
@@ -30,11 +23,12 @@ export interface HistoryGroup {
  * Question chips grouped by category. Within a category the order is a stable
  * shuffle (per case) so authoring order can never leak which questions matter.
  */
-export function groupHistory(kase: ClinicalCase): HistoryGroup[] {
+export function groupHistory(kase: ClinicalCase, locale: Locale = 'en'): HistoryGroup[] {
+  const labels = pickStrings(S, locale).historyLabel;
   const rng = createRng(`history:${kase.id}`);
   return HISTORY_ORDER.map((category) => ({
     category,
-    label: HISTORY_LABEL[category],
+    label: labels[category],
     questions: rng.fork(category).shuffle(kase.history.filter((h) => h.category === category)),
   })).filter((g) => g.questions.length > 0);
 }
@@ -55,7 +49,8 @@ export function orderInstruments(minigames: readonly MiniGameModule[]): MiniGame
     });
 }
 
-export function testName(id: TestId, mg?: MiniGameModule): string {
+export function testName(id: TestId, mg?: MiniGameModule, locale: Locale = 'en'): string {
+  if (locale !== 'en' && TEST_CATALOG[id]) return testText(id, locale).name;
   return TEST_CATALOG[id]?.name ?? mg?.title ?? id;
 }
 
@@ -137,28 +132,30 @@ export interface HintInput {
   available: ReadonlySet<TestId>;
   /** Hint ids already given in this case */
   given: readonly string[];
+  locale?: Locale;
 }
 
 /** The next helpful nudge, most valuable first; null when nothing is left to say. */
-export function nextHint({ kase, testsDone, asked, available, given }: HintInput): Hint | null {
+export function nextHint({ kase, testsDone, asked, available, given, locale = 'en' }: HintInput): Hint | null {
+  const t = pickStrings(S, locale);
   const candidates: Hint[] = [];
-  for (const t of kase.essentialTests) {
-    if (testsDone[t] || !available.has(t)) continue;
-    candidates.push({ id: `test:${t}`, text: `A colleague would want the ${testName(t)} on the chart before committing to a diagnosis.` });
+  for (const test of kase.essentialTests) {
+    if (testsDone[test] || !available.has(test)) continue;
+    candidates.push({ id: `test:${test}`, text: t.nudgeTest(testName(test, undefined, locale)) });
   }
   const seenCats = new Set<HistoryCategory>();
   for (const q of kase.history) {
     if (q.relevance !== 'key' || asked.includes(q.id) || seenCats.has(q.category)) continue;
     seenCats.add(q.category);
-    candidates.push({ id: `ask:${q.category}`, text: `There is something worth hearing in the patient's ${HISTORY_LABEL[q.category].toLowerCase()}. Have you asked?` });
+    candidates.push({ id: `ask:${q.category}`, text: t.nudgeAsk(q.category, t.historyLabel[q.category]) });
   }
-  for (const t of kase.helpfulTests) {
-    if (testsDone[t] || !available.has(t)) continue;
-    candidates.push({ id: `help:${t}`, text: `The ${testName(t)} could help you tell similar conditions apart.` });
+  for (const test of kase.helpfulTests) {
+    if (testsDone[test] || !available.has(test)) continue;
+    candidates.push({ id: `help:${test}`, text: t.nudgeHelp(testName(test, undefined, locale)) });
   }
   const next = candidates.find((c) => !given.includes(c.id));
   if (next) return next;
-  if (!given.includes('final')) return { id: 'final', text: 'You have covered the key ground. Weigh your suspects, then make the call.' };
+  if (!given.includes('final')) return { id: 'final', text: t.nudgeFinal };
   return null;
 }
 
@@ -209,13 +206,14 @@ export function moveSuspect(list: readonly string[], from: number, dir: -1 | 1):
   return out;
 }
 
-export function searchDiagnoses(all: readonly Diagnosis[], query: string): Diagnosis[] {
+export function searchDiagnoses(all: readonly Diagnosis[], query: string, locale: Locale = 'en'): Diagnosis[] {
+  const cats = pickStrings(S, locale).category;
   const q = query.trim().toLowerCase();
-  const sorted = [...all].sort((a, b) => a.name.localeCompare(b.name));
+  const sorted = [...all].sort((a, b) => a.name.localeCompare(b.name, locale));
   if (!q) return sorted;
   const terms = q.split(/\s+/);
   return sorted.filter((d) => {
-    const hay = [d.name, ...(d.aka ?? []), CATEGORY_INFO[d.category]?.label ?? d.category].join(' ').toLowerCase();
+    const hay = [d.name, ...(d.aka ?? []), cats[d.category] ?? d.category].join(' ').toLowerCase();
     return terms.every((t) => hay.includes(t));
   });
 }

@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { formatSnellen, type SceneProps, type Settings } from '@core';
-import { Button, Divider, GlassPanel, Icon, Modal, Screen, cx, useReducedMotion, useSignal } from '@ui-kit';
+import { Button, Divider, GlassPanel, Icon, Modal, Screen, cx, useReducedMotion, useSignal, useStrings } from '@ui-kit';
+import { S } from './strings';
 import { HoldButton, SwitchRow, TransferGlyph, VolumeSlider } from './controls';
-import { DEFAULT_NAME, NAME_MAX, countRecords, sanitizeName, saveFileName, settingsOnly, sizeLabel, validateImport } from './logic';
+import { NAME_MAX, countRecords, sanitizeName, saveFileName, settingsOnly, sizeLabel, validateImport } from './logic';
 import './settings.css';
 
 type VolumeKey = 'masterVolume' | 'sfxVolume' | 'musicVolume';
 type Pending = { json: string; records: number; hasSettings: boolean; fileName: string };
 
 export function SettingsScene({ services }: SceneProps) {
+  const t = useStrings(S);
   const settings = useSignal(services.settings);
   const reduced = useReducedMotion();
   const patch = (p: Partial<Settings>) => services.settings.update((s) => ({ ...s, ...p }));
@@ -36,7 +38,7 @@ export function SettingsScene({ services }: SceneProps) {
   const [savedTick, setSavedTick] = useState(0);
   useEffect(() => setDraft(settings.playerName), [settings.playerName]);
   const commitName = () => {
-    const next = sanitizeName(draft);
+    const next = sanitizeName(draft, t.defaultName);
     setDraft(next);
     if (next !== services.settings.get().playerName) {
       patch({ playerName: next });
@@ -77,7 +79,7 @@ export function SettingsScene({ services }: SceneProps) {
     timers.current.push(setTimeout(() => URL.revokeObjectURL(url), 1500));
     burstAt(e.currentTarget as Element);
     services.audio.play('sparkle');
-    services.bus.emit('toast', { message: 'Save file downloaded', icon: 'check', tone: 'good' });
+    services.bus.emit('toast', { message: t.downloaded, icon: 'check', tone: 'good' });
     setDataVersion((n) => n + 1);
   };
 
@@ -87,10 +89,10 @@ export function SettingsScene({ services }: SceneProps) {
     input.value = '';
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      failImport('That file is too large to be a Lumen save.');
+      failImport(t.tooLarge);
       return;
     }
-    const check = validateImport(await file.text());
+    const check = validateImport(await file.text(), { empty: t.errEmpty, json: t.errJson, notSave: t.errNot, none: t.errNone, damaged: t.errDamaged });
     if (!check.ok) {
       failImport(check.error);
       return;
@@ -152,39 +154,39 @@ export function SettingsScene({ services }: SceneProps) {
   const d = (i: number) => ({ '--lm-delay': `${reduced ? 0 : 80 + i * 70}ms` });
 
   return (
-    <Screen title="Settings" eyebrow="The instrument room" onBack={back} escToBack backdrop="calm" hud={false} class="settings-scene" contentClass="settings-content">
+    <Screen title={t.title} eyebrow={t.eyebrow} onBack={back} escToBack backdrop="calm" hud={false} class="settings-scene" contentClass="settings-content">
       <div class="settings-hero lm-enter" style={d(0)}>
-        <p class="settings-hero__lede">Tune the clinic to suit you — every change applies the moment you make it.</p>
+        <p class="settings-hero__lede">{t.lede}</p>
         <Divider />
       </div>
 
       <div class="settings-grid">
         <div class="settings-col">
-          <GlassPanel as="section" class="settings-panel lm-enter" style={d(1)} icon="sound-on" eyebrow="Sound" title="Audio mix" accent="#ffd27a">
+          <GlassPanel as="section" class="settings-panel lm-enter" style={d(1)} icon="sound-on" eyebrow={t.soundEyebrow} title={t.soundTitle} accent="#ffd27a">
             <div class="settings-stack">
-              <VolumeSlider id="vol-master" label="Master" hint="Everything you hear" icon="sound-on" value={settings.masterVolume}
+              <VolumeSlider id="vol-master" label={t.master} hint={t.masterHint} icon="sound-on" value={settings.masterVolume}
                 onInput={(v) => patch({ masterVolume: v })} onCommit={(v) => preview('masterVolume', v)} onToggleMute={() => toggleMute('masterVolume')} />
-              <VolumeSlider id="vol-sfx" label="Effects" hint="Instruments, chimes & clicks" icon="sparkle" value={settings.sfxVolume} accent="#5eead4"
+              <VolumeSlider id="vol-sfx" label={t.effects} hint={t.effectsHint} icon="sparkle" value={settings.sfxVolume} accent="#5eead4"
                 disabled={settings.masterVolume === 0}
                 onInput={(v) => patch({ sfxVolume: v })} onCommit={(v) => preview('sfxVolume', v)} onToggleMute={() => toggleMute('sfxVolume')} />
-              <VolumeSlider id="vol-music" label="Music" hint="Generative ambience for each room" icon="play" value={settings.musicVolume} accent="#a78bfa"
+              <VolumeSlider id="vol-music" label={t.music} hint={t.musicHint} icon="play" value={settings.musicVolume} accent="#a78bfa"
                 disabled={settings.masterVolume === 0}
                 onInput={(v) => patch({ musicVolume: v })} onToggleMute={() => toggleMute('musicVolume')} />
             </div>
           </GlassPanel>
 
-          <GlassPanel as="section" class="settings-panel lm-enter" style={d(2)} icon="eye" eyebrow="Comfort" title="Display & accessibility" accent="#38bdf8">
+          <GlassPanel as="section" class="settings-panel lm-enter" style={d(2)} icon="eye" eyebrow={t.comfortEyebrow} title={t.comfortTitle} accent="#38bdf8">
             <div class="settings-stack settings-stack--switches">
-              <SwitchRow id="sw-motion" icon="sparkle" label="Reduced motion" checked={settings.reducedMotion}
-                description="Calms parallax, particles, screen shake and transitions."
+              <SwitchRow id="sw-motion" icon="sparkle" label={t.reducedMotion} checked={settings.reducedMotion}
+                description={t.reducedMotionDesc}
                 onChange={(v) => patch({ reducedMotion: v })}
                 preview={<span class={cx('settings-orbit', settings.reducedMotion && 'is-still')}><span /></span>} />
-              <SwitchRow id="sw-metric" icon="chart" label="Metric acuity" checked={settings.metricVA}
-                description={<>Record visual acuity as <b class="lm-num">6/x</b> metres instead of <b class="lm-num">20/x</b> feet.</>}
+              <SwitchRow id="sw-metric" icon="chart" label={t.metric} checked={settings.metricVA}
+                description={<>{t.metricDescA}<bdi><b class="lm-num">{t.metricA}</b></bdi>{t.metricDescB}<bdi><b class="lm-num">{t.metricB}</b></bdi>{t.metricDescC}</>}
                 onChange={(v) => patch({ metricVA: v })}
-                preview={<span class="settings-va"><span class="lm-num">{metricSample}</span><small class="lm-num">{otherSample}</small></span>} />
-              <SwitchRow id="sw-contrast" icon="eye" label="High contrast" checked={settings.highContrast}
-                description="Opaque panels, brighter text and stronger outlines."
+                preview={<span class="settings-va" dir="ltr"><span class="lm-num">{metricSample}</span><small class="lm-num">{otherSample}</small></span>} />
+              <SwitchRow id="sw-contrast" icon="eye" label={t.contrast} checked={settings.highContrast}
+                description={t.contrastDesc}
                 onChange={(v) => patch({ highContrast: v })}
                 preview={<span class="settings-contrast"><span /><span /></span>} />
             </div>
@@ -192,13 +194,13 @@ export function SettingsScene({ services }: SceneProps) {
         </div>
 
         <div class="settings-col">
-          <GlassPanel as="section" class="settings-panel lm-enter" style={d(3)} icon="user" eyebrow="Identity" title="Your name on the door" accent="#a78bfa">
+          <GlassPanel as="section" class="settings-panel lm-enter" style={d(3)} icon="user" eyebrow={t.identityEyebrow} title={t.identityTitle} accent="#a78bfa">
             <form class="settings-name" onSubmit={(e) => { e.preventDefault(); commitName(); (document.activeElement as HTMLElement | null)?.blur(); }}>
-              <label class="lm-sr-only" for="player-name">Player name</label>
+              <label class="lm-sr-only" for="player-name">{t.nameLabel}</label>
               <div class="settings-name__plate">
                 <span class="settings-name__brass" aria-hidden="true" />
                 <input id="player-name" class="settings-name__input" value={draft} maxLength={NAME_MAX} autoComplete="nickname" spellcheck={false}
-                  placeholder={DEFAULT_NAME}
+                  placeholder={t.defaultName}
                   onInput={(e) => setDraft((e.currentTarget as HTMLInputElement).value)}
                   onBlur={commitName}
                   onKeyDown={(e) => {
@@ -209,24 +211,24 @@ export function SettingsScene({ services }: SceneProps) {
                     }
                   }} />
                 <span key={savedTick} class={cx('settings-name__saved', savedTick > 0 && 'is-shown')} aria-live="polite">
-                  {savedTick > 0 && <><Icon name="check" /> Saved</>}
+                  {savedTick > 0 && <><Icon name="check" /> {t.saved}</>}
                 </span>
               </div>
-              <p class="settings-note">Patients, colleagues and your profile will greet you by this name.</p>
+              <p class="settings-note">{t.nameNote}</p>
             </form>
           </GlassPanel>
 
-          <GlassPanel as="section" class="settings-panel lm-enter" style={d(4)} icon="book" eyebrow="Records" title="Your progress" accent="#f5b942">
+          <GlassPanel as="section" class="settings-panel lm-enter" style={d(4)} icon="book" eyebrow={t.recordsEyebrow} title={t.recordsTitle} accent="#f5b942">
             <p class="settings-note">
-              Progress lives only in this browser
+              {t.progressOnly}
               {exportInfo.records > 0 ? (
-                <> — <span class="lm-num">{exportInfo.records}</span> {exportInfo.records === 1 ? 'record' : 'records'}, <span class="lm-num">{sizeLabel(exportInfo.bytes)}</span>. </>
+                <> — <span class="lm-num">{exportInfo.records}</span> {t.recordCount(exportInfo.records)}, <bdi class="lm-num">{sizeLabel(exportInfo.bytes)}</bdi>. </>
               ) : '. '}
-              Keep a copy, or carry it to another device.
+              {t.keepCopy}
             </p>
             <div class="settings-actions">
-              <Button onClick={doExport} sfx={false}><TransferGlyph dir="down" />Export save</Button>
-              <Button onClick={() => fileInput.current?.click()}><TransferGlyph dir="up" />Import save</Button>
+              <Button onClick={doExport} sfx={false}><TransferGlyph dir="down" />{t.exportSave}</Button>
+              <Button onClick={() => fileInput.current?.click()}><TransferGlyph dir="up" />{t.importSave}</Button>
               <input ref={fileInput} type="file" accept=".json,application/json" class="lm-sr-only" tabIndex={-1} aria-hidden="true" onChange={onFile} />
             </div>
             <p class={cx('settings-error', importError && 'is-shown')} role="alert">
@@ -234,73 +236,66 @@ export function SettingsScene({ services }: SceneProps) {
             </p>
             <div class="settings-danger">
               <div>
-                <div class="settings-danger__title">Start afresh</div>
-                <p class="settings-note">Erase rank, coins, collection and learning history on this device.</p>
+                <div class="settings-danger__title">{t.afreshTitle}</div>
+                <p class="settings-note">{t.afreshNote}</p>
               </div>
-              <Button variant="danger" icon="alert" onClick={() => setResetOpen(true)}>Reset progress</Button>
+              <Button variant="danger" icon="alert" onClick={() => setResetOpen(true)}>{t.resetBtn}</Button>
             </div>
           </GlassPanel>
 
-          <GlassPanel as="section" class="settings-panel settings-about lm-enter" style={d(5)} icon="info" eyebrow="About" title="Lumen — The Eye Clinic" accent="#5eead4">
+          <GlassPanel as="section" class="settings-panel settings-about lm-enter" style={d(5)} icon="info" eyebrow={t.aboutEyebrow} title={t.aboutTitle} accent="#5eead4">
             <div class="settings-disclaimer" role="note">
               <Icon name="alert" class="settings-disclaimer__icon" />
               <div>
-                <strong>Educational game — not medical advice.</strong>
-                <p>
-                  Lumen teaches clinical reasoning with simplified, fictional patients. It does not replace professional training,
-                  supervision or an eye examination. If you have eye symptoms, see an optometrist or ophthalmologist — sudden vision
-                  loss, a painful red eye, new flashes with a shadow or curtain, or new double vision need same-day care.
-                </p>
+                <strong>{t.disclaimerHead}</strong>
+                <p>{t.disclaimer}</p>
               </div>
             </div>
             <dl class="settings-credits">
-              <div><dt>Clinical content</dt><dd>Written against EyeWiki (AAO), StatPearls and national optometric guidance; each Codex entry cites its source.</dd></div>
-              <div><dt>Art & sound</dt><dd>Every portrait, iris, fundus, chart and note is generated live in your browser — no stock images or samples.</dd></div>
-              <div><dt>Type</dt><dd>Fraunces, Inter and Space Grotesk, under the SIL Open Font License.</dd></div>
-              <div><dt>Built with</dt><dd>Preact, TypeScript and the Web Audio API.</dd></div>
+              {t.credits.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
             </dl>
             <div class="settings-actions">
               <Button size="sm" variant="ghost" icon="play" onClick={() => {
                 patch({ onboarded: false });
-                services.bus.emit('toast', { message: 'The welcome tour will play next time you open the clinic', icon: 'info', tone: 'info' });
-              }}>Replay welcome tour</Button>
+                services.bus.emit('toast', { message: t.tourToast, icon: 'info', tone: 'info' });
+              }}>{t.replayTour}</Button>
             </div>
           </GlassPanel>
         </div>
       </div>
 
-      <Modal open={!!pending} onClose={() => setPending(null)} eyebrow="Restore" title="Load this save?" icon="refresh" size="sm"
+      <Modal open={!!pending} onClose={() => setPending(null)} eyebrow={t.restoreEyebrow} title={t.loadTitle} icon="refresh" size="sm"
         footer={<>
-          <Button variant="ghost" onClick={() => setPending(null)}>Cancel</Button>
-          <Button variant="primary" icon="check" onClick={confirmImport} sfx="success">Restore & reload</Button>
+          <Button variant="ghost" onClick={() => setPending(null)}>{t.cancel}</Button>
+          <Button variant="primary" icon="check" onClick={confirmImport} sfx="success">{t.restoreBtn}</Button>
         </>}>
         {pending && (
           <div class="settings-modal">
-            <p><b>{pending.fileName}</b> holds <b class="lm-num">{pending.records}</b> {pending.records === 1 ? 'record' : 'records'}.</p>
-            <p class="settings-note">It will replace the progress currently on this device, then the clinic will reopen.{!pending.hasSettings && ' Your sound and display settings will be kept.'}</p>
+            <p><bdi><b>{pending.fileName}</b></bdi> {t.holds} <b class="lm-num">{pending.records}</b> {t.recordCount(pending.records)}.</p>
+            <p class="settings-note">{t.replaceNote}{!pending.hasSettings && t.keepSettings}</p>
           </div>
         )}
       </Modal>
 
-      <Modal open={resetOpen} onClose={() => setResetOpen(false)} eyebrow="Start afresh" title="Erase all progress?" icon="alert" size="sm" accent="#f43f5e">
+      <Modal open={resetOpen} onClose={() => setResetOpen(false)} eyebrow={t.afreshTitle} title={t.eraseTitle} icon="alert" size="sm" accent="#f43f5e">
         <div class="settings-modal">
-          <p>Rank, coins, rivals, collection, streaks and your learning history will be permanently erased from this device. This cannot be undone.</p>
-          <p class="settings-note">Tip: export a save first if you might want it back.</p>
+          <p>{t.eraseBody}</p>
+          <p class="settings-note">{t.eraseTip}</p>
           <label class="settings-check">
             <input type="checkbox" checked={resetSettingsToo} onChange={(e) => setResetSettingsToo((e.currentTarget as HTMLInputElement).checked)} />
             <span class="settings-check__box" aria-hidden="true"><Icon name="check" /></span>
-            Also reset sound, display and name
+            {t.alsoReset}
           </label>
           <div class="settings-modal__foot">
-            <Button variant="ghost" onClick={() => setResetOpen(false)}>Keep my progress</Button>
-            <HoldButton label="Hold to erase" icon="alert" onConfirm={confirmReset} />
+            <Button variant="ghost" onClick={() => setResetOpen(false)}>{t.keepProgress}</Button>
+            <HoldButton label={t.holdErase} icon="alert" onConfirm={confirmReset} />
           </div>
         </div>
       </Modal>
       {restarting && (
         <div class="settings-restart" role="status" aria-live="assertive">
           <span class="settings-restart__lens" aria-hidden="true" />
-          <p>Reopening the clinic…</p>
+          <p>{t.reopening}</p>
         </div>
       )}
     </Screen>

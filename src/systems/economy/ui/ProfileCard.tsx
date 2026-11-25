@@ -1,5 +1,7 @@
 import type { GameServices } from '@core';
-import { Button, GlassPanel, useSignal } from '@ui-kit';
+import { Button, GlassPanel, useLocale, useSignal, useStrings } from '@ui-kit';
+import { S } from '../strings';
+import { itemText } from '../text';
 import { CATALOG, COIN, ECONOMY_COLOR, itemById } from '../catalog';
 import { formatCoins } from '../logic';
 import type { Economy } from '../store';
@@ -16,12 +18,14 @@ export function ProfileCard({ services }: { services: GameServices }) {
 
 function Card(props: { services: GameServices; name: string; store: Economy }) {
   const state = useSignal(props.store.state);
+  const t = useStrings(S);
+  const locale = useLocale();
   const theme = itemById(state.equipped.theme);
   const frame = itemById(state.equipped.frame);
   const ownedCount = state.owned.filter((id) => CATALOG.some((c) => c.id === id)).length;
   return (
-    <GlassPanel class="eco-wardrobe" accent={ECONOMY_COLOR} eyebrow="Boutique" title="Wardrobe" icon="gem"
-      actions={<Button variant="ghost" size="sm" trailingIcon="chevron-right" onClick={() => props.services.router.go('boutique')}>Visit</Button>}
+    <GlassPanel class="eco-wardrobe" accent={ECONOMY_COLOR} eyebrow={t.boutique} title={t.wardrobe} icon="gem"
+      actions={<Button variant="ghost" size="sm" trailingIcon="chevron-right" onClick={() => props.services.router.go('boutique')}>{t.visit}</Button>}
     >
       <div class="eco-wardrobe__grid">
         <div class="eco-wardrobe__plate">
@@ -29,14 +33,14 @@ function Card(props: { services: GameServices; name: string; store: Economy }) {
         </div>
         <div class="eco-wardrobe__frame">
           <FrameArt id={state.equipped.frame} width="100%" />
-          <span>{frame?.name}</span>
+          <span>{frame && itemText(frame, locale).name}</span>
         </div>
       </div>
       <dl class="eco-wardrobe__stats">
-        <div><dt>Clinic theme</dt><dd>{theme?.name}</dd></div>
-        <div><dt>Collection</dt><dd class="lm-num">{ownedCount}/{CATALOG.length}</dd></div>
-        <div><dt>Lumens earned</dt><dd class="lm-num">{formatCoins(state.lifetimeEarned)} {COIN}</dd></div>
-        <div><dt>Crates opened</dt><dd class="lm-num">{state.cratesOpened}</dd></div>
+        <div><dt>{t.clinicTheme}</dt><dd>{theme && itemText(theme, locale).name}</dd></div>
+        <div><dt>{t.collection}</dt><dd class="lm-num">{ownedCount}/{CATALOG.length}</dd></div>
+        <div><dt>{t.lumensEarned}</dt><dd class="lm-num">{formatCoins(state.lifetimeEarned)} {COIN}</dd></div>
+        <div><dt>{t.cratesOpened}</dt><dd class="lm-num">{state.cratesOpened}</dd></div>
       </dl>
     </GlassPanel>
   );

@@ -7,14 +7,14 @@ const SAVE_PREFIX = 'lumen:';
 export const SETTINGS_KEY = SAVE_PREFIX + 'settings';
 
 /** Trim, collapse whitespace, strip control/markup characters and cap the length. */
-export function sanitizeName(raw: string): string {
+export function sanitizeName(raw: string, fallback = DEFAULT_NAME): string {
   const cleaned = raw
     .replace(/[\u0000-\u001f\u007f<>{}]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, NAME_MAX)
     .trim();
-  return cleaned || DEFAULT_NAME;
+  return cleaned || fallback;
 }
 
 /** 0..1 → "80%" */
@@ -60,31 +60,42 @@ export type ImportCheck =
  * Validate a save file before handing it to SaveService.importAll. Accepts only
  * a flat object of "lumen:*" keys whose values are JSON envelope strings.
  */
-export function validateImport(text: string): ImportCheck {
-  if (!text.trim()) return { ok: false, error: 'That file is empty.' };
+export interface ImportMessages {
+  empty: string; json: string; notSave: string; none: string; damaged: (k: string) => string;
+}
+const EN_MSGS: ImportMessages = {
+  empty: 'That file is empty.',
+  json: 'That file is not a Lumen save (it is not valid JSON).',
+  notSave: 'That file is not a Lumen save.',
+  none: 'No Lumen progress was found in that file.',
+  damaged: (k) => `The record “${k}” is damaged.`,
+};
+
+export function validateImport(text: string, m: ImportMessages = EN_MSGS): ImportCheck {
+  if (!text.trim()) return { ok: false, error: m.empty };
   let data: unknown;
   try {
     data = JSON.parse(text);
   } catch {
-    return { ok: false, error: 'That file is not a Lumen save (it is not valid JSON).' };
+    return { ok: false, error: m.json };
   }
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    return { ok: false, error: 'That file is not a Lumen save.' };
+    return { ok: false, error: m.notSave };
   }
   const clean: Record<string, string> = {};
   for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
     if (!k.startsWith(SAVE_PREFIX)) continue;
-    if (typeof v !== 'string') return { ok: false, error: `The record “${k.slice(SAVE_PREFIX.length)}” is damaged.` };
+    if (typeof v !== 'string') return { ok: false, error: m.damaged(k.slice(SAVE_PREFIX.length)) };
     try {
       const env = JSON.parse(v) as { v?: unknown };
       if (!env || typeof env !== 'object' || typeof env.v !== 'number') throw new Error('bad envelope');
     } catch {
-      return { ok: false, error: `The record “${k.slice(SAVE_PREFIX.length)}” is damaged.` };
+      return { ok: false, error: m.damaged(k.slice(SAVE_PREFIX.length)) };
     }
     clean[k] = v;
   }
   const records = Object.keys(clean).length;
-  if (!records) return { ok: false, error: 'No Lumen progress was found in that file.' };
+  if (!records) return { ok: false, error: m.none };
   return { ok: true, json: JSON.stringify(clean), records, hasSettings: SETTINGS_KEY in clean };
 }
 

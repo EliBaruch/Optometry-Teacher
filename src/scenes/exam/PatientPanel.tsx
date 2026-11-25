@@ -1,7 +1,8 @@
 import type { AvatarExpression } from '@render';
 import { PatientAvatar } from '@render';
 import type { ClinicalCase } from '@core';
-import { GlassPanel, SpeechBubble, Icon } from '@ui-kit';
+import { GlassPanel, SpeechBubble, Icon, useStrings } from '@ui-kit';
+import { S } from './strings';
 
 export interface Utterance {
   key: number;
@@ -10,15 +11,14 @@ export interface Utterance {
   delay: number;
 }
 
-const SEX_WORD = { F: 'Female', M: 'Male', X: '' } as const;
-
 export function PatientPanel(props: { kase: ClinicalCase; expression: AvatarExpression; utterance: Utterance; reduced: boolean }) {
   const { kase, expression, utterance, reduced } = props;
+  const t = useStrings(S);
   const p = kase.patient;
   const ext = kase.findings.external;
-  const meta = [`${p.age} yrs`, SEX_WORD[p.sex], p.occupation].filter(Boolean).join('  ·  ');
+  const meta = t.patientMeta(p.age, p.sex, p.occupation ?? '');
   return (
-    <section class="exm-patient" aria-label="Patient">
+    <section class="exm-patient" aria-label={t.patientAria}>
       <div class="exm-patient__top">
         <div class="exm-portrait">
           <div class="exm-portrait__glow" aria-hidden="true" />
@@ -30,7 +30,7 @@ export function PatientPanel(props: { kase: ClinicalCase; expression: AvatarExpr
               expression={expression}
               external={ext}
               reducedMotion={reduced}
-              label={`${p.name}, ${p.age} years old`}
+              label={t.avatarLabel(p.name, p.age, p.sex)}
             />
           </div>
           {!reduced && (
@@ -41,7 +41,7 @@ export function PatientPanel(props: { kase: ClinicalCase; expression: AvatarExpr
         </div>
         <div class="exm-card">
           <h2 class="exm-card__name lm-display">{p.name}</h2>
-          <p class="exm-card__meta lm-num">{meta}</p>
+          <p class="exm-card__meta lm-num" dir="auto">{meta}</p>
           {p.personality && <p class="exm-card__quote">{p.personality}</p>}
         </div>
       </div>
@@ -57,12 +57,12 @@ export function PatientPanel(props: { kase: ClinicalCase; expression: AvatarExpr
         />
       </div>
       {kase.triageNote && (
-        <GlassPanel class="exm-triage" padding="sm" accent="#38bdf8" eyebrow="From the front desk" title="Triage note" icon="info" strong>
+        <GlassPanel class="exm-triage" padding="sm" accent="#38bdf8" eyebrow={t.triageEyebrow} title={t.triageTitle} icon="info" strong>
           <p>{kase.triageNote}</p>
         </GlassPanel>
       )}
       <p class="exm-patient__foot lm-muted">
-        <Icon name="eye" size={14} /> Ask, examine, then decide. Every question and test costs clinic time.
+        <Icon name="eye" size={14} /> {t.patientFoot}
       </p>
     </section>
   );

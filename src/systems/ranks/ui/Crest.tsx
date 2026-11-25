@@ -1,5 +1,6 @@
 import { useId } from 'preact/hooks';
-import { RANKS, TIERS_PER_RANK, roman } from '../model/ladder';
+import { useLocale } from '@ui-kit';
+import { RANKS, TIERS_PER_RANK, tierLabel } from '../model/ladder';
 
 export interface CrestProps {
   rankIndex: number;
@@ -35,6 +36,7 @@ function laurel(side: 1 | -1, leaves: number, fill: string) {
 
 /** The rank crest: a jewelled shield with an iris at its heart; ornaments grow with rank. */
 export function Crest({ rankIndex, tier = 1, size = 64, animate = false, locked = false, class: klass, label }: CrestProps) {
+  const locale = useLocale();
   const id = 'cr' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const r = Math.max(0, Math.min(RANKS.length - 1, rankIndex));
   const rank = RANKS[r]!;
@@ -160,7 +162,7 @@ export function Crest({ rankIndex, tier = 1, size = 64, animate = false, locked 
         <path d="M24 106 L96 106 L102 114 L96 122 L24 122 L18 114 Z" fill="#140c26" stroke={metal} stroke-width="1.4" stroke-linejoin="round" />
         {showNumeral ? (
           <text x="60" y="118.2" text-anchor="middle" class="rk-crest__numeral" fill={locked ? '#54486b' : '#fff4da'}>
-            {roman(tier)}
+            {tierLabel(tier, locale)}
           </text>
         ) : (
           Array.from({ length: TIERS_PER_RANK }, (_, i) => {

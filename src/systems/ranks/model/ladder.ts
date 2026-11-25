@@ -4,6 +4,9 @@
  * Pure and unit-tested — no services, no DOM.
  */
 
+import type { Locale } from '@core';
+import { RANK_HE, tierNumeral } from '../strings';
+
 export interface RankDef {
   id: string;
   title: string;
@@ -80,12 +83,23 @@ export function tierOf(level: number): number {
   return l >= LEGEND_LEVEL ? l - LEGEND_LEVEL + 1 : (l % TIERS_PER_RANK) + 1;
 }
 
+/** A rank with its title and motto in the edition's language. */
+export function localRank(r: RankDef, locale: Locale = 'en'): RankDef {
+  const he = locale === 'he' ? RANK_HE[r.id] : undefined;
+  return he ? { ...r, ...he } : r;
+}
+
+/** Tier numeral: "II" in English, "ב׳" in Hebrew. */
+export function tierLabel(t: number, locale: Locale = 'en'): string {
+  return tierNumeral(t, locale, roman(t));
+}
+
 /** "Resident II"; the first Living Legend tier is just "Living Legend". */
-export function titleOf(level: number): string {
-  const r = RANKS[rankIndexOf(level)]!;
+export function titleOf(level: number, locale: Locale = 'en'): string {
+  const r = localRank(RANKS[rankIndexOf(level)]!, locale);
   const t = tierOf(level);
   if (r.id === 'legend' && t === 1) return r.title;
-  return `${r.title} ${roman(t)}`;
+  return `${r.title} ${tierLabel(t, locale)}`;
 }
 
 export interface LevelInfo {
@@ -113,20 +127,20 @@ export interface LevelInfo {
   toNextRank: number;
 }
 
-export function levelInfo(xp: number): LevelInfo {
+export function levelInfo(xp: number, locale: Locale = 'en'): LevelInfo {
   const x = Math.max(0, Math.floor(xp || 0));
   const level = levelForXp(x);
   const start = xpAtLevel(level);
   const end = xpAtLevel(level + 1);
   const rankIndex = rankIndexOf(level);
-  const nextRank = rankIndex < RANKS.length - 1 ? RANKS[rankIndex + 1]! : null;
+  const nextRank = rankIndex < RANKS.length - 1 ? localRank(RANKS[rankIndex + 1]!, locale) : null;
   return {
     level,
     number: level + 1,
     rankIndex,
-    rank: RANKS[rankIndex]!,
+    rank: localRank(RANKS[rankIndex]!, locale),
     tier: tierOf(level),
-    title: titleOf(level),
+    title: titleOf(level, locale),
     xp: x,
     levelStartXp: start,
     levelEndXp: end,
@@ -134,7 +148,7 @@ export function levelInfo(xp: number): LevelInfo {
     span: end - start,
     progress: (x - start) / (end - start),
     toNext: end - x,
-    nextTitle: titleOf(level + 1),
+    nextTitle: titleOf(level + 1, locale),
     nextRank,
     toNextRank: nextRank ? xpAtLevel((rankIndex + 1) * TIERS_PER_RANK) - x : 0,
   };

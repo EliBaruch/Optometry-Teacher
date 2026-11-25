@@ -59,6 +59,7 @@ const shift: ModeModule = {
   id: 'shift',
   title: 'Clinic Shift',
   tagline: 'Five patients, one candlelit evening. Every chart tells a story.',
+  text: { he: { title: 'משמרת במרפאה', tagline: 'חמישה מטופלים, ערב אחד באור חמים. מאחורי כל תיק מסתתר סיפור.' } },
   icon: '🌙',
   accent: '#ffd27a',
   order: 10,

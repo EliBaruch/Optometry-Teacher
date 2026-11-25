@@ -1,5 +1,6 @@
-import { Badge, GlassPanel, Icon, IconOrText, useSfx } from '@ui-kit';
-import type { ModeModule } from '@core';
+import { Badge, GlassPanel, Icon, IconOrText, useLocale, useSfx, useStrings } from '@ui-kit';
+import { modeText, type ModeModule } from '@core';
+import { S } from './strings';
 import { rulesSummary, type WingView } from './logic';
 
 function deny(el: HTMLElement) {
@@ -12,21 +13,24 @@ function deny(el: HTMLElement) {
 export function ModeCard({ mode, index, onStart, pending }: {
   mode: ModeModule; index: number; onStart: (m: ModeModule, el: HTMLElement) => void; pending: boolean;
 }) {
+  const locale = useLocale();
+  const mt = modeText(mode, locale);
+  const rules = rulesSummary(mode.rules, locale);
   return (
     <GlassPanel
       interactive glow accent={mode.accent} padding="none" sfx="select"
       class="hub-mode" style={{ '--i': index, '--acc': mode.accent }}
       onClick={(e: MouseEvent) => { if (!pending) onStart(mode, e.currentTarget as HTMLElement); }}
-      aria-label={`${mode.title}. ${mode.tagline}. ${rulesSummary(mode.rules).join(', ')}`}
+      aria-label={`${mt.title}. ${mt.tagline}. ${rules.join(', ')}`}
     >
       <div class="hub-mode__shine" aria-hidden="true" />
       <div class="hub-mode__medal" aria-hidden="true"><IconOrText icon={mode.icon} size={30} /></div>
       <div class="hub-mode__text">
-        <h3 class="hub-mode__title">{mode.title}</h3>
-        <p class="hub-mode__tag">{mode.tagline}</p>
+        <h3 class="hub-mode__title">{mt.title}</h3>
+        <p class="hub-mode__tag">{mt.tagline}</p>
       </div>
       <ul class="hub-mode__rules" aria-hidden="true">
-        {rulesSummary(mode.rules).map((r) => <li key={r}>{r}</li>)}
+        {rules.map((r) => <li key={r}>{r}</li>)}
       </ul>
       <span class="hub-mode__go" aria-hidden="true"><Icon name="arrow-right" size={18} /></span>
     </GlassPanel>
@@ -36,16 +40,18 @@ export function ModeCard({ mode, index, onStart, pending }: {
 /** A locked session, shown compactly in the "Coming up" row. */
 export function SoonCard({ mode, reason, onDenied }: { mode: ModeModule; reason: string; onDenied: (m: ModeModule, reason: string) => void }) {
   const play = useSfx();
+  const t = useStrings(S);
+  const title = modeText(mode, useLocale()).title;
   return (
     <GlassPanel
       interactive accent={mode.accent} padding="none" sfx={false}
       class="hub-soon" style={{ '--acc': mode.accent }} aria-disabled="true"
       onClick={(e: MouseEvent) => { play('error'); deny(e.currentTarget as HTMLElement); onDenied(mode, reason); }}
-      aria-label={`${mode.title}. Locked: ${reason}`}
+      aria-label={`${title}. ${t.locked}: ${reason}`}
     >
       <span class="hub-soon__lock" aria-hidden="true"><Icon name="lock" size={16} /></span>
       <span class="hub-soon__text">
-        <span class="hub-soon__title">{mode.title}</span>
+        <span class="hub-soon__title">{title}</span>
         <span class="hub-soon__why">{reason}</span>
       </span>
     </GlassPanel>
@@ -54,13 +60,14 @@ export function SoonCard({ mode, reason, onDenied }: { mode: ModeModule; reason:
 
 export function WingTile({ wing, index, onOpen }: { wing: WingView; index: number; onOpen: (w: WingView) => void }) {
   const play = useSfx();
+  const t = useStrings(S);
   const locked = !!wing.lockedReason;
   return (
     <GlassPanel
       interactive accent={wing.accent} padding="none" sfx={locked ? false : 'click'}
       class={`hub-wing${locked ? ' is-locked' : ''}`} style={{ '--i': index, '--acc': wing.accent }}
       onClick={() => (locked ? play('error') : onOpen(wing))} aria-disabled={locked || undefined}
-      aria-label={`${wing.title}. ${locked ? `Locked: ${wing.lockedReason}` : wing.subtitle}${wing.badge ? `. ${wing.badge}` : ''}`}
+      aria-label={`${wing.title}. ${locked ? `${t.locked}: ${wing.lockedReason}` : wing.subtitle}${wing.badge ? `. ${wing.badge}` : ''}`}
     >
       <span class="hub-wing__icon" aria-hidden="true">
         {locked ? <Icon name="lock" size={22} /> : <IconOrText icon={wing.icon} size={24} />}

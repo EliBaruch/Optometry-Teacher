@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { CountUp, useReducedMotion, useSignal } from '@ui-kit';
+import { CountUp, useReducedMotion, useSignal, useStrings } from '@ui-kit';
+import { S } from '../strings';
 import { formatCoins } from '../logic';
 import { CoinGlyph } from './CoinGlyph';
 import { useEconomy } from './hooks';
@@ -16,6 +17,7 @@ export function CoinCounter({ services }: { services: GameServices }) {
 
 function Counter({ services, store }: { services: GameServices; store: NonNullable<ReturnType<typeof useEconomy>> }) {
   const state = useSignal(store.state);
+  const t = useStrings(S);
   const route = useSignal(services.router.current);
   const reduced = useReducedMotion();
   const ref = useRef<HTMLButtonElement>(null);
@@ -48,7 +50,7 @@ function Counter({ services, store }: { services: GameServices; store: NonNullab
 
   const crates = state.crates.length;
   const here = route.id === 'boutique';
-  const label = `${formatCoins(state.balance)} lumens${crates ? `, ${crates} supply crate${crates > 1 ? 's' : ''} waiting` : ''}${here ? '' : ' — open the Boutique'}`;
+  const label = t.walletLabel(formatCoins(state.balance), crates, here);
 
   return (
     <button
@@ -56,7 +58,7 @@ function Counter({ services, store }: { services: GameServices; store: NonNullab
       type="button"
       class={`eco-wallet${pulse ? ' is-gain' : ''}${here ? ' is-here' : ''}`}
       aria-label={label}
-      title="Lumens — spend them in the Boutique"
+      title={t.walletTitle}
       onClick={() => {
         if (here) return;
         services.audio.play('click');

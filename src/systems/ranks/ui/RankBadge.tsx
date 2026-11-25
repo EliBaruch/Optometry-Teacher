@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { formatNumber, useReducedMotion, useSfx } from '@ui-kit';
+import { formatNumber, useReducedMotion, useSfx, useStrings } from '@ui-kit';
+import { S } from '../strings';
 import { Crest } from './Crest';
 import { ACTIVE, useRanks } from './hooks';
 
@@ -15,6 +16,7 @@ export function RankBadge({ services }: { services: GameServices }) {
 
 function RankBadgeInner({ services }: { services: GameServices }) {
   const { info } = useRanks(services);
+  const t = useStrings(S);
   const reduced = useReducedMotion();
   const play = useSfx();
   const ref = useRef<HTMLButtonElement>(null);
@@ -38,7 +40,7 @@ function RankBadgeInner({ services }: { services: GameServices }) {
     return () => clearTimeout(t);
   }, [info.xp]);
 
-  const label = `${info.title}, level ${info.number}. ${formatNumber(info.into)} of ${formatNumber(info.span)} XP to ${info.nextTitle}. Open Career.`;
+  const label = t.badgeLabel(info.title, String(info.number), formatNumber(info.into), formatNumber(info.span), info.nextTitle);
   return (
     <button
       ref={ref}

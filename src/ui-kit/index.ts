@@ -18,3 +18,4 @@ export {
 } from './lib/palette';
 export { VARIANTS as BACKDROP_VARIANTS } from './lib/backdrop-sim';
 export { isLiteRendering, setLiteRendering, onLiteRenderingChange, LITE_CLASS } from './lib/quality';
+export { S as UI_STRINGS, useUiStrings, uiLocale } from './strings';

@@ -1,25 +1,28 @@
-import type { HubEntry, ModeModule, ModeRules } from '@core';
+import { pickStrings, type HubEntry, type Locale, type ModeModule, type ModeRules } from '@core';
+import { S } from './strings';
 
 /** Short rule chips for a mode card: '5 patients', 'Endless', '3 lives', '90 s each', '×1.5 score'. */
-export function rulesSummary(rules: ModeRules): string[] {
+export function rulesSummary(rules: ModeRules, locale: Locale = 'en'): string[] {
+  const t = pickStrings(S, locale);
   const out: string[] = [];
-  if (rules.length === 'endless') out.push('Endless');
-  else out.push(`${rules.length} ${rules.length === 1 ? 'patient' : 'patients'}`);
-  if (rules.lives != null) out.push(`${rules.lives} ${rules.lives === 1 ? 'life' : 'lives'}`);
-  if (rules.timeLimitSec) out.push(rules.timeLimitSec >= 120 && rules.timeLimitSec % 60 === 0 ? `${rules.timeLimitSec / 60} min each` : `${rules.timeLimitSec} s each`);
-  if (rules.scoreMultiplier && rules.scoreMultiplier !== 1) out.push(`×${+rules.scoreMultiplier.toFixed(2)} score`);
-  if (rules.hints === false) out.push('No hints');
+  if (rules.length === 'endless') out.push(t.endless);
+  else out.push(t.patients(rules.length));
+  if (rules.lives != null) out.push(t.lives(rules.lives));
+  if (rules.timeLimitSec) out.push(rules.timeLimitSec >= 120 && rules.timeLimitSec % 60 === 0 ? t.minEach(rules.timeLimitSec / 60) : t.secEach(rules.timeLimitSec));
+  if (rules.scoreMultiplier && rules.scoreMultiplier !== 1) out.push(t.scoreMult(+rules.scoreMultiplier.toFixed(2)));
+  if (rules.hints === false) out.push(t.noHints);
   return out;
 }
 
 export const byOrder = <T extends { order: number; id: string }>(list: readonly T[]): T[] =>
   [...list].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
 
-export function greetingFor(hour: number): string {
-  if (hour < 5) return 'Burning the midnight oil';
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+export function greetingFor(hour: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
+  if (hour < 5) return t.greetNight;
+  if (hour < 12) return t.greetMorning;
+  if (hour < 18) return t.greetAfternoon;
+  return t.greetEvening;
 }
 
 /** Angles in degrees for an analogue clock. */
@@ -63,7 +66,10 @@ export function buildWings(
   entries: HubEntry[],
   hasScene: (id: string) => boolean,
   ctx: { badge: (e: HubEntry) => string | undefined; locked: (e: HubEntry) => string | undefined },
+  locale: Locale = 'en',
 ): WingView[] {
+  const t = pickStrings(S, locale);
+  const names: Record<string, readonly [string, string]> = { arcade: t.arcade, codex: t.codex, profile: t.profile };
   const taken = new Set(entries.map((e) => e.sceneId));
   const wings: WingView[] = byOrder(entries)
     .filter((e) => hasScene(e.sceneId))
@@ -71,7 +77,7 @@ export function buildWings(
       key: e.id, sceneId: e.sceneId, params: e.params, title: e.title, subtitle: e.subtitle, icon: e.icon, accent: e.accent,
       badge: safe(() => ctx.badge(e)), lockedReason: safe(() => ctx.locked(e)),
     }));
-  for (const c of CORE_TILES) if (!taken.has(c.sceneId) && hasScene(c.sceneId)) wings.push({ key: c.id, ...c });
+  for (const c of CORE_TILES) if (!taken.has(c.sceneId) && hasScene(c.sceneId)) wings.push({ key: c.id, ...c, ...(names[c.sceneId] ? { title: names[c.sceneId]![0], subtitle: names[c.sceneId]![1] } : {}) });
   return wings;
 }
 

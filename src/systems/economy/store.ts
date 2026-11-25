@@ -3,13 +3,15 @@
  * One store per GameServices (WeakMap) so install() is idempotent and UI can
  * find it without globals.
  */
-import { signal, type GameServices, type Rng, type ScoreBreakdown, type Signal } from '@core';
+import { pickStrings, signal, type GameServices, type Rng, type ScoreBreakdown, type Signal } from '@core';
 import {
   CRATES, DAILY_PRACTICE_CAP, DEFAULT_EQUIPPED, ECONOMY_COLOR, COIN, MAX_UNOPENED, STARTER_ITEMS, isMomentumMilestone,
   itemById, type CrateKind, type ItemKind, type Rarity,
 } from './catalog';
 import { caseFee, dayKey, practiceFee, rollCrate, type CrateDrop, type FeeResult } from './logic';
 import { applyTheme, removeThemeLayer } from './theme';
+import { S } from './strings';
+import { crateText, itemText } from './text';
 
 export const SYSTEM_ID = 'economy';
 export const SLOT = 'sys:economy';
@@ -94,6 +96,10 @@ export class Economy {
   private offs: (() => void)[] = [];
   private previewing: string | null = null;
 
+  get t() {
+    return pickStrings(S, this.services.locale);
+  }
+
   constructor(readonly services: GameServices) {
     this.state = services.save.slot<EconomyState>(SLOT, initialState(), { version: SLOT_VERSION });
     this.seeds = services.rng.fork('economy:crates');
@@ -125,7 +131,7 @@ export class Economy {
       bus.on('practice:completed', (e) => this.onPractice(e.result.accuracy)),
       bus.on('currency:grant', (e) => {
         const n = Math.round(Number(e.amount));
-        if (Number.isFinite(n) && n > 0) this.credit(n, e.reason || 'Gift');
+        if (Number.isFinite(n) && n > 0) this.credit(n, e.reason || this.t.reasonGift);
       }),
       bus.on('rank:changed', (e) => this.onRank(e.level, e.title)),
       this.state.subscribe((s, prev) => {
@@ -191,7 +197,7 @@ export class Economy {
     if (this.owns(id)) return 'owned';
     if (!this.spend(item.price)) return 'funds';
     this.state.update((s) => ({ ...s, owned: [...s.owned, id] }));
-    this.flag('first-purchase', 'Boutique regular', `Bought your first piece: ${item.name}.`, 'gem');
+    this.flag('first-purchase', this.t.flagBoutique, this.t.flagBoutiqueText(itemText(item, this.services.locale).name), 'gem');
     return 'ok';
   }
 
@@ -215,7 +221,7 @@ export class Economy {
   earnCrate(kind: CrateKind, reason: string): StoredCrate | null {
     const s = this.state.get();
     if (s.crates.length >= MAX_UNOPENED) {
-      this.credit(60, 'Crate storage full');
+      this.credit(60, this.t.reasonStorage);
       return null;
     }
     const crate: StoredCrate = {
@@ -257,9 +263,9 @@ export class Economy {
       owned: c.type === 'cosmetic' && !s.owned.includes(c.itemId) ? [...s.owned, c.itemId] : s.owned,
       drops: [{ kind: crate.kind, rarity: drop.rarity, content: c, at: this.services.clock.now() }, ...s.drops].slice(0, 12),
     });
-    if (c.type === 'coins') this.credit(c.amount, CRATES[crate.kind].name, !!opts?.deferPulse);
-    this.flag('first-crate', 'Special delivery', 'Opened your first supply crate.', 'crate');
-    if (drop.rarity === 'legendary') this.flag('legendary', 'Museum piece', 'Found a legendary treasure in a supply crate.', 'crown');
+    if (c.type === 'coins') this.credit(c.amount, crateText(crate.kind, this.services.locale).name, !!opts?.deferPulse);
+    this.flag('first-crate', this.t.flagCrate, this.t.flagCrateText, 'crate');
+    if (drop.rarity === 'legendary') this.flag('legendary', this.t.flagLegend, this.t.flagLegendText, 'crown');
     return { crate, drop };
   }
 
@@ -271,7 +277,7 @@ export class Economy {
     if (this.hints.caseId !== caseId) this.hints = { caseId, covered: 0 };
     this.hints.covered++;
     this.state.set({ ...s, hintTokens: s.hintTokens - 1 });
-    this.services.bus.emit('toast', { message: 'Consult note applied — this hint won’t reduce your fee.', icon: 'book', tone: 'info' });
+    this.services.bus.emit('toast', { message: this.t.consultNoteToast, icon: 'book', tone: 'info' });
   }
 
   private onCaseCompleted(caseId: string, score: ScoreBreakdown): void {
@@ -279,15 +285,15 @@ export class Economy {
     const kase = this.services.registries.cases.get(caseId);
     const covered = this.hints.caseId === caseId ? this.hints.covered : 0;
     const prior = this.streak;
-    const fee = caseFee({ score, difficulty: kase?.difficulty, priorStreak: prior, coveredHints: covered, earnedToday: day.caseCoins });
+    const fee = caseFee({ score, difficulty: kase?.difficulty, priorStreak: prior, coveredHints: covered, earnedToday: day.caseCoins, locale: this.services.locale });
     this.streak = score.diagnosisCorrect ? prior + 1 : 0;
     this.hints = { caseId: '', covered: 0 };
 
     this.state.update((s) => ({ ...s, day: { ...s.day, caseCoins: s.day.caseCoins + fee.total } }));
-    this.credit(fee.total, 'Consultation fee');
+    this.credit(fee.total, this.t.reasonFee);
     const { bus } = this.services;
     bus.emit('reward:granted', {
-      source: SYSTEM_ID, label: 'Consultation fee', value: `+${fee.total} ${COIN}`, icon: 'coin', color: ECONOMY_COLOR,
+      source: SYSTEM_ID, label: this.t.reasonFee, value: `+${fee.total} ${COIN}`, icon: 'coin', color: ECONOMY_COLOR,
       rarity: score.grade === 'S' ? 'rare' : 'common',
     });
 
@@ -296,16 +302,16 @@ export class Economy {
       const c = this.earnCrate(kind, reason);
       if (c) crates.push(c);
     };
-    if (score.grade === 'S') add('case', 'Exemplary case');
-    else if (score.grade === 'A' && score.diagnosisCorrect && this.seeds.chance(0.2)) add('case', 'Excellent case — lucky find');
-    if (score.diagnosisCorrect && isMomentumMilestone(this.streak)) add('momentum', `${this.streak} correct in a row`);
+    if (score.grade === 'S') add('case', this.t.reasonExemplary);
+    else if (score.grade === 'A' && score.diagnosisCorrect && this.seeds.chance(0.2)) add('case', this.t.reasonExcellent);
+    if (score.diagnosisCorrect && isMomentumMilestone(this.streak)) add('momentum', this.t.reasonStreak(this.streak));
     for (const c of crates) {
       bus.emit('reward:granted', {
-        source: SYSTEM_ID, label: CRATES[c.kind].name, value: 'NEW', icon: 'crate', color: CRATES[c.kind].trim,
+        source: SYSTEM_ID, label: crateText(c.kind, this.services.locale).name, value: this.t.newTag, icon: 'crate', color: CRATES[c.kind].trim,
         rarity: c.kind === 'case' ? 'rare' : 'epic',
       });
     }
-    if (crates.length) bus.emit('toast', { message: `${CRATES[crates[0]!.kind].name} earned — ${crates[0]!.reason.toLowerCase()}!`, icon: 'crate', tone: 'epic' });
+    if (crates.length) bus.emit('toast', { message: this.t.crateToast(crateText(crates[0]!.kind, this.services.locale).name, crates[0]!.reason), icon: 'crate', tone: 'epic' });
     this.lastCase.set({ caseId, fee, grade: score.grade, coveredHints: covered, crates, streak: this.streak });
   }
 
@@ -314,19 +320,19 @@ export class Economy {
     const pay = practiceFee(accuracy, day.practiceCoins, DAILY_PRACTICE_CAP);
     if (pay <= 0) return;
     this.state.update((s) => ({ ...s, day: { ...s.day, practiceCoins: s.day.practiceCoins + pay } }));
-    this.credit(pay, 'Practice');
+    this.credit(pay, this.t.reasonPractice);
   }
 
   private onRank(level: number, title: string): void {
     const s = this.state.get();
     if (!Number.isFinite(level) || level <= Math.max(1, s.maxRank)) return;
     this.state.set({ ...s, maxRank: level });
-    const c = this.earnCrate('promotion', `Promoted to ${title}`);
+    const c = this.earnCrate('promotion', this.t.reasonPromo(title));
     if (!c) return;
     this.services.bus.emit('reward:granted', {
-      source: SYSTEM_ID, label: CRATES.promotion.name, value: 'NEW', icon: 'crate', color: CRATES.promotion.trim, rarity: 'epic',
+      source: SYSTEM_ID, label: crateText('promotion', this.services.locale).name, value: this.t.newTag, icon: 'crate', color: CRATES.promotion.trim, rarity: 'epic',
     });
-    this.services.bus.emit('toast', { message: `Promotion crate delivered — congratulations, ${title}!`, icon: 'crate', tone: 'epic' });
+    this.services.bus.emit('toast', { message: this.t.promoToast(title), icon: 'crate', tone: 'epic' });
   }
 
   private flag(key: string, title: string, description: string, icon: string): void {

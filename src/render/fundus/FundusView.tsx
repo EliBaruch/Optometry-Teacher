@@ -319,7 +319,7 @@ export function FundusView(props: FundusViewProps) {
       ref={ref}
       tabIndex={0}
       role="img"
-      aria-label={props.label ?? `Fundus of the ${props.eye === 'OD' ? 'right' : 'left'} eye. Drag or use arrow keys to look around; plus and minus to zoom.`}
+      aria-label={props.label ?? (document.documentElement.lang === 'he' ? `קרקעית העין ה${props.eye === 'OD' ? 'ימנית' : 'שמאלית'}. גררו או השתמשו בחצים כדי להסתובב, ובפלוס ומינוס כדי לקרב ולהרחיק.` : `Fundus of the ${props.eye === 'OD' ? 'right' : 'left'} eye. Drag or use arrow keys to look around; plus and minus to zoom.`)}
       class={props.class}
       style={{ width: `${props.width}px`, height: `${props.height}px`, display: 'block', touchAction: 'none', cursor: 'grab', ...(props.style ?? {}) }}
     />

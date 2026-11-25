@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import type { SceneProps } from '@core';
-import { CountUp, Icon, Ornament, Screen, TabPanel, Tabs } from '@ui-kit';
+import { CountUp, Icon, Ornament, Screen, TabPanel, Tabs, useStrings } from '@ui-kit';
+import { S } from '../strings';
 import { ACHIEVEMENTS } from '../model/achievements';
 import { buildEnv } from '../engine';
 import { Constellations } from './Constellations';
@@ -18,6 +19,7 @@ const TABS: Tab[] = ['sky', 'trophies', 'ladder'];
 /** Scene 'career': rank crest, XP, mastery constellations, trophy wall and the ladder. */
 export function CareerScene({ services, params }: SceneProps) {
   const { s, info } = useRanks(services);
+  const t = useStrings(S);
   const initial = TABS.includes(params.tab as Tab) ? (params.tab as Tab) : 'sky';
   const [tab, setTab] = useState<Tab>(initial);
   const env = useMemo(() => buildEnv(services, s), [s, services]);
@@ -27,16 +29,16 @@ export function CareerScene({ services, params }: SceneProps) {
   const trophies = Object.keys(s.achievements).length;
 
   return (
-    <Screen title="Career" eyebrow="Lumen Observatory" onBack={() => services.router.back()} escToBack backdrop="hub" class="rk-scene">
+    <Screen title={t.career} eyebrow={t.sceneEyebrow} onBack={() => services.router.back()} escToBack backdrop="hub" class="rk-scene">
       <div class="rk-scene__wrap">
         <section class="rk-hero" style={{ '--rk-c': info.rank.color, '--rk-c2': info.rank.color2 }}>
           <div class="rk-hero__crest">
             <span class="rk-hero__aura" aria-hidden="true" />
-            <Crest rankIndex={info.rankIndex} tier={info.tier} size={164} animate label={`${info.title} crest`} />
+            <Crest rankIndex={info.rankIndex} tier={info.tier} size={164} animate label={t.crestLabel(info.title)} />
           </div>
           <div class="rk-hero__main">
             <div class="lm-eyebrow rk-hero__eyebrow">
-              Level <span class="lm-num">{info.number}</span> · {services.settings.get().playerName}
+              {t.levelLine('')}<span class="lm-num">{info.number}</span> · {services.settings.get().playerName}
             </div>
             <h2 class="rk-hero__title">{info.title}</h2>
             <p class="rk-hero__motto">{info.rank.motto}</p>
@@ -44,7 +46,7 @@ export function CareerScene({ services, params }: SceneProps) {
             <XpProgress from={s.xp} to={s.xp} size="lg" />
           </div>
           <dl class="rk-hero__stats rk-stats">
-            {careerStats(s, mastered).map((st, i) => (
+            {careerStats(s, mastered, t).map((st, i) => (
               <div key={st.label} class="rk-stat lm-enter" style={{ '--lm-delay': `${200 + i * 60}ms` }}>
                 <dt>
                   <Icon name={st.icon} size={14} /> {st.label}
@@ -59,15 +61,15 @@ export function CareerScene({ services, params }: SceneProps) {
 
         <Tabs
           id="rk-tabs"
-          label="Career sections"
+          label={t.tabsLabel}
           value={tab}
           onChange={(v) => setTab(v as Tab)}
           accent="#a78bfa"
           class="rk-tabs"
           items={[
-            { id: 'sky', label: 'Mastery sky', icon: 'star', badge: `${diagnosed}/${dxTotal}` },
-            { id: 'trophies', label: 'Trophy wall', icon: 'trophy', badge: s.unseen.length ? `${s.unseen.length} new` : `${trophies}/${ACHIEVEMENTS.length}` },
-            { id: 'ladder', label: 'Ladder', icon: 'crown' },
+            { id: 'sky', label: t.tabSky, icon: 'star', badge: `${diagnosed}/${dxTotal}` },
+            { id: 'trophies', label: t.tabTrophies, icon: 'trophy', badge: s.unseen.length ? t.newCount(s.unseen.length) : `${trophies}/${ACHIEVEMENTS.length}` },
+            { id: 'ladder', label: t.tabLadder, icon: 'crown' },
           ]}
         />
         <TabPanel tabsId="rk-tabs" id="sky" value={tab} class="rk-panel">

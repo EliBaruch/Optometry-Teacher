@@ -1,4 +1,5 @@
-import type { GameServices } from '@core';
+import { pickStrings, type GameServices } from '@core';
+import { S } from '../strings';
 import { ECONOMY_COLOR } from '../catalog';
 import { SYSTEM_ID, activeEconomy } from '../store';
 import { BoutiqueScene } from './Boutique';
@@ -20,13 +21,14 @@ export function registerUi(services: GameServices): void {
   if (registered.has(services)) return;
   registered.add(services);
   const { hud, hub, scenes } = services.registries;
+  const t = pickStrings(S, services.locale);
   hud.register({ id: 'economy:wallet', slot: 'topbar-left', order: 20, system: SYSTEM_ID, component: CoinCounter });
   hud.register({ id: 'economy:receipt', slot: 'results-extra', order: 20, system: SYSTEM_ID, component: ResultsPanel });
   hud.register({ id: 'economy:wardrobe', slot: 'profile', order: 30, system: SYSTEM_ID, component: ProfileCard });
   hub.register({
     id: 'economy:boutique',
-    title: 'Boutique',
-    subtitle: 'Clinic themes, eyewear & supply crates',
+    title: t.hubTitle,
+    subtitle: t.hubSubtitle,
     icon: 'gem',
     accent: ECONOMY_COLOR,
     order: 20,
@@ -34,7 +36,7 @@ export function registerUi(services: GameServices): void {
     sceneId: 'boutique',
     badge: (s) => {
       const n = activeEconomy(s)?.state.get().crates.length ?? 0;
-      return n ? `${n} CRATE${n > 1 ? 'S' : ''}` : undefined;
+      return n ? t.hubBadge(n) : undefined;
     },
   });
   scenes.register({ id: 'boutique', component: BoutiqueScene, music: 'hub' });

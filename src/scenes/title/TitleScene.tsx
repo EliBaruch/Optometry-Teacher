@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import type { SceneProps } from '@core';
-import { Backdrop, Button, Icon, Modal, useReducedMotion, useSignal } from '@ui-kit';
+import { Backdrop, Button, Icon, Modal, useReducedMotion, useSignal, useStrings } from '@ui-kit';
+import { S } from './strings';
 import { Intro } from './Intro';
 import { Flare, updateFlare } from './Flare';
 import { Lattice } from './Lattice';
@@ -28,6 +29,7 @@ function useViewport() {
 }
 
 export function TitleScene({ services }: SceneProps) {
+  const t = useStrings(S);
   const reduced = useReducedMotion();
   const settings = useSignal(services.settings);
   const vp = useViewport();
@@ -153,34 +155,34 @@ export function TitleScene({ services }: SceneProps) {
 
         <div class="ttl-copy">
         <header class={`ttl-mark ${zooming ? 'is-out' : ''}`}>
-          <div class="lm-eyebrow ttl-mark__eyebrow lm-enter" style={{ '--lm-delay': '500ms' } as never}>An after-hours eye clinic</div>
-          <h1 class="ttl-mark__word lm-enter" style={{ '--lm-delay': '650ms' } as never} aria-label="Lumen">
-            {'LUMEN'.split('').map((c, i) => (
+          <div class="lm-eyebrow ttl-mark__eyebrow lm-enter" style={{ '--lm-delay': '500ms' } as never}>{t.eyebrow}</div>
+          <h1 class="ttl-mark__word lm-enter" style={{ '--lm-delay': '650ms' } as never} aria-label={t.brandLabel}>
+            {t.brand.split('').map((c, i) => (
               <span key={i} class="ttl-mark__ch" style={{ '--i': i } as never} aria-hidden="true">{c}</span>
             ))}
           </h1>
           <p class="ttl-mark__sub lm-enter" style={{ '--lm-delay': '1000ms' } as never}>
-            <i /> The Eye Clinic <i />
+            <i /> {t.sub} <i />
           </p>
         </header>
 
         <div class={`ttl-cta ${zooming ? 'is-out' : ''} lm-enter`} style={{ '--lm-delay': '1300ms' } as never}>
           <Button variant="primary" size="lg" icon="eye" sfx={false} onClick={open} class="ttl-cta__main" disabled={phase !== 'idle'}>
-            {first ? 'Open the clinic' : 'Step inside'}
+            {first ? t.openFirst : t.openAgain}
           </Button>
           <div class="ttl-cta__hint">
-            Press <kbd class="lm-num">Enter</kbd>
+            {t.press} <kbd class="lm-num">Enter</kbd>
           </div>
-          <div class="ttl-cta__touch">Touch the glass: the eye is watching</div>
+          <div class="ttl-cta__touch">{t.touch}</div>
         </div>
         </div>
 
-      <nav class={`ttl-links ${zooming ? 'is-out' : ''}`} aria-label="Secondary">
+      <nav class={`ttl-links ${zooming ? 'is-out' : ''}`} aria-label={t.secondary}>
         <button type="button" class="ttl-link" onClick={() => { services.audio.play('click'); services.router.go('settings'); }}>
-          <Icon name="settings" size={16} /> Settings
+          <Icon name="settings" size={16} /> {t.settings}
         </button>
         <button type="button" class="ttl-link" onClick={() => { services.audio.play('click'); setCredits(true); }}>
-          <Icon name="info" size={16} /> Credits
+          <Icon name="info" size={16} /> {t.credits}
         </button>
       </nav>
       </div>
@@ -191,16 +193,10 @@ export function TitleScene({ services }: SceneProps) {
       {phase === 'intro' && <Intro onDone={finishIntro} />}
       <div class="ttl__veil" aria-hidden="true" />
 
-      <Modal open={credits} onClose={() => setCredits(false)} title="Credits" eyebrow="Lumen" icon="sparkle" size="sm">
-        <p class="ttl-credits">
-          Lumen is a teaching game about the optometric consultation. Every eye, iris and chart is painted procedurally in your browser.
-        </p>
-        <p class="ttl-credits ttl-credits--small">
-          Typography: Fraunces for titles, Inter for text and Space Grotesk for numerals, all open-licence fonts. Rain, glass, light and every iris are generated live on a canvas; there are no image files.
-        </p>
-        <p class="ttl-credits ttl-credits--small">
-          Clinical content is written for education and is not a substitute for supervised training, local guidelines or professional judgement. Real patients with a red, painful or sudden visual change need prompt examination.
-        </p>
+      <Modal open={credits} onClose={() => setCredits(false)} title={t.credits} eyebrow={t.creditsEyebrow} icon="sparkle" size="sm">
+        <p class="ttl-credits">{t.credits1}</p>
+        <p class="ttl-credits ttl-credits--small">{t.credits2}</p>
+        <p class="ttl-credits ttl-credits--small">{t.credits3}</p>
       </Modal>
     </div>
   );

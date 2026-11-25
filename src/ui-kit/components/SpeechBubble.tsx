@@ -5,6 +5,7 @@ import { useSfx } from '../hooks/useSfx';
 import { buildSchedule, totalDuration, visibleChars } from '../lib/typewriter';
 import { cx } from '../lib/cx';
 import './SpeechBubble.css';
+import { useUiStrings } from '../strings';
 
 export interface SpeechBubbleProps {
   text: string;
@@ -30,6 +31,7 @@ export interface SpeechBubbleProps {
  * never jumps in size while typing; screen readers get the full sentence.
  */
 export function SpeechBubble({ text, speaker, speed = 48, delay = 0, tail = 'left', voice = true, accent, onDone, class: klass }: SpeechBubbleProps) {
+  const ui = useUiStrings();
   const reduced = useReducedMotion();
   const play = useSfx();
   const schedule = useMemo(() => buildSchedule(text, speed), [text, speed]);
@@ -96,7 +98,7 @@ export function SpeechBubble({ text, speaker, speed = 48, delay = 0, tail = 'lef
       // leaves the tab order but keeps focus if it had it (tabIndex -1).
       role={typing ? 'button' : undefined}
       tabIndex={typing ? 0 : -1}
-      aria-label={typing ? 'Show the whole line' : undefined}
+      aria-label={typing ? ui.showWholeLine : undefined}
       aria-describedby={typing ? textId : undefined}
     >
       {speaker && <div class="lm-speech__speaker">{speaker}</div>}

@@ -1,20 +1,9 @@
 import { useMemo } from 'preact/hooks';
 import { AvatarBust, EyeCanvas, eyeStateFromFindings } from '@render';
-import { Badge, Icon, cx } from '@ui-kit';
+import { Badge, Icon, cx, useStrings } from '@ui-kit';
 import { Safe } from './Safe';
-import { CONFIDENCE_LABEL, URGENCY_LABEL, affectedEye, type ReviewModel } from './model';
-
-const VERDICT_TITLE: Record<ReviewModel['verdict'], string> = {
-  correct: 'Correct diagnosis',
-  wrong: 'Not this time',
-  timeout: 'Out of time',
-  abandoned: 'Case closed',
-};
-
-const CATEGORY_LABEL: Record<string, string> = {
-  refractive: 'Refractive', binocular: 'Binocular vision', anterior: 'Lids & conjunctiva', cornea: 'Cornea',
-  glaucoma: 'Uvea & glaucoma', lens: 'Lens', retina: 'Retina', neuro: 'Neuro-ophthalmology', systemic: 'Systemic', normal: 'Healthy eyes',
-};
+import { affectedEye, type ReviewModel } from './model';
+import { S } from './strings';
 
 /** Star-chart rosette on the face-down side of the card. */
 function Rosette() {
@@ -49,6 +38,7 @@ export interface VerdictCardProps {
 
 /** The diagnosis card: face-down with the player's call, flips to the verdict. */
 export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef }: VerdictCardProps) {
+  const t = useStrings(S);
   const { verdict, kase, correctDx, urgency } = review;
   const p = kase.patient;
   const isWrong = verdict === 'wrong';
@@ -71,8 +61,8 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
         <div class="rs-card__face rs-card__face--back" aria-hidden={flipped}>
           <Rosette />
           <div class="rs-card__back-text">
-            <span class="lm-eyebrow">{review.chosenName ? 'Your diagnosis' : 'No diagnosis made'}</span>
-            <span class="rs-card__back-name">{review.chosenName ?? (verdict === 'timeout' ? 'The clock ran out' : 'Case closed early')}</span>
+            <span class="lm-eyebrow">{review.chosenName ? t.yourDx : t.noDx}</span>
+            <span class="rs-card__back-name">{review.chosenName ?? (verdict === 'timeout' ? t.clockRanOut : t.closedEarly)}</span>
           </div>
         </div>
 
@@ -80,7 +70,7 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
         <div class="rs-card__face rs-card__face--front" aria-hidden={!flipped}>
           <div class="rs-card__ribbon">
             <Icon name={verdict === 'correct' ? 'check' : verdict === 'wrong' ? 'x' : 'clock'} />
-            <span>{VERDICT_TITLE[verdict]}</span>
+            <span>{t.verdictTitle[verdict]}</span>
           </div>
           <div class="rs-card__patient">
             <Safe fallback={<span class="rs-card__avatar-ph" />}>
@@ -89,14 +79,14 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
             <div class="rs-card__patient-text">
               <strong>{p.name}</strong>
               <span>
-                {p.age}
+                <bdi>{p.age}</bdi>
                 {p.occupation ? ` · ${p.occupation}` : ''}
               </span>
             </div>
           </div>
 
           {eye && (
-            <div class="rs-card__eye" aria-hidden="true">
+            <div class="rs-card__eye" aria-hidden="true" dir="ltr">
               <Safe>
                 <EyeCanvas state={eye.state} width={300} height={150} animate={flipped && !reduced} blink={false} reducedMotion={reduced} />
               </Safe>
@@ -105,14 +95,14 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
           )}
 
           <div class="rs-card__dx">
-            <span class="lm-eyebrow">{verdict === 'correct' ? CATEGORY_LABEL[correctDx?.category ?? ''] ?? 'Diagnosis' : 'The answer was'}</span>
+            <span class="lm-eyebrow">{verdict === 'correct' ? t.category[correctDx?.category ?? ''] ?? t.diagnosisFallback : t.answerWas}</span>
             <h2 class="rs-card__name">{review.correctName}</h2>
-            {correctDx?.aka?.length ? <p class="rs-card__aka">also: {correctDx.aka.slice(0, 2).join(' · ')}</p> : null}
+            {correctDx?.aka?.length ? <p class="rs-card__aka">{t.also} {correctDx.aka.slice(0, 2).join(' · ')}</p> : null}
           </div>
 
           {isWrong && review.chosenName && (
             <div class="rs-card__chosen">
-              <span class="rs-card__chosen-label">You said</span>
+              <span class="rs-card__chosen-label">{t.youSaid}</span>
               <span class="rs-card__strike">
                 <span>{review.chosenName}</span>
                 <svg class="rs-card__strike-line" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
@@ -125,18 +115,18 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
           <div class="rs-card__meta">
             <span class={cx('rs-triage', urgency.chosen && urgency.delta !== 0 && 'is-off')}>
               <Icon name={urgency.chosen && urgency.delta === 0 ? 'check' : 'alert'} />
-              Triage{' '}
+              {t.triage}{' '}
               {urgency.chosen && urgency.delta !== 0 ? (
                 <>
-                  <s>{URGENCY_LABEL[urgency.chosen]}</s> → <b>{URGENCY_LABEL[urgency.correct]}</b>
+                  <s>{t.urgency[urgency.chosen]}</s> → <b>{t.urgency[urgency.correct]}</b>
                 </>
               ) : (
-                <b>{URGENCY_LABEL[urgency.correct]}</b>
+                <b>{t.urgency[urgency.correct]}</b>
               )}
             </span>
             {review.confidence && (
-              <Badge tone={review.confidenceNote === 'confidently-wrong' ? 'bad' : review.confidenceNote === 'lucky' ? 'warn' : 'neutral'} variant="outline" size="sm" icon="target" title="How sure you said you were">
-                {CONFIDENCE_LABEL[review.confidence]}
+              <Badge tone={review.confidenceNote === 'confidently-wrong' ? 'bad' : review.confidenceNote === 'lucky' ? 'warn' : 'neutral'} variant="outline" size="sm" icon="target" title={t.confidenceTitle}>
+                {t.confidence[review.confidence]}
               </Badge>
             )}
           </div>

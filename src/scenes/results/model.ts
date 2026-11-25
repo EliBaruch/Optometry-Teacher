@@ -1,8 +1,9 @@
 import {
-  TEST_CATALOG, URGENCIES,
+  TEST_CATALOG, URGENCIES, pickStrings, testText, type Locale,
   type CaseSession, type ClinicalCase, type Confidence, type Diagnosis, type DiagnosisId, type HistoryCategory,
   type Eye, type PatientFindings, type RevealedFinding, type ScoreBreakdown, type TestId, type Urgency,
 } from '@core';
+import { S } from './strings';
 
 /**
  * Pure view-model for the results scene: everything the player should learn
@@ -63,25 +64,9 @@ export interface ReviewModel {
   cleanWorkup: boolean;
 }
 
-export const URGENCY_LABEL: Record<Urgency, string> = {
-  routine: 'Routine',
-  soon: 'Soon',
-  urgent: 'Urgent',
-  emergency: 'Emergency',
-};
-
-export const URGENCY_MEANING: Record<Urgency, string> = {
-  routine: 'Book a normal appointment, weeks to months away.',
-  soon: 'See within a few days.',
-  urgent: 'Same day, within 24 hours.',
-  emergency: 'Immediately: sight- or life-threatening. Emergency department or on-call specialist now.',
-};
-
-export const CONFIDENCE_LABEL: Record<Confidence, string> = {
-  guessing: 'Guessing',
-  'fairly-sure': 'Fairly sure',
-  certain: 'Certain',
-};
+export const URGENCY_LABEL: Record<Urgency, string> = S.en.urgency;
+export const URGENCY_MEANING: Record<Urgency, string> = S.en.urgencyMeaning;
+export const CONFIDENCE_LABEL: Record<Confidence, string> = S.en.confidence;
 
 /** "acute-angle-closure" → "Acute angle closure" (fallback when the codex lacks an entry). */
 export function prettyId(id: string): string {
@@ -89,27 +74,21 @@ export function prettyId(id: string): string {
   return s ? s[0]!.toUpperCase() + s.slice(1) : id;
 }
 
-export function testRef(id: TestId): TestRef {
+export function testRef(id: TestId, locale: Locale = 'en'): TestRef {
   const t = TEST_CATALOG[id];
+  if (locale !== 'en' && t) return { id, ...testText(id, locale) };
   return { id, name: t?.name ?? prettyId(id), blurb: t?.blurb ?? '' };
 }
 
-export function reviewUrgency(correct: Urgency, chosen?: Urgency): UrgencyReview {
+export function reviewUrgency(correct: Urgency, chosen?: Urgency, locale: Locale = 'en'): UrgencyReview {
+  const t = pickStrings(S, locale);
   const delta = chosen ? URGENCIES.indexOf(chosen) - URGENCIES.indexOf(correct) : 0;
   let advice: string;
-  if (!chosen) advice = `This patient needed ${URGENCY_LABEL[correct].toLowerCase()} care.`;
-  else if (delta === 0) advice = 'Spot on: the right patient, seen at the right time.';
-  else if (delta < 0)
-    advice =
-      delta <= -2
-        ? 'Under-triaged by a long way. This is the dangerous direction: when in doubt, escalate.'
-        : 'One step too relaxed. Under-triage is the dangerous direction: when in doubt, escalate.';
-  else
-    advice =
-      delta >= 2
-        ? 'Over-triaged by a long way. Safe for this patient, but it costs an emergency slot someone else may need.'
-        : 'One step too cautious. Safer than the reverse, but over-referral clogs urgent services.';
-  return { correct, chosen, delta, meaning: URGENCY_MEANING[correct], advice };
+  if (!chosen) advice = t.adviceNoChoice(t.urgency[correct]);
+  else if (delta === 0) advice = t.adviceExact;
+  else if (delta < 0) advice = delta <= -2 ? t.adviceUnderFar : t.adviceUnder;
+  else advice = delta >= 2 ? t.adviceOverFar : t.adviceOver;
+  return { correct, chosen, delta, meaning: t.urgencyMeaning[correct], advice };
 }
 
 export function confidenceNote(verdict: VerdictKind, confidence?: Confidence): ConfidenceNote {
@@ -192,9 +171,10 @@ export interface ReviewInput {
   diagnosis: (id: DiagnosisId) => Diagnosis | undefined;
   /** Route param says the clock ran out (session may already be gone). */
   timeout?: boolean;
+  locale?: Locale;
 }
 
-export function buildReview({ kase, session, diagnosis, timeout }: ReviewInput): ReviewModel {
+export function buildReview({ kase, session, diagnosis, timeout, locale = 'en' }: ReviewInput): ReviewModel {
   const sub = session?.caseId === kase.id ? session.submitted : undefined;
   const sess = session?.caseId === kase.id ? session : null;
   const failed = sess?.failed ?? (timeout ? 'timeout' : undefined);
@@ -216,8 +196,8 @@ export function buildReview({ kase, session, diagnosis, timeout }: ReviewInput):
     .filter((h) => h.relevance === 'key' && !asked.has(h.id))
     .map((h) => ({ id: h.id, category: h.category, q: h.q, a: h.a }));
 
-  const missedTests = missedIds.map(testRef);
-  const unnecessaryTests = unnecessaryIds.map(testRef);
+  const missedTests = missedIds.map((t) => testRef(t, locale));
+  const unnecessaryTests = unnecessaryIds.map((t) => testRef(t, locale));
 
   return {
     verdict,
@@ -230,7 +210,7 @@ export function buildReview({ kase, session, diagnosis, timeout }: ReviewInput):
     score: sub?.score,
     confidence: sub?.confidence,
     confidenceNote: confidenceNote(verdict, sub?.confidence),
-    urgency: reviewUrgency(kase.urgency, sub?.urgency),
+    urgency: reviewUrgency(kase.urgency, sub?.urgency, locale),
     missedTests,
     unnecessaryTests,
     unaskedKey,

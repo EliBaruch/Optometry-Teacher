@@ -4,6 +4,7 @@ import { Icon, type IconName } from '../icons/Icon';
 import { useSfx } from '../hooks/useSfx';
 import { cx } from '../lib/cx';
 import './Chip.css';
+import { useUiStrings } from '../strings';
 
 export interface ChipProps {
   children: ComponentChildren;
@@ -23,6 +24,7 @@ export interface ChipProps {
 }
 
 export function Chip({ children, icon, accent, selected, disabled, onClick, onRemove, size = 'md', class: klass, title, sfx = 'select' }: ChipProps) {
+  const ui = useUiStrings();
   const play = useSfx();
   const style = accent ? { '--chip-c': accent } : undefined;
   const body = (
@@ -55,7 +57,7 @@ export function Chip({ children, icon, accent, selected, disabled, onClick, onRe
     <span class={classes} style={style} title={title}>
       {body}
       {onRemove && (
-        <button type="button" class="lm-chip__remove" aria-label={`Remove ${typeof children === 'string' ? children : ''}`.trim()} onClick={() => {
+        <button type="button" class="lm-chip__remove" aria-label={ui.remove(typeof children === 'string' ? children : '')} onClick={() => {
             play('back', { volume: 0.6 });
             onRemove();
           }}>

@@ -1,4 +1,6 @@
 import { createRng, pickCase, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
+import { pickStrings } from '@core';
+import { S } from './strings';
 
 export const REVIEW_LENGTH = 4;
 export const REVIEW_UNLOCK_SEEN = 2;
@@ -37,6 +39,7 @@ const review: ModeModule = {
   id: 'review',
   title: 'Second Opinion',
   tagline: 'Familiar faces return: the diagnoses that once slipped past you, right when memory starts to fade.',
+  text: { he: { title: 'חוות דעת שנייה', tagline: 'פנים מוכרות חוזרות: האבחנות שחמקו מכם בפעם הקודמת, דווקא ברגע שהזיכרון מתחיל לדהות.' } },
   icon: '🔍',
   accent: '#a78bfa',
   order: 50,
@@ -51,7 +54,7 @@ const review: ModeModule = {
     const seen = services.learning.stats().seen;
     if (seen < REVIEW_UNLOCK_SEEN) {
       const left = REVIEW_UNLOCK_SEEN - seen;
-      return `Diagnose ${left} more ${left === 1 ? 'condition' : 'different conditions'} and they’ll be back for a second look.`;
+      return pickStrings(S, services.locale).reviewLocked(left);
     }
     return undefined;
   },

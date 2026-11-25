@@ -2,7 +2,8 @@
  * Pure economy maths — fees, crate rolls, day keys. Unit-tested, no side effects.
  * Fees scale with LEARNING quality (correctness, efficiency, mastery), never time spent.
  */
-import { createRng, type Grade, type ScoreBreakdown } from '@core';
+import { createRng, type Grade, type Locale, type ScoreBreakdown } from '@core';
+import { FEE_HE } from './strings';
 import {
   CATALOG, COIN_RANGE, CONTENT_ODDS, CRATES, DAILY_FULL_RATE, HINT_POINTS, HINT_TOKENS, PERFECT_BONUS, PITY_LIMIT,
   RARITY_ORDER, UNNECESSARY_TEST_POINTS, type CatalogItem, type CrateKind, type Rarity,
@@ -28,6 +29,8 @@ export interface FeeInput {
   coveredHints?: number;
   /** Case fees already earned today. */
   earnedToday?: number;
+  /** Language of the fee line labels (default English). */
+  locale?: Locale;
 }
 
 export interface FeeResult {
@@ -42,6 +45,7 @@ export const momentumMultiplier = (priorStreak: number) => 1 + Math.min(Math.max
 
 export function caseFee(input: FeeInput): FeeResult {
   const { score } = input;
+  const he = input.locale === 'he';
   const difficulty = clampInt(input.difficulty ?? 3, 1, 5);
   const max = Math.max(1, score.max);
   const eff = score.parts.find((p) => p.id === 'efficiency');
@@ -55,18 +59,18 @@ export function caseFee(input: FeeInput): FeeResult {
   const quality = Math.pow(ratio, 1.6);
   const gm = GRADE_MULT[score.grade] ?? 1;
   const consult = Math.max(1, Math.round(base * quality * Math.min(gm, 1)));
-  const lines: FeeLine[] = [{ id: 'consult', label: `Base fee · difficulty ${difficulty}`, amount: consult }];
-  if (gm > 1) lines.push({ id: 'grade', label: `Grade ${score.grade} bonus`, amount: Math.round(base * quality * (gm - 1)) });
+  const lines: FeeLine[] = [{ id: 'consult', label: he ? FEE_HE.consult(difficulty) : `Base fee · difficulty ${difficulty}`, amount: consult }];
+  if (gm > 1) lines.push({ id: 'grade', label: he ? FEE_HE.grade(score.grade) : `Grade ${score.grade} bonus`, amount: Math.round(base * quality * (gm - 1)) });
   const momentumMult = score.diagnosisCorrect ? momentumMultiplier(input.priorStreak ?? 0) : 1;
   if (momentumMult > 1) {
     const sub = lines.reduce((s, l) => s + l.amount, 0);
-    lines.push({ id: 'momentum', label: `Momentum ×${momentumMult.toFixed(2)}`, amount: Math.round(sub * (momentumMult - 1)) });
+    lines.push({ id: 'momentum', label: he ? FEE_HE.momentum(momentumMult.toFixed(2)) : `Momentum ×${momentumMult.toFixed(2)}`, amount: Math.round(sub * (momentumMult - 1)) });
   }
-  if (score.perfect) lines.push({ id: 'perfect', label: 'Flawless work-up', amount: PERFECT_BONUS });
+  if (score.perfect) lines.push({ id: 'perfect', label: he ? FEE_HE.perfect : 'Flawless work-up', amount: PERFECT_BONUS });
   let total = lines.reduce((s, l) => s + l.amount, 0);
   const late = lateShiftAdjust(total, input.earnedToday ?? 0);
   if (late < 0) {
-    lines.push({ id: 'late', label: 'Late-shift rate (½ fee)', amount: late });
+    lines.push({ id: 'late', label: he ? FEE_HE.late : 'Late-shift rate (½ fee)', amount: late });
     total += late;
   }
   return { total, lines, quality: ratio, momentumMult };

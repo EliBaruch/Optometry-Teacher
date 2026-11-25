@@ -112,7 +112,7 @@ export function EyeCanvas(props: EyeCanvasProps) {
       ref={ref}
       class={props.class}
       role="img"
-      aria-label={props.label ?? `Close-up of the ${props.state.eye === 'OD' ? 'right' : 'left'} eye`}
+      aria-label={props.label ?? (document.documentElement.lang === 'he' ? `תקריב של העין ה${props.state.eye === 'OD' ? 'ימנית' : 'שמאלית'}` : `Close-up of the ${props.state.eye === 'OD' ? 'right' : 'left'} eye`)}
       style={{ width: `${props.width}px`, height: `${props.height}px`, display: 'block', ...(props.style ?? {}) }}
     />
   );

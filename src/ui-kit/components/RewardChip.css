@@ -26,7 +26,7 @@
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .lm-reward__rarity {
-  position: absolute; top: -8px; right: 14px; z-index: 2; padding: 3px 8px; border-radius: 999px; background: #170d2b;
+  position: absolute; top: -8px; inset-inline-end: 14px; z-index: 2; padding: 3px 8px; border-radius: 999px; background: #170d2b;
   font: 700 9.5px/1 var(--lm-font-ui); letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--rw-r); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rw-r) 55%, transparent);
 }
