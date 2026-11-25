@@ -68,3 +68,10 @@ Separate site: lumen-eye-clinic-he (Netlify site id fec9f6b6-95f8-4ad9-bd50-dc38
 VITE_LOCALE=he via `scripts/export-edition.sh he <dir>`. English site id 6e04d147-ec81-4945-b348-10ab9e25aa9e.
 Team script: tools/agent-team/he-team.js (units in units-he.json); guide: docs/LOCALIZATION.md.
 Writers Sonnet (high for clinical content/heavy units), editor critic Sonnet high, Haiku gate.
+
+## Hebrew edition — SHIPPED (2026-11-25)
+Live: https://lumen-eye-clinic-he.netlify.app (English unchanged at https://lumen-eye-clinic.netlify.app).
+All 17 Hebrew units written and through the native-Hebrew editor; final must-fixes applied by the lead.
+Verified: tsc clean, 820 files boundary-clean, 1331 tests pass, Hebrew production build OK, live Hebrew
+playthrough (title→hub→exam→instrument→diagnosis→results) with zero console errors; only accepted
+clinical Latin terms remain (drug/organism names, abbreviations, the Latin-letter chart toggle).
