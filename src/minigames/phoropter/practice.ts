@@ -3,11 +3,21 @@
  * recognition challenge. Pure (rng in, data out).
  */
 import {
-  buildFindings, expectedAmplitude, formatRx, typicalAdd,
-  type Eye, type LensSign, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
+  buildFindings, expectedAmplitude, formatRx, pickStrings, typicalAdd,
+  type Eye, type LensSign, type Locale, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { blurLoss, effectiveResidual, makeEyeModel, quarter, wrapAxis, type Lens } from './optics';
+import { NAMES, S } from './strings';
+
+/** Practice scenarios are generated before mount, so they read the edition from the document. */
+export function docLocale(): Locale {
+  try {
+    return document.documentElement.lang === 'he' ? 'he' : 'en';
+  } catch {
+    return 'en';
+  }
+}
 
 // ───────────────────────── classification (teaching vocabulary)
 
@@ -46,23 +56,28 @@ export const CLASS_LABELS = [
   'Simple hyperopic astigmatism', 'Mixed astigmatism',
 ] as const;
 
-export function explainClass(l: Lens): string {
+/** Display name of a classification id (the English strings from `classify` are the ids). */
+export function classLabel(id: string, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
+  const [kind, ori] = id.split(', ');
+  const base = t.classes[kind!] ?? kind!;
+  return ori ? `${base}, ${t.orientations[ori] ?? ori}` : base;
+}
+
+export function explainClass(l: Lens, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   const c = classify(l);
   const s = l.sphere;
   const p = l.sphere + l.cyl;
   if (Math.abs(l.cyl) < 0.5) {
-    if (c === 'Myopia') return 'Minus sphere: light focuses in front of the retina, so a minus lens pushes it back.';
-    if (c === 'Hyperopia') return 'Plus sphere: the focus falls behind the retina; young eyes hide some of it by accommodating, so fog first.';
-    return 'Within ±0.50 D of plano with little cylinder: no clinically significant refractive error.';
+    if (c === 'Myopia') return t.expMyopia;
+    if (c === 'Hyperopia') return t.expHyperopia;
+    return t.expEmmetropia;
   }
   const fmt = (v: number) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
   const o = orientation(l.axis);
-  const ori = o === 'with-the-rule'
-    ? 'Minus-cyl axis near 180: the vertical meridian is steeper (with-the-rule).'
-    : o === 'against-the-rule'
-      ? 'Minus-cyl axis near 90: the horizontal meridian is steeper (against-the-rule).'
-      : 'Axis between 30–60° or 120–150°: oblique astigmatism.';
-  return `Principal meridians ${fmt(s)} D and ${fmt(p)} D. ${ori}`;
+  const ori = o === 'with-the-rule' ? t.expWtr : o === 'against-the-rule' ? t.expAtr : t.expOblique;
+  return t.expMeridians(fmt(s), fmt(p), ori);
 }
 
 // ───────────────────────── recognition challenge
@@ -75,7 +90,8 @@ export interface Challenge {
   explain: string;
 }
 
-export function makeChallenge(findings: PatientFindings, rng: Rng): Challenge {
+export function makeChallenge(findings: PatientFindings, rng: Rng, locale: Locale = 'en'): Challenge {
+  const t = pickStrings(S, locale);
   const eye: Eye = rng.chance(0.5) ? 'OD' : 'OS';
   const rx = findings.refraction[eye];
   const lens: Lens = { sphere: rx.sphere, cyl: rx.cylinder, axis: rx.axis };
@@ -94,13 +110,13 @@ export function makeChallenge(findings: PatientFindings, rng: Rng): Challenge {
   }
   pool.delete(right);
   const distract = rng.shuffle([...pool]).slice(0, 3);
-  const options = rng.shuffle([right, ...distract]);
+  const ids = rng.shuffle([right, ...distract]);
   return {
     eye,
-    question: `Your ${eye} endpoint is ${formatRx({ sphere: rx.sphere, cylinder: rx.cylinder, axis: rx.axis })}. How would you classify it?`,
-    options,
-    correct: options.indexOf(right),
-    explain: explainClass(lens),
+    question: t.chQuestion(eye, formatRx({ sphere: rx.sphere, cylinder: rx.cylinder, axis: rx.axis })),
+    options: ids.map((id) => classLabel(id, locale)),
+    correct: ids.indexOf(right),
+    explain: explainClass(lens, locale),
   };
 }
 
@@ -124,9 +140,6 @@ export function autorefraction(rx: Lens, age: number, difficulty: number, rng: R
 
 // ───────────────────────── scenario generator
 
-const NAMES_F = ['Amara Okafor', 'Lucía Ferrer', 'Hana Sato', 'Priya Raman', 'Ingrid Holm', 'Noor Haddad', 'Chloé Martin', 'Tamsin Reed', 'Mei Lin', 'Zuri Mensah'];
-const NAMES_M = ['Tomás Silva', 'Kwame Asante', 'Arjun Mehta', 'Lars Eriksen', 'Daniel Cohen', 'Yusuf Kaya', 'Felix Wagner', 'Kenji Mori', 'Omar Farouk', 'Leo Novak'];
-const JOBS = ['Architect', 'Bus driver', 'Violinist', 'Data analyst', 'Pastry chef', 'Student', 'Pilot trainee', 'Librarian', 'Surveyor', 'Jeweller', 'Nurse', 'Game designer'];
 
 type Archetype = 'emmetrope' | 'myope' | 'hyperope' | 'wtr' | 'atr' | 'oblique' | 'mixed' | 'presbyope' | 'aniso' | 'reduced';
 
@@ -186,7 +199,10 @@ function ageFor(arch: Archetype, rng: Rng): number {
   }
 }
 
-export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
+export function makeScenario(rng: Rng, difficulty: number, locale: Locale = docLocale()): PracticeScenario {
+  const t = pickStrings(S, locale);
+  const roster = pickStrings(NAMES, locale);
+  const gendered = (v: string | [string, string], sex: 'F' | 'M') => (typeof v === 'string' ? v : v[sex === 'F' ? 1 : 0]);
   const d = Math.max(0, Math.min(1, difficulty));
   const arch = pickArchetype(rng, d);
   const age = ageFor(arch, rng);
@@ -235,14 +251,14 @@ export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
     external: { squinting: Math.max(va.OD.uncorrected, va.OS.uncorrected) >= 0.5 },
   });
 
-  const name = rng.pick(sex === 'F' ? NAMES_F : NAMES_M);
+  const name = rng.pick(sex === 'F' ? roster.F : roster.M);
   const patient: PatientProfile = {
-    name, age, sex, occupation: rng.pick(JOBS),
-    personality: rng.pick(['Chatty and eager to help.', 'Careful, a little anxious about "wrong answers".', 'Dry humour, quick answers.', 'Patient and precise.']),
+    name, age, sex, occupation: gendered(rng.pick(roster.jobs), sex),
+    personality: gendered(rng.pick(roster.personality), sex),
     avatar: generateAvatar(rng, { age, sex }),
   };
 
   const fmt = (e: Eye) => formatRx({ sphere: rx[e].sphere, cylinder: rx[e].cyl, axis: rx[e].axis });
-  const addTxt = add ? ` · Add +${add.toFixed(2)}` : '';
-  return { patient, findings, answer: `OD ${fmt('OD')} · OS ${fmt('OS')}${addTxt}` };
+  const addTxt = add ? t.answerAdd(add.toFixed(2)) : '';
+  return { patient, findings, answer: t.answer(fmt('OD'), fmt('OS'), addTxt) };
 }

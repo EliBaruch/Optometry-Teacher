@@ -14,7 +14,8 @@
  * Angles follow the TABO convention: degrees counter-clockwise from 3 o'clock
  * as the examiner sees the patient. Pure — no DOM.
  */
-import type { Keratometry } from '@core';
+import { isolateLtrRuns, pickStrings, type Keratometry, type Locale } from '@core';
+import { S } from './strings';
 
 export type MireGrade = Keratometry['mires'];
 export const MIRE_GRADES: readonly MireGrade[] = ['regular', 'irregular', 'distorted'];
@@ -231,8 +232,10 @@ export function fmtReading(r: KReading): string {
   return `${fmtK(r.k1)} @ ${fmtAxis(r.axisK1)} / ${fmtK(r.k2)} @ ${fmtAxis(r.axisK1 + 90)}`;
 }
 /** Corneal astigmatism in minus-cylinder form: −(K2 − K1) × flat meridian. */
-export function fmtCornealCyl(r: KReading): string {
+export function fmtCornealCyl(r: KReading, locale: Locale = 'en'): string {
   const c = Math.abs(r.k2 - r.k1);
-  if (c < 0.125) return 'Spherical';
-  return `${c.toFixed(2)} D ${ORIENTATION_SHORT[orientation(r.axisK1)]} (−${c.toFixed(2)} × ${fmtAxis(r.axisK1)})`;
+  const t = pickStrings(S, locale);
+  if (c < 0.125) return t.spherical;
+  const out = `${c.toFixed(2)} D ${t.ori[orientation(r.axisK1)]} (−${c.toFixed(2)} × ${fmtAxis(r.axisK1)})`;
+  return locale === 'he' ? isolateLtrRuns(out) : out;
 }

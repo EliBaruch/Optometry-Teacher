@@ -1,9 +1,10 @@
 /** Practice scenarios (clinically coherent pupil pictures) and the recognition challenge. */
 import {
-  buildFindings, type DeepPartial, type Eye, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
+  buildFindings, isolateLtrRuns, pickStrings, type DeepPartial, type Eye, type Locale, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { anisocoria } from './model';
+import { P } from './strings';
 
 export type PupilKind = 'normal' | 'physiologic' | 'rapd' | 'horner' | 'adie' | 'cn3' | 'pharm' | 'lnd';
 
@@ -137,43 +138,45 @@ export function makeScenario(rng: Rng, difficulty: number, forceKind?: PupilKind
 // ───────────────────────── recognition challenge
 export interface Challenge { question: string; options: string[]; correct: number; explain: string }
 
-export function explain(f: PatientFindings): string {
+export function explain(f: PatientFindings, locale: Locale = 'en'): string {
   const p = f.pupils;
   const an = anisocoria(f);
+  const t = pickStrings(P, locale);
   const parts: string[] = [];
-  if (p.rapd !== 'none') parts.push(`RAPD ${p.rapd} ${p.rapdGrade ?? 2}+: when the light swung onto the ${p.rapd} the pupils dilated, because that nerve carries a weaker signal than its partner. Hold the light ~3 s on each eye and swing briskly.`);
-  else parts.push('No RAPD: both pupils stayed constricted as the light swung across.');
-  if (an.pattern === 'physiologic') parts.push('Anisocoria that is the same in light and dark, up to about 1 mm, with brisk reactions is physiologic.');
-  if (an.pattern === 'greater-dark') parts.push(`Anisocoria is greater in the dark: the smaller pupil (${an.smaller}) is the abnormal one, failing to dilate. With ptosis and dilation lag this is a Horner pattern (sympathetic pathway).`);
-  if (an.pattern === 'greater-light') parts.push(`Anisocoria is greater in the light: the larger pupil (${an.larger}) is the abnormal one, failing to constrict. ${p.reactivity[an.larger!] === 'tonic' ? 'Slow, segmental reaction with near sparing is a tonic (Adie) pupil.' : ptosisHint(f)}`);
-  if (p.nearResponse === 'light-near-dissociation') parts.push('The pupils constrict to a near target far better than to light: light-near dissociation.');
-  return parts.join(' ');
+  if (p.rapd !== 'none') parts.push(t.rapdYes(p.rapd, p.rapdGrade ?? 2));
+  else parts.push(t.rapdNo);
+  if (an.pattern === 'physiologic') parts.push(t.physio);
+  if (an.pattern === 'greater-dark') parts.push(t.greaterDark(an.smaller ?? ''));
+  if (an.pattern === 'greater-light') parts.push(t.greaterLight(an.larger ?? '', p.reactivity[an.larger!] === 'tonic' ? t.tonic : ptosisHint(f, t)));
+  if (p.nearResponse === 'light-near-dissociation') parts.push(t.lnd);
+  const out = parts.join(' ');
+  return locale === 'he' ? isolateLtrRuns(out) : out;
 }
 
-const ptosisHint = (f: PatientFindings) =>
-  f.external?.ptosis?.length ? 'A fixed, dilated pupil with ptosis is a third-nerve palsy until proven otherwise: urgent imaging.' : 'A large fixed round pupil without ptosis suggests pharmacologic blockade (no constriction to 1% pilocarpine).';
+const ptosisHint = (f: PatientFindings, t: { cn3: string; pharm: string }) => (f.external?.ptosis?.length ? t.cn3 : t.pharm);
 
-export function makeChallenge(f: PatientFindings, rng: Rng): Challenge {
+export function makeChallenge(f: PatientFindings, rng: Rng, locale: Locale = 'en'): Challenge {
   const p = f.pupils;
   const an = anisocoria(f);
-  const text = explain(f);
+  const t = pickStrings(P, locale);
+  const text = explain(f, locale);
   const shuffle = <T,>(opts: T[], correctIdx: number) => {
     const order = rng.shuffle(opts.map((_, i) => i));
     return { options: order.map((i) => opts[i]!) as T[], correct: order.indexOf(correctIdx) };
   };
   if (p.rapd !== 'none' || (an.pattern === 'none' && p.nearResponse === 'normal') || an.pattern === 'physiologic') {
-    const opts = ['No RAPD', 'RAPD in the right eye (OD)', 'RAPD in the left eye (OS)'];
+    const opts = [t.optNone, t.optOD, t.optOS];
     const s = shuffle(opts, p.rapd === 'none' ? 0 : p.rapd === 'OD' ? 1 : 2);
-    return { question: 'What did the swinging flashlight test show?', ...s, explain: text };
+    return { question: t.qSwing, ...s, explain: text };
   }
   if (an.pattern === 'greater-dark') {
-    const s = shuffle(['Right pupil (OD)', 'Left pupil (OS)', 'Neither: this is normal'], an.smaller === 'OD' ? 0 : 1);
-    return { question: 'The difference in size is greater in the dark. Which pupil is the abnormal one?', ...s, explain: text };
+    const s = shuffle([t.pRight, t.pLeft, t.pNeither], an.smaller === 'OD' ? 0 : 1);
+    return { question: t.qDark, ...s, explain: text };
   }
   if (an.pattern === 'greater-light') {
-    const s = shuffle(['Right pupil (OD)', 'Left pupil (OS)', 'Neither: this is normal'], an.larger === 'OD' ? 0 : 1);
-    return { question: 'The difference in size is greater in the light. Which pupil is the abnormal one?', ...s, explain: text };
+    const s = shuffle([t.pRight, t.pLeft, t.pNeither], an.larger === 'OD' ? 0 : 1);
+    return { question: t.qLight, ...s, explain: text };
   }
-  const s = shuffle(['Light-near dissociation', 'RAPD', 'Physiologic anisocoria', 'Hippus'], 0);
-  return { question: 'The pupils react poorly to light but constrict to the near target. What is this called?', ...s, explain: text };
+  const s = shuffle([t.oLnd, t.oRapd, t.oPhysio, t.oHippus], 0);
+  return { question: t.qLnd, ...s, explain: text };
 }

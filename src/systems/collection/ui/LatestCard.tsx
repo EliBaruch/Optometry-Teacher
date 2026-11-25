@@ -57,7 +57,7 @@ export function LatestCard({ store }: { store: CollectionStore }) {
         ) : (
           <p class="gl-meta">{t.latestEmpty}</p>
         )}
-        <ProgressBar value={owned} max={Math.max(1, catalog.length)} size="sm" accent={GALLERY_COLOR} valueText={`${owned} / ${catalog.length}`} label={t.collected} />
+        <ProgressBar value={owned} max={Math.max(1, catalog.length)} size="sm" accent={GALLERY_COLOR} valueText={`\u2066${owned} / ${catalog.length}\u2069`} label={t.collected} />
       </div>
     </div>
   );

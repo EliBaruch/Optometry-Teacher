@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { Button, Icon, type IconName } from '@ui-kit';
+import { Button, Icon } from '@ui-kit';
+import type { Locale } from '@core';
+import { T } from './strings';
 
 const KEY = 'lumen:amsler:tutorial-seen';
 
@@ -19,25 +21,9 @@ function markSeen() {
   }
 }
 
-const STEPS: { icon: IconName; title: string; body: string }[] = [
-  {
-    icon: 'eye',
-    title: 'One eye at a time',
-    body: 'Near glasses on, card at 33 cm, the other eye covered. Each square is 1° — the whole grid is the central 20° of vision.',
-  },
-  {
-    icon: 'target',
-    title: 'Eyes on the dot',
-    body: 'Ask the patient to fixate the centre dot. You will see the grid through their eye: wavy lines are metamorphopsia; a missing or grey patch is a scotoma.',
-  },
-  {
-    icon: 'amsler',
-    title: 'Map it, name it',
-    body: 'Paint over the affected area (drag, or arrows + Space; the wheel or the brass knob sizes the brush), choose what they report, then test the other eye and record.',
-  },
-];
-
-export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; reducedMotion: boolean }) {
+export function Tutorial({ onClose, reducedMotion, locale = 'en' }: { onClose: () => void; reducedMotion: boolean; locale?: Locale }) {
+  const t = T(locale);
+  const STEPS = t.tutSteps;
   const [i, setI] = useState(0);
   const btn = useRef<HTMLDivElement>(null);
   const close = () => {
@@ -54,7 +40,7 @@ export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; redu
       class={`amsler-tutorial${reducedMotion ? ' is-reduced' : ''}`}
       role="dialog"
       aria-modal="true"
-      aria-label="How the Amsler grid works"
+      aria-label={t.tutAria}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.stopPropagation();
@@ -64,7 +50,7 @@ export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; redu
     >
       <div class="amsler-tutorial__card" key={i}>
         <div class="amsler-tutorial__icon"><Icon name={step.icon} size={26} /></div>
-        <p class="amsler-tutorial__step">Step {i + 1} of {STEPS.length}</p>
+        <p class="amsler-tutorial__step">{t.tutStep(i + 1, STEPS.length)}</p>
         <h3>{step.title}</h3>
         <p class="amsler-tutorial__body">{step.body}</p>
         <div class="amsler-tutorial__dots" aria-hidden="true">
@@ -72,9 +58,9 @@ export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; redu
         </div>
         <div class="amsler-tutorial__actions" ref={btn}>
           <Button variant="primary" sfx={false} onClick={() => (last ? close() : setI(i + 1))} data-testid="amsler-tutorial-next">
-            {last ? 'Begin' : 'Next'}
+            {last ? t.begin : t.next}
           </Button>
-          {!last && <Button variant="ghost" sfx={false} onClick={close} data-testid="amsler-tutorial-skip">Skip</Button>}
+          {!last && <Button variant="ghost" sfx={false} onClick={close} data-testid="amsler-tutorial-skip">{t.skip}</Button>}
         </div>
       </div>
     </div>

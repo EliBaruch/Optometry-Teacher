@@ -17,6 +17,19 @@ const retinoscopy: MiniGameModule = {
     'Net Rx = gross neutralising lens minus the working-distance lens (67 cm = +1.50 D)',
     'Scissoring suggests keratoconus; a dull reflex points to a media opacity; no reflex means a dense opacity',
   ],
+  text: {
+    he: {
+      title: 'רטינוסקופיה',
+      instructions: 'סורקים עם הפס על פני האישון: תנועה עם הפס — צריך פלוס, תנועה נגד הפס — צריך מינוס. מנטרלים כל מרידיאן ראשי ואז מפחיתים את מרחק העבודה.',
+      teaches: [
+        'עם התנועה — מוסיפים פלוס; נגד התנועה — מוסיפים מינוס (SPAM: עם ← פלוס, נגד ← מינוס)',
+        'קרוב לניטרול הרפלקס בהיר, רחב ומהיר יותר; בניטרול כל האישון מוצף בבת אחת',
+        'באסטיגמטיזם הרפלקס נשבר ויוצא מהפס, אלא אם סורקים לאורך מרידיאן ראשי',
+        'Rx נטו = עדשת הניטרול (ברוטו) פחות עדשת מרחק העבודה (67 ס״מ = +1.50 D)',
+        'רפלקס מספריים מרמז על קרטוקונוס; רפלקס עמום — עכירות במדיה; אין רפלקס — עכירות צפופה',
+      ],
+    },
+  },
   mount(host, ctx, done) {
     let called = false;
     const once: typeof done = (r) => {

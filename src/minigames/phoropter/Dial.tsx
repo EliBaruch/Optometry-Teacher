@@ -4,6 +4,7 @@
  * Exposed to assistive tech as a slider.
  */
 import { useEffect, useRef } from 'preact/hooks';
+import { useT } from './strings';
 
 export interface DialProps {
   id: string;
@@ -36,6 +37,7 @@ export interface DialProps {
 const DEG_PER_STEP = 16;
 
 export function Dial(p: DialProps) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const live = useRef(p);
   live.current = p;
@@ -173,11 +175,11 @@ export function Dial(p: DialProps) {
         {p.sub && <span class="php-dial__sub">{p.sub}</span>}
       </div>
       {/* Touch steppers: shown on phones, where a drag around a small knob is fiddly. */}
-      <div class="php-dial__steps" role="group" aria-label={`${p.label} steps`}>
-        {p.fine && <button type="button" class="php-step php-step--fine" disabled={p.disabled} aria-label={`${p.label} down 1`} onClick={() => p.onStep(-1, true)}>−1</button>}
-        <button type="button" class="php-step" disabled={p.disabled} aria-label={`${p.label} down`} onClick={() => p.onStep(-1, false)}>−</button>
-        <button type="button" class="php-step" disabled={p.disabled} aria-label={`${p.label} up`} onClick={() => p.onStep(1, false)}>+</button>
-        {p.fine && <button type="button" class="php-step php-step--fine" disabled={p.disabled} aria-label={`${p.label} up 1`} onClick={() => p.onStep(1, true)}>+1</button>}
+      <div class="php-dial__steps" role="group" aria-label={t.dialSteps(p.label)}>
+        {p.fine && <button type="button" class="php-step php-step--fine" disabled={p.disabled} aria-label={t.dialDown1(p.label)} onClick={() => p.onStep(-1, true)}>−1</button>}
+        <button type="button" class="php-step" disabled={p.disabled} aria-label={t.dialDown(p.label)} onClick={() => p.onStep(-1, false)}>−</button>
+        <button type="button" class="php-step" disabled={p.disabled} aria-label={t.dialUp(p.label)} onClick={() => p.onStep(1, false)}>+</button>
+        {p.fine && <button type="button" class="php-step php-step--fine" disabled={p.disabled} aria-label={t.dialUp1(p.label)} onClick={() => p.onStep(1, true)}>+1</button>}
       </div>
     </div>
   );

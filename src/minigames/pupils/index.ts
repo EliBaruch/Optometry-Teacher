@@ -3,6 +3,7 @@ import type { MiniGameModule } from '@core';
 import { Game } from './Game';
 import { makeScenario } from './practice';
 import { report } from './report';
+import { S } from './strings';
 import './pupils.css';
 
 const pupils: MiniGameModule = {
@@ -18,6 +19,7 @@ const pupils: MiniGameModule = {
     'Anisocoria greater in the light points to the large pupil (tonic, third nerve or drug-blocked)',
     'Light-near dissociation: poor reaction to light, brisk constriction to near',
   ],
+  text: { he: { title: S.he.title, instructions: S.he.instructions, teaches: S.he.teaches } },
   mount(host, ctx, done) {
     let called = false;
     const once: typeof done = (r) => {

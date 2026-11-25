@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import type { ClinicalCase, GameServices, Grade, ScoreBreakdown } from '@core';
+import { defineStrings, pickStrings, type ClinicalCase, type GameServices, type Grade, type ScoreBreakdown } from '@core';
 import { HudSlot, asComponent, useSignal } from '@ui-kit';
 import collection from '../../../systems/collection';
 import { CARD_RARITIES, FRAME_THRESHOLDS, FRAME_TIERS, INITIAL_STATE, type CollectionState, type OwnedCard } from '../../../systems/collection/model';
@@ -14,6 +14,29 @@ import type { SandboxPage } from '../Sandbox';
  */
 type View = 'reveal' | 'hub' | 'gallery' | 'showcase';
 type Outcome = Grade | 'miss';
+
+const T = defineStrings({
+  en: {
+    noDx: 'No diagnoses registered.', noCases: 'No cases registered.', reset: 'Collection reset',
+    title: 'Gallery · iris cards',
+    blurb: 'Treat a synthetic patient with a chosen grade; the results-extra widget opens the card sleeve. Cards persist in this browser.',
+    showcase: 'Rarity (columns) × frame (rows)', results: 'Results screen · results-extra slot',
+    hubSlot: 'Hub · hub-sidebar slot', profileSlot: 'Profile · profile slot',
+    view: 'View', grade: 'Grade', vReveal: 'Results reveal', vHub: 'Hub sidebar', vGallery: 'Gallery scene', vShowcase: 'Showcase',
+    miss: 'Missed dx', treat: 'Treat next patient', eight: '+8 patients', resetBtn: 'Reset',
+    meta: (c: number, p: number) => `${c} cards · ${p} pulls`,
+  },
+  he: {
+    noDx: 'אין אבחנות רשומות.', noCases: 'אין מקרים רשומים.', reset: 'האוסף אופס',
+    title: 'גלריה · כרטיסי קשתית',
+    blurb: 'מטפלים במטופל מדומה בציון לבחירתכם, והווידג׳ט במסך התוצאות פותח את שקית הכרטיסים. הכרטיסים נשמרים בדפדפן הזה.',
+    showcase: 'נדירות (עמודות) × מסגרת (שורות)', results: 'מסך תוצאות · משבצת results-extra',
+    hubSlot: 'מרכז · משבצת hub-sidebar', profileSlot: 'פרופיל · משבצת profile',
+    view: 'תצוגה', grade: 'ציון', vReveal: 'חשיפת תוצאות', vHub: 'סרגל המרכז', vGallery: 'סצנת הגלריה', vShowcase: 'ויטרינה',
+    miss: 'אבחנה שהוחמצה', treat: 'המטופל הבא', eight: '+8 מטופלים', resetBtn: 'איפוס',
+    meta: (c: number, p: number) => `${c} כרטיסים · ${p} פתיחות`,
+  },
+});
 
 const CSS = `
 .sbc { position: fixed; inset: 0; overflow: auto; color: #f6efe4; font-family: var(--lm-font-ui);
@@ -65,8 +88,9 @@ const IRISES = ['#5a3a22', '#3b6ea5', '#6b8e4e', '#8a6a3a', '#4a6b8a', '#2e1c12'
 
 /** Every rarity × frame on real diagnoses, so reviewers can judge the art and foil without grinding. */
 function Showcase({ services }: { services: GameServices }) {
+  const t = pickStrings(T, services.locale);
   const catalog = orderedDiagnoses(services.registries.diagnoses.all());
-  if (!catalog.length) return <p>No diagnoses registered.</p>;
+  if (!catalog.length) return <p>{t.noDx}</p>;
   const cell = (i: number, rarity: (typeof CARD_RARITIES)[number], tier: (typeof FRAME_TIERS)[number]) => {
     const dx = catalog[(i * 7) % catalog.length]!;
     const at = Date.UTC(2026, 10, 3 + i);
@@ -76,7 +100,7 @@ function Showcase({ services }: { services: GameServices }) {
   };
   return (
     <section class="sbc-mock">
-      <h2>Rarity (columns) × frame (rows)</h2>
+      <h2>{t.showcase}</h2>
       <div class="sbc-grid">
         {FRAME_TIERS.flatMap((tier, row) => CARD_RARITIES.map((rarity, col) => (
           <figure key={`${tier}-${rarity}`}>
@@ -90,6 +114,7 @@ function Showcase({ services }: { services: GameServices }) {
 }
 
 function CollectionSandbox({ services }: { services: GameServices }) {
+  const t = pickStrings(T, services.locale);
   const q = useMemo(() => new URLSearchParams(location.search), []);
   const initialTab = q.get('view');
   const [tab, setTab] = useState<Exclude<View, 'gallery'>>(initialTab === 'hub' || initialTab === 'showcase' ? initialTab : 'reveal');
@@ -131,7 +156,7 @@ function CollectionSandbox({ services }: { services: GameServices }) {
   const view: View = route.id === 'gallery' ? 'gallery' : tab;
 
   const next = (o: Outcome = outcome) => {
-    if (!cases.length) return setLog('No cases registered.');
+    if (!cases.length) return setLog(t.noCases);
     const kase = cases[cursor % cases.length]!;
     setCursor((c) => c + 1);
     if (services.router.current.get().id === 'gallery') services.router.replace('sandbox');
@@ -148,11 +173,11 @@ function CollectionSandbox({ services }: { services: GameServices }) {
         <Scene services={services} params={{}} />
       ) : (
         <main class="sbc-main">
-          <h1>Gallery · iris cards</h1>
-          <p>Treat a synthetic patient with a chosen grade; the results-extra widget opens the card sleeve. Cards persist in this browser.</p>
+          <h1>{t.title}</h1>
+          <p>{t.blurb}</p>
           {view === 'reveal' && (
             <section class="sbc-mock">
-              <h2>Results screen · results-extra slot</h2>
+              <h2>{t.results}</h2>
               <HudSlot slot="results-extra" />
             </section>
           )}
@@ -160,11 +185,11 @@ function CollectionSandbox({ services }: { services: GameServices }) {
           {view === 'hub' && (
             <>
               <section class="sbc-mock sbc-hub">
-                <h2>Hub · hub-sidebar slot</h2>
+                <h2>{t.hubSlot}</h2>
                 <HudSlot slot="hub-sidebar" />
               </section>
               <section class="sbc-mock sbc-profile">
-                <h2>Profile · profile slot</h2>
+                <h2>{t.profileSlot}</h2>
                 <HudSlot slot="profile" />
               </section>
             </>
@@ -173,23 +198,23 @@ function CollectionSandbox({ services }: { services: GameServices }) {
       )}
       <div class="sbc-dock">
         <div class="sbc-row">
-          <span class="sbc-label">View</span>
+          <span class="sbc-label">{t.view}</span>
           {(['reveal', 'hub', 'gallery', 'showcase'] as View[]).map((v) => (
             <button key={v} type="button" class="sbc-btn" aria-pressed={view === v} data-view={v}
               onClick={() => { if (v === 'gallery') services.router.go('gallery'); else { if (route.id === 'gallery') services.router.replace('sandbox'); setTab(v); } }}>
-              {v === 'reveal' ? 'Results reveal' : v === 'hub' ? 'Hub sidebar' : v === 'gallery' ? 'Gallery scene' : 'Showcase'}
+              {v === 'reveal' ? t.vReveal : v === 'hub' ? t.vHub : v === 'gallery' ? t.vGallery : t.vShowcase}
             </button>
           ))}
-          <span class="sbc-meta">{owned} cards · {state.pulls} pulls</span>
+          <span class="sbc-meta">{t.meta(owned, state.pulls)}</span>
         </div>
         <div class="sbc-row">
-          <span class="sbc-label">Grade</span>
+          <span class="sbc-label">{t.grade}</span>
           {(['S', 'A', 'B', 'C', 'miss'] as Outcome[]).map((o) => (
-            <button key={o} type="button" class="sbc-btn" aria-pressed={outcome === o} onClick={() => setOutcome(o)}>{o === 'miss' ? 'Missed dx' : o}</button>
+            <button key={o} type="button" class="sbc-btn" aria-pressed={outcome === o} onClick={() => setOutcome(o)}>{o === 'miss' ? t.miss : o}</button>
           ))}
-          <button type="button" class="sbc-btn sbc-btn--go" data-act="treat" onClick={() => next()}>Treat next patient</button>
-          <button type="button" class="sbc-btn" onClick={() => { for (let i = 0; i < 8; i++) next(i % 3 ? 'A' : 'S'); }}>+8 patients</button>
-          <button type="button" class="sbc-btn" onClick={() => { slot.set(INITIAL_STATE); services.session.clear(); setLog('Collection reset'); }}>Reset</button>
+          <button type="button" class="sbc-btn sbc-btn--go" data-act="treat" onClick={() => next()}>{t.treat}</button>
+          <button type="button" class="sbc-btn" onClick={() => { for (let i = 0; i < 8; i++) next(i % 3 ? 'A' : 'S'); }}>{t.eight}</button>
+          <button type="button" class="sbc-btn" onClick={() => { slot.set(INITIAL_STATE); services.session.clear(); setLog(t.reset); }}>{t.resetBtn}</button>
         </div>
         {log && <div class="sbc-row"><span class="sbc-meta" style={{ marginLeft: 0 }}>{log}</span></div>}
       </div>

@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { EYES, type Eye, type MiniGameContext, type MiniGameDone } from '@core';
 import { EyeCanvas, eyeStateFromFindings, type EyeState } from '@render';
 import { Button, Icon, Kbd, ProgressBar } from '@ui-kit';
+import { pickStrings } from '@core';
+import { fix, S } from './strings';
+import { LocaleContext } from './locale';
 import { Gauge, G_STEP } from './Gauge';
 import { Tutorial } from './Tutorial';
 import { Debrief } from './Debrief';
@@ -12,7 +15,7 @@ import { bindKeys } from './keys';
 import { buildTasks } from './tasks';
 import { assess, DWELL_FULL_S, emptyMeasures, goodSwings, SWINGS_NEEDED, truthCall, type Call, type Measures, type Swing, type Tech } from './scoring';
 import { explain, makeChallenge } from './practice';
-import { report } from './report';
+import { reportFor } from './report';
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const GAP = 14;
@@ -39,6 +42,8 @@ type Tone = 'ok' | 'warn' | 'info';
 
 export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
   const { audio, fx } = ctx;
+  const t = pickStrings(S, ctx.locale);
+  const fixL = (s: string) => fix(ctx.locale, s);
   const reduced = ctx.reducedMotion;
   const f = ctx.findings;
   const rng = useMemo(() => ctx.rng.fork('pupils'), []);
@@ -152,9 +157,9 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const good = sw.dwell >= DWELL_FULL_S;
     play(good ? 'flashlight' : 'tick', { pitch: good ? 1 : 0.8 });
     const fr = dom.current.field?.getBoundingClientRect();
-    if (fr) fx.floatText(good ? `Swing ${all.length}` : 'Hold longer', fr.left + eng.beam.x, fr.top + eng.beam.y - 40, { color: good ? '#ffd27a' : '#ffb36b', size: 22 });
-    say(good ? `Swing ${all.length} recorded` : `Light held ${sw.dwell.toFixed(1)} s: hold about 3 s on each eye`, good ? 'ok' : 'warn');
-    if (sw.transit > 1.6) say('Swing a little faster: the pupils redilate in the dark gap', 'warn');
+    if (fr) fx.floatText(good ? t.swing(all.length) : t.holdLonger, fr.left + eng.beam.x, fr.top + eng.beam.y - 40, { color: good ? '#ffd27a' : '#ffb36b', size: 22 });
+    say(good ? t.swingRecorded(all.length) : fixL(t.heldShort(sw.dwell.toFixed(1))), good ? 'ok' : 'warn');
+    if (sw.transit > 1.6) say(t.swingFaster, 'warn');
     if (good && goodSwings(all) === SWINGS_NEEDED) { play('success'); fx.burst(innerWidth / 2, innerHeight / 2, { kind: 'sparks', count: 20, color: '#ffd27a' }); }
   };
 
@@ -180,7 +185,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
 
   // ───────────── actions
   const setNearMode = (on: boolean) => {
-    if (on && live.current.room === 'bright') { say('Dim the room first: the near response is tested without the light', 'warn'); return; }
+    if (on && live.current.room === 'bright') { say(t.dimFirst, 'warn'); return; }
     play(on ? 'whoosh' : 'tick', { pitch: 1.2 });
     live.current.near = on;
     setNear(on);
@@ -220,7 +225,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     if (L.phase !== 'exam' || L.tutorial) return;
     const cond = canMeasure();
     if (!cond) {
-      say(L.near ? 'Take the near target away to measure size' : 'Move the penlight away from this eye to measure its dark size', 'warn');
+      say(L.near ? t.removeNear : t.moveAway, 'warn');
       play('error', { volume: 0.5 });
       return;
     }
@@ -235,10 +240,10 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     if (Math.abs(err) <= GOOD_SIZE_MM && settled) {
       play('success', { volume: 0.7 });
       if (fr) fx.burst(fr.left + fr.width / 2, fr.top + fr.height * 0.4, { kind: 'stars', count: 14, color: '#ffd27a' });
-      say(`${L.eye} ${cond}: ${mm.toFixed(1)} mm, spot on`, 'ok');
-    } else if (!settled) say(`${L.eye} ${cond}: ${mm.toFixed(1)} mm recorded, but the pupil was still moving. Wait to settle, then re-measure`, 'warn');
-    else if (Math.abs(err) > FAR_SIZE_MM) say(`${L.eye} ${cond}: ${mm.toFixed(1)} mm looks ${err > 0 ? 'too big' : 'too small'}: re-check against the gauge`, 'warn');
-    else say(`${L.eye} ${cond}: ${mm.toFixed(1)} mm recorded`, 'ok');
+      say(fixL(t.spotOn(L.eye, t.cond[cond], mm.toFixed(1))), 'ok');
+    } else if (!settled) say(fixL(t.stillMoving(L.eye, t.cond[cond], mm.toFixed(1))), 'warn');
+    else if (Math.abs(err) > FAR_SIZE_MM) say(fixL(t.looksOff(L.eye, t.cond[cond], mm.toFixed(1), err > 0)), 'warn');
+    else say(fixL(t.sizeRecorded(L.eye, t.cond[cond], mm.toFixed(1))), 'ok');
     const other: Eye = L.eye === 'OD' ? 'OS' : 'OD';
     if (!next[cond][other]) pickEye(other);
   };
@@ -264,8 +269,8 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const techNow = (): Tech => ({ measures, swings, nearSeconds: eng.nearSecs, call, timeMs: Math.round(eng.active * 1000) });
   const assessment = useMemo(() => assess(f, techNow()), [phase]);
   const tech = useMemo(techNow, [phase]);
-  const challenge = useMemo(() => (ctx.mode === 'practice' && phase === 'debrief' ? makeChallenge(f, rng.fork('quiz')) : null), [phase]);
-  const tasks = buildTasks(measures, swings, ui.nearS, call);
+  const challenge = useMemo(() => (ctx.mode === 'practice' && phase === 'debrief' ? makeChallenge(f, rng.fork('quiz'), ctx.locale) : null), [phase]);
+  const tasks = buildTasks(measures, swings, ui.nearS, call, ctx.locale);
   const doneCount = tasks.filter((t) => t.done).length;
 
   const recordAll = () => {
@@ -280,28 +285,29 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const a = assessment;
     const accuracy = quizCorrect === null ? a.accuracy : a.accuracy * 0.75 + (quizCorrect ? 0.25 : 0);
     play(accuracy > 0.65 ? 'success' : 'fail');
-    done({ testId: 'pupils', accuracy: clamp(accuracy, 0, 1), timeMs: tech.timeMs, findings: report(f, ctx.patient), perfect: a.perfect && (quizCorrect === null || quizCorrect) });
+    done({ testId: 'pupils', accuracy: clamp(accuracy, 0, 1), timeMs: tech.timeMs, findings: reportFor(f, ctx.locale), perfect: a.perfect && (quizCorrect === null || quizCorrect) });
   };
 
   // ───────────── derived UI
   const measurable = canMeasure();
-  const hint = tutorial ? 'Learn the penlight and the gauge, then begin.'
-    : near ? 'Near target in: the eyes converge and the pupils should constrict. Hold it about 2 seconds.'
-    : room === 'bright' ? 'Room lights on: slide the gauge to the pupil edge, then Record size for each eye.'
-    : ui.lit ? `Light on ${ui.lit}. Hold about 3 seconds, then swing briskly to the other eye.`
-    : 'Dim room: drag the penlight onto an eye. Held away from the eyes, the pupils show their dark size.';
+  const hint = tutorial ? t.hintTut
+    : near ? t.hintNear
+    : room === 'bright' ? t.hintBright
+    : ui.lit ? t.hintLit(ui.lit)
+    : t.hintDim;
   const { eyeW, eyeH, stack, dock } = layout;
   const fieldH = stack ? eyeH * 2 + GAP : eyeH;
   const calledSide = call.side;
 
   return (
+    <LocaleContext.Provider value={ctx.locale}>
     <div class={`pu-root${stack ? ' is-compact' : ''}${dock ? ' is-docked' : ''}`} ref={rootRef} tabIndex={-1} data-phase={phase} data-lit={ui.lit ?? ''} data-room={room} data-swings={swings.length} data-good-swings={goodSwings(swings)}>
       <header class="pu-head">
-        <div class="pu-head__title"><Icon name="pupils" /> Pupils</div>
+        <div class="pu-head__title"><Icon name="pupils" /> {t.title}</div>
         <p class="pu-head__hint" key={hint} aria-live="polite">{hint}</p>
-        <div class="pu-seg" role="group" aria-label="Room lighting">
+        <div class="pu-seg" role="group" aria-label={t.roomLighting}>
           {(['bright', 'dim'] as Room[]).map((r) => (
-            <button key={r} type="button" class={`pu-seg__b${room === r ? ' is-on' : ''}`} aria-pressed={room === r} onClick={() => setRoomMode(r)}>{r === 'bright' ? 'Lights on' : 'Dim room'}</button>
+            <button key={r} type="button" class={`pu-seg__b${room === r ? ' is-on' : ''}`} aria-pressed={room === r} onClick={() => setRoomMode(r)}>{r === 'bright' ? t.lightsOn : t.dimRoom}</button>
           ))}
         </div>
       </header>
@@ -309,6 +315,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       <div class="pu-body">
         <div class="pu-fieldwrap" ref={wrapRef}>
           <div
+            dir="ltr"
             class={`pu-field${stack ? ' is-stack' : ''}${room === 'bright' ? ' is-bright' : ''}`}
             ref={(el) => { dom.current.field = el; }}
             style={{ height: `${fieldH}px` }}
@@ -320,59 +327,59 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             <div class="pu-eyes" style={{ gap: `${GAP}px`, flexDirection: stack ? 'column' : 'row' }}>
               {EYES.map((e) => (
                 <div key={e} class={`pu-eye${ui.lit === e ? ' is-lit' : ''}${eye === e ? ' is-active' : ''}`} ref={(el) => { dom.current.eyes[e] = el; }} style={{ width: `${eyeW}px`, height: `${eyeH}px` }}>
-                  <EyeCanvas state={reduced ? { ...eyeStates[e] } : eyeStates[e]} width={eyeW} height={eyeH} reducedMotion={reduced} blink={!reduced} label={`${e === 'OD' ? 'Right' : 'Left'} eye`} />
+                  <EyeCanvas state={reduced ? { ...eyeStates[e] } : eyeStates[e]} width={eyeW} height={eyeH} reducedMotion={reduced} blink={!reduced} label={t.eyeName(e)} />
                   <svg class="pu-eye__ov" viewBox={`0 0 ${eyeW} ${eyeH}`} aria-hidden="true">
                     <path ref={(el) => { dom.current.gaugePaths[e] = el; }} class="pu-gpath" d="" />
                   </svg>
-                  <button type="button" class="pu-eye__tag" onClick={(ev) => { ev.stopPropagation(); pickEye(e); }} onPointerDown={(ev) => ev.stopPropagation()} aria-pressed={eye === e} aria-label={`Select ${e} for measuring`}>
-                    <i style={{ background: EYE_COLOR[e] }} />{e}<small>{e === 'OD' ? 'right' : 'left'}</small>
+                  <button type="button" class="pu-eye__tag" onClick={(ev) => { ev.stopPropagation(); pickEye(e); }} onPointerDown={(ev) => ev.stopPropagation()} aria-pressed={eye === e} aria-label={t.selectEye(e)}>
+                    <i style={{ background: EYE_COLOR[e] }} />{e}<small>{t.eyeSide(e)}</small>
                   </button>
                 </div>
               ))}
             </div>
-            <div class={`pu-nearpin${near ? ' is-on' : ''}`} aria-hidden="true"><b>Near</b><i>33 cm</i></div>
+            <div class={`pu-nearpin${near ? ' is-on' : ''}`} aria-hidden="true"><b>{t.near}</b><i>33 cm</i></div>
             <div class="pu-spot" ref={(el) => { dom.current.spot = el; }} style={{ ['--r' as never]: `${Math.round(eyeW * 0.2)}px` }} aria-hidden="true" />
             <svg class="pu-ring" ref={(el) => { dom.current.ringBox = el; }} width="84" height="84" viewBox="-42 -42 84 84" aria-hidden="true">
               <circle r="36" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="3" />
               <circle ref={(el) => { dom.current.ring = el; }} r="36" fill="none" stroke-width="3.5" stroke-linecap="round" pathLength={100} stroke-dasharray="100" style={{ strokeDashoffset: '100', transform: 'rotate(-90deg)' }} />
             </svg>
             <div class="pu-pen" ref={(el) => { dom.current.pen = el; }} aria-hidden="true"><i /></div>
-            {room === 'dim' && !near && !tutorial && swings.length === 0 && !ui.lit && <p class="pu-field__tip">Drag the penlight</p>}
+            {room === 'dim' && !near && !tutorial && swings.length === 0 && !ui.lit && <p class="pu-field__tip">{t.dragPen}</p>}
           </div>
           <div class="pu-actions-row">
-            <Button variant="glass" size="sm" icon="arrow-right" sfx={false} disabled={room === 'bright' || near} onClick={swingOver}>Swing light <Kbd>Space</Kbd></Button>
-            <Button variant={near ? 'primary' : 'glass'} size="sm" icon="eye" sfx={false} aria-pressed={near} onClick={() => setNearMode(!near)}>{near ? 'Remove near target' : 'Near target'} <Kbd>N</Kbd></Button>
+            <Button variant="glass" size="sm" icon="arrow-right" sfx={false} disabled={room === 'bright' || near} onClick={swingOver}>{t.swingLight} <Kbd>Space</Kbd></Button>
+            <Button variant={near ? 'primary' : 'glass'} size="sm" icon="eye" sfx={false} aria-pressed={near} onClick={() => setNearMode(!near)}>{near ? t.removeNearBtn : t.nearBtn} <Kbd>N</Kbd></Button>
           </div>
         </div>
 
         <div class="pu-dock">
-          <section class="pu-panel pu-panel--gauge" aria-label="Pupil gauge">
-            <div class="pu-panel__h"><span class="pu-eyebrow">Pupil gauge</span>
-              <div class="pu-seg pu-seg--sm" role="group" aria-label="Eye being measured">
+          <section class="pu-panel pu-panel--gauge" aria-label={t.gaugePanel}>
+            <div class="pu-panel__h"><span class="pu-eyebrow">{t.gaugePanel}</span>
+              <div class="pu-seg pu-seg--sm" dir="ltr" role="group" aria-label={t.eyeMeasured}>
                 {EYES.map((e) => <button key={e} type="button" class={`pu-seg__b${eye === e ? ' is-on' : ''}`} aria-pressed={eye === e} onClick={() => pickEye(e)}>{e}</button>)}
               </div>
             </div>
-            <Gauge value={gauge} onChange={setG} label={`Pupil gauge, ${eye}`} />
+            <Gauge value={gauge} onChange={setG} label={t.gaugeLabel(eye)} valueText={t.millimetres} />
             <div class="pu-readrow">
               <div class="pu-lcd"><b class="pu-num">{gauge.toFixed(1)}</b><small>mm</small></div>
-              <div class={`pu-settle${ui.settled ? ' is-ok' : ''}`}><i />{ui.settled ? 'Pupils settled' : 'Pupils moving'}</div>
-              <Button variant="primary" size="sm" sfx={false} disabled={!measurable} onClick={record}>Record size</Button>
+              <div class={`pu-settle${ui.settled ? ' is-ok' : ''}`}><i />{ui.settled ? t.settled : t.moving}</div>
+              <Button variant="primary" size="sm" sfx={false} disabled={!measurable} onClick={record}>{t.recordSize}</Button>
             </div>
-            <table class="pu-meas" aria-label="Recorded sizes">
+            <table class="pu-meas" dir="ltr" aria-label={t.recordedSizes}>
               <thead><tr><th /><th>OD</th><th>OS</th></tr></thead>
               <tbody>
                 {(['light', 'dark'] as Cond[]).map((c) => (
-                  <tr key={c}><th>{c === 'light' ? 'Light' : 'Dark'}</th>
+                  <tr key={c}><th>{t.condCap[c]}</th>
                     {EYES.map((e) => <td key={e} class="pu-num">{measures[c][e] ? `${measures[c][e]!.mm.toFixed(1)}` : '·'}</td>)}</tr>
                 ))}
               </tbody>
             </table>
           </section>
 
-          <section class="pu-panel pu-panel--trace" aria-label="Pupillometer trace">
-            <div class="pu-panel__h"><span class="pu-eyebrow">Pupillometer</span>
-              <span class="pu-legend"><i style={{ background: EYE_COLOR.OD }} />OD <i style={{ background: EYE_COLOR.OS }} />OS</span></div>
-            <canvas ref={(el) => { dom.current.trace = el; }} class="pu-trace" width={360} height={96} role="img" aria-label="Live trace of both pupil diameters over the last 14 seconds" />
+          <section class="pu-panel pu-panel--trace" aria-label={t.pupillometer}>
+            <div class="pu-panel__h"><span class="pu-eyebrow">{t.pupillometer}</span>
+              <span class="pu-legend" dir="ltr"><i style={{ background: EYE_COLOR.OD }} />OD <i style={{ background: EYE_COLOR.OS }} />OS</span></div>
+            <canvas ref={(el) => { dom.current.trace = el; }} class="pu-trace" width={360} height={96} role="img" aria-label={t.traceLabel} />
             <ul class="pu-tasks">
               {tasks.map((t) => (
                 <li key={t.id} class={t.done ? 'is-done' : ''}>
@@ -384,34 +391,35 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             </ul>
           </section>
 
-          <section class="pu-panel pu-panel--call" aria-label="Your call">
-            <div class="pu-panel__h"><span class="pu-eyebrow">Your call</span></div>
-            <p class="pu-note">Which eye, if any, has a relative afferent pupillary defect?</p>
-            <div class="pu-seg pu-seg--wide" role="radiogroup" aria-label="RAPD side">
-              {([['none', 'No RAPD'], ['OD', 'OD'], ['OS', 'OS']] as const).map(([v, label]) => (
+          <section class="pu-panel pu-panel--call" aria-label={t.yourCall}>
+            <div class="pu-panel__h"><span class="pu-eyebrow">{t.yourCall}</span></div>
+            <p class="pu-note">{t.callQ}</p>
+            <div class="pu-seg pu-seg--wide" role="radiogroup" aria-label={t.rapdSide}>
+              {([['none', t.noRapd], ['OD', 'OD'], ['OS', 'OS']] as const).map(([v, label]) => (
                 <button key={v} type="button" role="radio" aria-checked={calledSide === v} class={`pu-seg__b${calledSide === v ? ' is-on' : ''}`}
                   onClick={() => { play('lens-click', { volume: 0.5 }); setCall({ side: v, grade: v === 'none' ? null : call.grade }); }}>{label}</button>
               ))}
             </div>
-            <div class={`pu-grades${calledSide === 'OD' || calledSide === 'OS' ? '' : ' is-off'}`} role="radiogroup" aria-label="RAPD grade">
+            <div class={`pu-grades${calledSide === 'OD' || calledSide === 'OS' ? '' : ' is-off'}`} role="radiogroup" aria-label={t.rapdGrade}>
               {([1, 2, 3, 4] as const).map((g) => (
                 <button key={g} type="button" role="radio" aria-checked={call.grade === g} disabled={calledSide !== 'OD' && calledSide !== 'OS'} class={`pu-seg__b${call.grade === g ? ' is-on' : ''}`}
                   onClick={() => { play('tick', { pitch: 0.8 + g * 0.1 }); setCall({ ...call, grade: g }); }}>{g}+</button>
               ))}
             </div>
-            <p class="pu-note pu-note--dim">Grade by how fast the lit pupil dilates: 1+ slowly after a delay, 3-4+ at once.</p>
+            <p class="pu-note pu-note--dim">{fixL(t.gradeNote)}</p>
           </section>
         </div>
       </div>
 
       <footer class="pu-foot">
-        <ProgressBar value={doneCount} max={tasks.length} size="sm" label={`${doneCount} of ${tasks.length} steps`} ariaLabel="Exam progress" />
+        <ProgressBar value={doneCount} max={tasks.length} size="sm" label={t.steps(doneCount, tasks.length)} ariaLabel={t.examProgress} />
         <div class="pu-toast" role="status" aria-live="polite">{toast && <span key={toast.k} class={`pu-toast__t is-${toast.tone}`}>{toast.text}</span>}</div>
-        <Button variant="primary" size="md" icon="check" sfx={false} onClick={recordAll} disabled={tutorial}>Record findings</Button>
+        <Button variant="primary" size="md" icon="check" sfx={false} onClick={recordAll} disabled={tutorial}>{t.recordFindings}</Button>
       </footer>
 
       {tutorial && <Tutorial onClose={() => { live.current.tutorial = false; setTutorial(false); rootRef.current?.focus({ preventScroll: true }); }} />}
-      {phase === 'debrief' && <Debrief teach={explain(f)} assessment={assessment} tech={tech} truthCall={truthCall(f)} challenge={challenge} onFinish={finish} />}
+      {phase === 'debrief' && <Debrief teach={explain(f, ctx.locale)} assessment={assessment} tech={tech} truthCall={truthCall(f)} challenge={challenge} onFinish={finish} />}
     </div>
+    </LocaleContext.Provider>
   );
 }

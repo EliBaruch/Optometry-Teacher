@@ -4,7 +4,8 @@
  * ripple when the patient first fixates, the clinician's marked map, and the
  * true defect outline during the debrief.
  */
-import type { AmslerFinding, Eye } from '@core';
+import type { AmslerFinding, Eye, Locale } from '@core';
+import { T } from './strings';
 import { HALF_DEG, maskContours, normalizeAmsler, regionRadiusAt, scotomaEdge, smoothLoop, warpOffset, type Loop, type Mask } from './geometry';
 
 export interface CardState {
@@ -29,6 +30,8 @@ export interface CardState {
   cursor: { x: number; y: number; r: number; erase: boolean; keyboard: boolean } | null;
   /** 0..1 dims the card before the patient is asked */
   idle: number;
+  /** edition language for the margin labels (default English) */
+  locale?: Locale;
 }
 
 export interface CardLayout {
@@ -143,18 +146,20 @@ export class CardPainter {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const midY = l.gy + l.g / 2;
-      const left = !field ? 'PATIENT’S LEFT' : temporalRight ? 'NASAL' : 'TEMPORAL';
-      const right = !field ? 'PATIENT’S RIGHT' : temporalRight ? 'TEMPORAL' : 'NASAL';
+      const tx = T(s.locale ?? 'en');
+      const he = s.locale === 'he';
+      const left = !field ? tx.patientsLeft : temporalRight ? tx.nasal : tx.temporal;
+      const right = !field ? tx.patientsRight : temporalRight ? tx.temporal : tx.nasal;
       const mx = l.gx / 2;
       for (const [x, label, rot] of [[mx, left, -Math.PI / 2], [W - mx, right, Math.PI / 2]] as const) {
         ctx.save();
         ctx.translate(x, midY);
         ctx.rotate(rot);
-        spaced(ctx, label, 0, 0, fs * 0.28);
+        spaced(ctx, label, 0, 0, he ? 0 : fs * 0.28);
         ctx.restore();
       }
-      spaced(ctx, 'SUPERIOR', W / 2, l.gy / 2, fs * 0.28);
-      spaced(ctx, 'INFERIOR', W / 2, W - l.gy / 2, fs * 0.28);
+      spaced(ctx, tx.superior, W / 2, l.gy / 2, he ? 0 : fs * 0.28);
+      spaced(ctx, tx.inferior, W / 2, W - l.gy / 2, he ? 0 : fs * 0.28);
       ctx.restore();
     }
   }
@@ -432,6 +437,15 @@ export class CardPainter {
 }
 
 function spaced(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, gap: number) {
+  if (gap === 0) {
+    // unspaced run (Hebrew): letters must stay joined in reading order
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.direction = /[\u0590-\u05FF]/.test(text) ? 'rtl' : 'ltr';
+    ctx.fillText(text, x, y);
+    ctx.restore();
+    return;
+  }
   const widths = [...text].map((ch) => ctx.measureText(ch).width);
   const total = widths.reduce((a, b) => a + b, 0) + gap * (text.length - 1);
   let cx = x - total / 2;

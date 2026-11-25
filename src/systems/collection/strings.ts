@@ -2,6 +2,7 @@
 import { defineStrings } from '@core';
 import type { DiagnosisCategory } from '@core';
 
+const ltr = (v: string | number) => `\u2066${v}\u2069`;
 type Cat = DiagnosisCategory;
 type Wing = { label: string; wing: string };
 
@@ -164,7 +165,7 @@ export const S = defineStrings({
     wings: {
       refractive: { label: 'שבירה', wing: 'היכל העדשות' },
       binocular: { label: 'ראייה דו-עינית', wing: 'גלריית הדו-עינית' },
-      anterior: { label: 'קטע קדמי', wing: 'ארקדת הקדמי' },
+      anterior: { label: 'קטע קדמי', wing: 'ארקדת הקטע הקדמי' },
       cornea: { label: 'קרנית', wing: 'רוטונדת הקרנית' },
       glaucoma: { label: 'גלאוקומה', wing: 'חדר הלחץ' },
       lens: { label: 'עדשה', wing: 'חדר הקריסטל' },
@@ -179,7 +180,7 @@ export const S = defineStrings({
     rewardNew: 'חדש!',
     rewardFrame: (frame: string) => `מסגרת ${frame}`,
     rewardRarityUp: (r: string) => `${r}!`,
-    rewardShine: (n: number) => `+${n} ברק`,
+    rewardShine: (n: number) => `${ltr('+' + n)} ברק`,
     xpPolished: (name: string, frame: string) => `הגלריה: ${name} מוברק למסגרת ${frame}`,
     xpSet: (wing: string) => `הגלריה: הושלמה סדרה, ${wing}`,
     setRewardLabel: (wing: string) => `הושלמה סדרה · ${wing}`,
@@ -225,7 +226,7 @@ export const S = defineStrings({
     emptyStrong: 'הכרטיס הראשון מחכה לכם.',
     emptyRest: ' אבחנו מטופל נכון והקשתית שלו תיתלה בגלריה. ציון S נותן את הסיכוי הטוב ביותר לציור נדיר.',
     setComplete: 'הסדרה שלמה',
-    completeSetTitle: (xp: number, coins: number) => `משלימים את הסדרה: +${xp} XP, +${coins} מטבעות`,
+    completeSetTitle: (xp: number, coins: number) => `משלימים את הסדרה: ${ltr('+' + xp + ' XP')}, ${ltr('+' + coins)} מטבעות`,
     complete: 'שלמה',
     setReward: (xp: number) => `פרס סדרה · ${xp} XP`,
     flashCard: (no: string) => `כרטיסיית לימוד מס׳ ${no}`,
@@ -236,11 +237,11 @@ export const S = defineStrings({
     reveal: 'חשפו',
     flip: 'הפכו',
     frameBadge: (f: string) => `מסגרת ${f}`,
-    bestGrade: (g: string) => `ציון הכי טוב ${g}`,
+    bestGrade: (g: string) => `הציון הטוב ביותר: ${g}`,
     polishTo: (f: string) => `הברקה עד ${f}`,
-    shineOf: (a: number, b: number) => `${a} / ${b} ברק`,
+    shineOf: (a: number, b: number) => `${ltr(a + '/' + b)} ברק`,
     fullyPolished: 'מבריק עד הסוף: יצירת מופת פריזמטית.',
-    shineNote: 'אבחנו את המחלה הזאת שוב כדי להוסיף ברק: ציון S נותן +3, A נותן +2, וכל אבחנה נכונה אחרת +1.',
+    shineNote: `אבחנו את המחלה הזאת שוב כדי להוסיף ברק: ציון S נותן ${ltr('+3')}, A נותן ${ltr('+2')}, וכל אבחנה נכונה אחרת ${ltr('+1')}.`,
     flashPrompt: 'שאלת הכרטיסייה',
     flashNote: 'אמרו לעצמכם את האבחנה, ואז חשפו את הכרטיס.',
     aboutTitle: 'על המחלה',
@@ -256,11 +257,11 @@ export const S = defineStrings({
     oddsP1c: '. ככל שהבירור שלכם טוב יותר, הציור נדיר יותר. אבחנה שהחמצתם לא עולה לכם בכלום: המחלה פשוט מופיעה כצללית עם שם, ובפעם הבאה אפשר לאסוף אותה.',
     oddsCaption: 'סיכויי נדירות לפי ציון המקרה',
     grade: 'ציון',
-    perfect: (p: string) => `מקרה מושלם (ציון S, בלי החמצות ובלי בדיקות מיותרות) מוסיף +${p} לסיכוי לכרטיס אגדי.`,
-    zebra: (p: string) => `מחלות נדירות קלינית מוסיפות +${p} לסיכוי לכרטיס אפי.`,
-    oddsShine: 'אבחנה חוזרת של אותה מחלה מוסיפה ברק (S נותן +3, A נותן +2, אחרים +1) ומבריקה את המסגרת: ',
-    oddsFrameAt: (f: string, at: number, xp: number) => `${f} ב-${at} (+${xp} XP)`,
-    oddsWing: (n: number, xp: number, coins: number) => `השלמת כל הכרטיסים באגף מזכה ב-XP ובמטבעות. למשל אגף של ${n} כרטיסים נותן +${xp} XP ו-+${coins} מטבעות.`,
+    perfect: (p: string) => `מקרה מושלם (ציון S, בלי החמצות ובלי בדיקות מיותרות) מוסיף ${ltr('+' + p)} לסיכוי לכרטיס אגדי.`,
+    zebra: (p: string) => `מחלות נדירות מבחינה קלינית מוסיפות ${ltr('+' + p)} לסיכוי לכרטיס אפי.`,
+    oddsShine: `אבחנה חוזרת של אותה מחלה מוסיפה ברק (S נותן ${ltr('+3')}, A נותן ${ltr('+2')}, אחרים ${ltr('+1')}) ומבריקה את המסגרת: `,
+    oddsFrameAt: (f: string, at: number, xp: number) => `${f} ב-${at} (${ltr('+' + xp + ' XP')})`,
+    oddsWing: (n: number, xp: number, coins: number) => `השלמת כל הכרטיסים באגף מזכה ב-XP ובמטבעות. למשל אגף של ${n} כרטיסים נותן ${ltr('+' + xp + ' XP')} ו${ltr('+' + coins)} מטבעות.`,
     profileLabel: 'ויטרינת הגלריה',
     visit: 'לגלריה ←',
     profileEmpty: 'עוד אין כרטיסי קשתית. כל אבחנה נכונה משאירה אחד.',
@@ -273,7 +274,7 @@ export const S = defineStrings({
     openAria: 'פתחו את כרטיס הקשתית החדש',
     brand: 'לומן · כרטיס קשתית',
     pullRarity: (r: string) => `משיכה: ${r}`,
-    pullShine: (n: number) => ` · +${n} ברק`,
+    pullShine: (n: number) => ` · ${ltr('+' + n)} ברק`,
     setDone: (wing: string) => `הושלמה סדרה · ${wing}`,
     packHint: 'הפכו אותו לפנינת הוראה. כל כרטיס הוא גם כרטיסיית לימוד.',
     openGallery: 'לגלריה',
@@ -283,7 +284,7 @@ export const S = defineStrings({
     openCard: 'פתחו כרטיס',
     silhouette: 'מופיעה צללית',
     glimpseA: 'בגלריה מחכה כרטיס של ',
-    glimpseB: '. אבחנו אותה נכון בפעם הבאה והקשתית של המטופל הזה שלכם. שום דבר לא אבד, יש פשוט סיבה לחזור.',
+    glimpseB: '. אבחנו אותה נכון בפעם הבאה, והקשתית של המטופל תצטרף לאוסף שלכם. לא הפסדתם כלום, רק סיבה לחזור.',
   },
 });
 

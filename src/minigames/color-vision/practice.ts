@@ -1,13 +1,33 @@
 /** Arcade scenarios: clinically coherent colour-vision patients, harder with difficulty. */
 import { buildFindings, type ColorVision, type DeepPartial, type Eye, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng } from '@core';
 import { generateAvatar } from '@render';
-import { report } from './clinical';
+import { reportFor } from './clinical';
+
+/** Practice scenarios are generated before mount (no ctx), so read the edition from the page. */
+const docLocale = (): 'en' | 'he' => {
+  try { return document.documentElement.lang === 'he' ? 'he' : 'en'; } catch { return 'en'; }
+};
 
 type Kind = 'normal' | 'deutan' | 'protan' | 'tritan' | 'acquired-rg' | 'acquired-by' | 'desat-only';
 
 const NAMES_F = ['Amara Osei', 'Lena Fischer', 'Priya Raman', 'Sofia Marquez', 'Hana Sato', 'Chloe Martin', 'Noor Haddad', 'Ingrid Lund'];
 const NAMES_M = ['Kwame Mensah', 'Tom Becker', 'Arjun Mehta', 'Diego Alvarez', 'Kenji Mori', 'Liam O’Brien', 'Yusuf Kaya', 'Mateo Rossi'];
 const NAMES_X = ['Alex Rivera', 'Sam Okafor', 'Robin Ashby', 'Jordan Lee'];
+
+const NAMES_F_HE = ['אסתר אופיר', 'לנה פישר', 'פריה רמן', 'סופיה מרקס', 'הילה סבן', 'שלומית מרטין', 'נור חדאד', 'אינגריד לונד'];
+const NAMES_M_HE = ['קוואמה מנסה', 'תומר בקר', 'ארג׳ון מהטה', 'דייגו אלווארז', 'קנג׳י מורי', 'ליאם אוברייאן', 'יוסוף קאיה', 'מתאו רוסי'];
+const NAMES_X_HE = ['אלכס ריברה', 'סם אוקפור', 'רובין אשבי', 'ג׳ורדן לי'];
+
+/** [masculine, feminine] — picked by the patient's sex. */
+const JOBS_HE: Record<Kind, [string, string][]> = {
+  normal: [['מעצב גרפי', 'מעצבת גרפית'], ['מועמד לקורס טיס', 'מועמדת לקורס טיס'], ['מורה', 'מורה'], ['מוכר פרחים', 'מוכרת פרחים'], ['סטודנט', 'סטודנטית']],
+  deutan: [['חשמלאי מתלמד', 'חשמלאית מתלמדת'], ['סטודנט', 'סטודנטית'], ['טבח', 'טבחית'], ['מועמד למשטרה', 'מועמדת למשטרה'], ['גנן', 'גננת']],
+  protan: [['מועמד לנהיגת רכבת', 'מועמדת לנהיגת רכבת'], ['סטודנט', 'סטודנטית'], ['צייר', 'ציירת'], ['מהנדס תוכנה', 'מהנדסת תוכנה'], ['קצב', 'קצבית']],
+  tritan: [['אדריכל', 'אדריכלית'], ['רואה חשבון', 'רואת חשבון'], ['קונה טקסטיל', 'קונת טקסטיל'], ['סטודנט', 'סטודנטית']],
+  'acquired-rg': [['רץ מרתון', 'רצת מרתון'], ['אח', 'אחות'], ['בריסטה', 'בריסטה'], ['דוקטורנט', 'דוקטורנטית'], ['חובש', 'חובשת']],
+  'acquired-by': [['מייסד סטארט-אפ', 'מייסדת סטארט-אפ'], ['סוחר בבורסה', 'סוחרת בבורסה'], ['בקר תעופה', 'בקרית תעופה'], ['עורך דין', 'עורכת דין']],
+  'desat-only': [['מורה ליוגה', 'מורה ליוגה'], ['עיתונאי', 'עיתונאית'], ['פיזיותרפיסט', 'פיזיותרפיסטית']],
+};
 
 const JOBS: Record<Kind, string[]> = {
   normal: ['Graphic designer', 'Pilot applicant', 'Teacher', 'Florist', 'Student'],
@@ -104,14 +124,15 @@ export function practiceScenario(rng: Rng, difficulty: number): PracticeScenario
   }
 
   const findings = buildFindings(age, patch);
-  const name = rng.pick(sex === 'F' ? NAMES_F : sex === 'M' ? NAMES_M : NAMES_X);
+  const he = docLocale() === 'he';
+  const name = rng.pick(he ? (sex === 'F' ? NAMES_F_HE : sex === 'M' ? NAMES_M_HE : NAMES_X_HE) : (sex === 'F' ? NAMES_F : sex === 'M' ? NAMES_M : NAMES_X));
   const avatar = generateAvatar(rng, { age, sex });
   const patient: PatientProfile = {
-    name, age, sex, occupation: rng.pick(JOBS[kind]),
-    personality: kind === 'normal' ? 'Here for a routine colour check.' : 'Curious how colours look to everyone else.',
+    name, age, sex, occupation: he ? rng.pick(JOBS_HE[kind])[sex === 'F' ? 1 : 0]! : rng.pick(JOBS[kind]),
+    personality: he ? (sex === 'F' ? (kind === 'normal' ? 'באה לבדיקת צבעים שגרתית.' : 'סקרנית לדעת איך צבעים נראים לכולם.') : (kind === 'normal' ? 'בא לבדיקת צבעים שגרתית.' : 'סקרן לדעת איך צבעים נראים לכולם.')) : kind === 'normal' ? 'Here for a routine colour check.' : 'Curious how colours look to everyone else.',
     avatar,
   };
-  const line = report(findings, patient).find((l) => l.label === 'Colour vision');
-  const answer = line ? (line.eye && line.eye !== 'OU' ? `${line.value} — ${line.eye}` : line.value) : 'Normal colour vision';
+  const line = reportFor(findings, patient, he ? 'he' : 'en').find((l) => l.label === (he ? 'ראיית צבעים' : 'Colour vision'));
+  const answer = line ? (line.eye && line.eye !== 'OU' ? `${line.value} — ${line.eye}` : line.value) : he ? 'ראיית צבעים תקינה' : 'Normal colour vision';
   return { patient, findings, answer };
 }

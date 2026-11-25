@@ -115,7 +115,7 @@ export function Dial({ value, min, max, step, label, format, onChange, size = 58
           </g>
         </svg>
       </div>
-      <div class="amsler-dial__meta">
+      <div class="amsler-dial__meta" dir="auto">
         <span class="amsler-dial__label">{label}</span>
         <span class="amsler-dial__value">{format(value)}</span>
       </div>

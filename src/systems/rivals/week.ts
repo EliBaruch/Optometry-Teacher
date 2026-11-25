@@ -2,7 +2,8 @@
  * Calendar maths for the weekly board (local time, ISO weeks starting Monday)
  * and the deterministic growth curve of each colleague's weekly points.
  */
-import { createRng } from '@core';
+import { createRng, type Locale } from '@core';
+import { text } from './strings';
 import type { Rival } from './roster';
 
 export const DAY_MS = 86_400_000;
@@ -58,15 +59,13 @@ export function dayKey(t: number): string {
 }
 
 /** "3d 4h" / "5h 12m" / "8m" until the board resets. */
-export function timeLeftLabel(t: number): string {
+export function timeLeftLabel(t: number, locale: Locale = 'en'): string {
   const ms = Math.max(0, weekEnd(t) - t);
   const mins = Math.floor(ms / 60_000);
   const d = Math.floor(mins / 1440);
   const h = Math.floor((mins % 1440) / 60);
   const m = mins % 60;
-  if (d > 0) return `${d}d ${h}h`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${Math.max(1, m)}m`;
+  return text(locale).timeLeft(d, h, m);
 }
 
 /** Colleagues work 07:00–23:00; fraction of a day's work done by `hour` (smooth). */

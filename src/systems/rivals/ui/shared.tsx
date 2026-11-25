@@ -1,11 +1,13 @@
 /** Shared UI bits: hooks, portraits, sparkline. */
 import { useMemo, useState } from 'preact/hooks';
 import { createRng, type AvatarSpec, type GameServices } from '@core';
-import { useInterval, useSignal } from '@ui-kit';
+import type { ComponentChildren } from 'preact';
+import { useInterval, useLocale, useSignal, useStrings } from '@ui-kit';
 import { AvatarBust, generateAvatar } from '@render';
 import { rivalsFor, type RivalsController } from '../controller';
 import type { RivalsState } from '../league';
 import type { Rival } from '../roster';
+import { S, rivalText } from '../strings';
 import './rivals.css';
 
 /**
@@ -36,6 +38,7 @@ export function rivalSpec(r: Rival): AvatarSpec {
 
 export function RivalPortrait(props: { rival: Rival; size?: number; animated?: boolean; reduced?: boolean; class?: string }) {
   const { rival, size = 44 } = props;
+  const locale = useLocale();
   const spec = useMemo(() => rivalSpec(rival), [rival.id]);
   return (
     <span class={`rv-portrait ${props.class ?? ''}`} style={{ '--rv-c': rival.color, width: `${size}px`, height: `${size}px` }}>
@@ -47,7 +50,7 @@ export function RivalPortrait(props: { rival: Rival; size?: number; animated?: b
         ring={rival.color}
         animated={props.animated}
         reducedMotion={props.reduced}
-        label={rival.name}
+        label={rivalText(rival, locale).name}
       />
     </span>
   );
@@ -55,10 +58,11 @@ export function RivalPortrait(props: { rival: Rival; size?: number; animated?: b
 
 /** The player's medallion: a candle-gold lens with their initial. */
 export function PlayerPortrait(props: { name: string; size?: number; class?: string }) {
+  const t = useStrings(S);
   const size = props.size ?? 44;
   const initial = (props.name.replace(/^dr\.?\s*/i, '').trim()[0] ?? 'Y').toUpperCase();
   return (
-    <span class={`rv-portrait rv-portrait--you ${props.class ?? ''}`} style={{ width: `${size}px`, height: `${size}px` }} role="img" aria-label="You">
+    <span class={`rv-portrait rv-portrait--you ${props.class ?? ''}`} style={{ width: `${size}px`, height: `${size}px` }} role="img" aria-label={t.youAria}>
       <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
         <defs>
           <radialGradient id="rv-you-g" cx="50%" cy="32%" r="70%">
@@ -91,6 +95,7 @@ export interface Series {
  */
 export function Sparkline(props: { series: Series[]; t0: number; t1: number; height?: number; days?: boolean; nowAt?: number; class?: string; label: string }) {
   const { series, t0, t1, height = 64 } = props;
+  const t = useStrings(S);
   const W = 1000;
   const H = 300;
   const maxP = Math.max(10, ...series.flatMap((s) => s.points.map((p) => p.p))) * 1.08;
@@ -100,7 +105,7 @@ export function Sparkline(props: { series: Series[]; t0: number; t1: number; hei
   const ordered = [...series].sort((a, b) => Number(!!a.highlight) - Number(!!b.highlight));
   const gid = `rv-area-${props.label.replace(/\W/g, '')}`;
   return (
-    <div class={`rv-spark ${props.class ?? ''}`} style={{ height: `${height}px` }} role="img" aria-label={props.label}>
+    <div class={`rv-spark ${props.class ?? ''}`} style={{ height: `${height}px` }} role="img" aria-label={props.label} dir="ltr">
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
@@ -137,12 +142,12 @@ export function Sparkline(props: { series: Series[]; t0: number; t1: number; hei
       })}
       {props.nowAt !== undefined && props.nowAt < t1 && (
         <span class="rv-spark__now" style={{ left: `${(x(props.nowAt) / W) * 100}%` }} aria-hidden="true">
-          <span>Now</span>
+          <span>{t.now}</span>
         </span>
       )}
       {props.days && (
         <div class="rv-spark__days" aria-hidden="true">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => <span key={d}>{d}</span>)}
+          {t.weekdays.map((d) => <span key={d}>{d}</span>)}
         </div>
       )}
     </div>
@@ -153,4 +158,26 @@ export function ordinal(n: number): string {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]!);
+}
+
+/** The edition's ordinal ("3rd" / "מקום 3"). */
+export function useOrdinal(): (n: number) => string {
+  return useStrings(S).ordinal;
+}
+
+/**
+ * Tiny inline markup for strings with a bold run: `**x**` is a bold number, `__x__` a bold name
+ * in the given colour. Keeps word order in the string table, so Hebrew can reorder freely.
+ */
+export function Rich(props: { text: string; color?: string }): ComponentChildren {
+  const parts = props.text.split(/(\*\*[^*]+\*\*|__[^_]+__)/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.startsWith('**') ? <b key={i} class="lm-num" dir="ltr">{p.slice(2, -2)}</b>
+        : p.startsWith('__') ? <b key={i} style={props.color ? { color: props.color } : undefined}>{p.slice(2, -2)}</b>
+        : p,
+      )}
+    </>
+  );
 }

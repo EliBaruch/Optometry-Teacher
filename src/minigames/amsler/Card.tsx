@@ -27,6 +27,7 @@ export interface CardProps {
   /** mouse wheel over the live card: +1 grows the brush, -1 shrinks it */
   onWheelBrush?: (dir: 1 | -1) => void;
   label: string;
+  locale?: import('@core').Locale;
 }
 
 /** px of brass bezel around the canvas (keep in sync with amsler.css) */
@@ -96,6 +97,7 @@ export function Card(p: CardProps) {
       truth: s.truth,
       cursor: P.interactive ? s.cursor : null,
       idle: s.idle,
+      locale: P.locale,
     });
     if (moving) s.raf = requestAnimationFrame(frame);
     else s.last = 0;
@@ -260,7 +262,7 @@ export function Card(p: CardProps) {
   };
 
   return (
-    <div class="amsler-card" ref={wrap}>
+    <div class="amsler-card" ref={wrap} dir="ltr">
       <div class="amsler-card__plate">
         <canvas
           ref={canvasRef}

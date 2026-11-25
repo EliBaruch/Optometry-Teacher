@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Eye, MiniGameContext, MiniGameResult } from '@core';
 import { Button, IconButton, SpeechBubble } from '@ui-kit';
 import { PatientAvatar } from '@render';
-import { eyeVision, interpret, report, scoreSession, type Interpretation, type Score } from './clinical';
+import { eyeVision, interpret, reportFor, scoreSession, type Interpretation, type Score } from './clinical';
 import { Dial } from './Dial';
 import { ClassifyPanel, RevealPanel, Tutorial } from './Overlays';
 import { PlateBook } from './PlateBook';
 import { generatePlates, respond, type PlateResponse } from './plates';
 import { RedCap, type RedCapResult } from './RedCap';
 import { ScoreSheet, keyLabel } from './ScoreSheet';
+import { T } from './strings';
 import { PlateStore } from './store';
 import './color-vision.css';
 
@@ -38,6 +39,8 @@ export interface GameProps {
 
 export function ColorVisionGame({ ctx, finish }: GameProps) {
   const { findings, patient, audio, fx, reducedMotion } = ctx;
+  const loc = ctx.locale;
+  const t = T(loc);
   const store = useMemo(() => {
     const base = ctx.rng.fork('color-vision');
     const plates = generatePlates(base.fork('plates'));
@@ -83,7 +86,7 @@ export function ColorVisionGame({ ctx, finish }: GameProps) {
     const answerAt = reducedMotion ? 520 : 1050;
     const t1 = setTimeout(() => setThinking(true), dwell);
     const t2 = setTimeout(() => {
-      const r = respond(plates[idx]!, eyeVision(findings, eye));
+      const r = respond(plates[idx]!, eyeVision(findings, eye), loc);
       setThinking(false);
       setResponses((prev) => ({ ...prev, [eye]: { ...prev[eye], [idx]: r } }));
       say(r.said);
@@ -115,7 +118,7 @@ export function ColorVisionGame({ ctx, finish }: GameProps) {
     setDir(-1);
     setIdx(0);
     setThinking(false);
-    say(e === 'OD' ? 'Left eye covered. Ready.' : 'Right eye covered. Ready.');
+    say(t.covered(e === 'OD' ? 'OS' : 'OD'));
   };
 
   // keyboard: ←/→ pages, R/L occluder
@@ -153,7 +156,7 @@ export function ColorVisionGame({ ctx, finish }: GameProps) {
       fxTimer.current = setTimeout(() => {
         audio.play(s.perfect ? 'sparkle' : 'success');
         fx.burst(x, y, { kind: s.perfect ? 'stars' : 'sparks', count: s.perfect ? 36 : 22, color: '#ffd27a' });
-        if (s.perfect) fx.floatText('Flawless', x, y - 30, { color: '#ffd27a', size: 26 });
+        if (s.perfect) fx.floatText(t.flawless, x, y - 30, { color: '#ffd27a', size: 26 });
       }, 220);
     } else {
       audio.play('fail', { volume: 0.6 });
@@ -169,7 +172,7 @@ export function ColorVisionGame({ ctx, finish }: GameProps) {
       testId: ctx.testId,
       accuracy: Math.round(score.accuracy * 1000) / 1000,
       timeMs: Math.round(performance.now() - t0.current),
-      findings: report(findings, patient),
+      findings: reportFor(findings, patient, loc),
       perfect: score.perfect,
     });
   };
@@ -184,56 +187,56 @@ export function ColorVisionGame({ ctx, finish }: GameProps) {
     <div ref={root} class={`cv-root ${reducedMotion ? 'is-reduced' : ''}`} data-phase={phase}>
       <header class="cv-head">
         <div class="cv-head__text">
-          <div class="cv-eyebrow">Colour plates · daylight lamp</div>
-          <p class="cv-head__instr">Show each plate to one eye at a time — the patient reads what they see.</p>
+          <div class="cv-eyebrow">{t.eyebrow}</div>
+          <p class="cv-head__instr">{t.instr}</p>
         </div>
-        <div class="cv-occluder" role="group" aria-label="Eye being tested">
+        <div class="cv-occluder" role="group" aria-label={t.eyeTested} dir="ltr">
           {(['OD', 'OS'] as Eye[]).map((e) => (
             <button key={e} type="button" class={`cv-occluder__btn ${eye === e ? 'is-on' : ''}`} aria-pressed={eye === e} onClick={() => switchEye(e)}>
               <span class="cv-occluder__lens" aria-hidden="true" />
               <span class="cv-occluder__eye">{e}</span>
-              <span class="cv-occluder__sub">{e === 'OD' ? 'right' : 'left'}</span>
+              <span class="cv-occluder__sub">{e === 'OD' ? t.right : t.left}</span>
             </button>
           ))}
         </div>
       </header>
 
       <main class="cv-stage">
-        <section class="cv-bookcol" aria-label="Plate book">
-          <PlateBook store={store} index={idx} direction={dir} reducedMotion={reducedMotion} label={`Plate ${idx + 1} of ${plates.length}`} />
-          <div class="cv-turn">
-            <IconButton icon="chevron-left" label="Previous plate" sfx={false} disabled={idx === 0} onClick={() => turnTo(idx - 1)} />
-            <Dial value={idx} min={0} max={plates.length - 1} degPerStep={27} onChange={turnTo} label="Plate selector" valueText={`Plate ${idx + 1} of ${plates.length}`} size={68} />
-            <IconButton icon="chevron-right" label="Next plate" sfx={false} disabled={idx === plates.length - 1} onClick={() => turnTo(idx + 1)} />
+        <section class="cv-bookcol" aria-label={t.plateBook}>
+          <PlateBook store={store} index={idx} direction={dir} reducedMotion={reducedMotion} label={t.plateOf(idx + 1, plates.length)} locale={loc} />
+          <div class="cv-turn" dir="ltr">
+            <IconButton icon="chevron-left" label={t.prevPlate} sfx={false} disabled={idx === 0} onClick={() => turnTo(idx - 1)} />
+            <Dial value={idx} min={0} max={plates.length - 1} degPerStep={27} onChange={turnTo} label={t.plateSelector} valueText={t.plateOf(idx + 1, plates.length)} size={68} />
+            <IconButton icon="chevron-right" label={t.nextPlate} sfx={false} disabled={idx === plates.length - 1} onClick={() => turnTo(idx + 1)} />
           </div>
         </section>
 
-        <section class="cv-patientcol" aria-label="Patient and record sheet">
+        <section class="cv-patientcol" aria-label={t.patientCol}>
           <div class="cv-patient">
             <div class="cv-patient__portrait">
               <PatientAvatar spec={patient.avatar} age={patient.age} sex={patient.sex} expression={expression}
                 external={{ ...(findings.external ?? {}), eyePatch: covered }} lookAt={{ x: -0.45, y: 0.35 }}
-                size={112} reducedMotion={reducedMotion} label={`${patient.name}, ${covered} occluded`} />
+                size={112} reducedMotion={reducedMotion} label={t.avatarLabel(patient.name, covered)} />
             </div>
             <div class="cv-patient__talk" aria-live="polite">
               {thinking ? (
-                <div class="cv-thinking" aria-label="The patient is looking"><span /><span /><span /></div>
+                <div class="cv-thinking" aria-label={t.thinking}><span /><span /><span /></div>
               ) : speech ? (
-                <SpeechBubble key={speech.key} text={speech.text} speaker={firstName} voice={false} tail="left" speed={reducedMotion ? 400 : 60} />
+                <SpeechBubble key={speech.key} text={speech.text} speaker={firstName} voice={false} tail={loc === 'he' ? 'right' : 'left'} speed={reducedMotion ? 400 : 60} />
               ) : (
-                <div class="cv-patient__idle">{firstName} · {patient.age} · testing {eye}</div>
+                <div class="cv-patient__idle">{t.idle(firstName, patient.age, eye)}</div>
               )}
             </div>
           </div>
           <div class="cv-sheetwrap">
-            <ScoreSheet plates={plates} responses={responses} current={idx} eye={eye} onPick={turnTo} />
+            <ScoreSheet plates={plates} responses={responses} current={idx} eye={eye} onPick={turnTo} locale={loc} />
           </div>
-          <div class="cv-keynote">Key for this plate: <b>{keyLabel(plate)}</b>{plate.kind === 'hidden' ? ' (normals see nothing)' : plate.kind === 'demo' ? ' (everyone)' : ''}</div>
+          <div class="cv-keynote">{t.keyFor} <b>{keyLabel(plate)}</b>{plate.kind === 'hidden' ? t.keyHidden : plate.kind === 'demo' ? t.keyDemo : ''}</div>
         </section>
       </main>
 
       <footer class="cv-foot">
-        <div class="cv-progress" aria-label="Plates shown">
+        <div class="cv-progress" aria-label={t.shown}>
           {(['OD', 'OS'] as Eye[]).map((e) => (
             <div key={e} class={`cv-progress__row ${e === eye ? 'is-eye' : ''}`}>
               <span class="cv-progress__eye">{e}</span>
@@ -248,24 +251,24 @@ export function ColorVisionGame({ ctx, finish }: GameProps) {
         </div>
         <div class="cv-foot__actions">
           <Button variant="glass" size="md" sfx={false} icon={redCap.done ? 'check' : 'target'} onClick={() => { audio.play('select'); setPhase('redcap'); }}>
-            Red cap
+            {t.redCap}
           </Button>
           <Button variant="primary" size="md" sfx={false} icon="chart" disabled={total < 2} onClick={() => { audio.play('click'); setPhase('classify'); }}>
-            Record findings
+            {t.record}
           </Button>
         </div>
       </footer>
 
-      {tutorial && <Tutorial onClose={() => { markTutorialSeen(); audio.play('select'); setTutorial(false); }} />}
+      {tutorial && <Tutorial locale={loc} onClose={() => { markTutorialSeen(); audio.play('select'); setTutorial(false); }} />}
       {phase === 'redcap' && (
-        <RedCap findings={findings} audio={audio} initial={redCap} say={say}
+        <RedCap locale={loc} findings={findings} audio={audio} initial={redCap} say={say}
           onClose={(r) => { setRedCap(r); setPhase('plates'); }} />
       )}
       {phase === 'classify' && (
-        <ClassifyPanel initial={answer} onPick={() => audio.play('select', { volume: 0.5 })} onBack={() => setPhase('plates')} onSubmit={submit} />
+        <ClassifyPanel locale={loc} initial={answer} onPick={() => audio.play('select', { volume: 0.5 })} onBack={() => setPhase('plates')} onSubmit={submit} />
       )}
       {phase === 'reveal' && score && answer && (
-        <RevealPanel truth={interpret(findings)} given={answer} score={score} lines={report(findings, patient)} findings={findings} store={store} mode={ctx.mode} onContinue={complete} />
+        <RevealPanel locale={loc} truth={interpret(findings)} given={answer} score={score} lines={reportFor(findings, patient, loc)} findings={findings} store={store} mode={ctx.mode} onContinue={complete} />
       )}
     </div>
   );

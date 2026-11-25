@@ -1,19 +1,36 @@
 /** Practice scenarios and recognition challenges for both instruments. Pure. */
 import {
-  buildFindings, expectedAmplitude, type DeepPartial, type Eye, type Gaze, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
+  buildFindings, expectedAmplitude, type DeepPartial, type Eye, type Locale, type Gaze, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { ADD_GAZE, ABD_GAZE, IO_GAZE, SO_GAZE, classifyMotility, hofstetter, type MotilityPattern } from './model';
+import { HE_CHALLENGE_Q, HE_CONV_LABEL, HE_CONV_TEACH, HE_TEACH, patternLabel } from './strings';
+
+/** Practice scenarios are generated before the mini-game mounts (no ctx), so read the edition from the page. */
+const docLocale = (): Locale => {
+  try { return document.documentElement.lang === 'he' ? 'he' : 'en'; } catch { return 'en'; }
+};
 
 const NAMES_F = ['Margit Hoffmann', 'Lucia Ferrari', 'Aaliyah Brooks', 'Ingrid Nilsen', 'Mei Tanaka', 'Rosa Delgado', 'Fatima Zahra', 'Ewa Kowal'];
 const NAMES_M = ['Walter Pryce', 'Dmitri Volkov', 'Hamza Qureshi', 'Luis Ortega', 'Tobias Brandt', 'Kofi Asante', 'Arvind Nair', 'Henrik Moller'];
 const JOBS = ['Student', 'Taxi driver', 'Accountant', 'Baker', 'Pharmacist', 'Carpenter', 'Choir singer', 'Librarian', 'Software tester'];
+const NAMES_F_HE = ['מרגלית הופמן', 'ליאת אברהם', 'עאישה חמדאן', 'אירינה גולדין', 'שירן לוי', 'רות אזולאי', 'פאטמה ג׳בארין', 'נועה פרידמן'];
+const NAMES_M_HE = ['יוסי מזרחי', 'דמיטרי וולקוב', 'חמזה סוידאן', 'אלון בר-לב', 'תומר ברנדס', 'יעקב דסטה', 'אמיר נחום', 'גדעון שפירא'];
+const JOBS_F_HE = ['סטודנטית', 'נהגת מונית', 'רואת חשבון', 'אופה', 'רוקחת', 'נגרית', 'זמרת מקהלה', 'ספרנית', 'בודקת תוכנה'];
+const JOBS_M_HE = ['סטודנט', 'נהג מונית', 'רואה חשבון', 'אופה', 'רוקח', 'נגר', 'זמר מקהלה', 'ספרן', 'בודק תוכנה'];
+const PERS_EN = ['Follows the light carefully.', 'A little anxious, keeps looking at your hand.', 'Easy-going and cooperative.'];
+const PERS_F_HE = ['עוקבת אחרי האור בקפידה.', 'קצת לחוצה, כל הזמן מסתכלת על היד שלך.', 'נינוחה ושיתופית.'];
+const PERS_M_HE = ['עוקב אחרי האור בקפידה.', 'קצת לחוץ, כל הזמן מסתכל על היד שלך.', 'נינוח ושיתופי.'];
 
 function patientFor(rng: Rng, age: number): PatientProfile {
   const sex = rng.pick(['F', 'M'] as const);
+  const he = docLocale() === 'he';
+  const names = he ? (sex === 'F' ? NAMES_F_HE : NAMES_M_HE) : (sex === 'F' ? NAMES_F : NAMES_M);
+  const jobs = he ? (sex === 'F' ? JOBS_F_HE : JOBS_M_HE) : JOBS;
+  const pers = he ? (sex === 'F' ? PERS_F_HE : PERS_M_HE) : PERS_EN;
   return {
-    name: rng.pick(sex === 'F' ? NAMES_F : NAMES_M), age, sex, occupation: rng.pick(JOBS),
-    personality: rng.pick(['Follows the light carefully.', 'A little anxious, keeps looking at your hand.', 'Easy-going and cooperative.']),
+    name: rng.pick(names), age, sex, occupation: rng.pick(jobs),
+    personality: rng.pick(pers),
     avatar: { ...generateAvatar(rng, { age, sex }), glasses: 'none' },
   };
 }
@@ -86,10 +103,13 @@ export function motilityScenario(rng: Rng, difficulty: number, forced?: MotKind)
   }
   const findings = buildFindings(age, { ...patch, motility } as DeepPartial<PatientFindings>);
   const pat = classifyMotility(findings);
-  return { patient: patientFor(rng, age), findings, answer: `${pat.label.replace(/^./, (c) => c.toUpperCase())}. ${motilityTeach(pat)}` };
+  const loc = docLocale();
+  const label = patternLabel(pat, loc);
+  return { patient: patientFor(rng, age), findings, answer: `${loc === 'he' ? label : label.replace(/^./, (c) => c.toUpperCase())}. ${motilityTeach(pat, loc)}` };
 }
 
-export function motilityTeach(p: MotilityPattern): string {
+export function motilityTeach(p: MotilityPattern, locale: Locale = 'en'): string {
+  if (locale === 'he') return (HE_TEACH[p.id] ?? HE_TEACH.normal!)(p.eye ?? 'OD');
   switch (p.id) {
     case 'cn6': return `The ${p.eye} cannot abduct: lateral rectus weakness. The esotropia and horizontal double vision are worst on gaze toward the weak side and at distance; the face often turns toward the palsied side to keep the eyes aligned.`;
     case 'cn4': return `The ${p.eye} is higher and fails to depress when adducted (superior oblique), so the inferior oblique over-acts. Vertical double vision is worst looking down and in, as when reading; patients tilt the head away from the hypertropic eye.`;
@@ -104,7 +124,7 @@ export interface Challenge { question: string; options: string[]; correct: numbe
 
 const shuffle = <T,>(rng: Rng, a: T[]) => { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = rng.int(0, i); [r[i], r[j]] = [r[j]!, r[i]!]; } return r; };
 
-export function motilityChallenge(f: PatientFindings, rng: Rng): Challenge {
+export function motilityChallenge(f: PatientFindings, rng: Rng, locale: Locale = 'en'): Challenge {
   const pat = classifyMotility(f);
   const cap = (s: string) => s.replace(/^./, (c) => c.toUpperCase());
   const pool: MotilityPattern[] = [
@@ -120,7 +140,8 @@ export function motilityChallenge(f: PatientFindings, rng: Rng): Challenge {
   // prefer plausible look-alikes: same family, opposite eye, then others
   wrong.sort((a, b) => Number(b.id === pat.id || b.eye === pat.eye) - Number(a.id === pat.id || a.eye === pat.eye));
   const opts = shuffle(rng, [pat, ...wrong.slice(0, 3)]);
-  return { question: 'What best explains these eye movements?', options: opts.map((o) => cap(o.label)), correct: opts.indexOf(pat), explain: motilityTeach(pat) };
+  const he = locale === 'he';
+  return { question: he ? HE_CHALLENGE_Q.motility : 'What best explains these eye movements?', options: opts.map((o) => (he ? patternLabel(o, 'he') : cap(o.label))), correct: opts.indexOf(pat), explain: motilityTeach(pat, locale) };
 }
 
 // ───────────────────────── convergence
@@ -158,7 +179,8 @@ export function convergenceScenario(rng: Rng, difficulty: number, forced?: ConvK
       patch = { motility: { npcCm: rng.int(3, 6) }, accommodation: { amplitudeD: { OD: amp(rng.pick([-0.5, 0, 0.5])), OS: amp(rng.pick([-0.5, 0, 0.5])) } } };
   }
   const findings = buildFindings(age, patch);
-  return { patient: patientFor(rng, age), findings, answer: `${CONV_LABEL[classifyConvergence(findings, age)]} ${CONV_TEACH[kind]}` };
+  const loc = docLocale();
+  return { patient: patientFor(rng, age), findings, answer: `${(loc === 'he' ? HE_CONV_LABEL : CONV_LABEL)[classifyConvergence(findings, age)]} ${(loc === 'he' ? HE_CONV_TEACH : CONV_TEACH)[kind]}` };
 }
 
 const CONV_LABEL: Record<ConvKind, string> = {
@@ -174,9 +196,10 @@ const CONV_TEACH: Record<ConvKind, string> = {
   both: 'Both systems are weak: in a young patient consider head injury, medication, mononucleosis or neurological disease, and look for a pupil or motility sign.',
 };
 
-export function convergenceChallenge(f: PatientFindings, age: number, rng: Rng): Challenge {
+export function convergenceChallenge(f: PatientFindings, age: number, rng: Rng, locale: Locale = 'en'): Challenge {
   const kind = classifyConvergence(f, age);
   const kinds: ConvKind[] = ['normal', 'ci', 'ai', 'both'];
   const opts = shuffle(rng, kinds);
-  return { question: 'Which statement best fits these two measurements?', options: opts.map((k) => CONV_LABEL[k]), correct: opts.indexOf(kind), explain: CONV_TEACH[kind] };
+  const L = locale === 'he' ? HE_CONV_LABEL : CONV_LABEL, T = locale === 'he' ? HE_CONV_TEACH : CONV_TEACH;
+  return { question: locale === 'he' ? HE_CHALLENGE_Q.conv : 'Which statement best fits these two measurements?', options: opts.map((k) => L[k]!), correct: opts.indexOf(kind), explain: T[kind]! };
 }

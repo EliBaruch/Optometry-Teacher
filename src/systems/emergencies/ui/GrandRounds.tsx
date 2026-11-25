@@ -75,7 +75,7 @@ export function GrandRoundsBanner({ services }: { services: GameServices }) {
             ))}
           </span>
           <span class="cr-grand__pill cr-grand__pill--gold">
-            {claimed ? tx.bonusClaimed : <>{tx.bonusUpTo}<b class="lm-num">+{MAX_BONUS.coins} ✦ · +{MAX_BONUS.xp} XP</b></>}
+            {claimed ? tx.bonusClaimed : <>{tx.bonusUpTo}<b class="lm-num" dir="ltr">+{MAX_BONUS.coins} ✦ · +{MAX_BONUS.xp} XP</b></>}
           </span>
           <span class="cr-grand__rotate">{tx.newCaseIn}<span class="lm-num">{formatRotation(msUntilNextWeek(now), services.locale)}</span></span>
         </div>

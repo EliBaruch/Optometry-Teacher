@@ -108,6 +108,7 @@ export function Dial({ value, min, max, step = 1, degPerStep = 30, onChange, lab
       aria-valuenow={value}
       aria-valuetext={valueText}
       onKeyDown={onKey}
+      dir="ltr"
       style={{ width: size, height: size }}
     >
       <span class="cv-dial__ticks" aria-hidden="true" />

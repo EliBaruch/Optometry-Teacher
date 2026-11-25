@@ -2,9 +2,10 @@
  * Refraction session state: dialled lenses, instrument configuration and the
  * protocol trail used for coaching and scoring. Pure, immutable updates.
  */
-import { EYES, type Eye } from '@core';
+import { EYES, pickStrings, type Eye, type Locale } from '@core';
 import { clamp, effectiveResidual, quarter, wrapAxis, type EyeModel, type JccMode, type Lens } from './optics';
 import { emptyProtocol, type EyeProtocol } from './scoring';
+import { S } from './strings';
 
 export type Battery = Eye | 'OU';
 
@@ -158,22 +159,23 @@ export const eyeComplete = (s: SessionState, e: Eye) => {
 };
 
 /** One-line instruction for the header. */
-export function hint(s: SessionState): string {
+export function hint(s: SessionState, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   if (s.active === 'OU') {
-    if (s.prism) return 'Top or bottom clearer? Add +0.25 to the clearer eye until they match, then unfog OU.';
-    return 'Binocular balance (optional): fog both +0.75, add prisms and compare top vs bottom.';
+    if (s.prism) return t.hintOuPrism;
+    return t.hintOu;
   }
   const e = s.active;
   const st = stages(s, e);
   const other: Eye = e === 'OD' ? 'OS' : 'OD';
-  if (s.jcc === 'axis') return 'Flip "one or two?" — turn the axis toward the red dot of the clearer flip.';
-  if (s.jcc === 'power') return 'Red dot on axis clearer → more minus cylinder. White clearer → less.';
-  if (s.duo) return 'Red blacker → add minus. Green blacker → add plus. Equal is the endpoint.';
-  if (!st.fog) return `Fog ${e} first: add plus (about +0.75) until the letters blur.`;
-  if (!st.sphere) return 'Unfog in −0.25 clicks and ask "one or two?". Minus only for clearer letters.';
-  if (s.lenses[e].cyl < 0 && !st.axis) return 'Swing in the cross-cylinder to refine the axis.';
-  if (s.lenses[e].cyl < 0 && !st.power) return 'Now refine the cylinder power with the cross-cylinder.';
-  if (!st.duo) return 'Push maximum plus, then check the duochrome.';
-  if (!eyeComplete(s, other)) return `${e} is refined. Switch to ${other}.`;
-  return 'Both eyes refined. Balance OU if you like, then record your findings.';
+  if (s.jcc === 'axis') return t.hintJccAxis;
+  if (s.jcc === 'power') return t.hintJccPower;
+  if (s.duo) return t.hintDuo;
+  if (!st.fog) return t.hintFog(e);
+  if (!st.sphere) return t.hintSphere;
+  if (s.lenses[e].cyl < 0 && !st.axis) return t.hintAxis;
+  if (s.lenses[e].cyl < 0 && !st.power) return t.hintPower;
+  if (!st.duo) return t.hintPushPlus;
+  if (!eyeComplete(s, other)) return t.hintSwitch(e, other);
+  return t.hintDone;
 }

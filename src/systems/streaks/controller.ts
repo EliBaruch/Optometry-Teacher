@@ -5,7 +5,7 @@
 import { dayKey, modeText, signal, type GameEvents, type GameServices, type ScoreBreakdown, type Signal } from '@core';
 import { applyCase, applyFailure, formatMult, freshCombo, tierIndex, EMPTY_COMBO, type ComboState, type ComboStep } from './combo';
 import { earnFreeze, isSolid, progressMend, touchDay, viewDaily, MEND_NEED, type DailyView, type DayOutcome, type Milestone } from './daily';
-import { achievementText, milestoneTitle, text } from './strings';
+import { achievementText, iso, milestoneTitle, text } from './strings';
 import { ACCENT, INITIAL, SLOT, SLOT_VERSION, SYSTEM_ID, bestFor, sanitize, withBest, type StreaksState } from './state';
 
 export const ICE = '#7dd3fc';
@@ -153,14 +153,14 @@ function announce(ctl: StreaksController, e: CaseEcho, score: ScoreBreakdown) {
     bus.emit('reward:granted', {
       source: SYSTEM_ID,
       label: t.rewardCombo(formatMult(mult), step.combo.count),
-      value: step.bonusXp > 0 ? `+${step.bonusXp} XP` : formatMult(mult),
+      value: iso(step.bonusXp > 0 ? `+${step.bonusXp} XP` : formatMult(mult), ctl.services.locale),
       icon: 'flame',
       color: step.tier.color,
       rarity: mult >= 3 ? 'epic' : mult >= 2 ? 'rare' : 'common',
     });
   } else if (step.outcome === 'saved') {
     bus.emit('reward:granted', {
-      source: SYSTEM_ID, label: t.rewardSaved, value: formatMult(mult), icon: 'heart', color: ACCENT, rarity: 'common',
+      source: SYSTEM_ID, label: t.rewardSaved, value: iso(formatMult(mult), ctl.services.locale), icon: 'heart', color: ACCENT, rarity: 'common',
     });
   }
   if (e.newCaseBest) {
@@ -169,7 +169,7 @@ function announce(ctl: StreaksController, e: CaseEcho, score: ScoreBreakdown) {
     });
   }
   if (e.freezeEarned) {
-    bus.emit('reward:granted', { source: SYSTEM_ID, label: t.rewardFreeze, value: '+1', icon: 'sparkle', color: ICE, rarity: 'rare' });
+    bus.emit('reward:granted', { source: SYSTEM_ID, label: t.rewardFreeze, value: iso('+1', ctl.services.locale), icon: 'sparkle', color: ICE, rarity: 'rare' });
   }
   const daily = ctl.state.get().daily;
   if (e.mended) {
@@ -177,7 +177,7 @@ function announce(ctl: StreaksController, e: CaseEcho, score: ScoreBreakdown) {
   }
   for (const m of e.milestones) {
     bus.emit('currency:grant', { amount: m.coins, reason: t.milestoneReason(m.days) });
-    bus.emit('reward:granted', { source: SYSTEM_ID, label: t.rewardMilestone(m.days, milestoneTitle(m.days, m.title, ctl.services.locale)), value: `+${m.coins}`, icon: 'flame', color: ACCENT, rarity: m.rarity });
+    bus.emit('reward:granted', { source: SYSTEM_ID, label: t.rewardMilestone(m.days, milestoneTitle(m.days, m.title, ctl.services.locale)), value: iso(`+${m.coins}`, ctl.services.locale), icon: 'flame', color: ACCENT, rarity: m.rarity });
     if (m.achievement) bus.emit('achievement:unlocked', { ...achievementText(m.achievement, ctl.services.locale), icon: 'flame', system: SYSTEM_ID });
   }
   dayToast(ctl, e);

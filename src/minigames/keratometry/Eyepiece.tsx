@@ -13,6 +13,8 @@ export interface EyepieceProps {
   /** Unwrapped instrument rotation for the pointer (degrees, CCW). */
   theta: number;
   axisLabel: string;
+  axisWord?: string;
+  rotationLabel?: string;
   onRotate: (deltaDeg: number, fine: boolean) => void;
   disabled?: boolean;
   reduced: boolean;
@@ -213,15 +215,15 @@ export function Eyepiece(p: EyepieceProps) {
           class="kr-bezel__hit"
           role="slider"
           tabIndex={p.disabled ? -1 : 0}
-          aria-label="Instrument rotation (axis)"
+          aria-label={p.rotationLabel ?? 'Instrument rotation (axis)'}
           aria-valuemin={1}
           aria-valuemax={180}
           aria-valuenow={Number(p.axisLabel)}
-          aria-valuetext={`${p.axisLabel} degrees`}
+          aria-valuetext={`${p.axisLabel}°`}
           onKeyDown={onKey}
         />
       </svg>
-      <div class="kr-eyepiece__axis" aria-hidden="true"><span>AXIS</span><b class="kr-num">{p.axisLabel}°</b></div>
+      <div class="kr-eyepiece__axis" aria-hidden="true"><span>{p.axisWord ?? 'AXIS'}</span><b class="kr-num">{p.axisLabel}°</b></div>
     </div>
   );
 }

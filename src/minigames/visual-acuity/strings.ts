@@ -3,6 +3,8 @@
  * English is the source of truth (kept verbatim); Hebrew is written natively, not translated.
  * Interpolations are functions. Pure modules take a `locale` and use `pickStrings(S, locale)`.
  */
+import { createContext } from 'preact';
+import { useContext } from 'preact/hooks';
 import { defineStrings, pickStrings, type Locale } from '@core';
 import type { LowVision } from './notation';
 
@@ -329,7 +331,10 @@ export const S = defineStrings({
   },
 });
 
-export const strings = (locale: Locale) => pickStrings(S, locale);
+/** The mini-game is mounted without a ServicesProvider, so the edition travels in its own context. */
+export const LocaleCtx = createContext<Locale>('en');
+export const useT = () => pickStrings(S, useContext(LocaleCtx));
+export const useLoc = () => useContext(LocaleCtx);
 
 /** Practice scenario stories, written once per edition (keyed by archetype). */
 export const STORIES = defineStrings({

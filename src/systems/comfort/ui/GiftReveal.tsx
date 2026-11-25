@@ -123,7 +123,7 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
             {result.satchel && (
               <div class="cf-reveal__satchel" style={{ '--rc': RARITY_COLOR[result.satchel.rarity] }}>
                 <span>{t.satchelOf(t.rarity[result.satchel.rarity])}</span>
-                <strong class="lm-num">+{result.satchel.coins}</strong>
+                <strong class="lm-num"><bdi dir="ltr">+{result.satchel.coins}</bdi></strong>
               </div>
             )}
             {!day.satchel && <p class="cf-reveal__flavour">{label}</p>}

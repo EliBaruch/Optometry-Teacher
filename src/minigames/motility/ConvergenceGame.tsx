@@ -1,21 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Eye, MiniGameContext, MiniGameDone } from '@core';
 import { Button, Icon, ProgressBar } from '@ui-kit';
+import { pickStrings } from '@core';
 import { eyeStateFromFindings, nasalSign } from '@render';
 import {
   BLUR_REPORT_D, ConvSim, PUSHUP_FAR_CM, convTruth, convergenceDemandPD, convergenceGaze, defocusD, expectedPushupD, hofstetter, type ConvTruth,
 } from './model';
 import { convergenceAccuracy } from './scoring';
-import { reportConvergence } from './report';
+import { reportConvergenceFor } from './report';
+import { S, fixBidi } from './strings';
 import { convergenceChallenge } from './practice';
-import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, useNudge, type EyeFrame, type TutStep } from './ui';
+import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, useNudge, type EyeFrame } from './ui';
 import { PlanView, type PlanState } from './PlanView';
 
-const STEPS: TutStep[] = [
-  { title: 'Bring the target in slowly', body: 'Hold the approach button (or the left arrow) to slide the accommodative target toward the nose at a steady 2–5 cm per second. Too fast and you will overshoot the true break.', keys: ['← hold', 'Drag'], target: '.mot-ctl' },
-  { title: 'Break, then recovery', body: 'Watch both eyes. When one drifts outward the patient sees double: press Break. Then retreat slowly until the eye swings back in and single vision returns: press Recovered.', keys: ['B', 'Space'], target: '.mot-stage' },
-  { title: 'Push-up amplitude', body: 'Cover one eye and bring a line of small letters toward it until they stay blurred: that near point gives the amplitude of accommodation in dioptres (100 ÷ cm). Repeat for the other eye.', keys: ['OD', 'OS'], target: '.mot-panel--conv' },
-];
+const STEP_TARGETS = ['.mot-ctl', '.mot-stage', '.mot-panel--conv'];
 type Phase = 'brk' | 'rec' | 'amp';
 /** Display gain so adduction reads on the face (true angle is small; drawn ~3x so near convergence is obvious). */
 const CONV_VISUAL = 3.0;
@@ -26,6 +24,8 @@ const fmt = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
 
 export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
   const { audio, fx } = ctx;
+  const t = pickStrings(S, ctx.locale);
+  const loc = ctx.locale;
   const f = ctx.findings;
   const age = ctx.patient.age;
   const rng = useMemo(() => ctx.rng.fork('convergence'), []);
@@ -37,7 +37,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     const o = { irisColor: ctx.patient.avatar.irisColor, skinTone: SKIN_HEX[ctx.patient.avatar.skin] };
     return { OD: eyeStateFromFindings(nf, 'OD', o), OS: eyeStateFromFindings(nf, 'OS', o) };
   }, []);
-  const challenge = useMemo(() => (ctx.mode === 'practice' ? convergenceChallenge(f, age, rng.fork('q')) : null), []);
+  const challenge = useMemo(() => (ctx.mode === 'practice' ? convergenceChallenge(f, age, rng.fork('q'), ctx.locale) : null), []);
 
   const [tutorial, setTutorial] = useState(true);
   const [phase, setPhase] = useState<Phase>('brk');
@@ -103,8 +103,8 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
       setFlag(state === 'broken' ? truth.deviatingEye : null);
       if (state === 'broken') {
         play('thud', { volume: 0.4 });
-        if (!L.silent) { speak('Double! Now I see two targets.'); play('pop', { pitch: 0.8 }); }
-      } else if (!L.silent) speak('It is single again.');
+        if (!L.silent) { speak(t.sayDouble); play('pop', { pitch: 0.8 }); }
+      } else if (!L.silent) speak(t.saySingle);
     }
     k.cg += (convergenceGaze(k.d) - k.cg) * (1 - Math.exp(-dt / 70));
 
@@ -127,8 +127,8 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
       cardRef.current.style.setProperty('--p', prox.toFixed(3));
     }
     if (beamRef.current) { beamRef.current.style.opacity = String((0.25 + 0.75 * prox).toFixed(2)); beamRef.current.style.transform = `translateX(-50%) scaleX(${(0.6 + 1.2 * prox).toFixed(2)})`; }
-    if (chipRef.current) chipRef.current.textContent = `${fmt(k.d)} cm`;
-    if (liveRead.current) liveRead.current.textContent = `${fmt(k.d)} cm`;
+    if (chipRef.current) chipRef.current.textContent = t.cm(fmt(k.d));
+    if (liveRead.current) liveRead.current.textContent = t.cm(fmt(k.d));
     if (livePD.current) {
       // Demand = IPD(cm) x vergence(D); beyond ~100 Δ it is outside physiological convergence, so cap the display.
       const pd = convergenceDemandPD(Math.max(1.5, k.d));
@@ -136,22 +136,22 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     }
     if (liveEyes.current) {
       const br = L.phase !== 'amp' && state === 'broken';
-      liveEyes.current.textContent = L.phase === 'amp' ? 'accommodating' : br ? 'drifting' : 'fused';
+      liveEyes.current.textContent = L.phase === 'amp' ? t.stateAccom : br ? t.stateDrift : t.stateFused;
       liveEyes.current.dataset.s = br ? 'bad' : 'ok';
     }
     if (gaugeRef.current) gaugeRef.current.style.left = `${Math.min(100, (k.d / 20) * 100)}%`;
     planDraw.current({ d: k.d, drift: L.phase === 'amp' ? 0 : sim.current.drift, devEye: truth.deviatingEye, pins: pins.current });
-    if (readRef.current) readRef.current.textContent = `${fmt(k.d)} cm`;
+    if (readRef.current) readRef.current.textContent = t.cm(fmt(k.d));
     if (paceRef.current) paceRef.current.style.width = `${Math.min(100, (k.sp / 8) * 100)}%`;
     if (paceTxt.current) {
-      paceTxt.current.textContent = k.sp < 0.4 ? 'still' : k.sp > 5.5 ? 'too fast' : k.sp < 1.5 ? 'slow' : 'good pace';
+      paceTxt.current.textContent = k.sp < 0.4 ? t.paceStill : k.sp > 5.5 ? t.paceFast : k.sp < 1.5 ? t.paceSlow : t.paceGood;
       paceTxt.current.dataset.s = k.sp > 5.5 ? 'fast' : k.sp >= 1.5 ? 'good' : 'idle';
     }
     if (lettersRef.current) {
       const dem = L.phase === 'amp' ? defocusD(k.d, amps[L.ampEye]) : 0;
       lettersRef.current.style.filter = dem > 0.05 ? `blur(${Math.min(6, dem * 2.6).toFixed(2)}px)` : 'none';
       if (L.phase === 'amp' && active) {
-        if (dem >= BLUR_REPORT_D && !L.blurSaid) { L.blurSaid = true; speak('It is starting to blur.'); play('pop', { pitch: 1.2, volume: 0.5 }); }
+        if (dem >= BLUR_REPORT_D && !L.blurSaid) { L.blurSaid = true; speak(t.sayBlur); play('pop', { pitch: 1.2, volume: 0.5 }); }
         else if (dem < 0.05 && L.blurSaid) L.blurSaid = false;
       }
     }
@@ -173,10 +173,10 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     const burst = () => h && fx.burst(h.left + h.width / 2, h.top, { kind: 'sparks', count: 8, color: '#ffd27a' });
     setNudge('');
     if (phase === 'brk') {
-      if (st !== 'broken') { setNudge('Both eyes are still fused. Keep advancing and watch for one eye to drift out.'); play('error', { volume: 0.5 }); return; }
+      if (st !== 'broken') { setNudge(t.nudgeFused); play('error', { volume: 0.5 }); return; }
       setMarks((m) => ({ ...m, brk: d })); setPhase('rec'); play('lens-click'); burst();
     } else if (phase === 'rec') {
-      if (st !== 'fused') { setNudge('One eye is still out. Retreat slowly until it swings back in.'); play('error', { volume: 0.5 }); return; }
+      if (st !== 'fused') { setNudge(t.nudgeOut); play('error', { volume: 0.5 }); return; }
       setMarks((m) => ({ ...m, rec: d })); play('lens-click'); burst();
       setPhase('amp'); resetTarget(PUSHUP_FAR_CM); live.current.blurSaid = false; setSay(null);
     } else {
@@ -224,7 +224,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const ampErr = (e: Eye) => (amp(e) == null ? null : amp(e)! - expectedPushupD(amps[e]));
   const stepsDone = (marks.brk != null ? 1 : 0) + (marks.rec != null ? 1 : 0) + (amp('OD') != null ? 1 : 0) + (amp('OS') != null ? 1 : 0);
   const canRecord = marks.brk != null && marks.rec != null && amp('OD') != null && amp('OS') != null;
-  const gateHint = marks.brk == null ? 'Mark the break point first.' : marks.rec == null ? 'Now mark the recovery point.' : 'Measure the push-up amplitude for both eyes.';
+  const gateHint = marks.brk == null ? t.gateBreak : marks.rec == null ? t.gateRecovery : t.gateAmp;
   const record = () => {
     if (!canRecord) { setNudge(gateHint); play('error', { volume: 0.5 }); return; }
     const k = c.current;
@@ -240,15 +240,15 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     const right = challenge && picked === challenge.correct;
     const accuracy = Math.max(0, Math.min(1, challenge ? 0.65 * debrief.accuracy + 0.35 * (right ? 1 : 0) : debrief.accuracy));
     play(accuracy > 0.7 ? 'success' : 'select');
-    done({ testId: 'convergence', accuracy, timeMs: Math.round(performance.now() - startAt.current), findings: reportConvergence(f, ctx.patient), perfect: accuracy >= 0.95 && amp('OD') != null && amp('OS') != null });
+    done({ testId: 'convergence', accuracy, timeMs: Math.round(performance.now() - startAt.current), findings: reportConvergenceFor(f, ctx.patient, ctx.locale), perfect: accuracy >= 0.95 && amp('OD') != null && amp('OS') != null });
   };
   const pick = (i: number) => { setPicked(i); if (challenge) { play(i === challenge.correct ? 'success' : 'fail'); if (i !== challenge.correct) fx.shake(0.4, 200); } };
 
-  const hint = tutorial ? 'Watch the tutorial, or skip it.'
-    : phase === 'brk' ? 'Hold ← to bring the target toward the nose. Press Break (B) the instant one eye drifts out.'
-    : phase === 'rec' ? 'Hold → to retreat slowly until both eyes straighten, then press Recovered (B).'
-    : `Push-up with the ${OTHER(ampEye)} covered: bring the letters in until they stay blurred, then press Blurry.`;
-  const label = phase === 'brk' ? 'Break!' : phase === 'rec' ? 'Recovered' : 'Blurry';
+  const hint = tutorial ? t.watchTutorial
+    : phase === 'brk' ? t.hintBreak
+    : phase === 'rec' ? t.hintRecover
+    : t.hintAmp(OTHER(ampEye));
+  const label = phase === 'brk' ? t.lblBreak : phase === 'rec' ? t.lblRecovered : t.lblBlurry;
   const ticks = Array.from({ length: max + 1 }, (_, i) => i);
   const labelEvery = max > 40 ? 10 : 5;
   const h = hofstetter(age);
@@ -256,28 +256,28 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   return (
     <div class="mot-root" ref={rootRef} tabIndex={-1} onKeyDown={onKeyDown} onKeyUp={onKeyUp}>
       <header class="mot-head">
-        <div class="mot-head__title"><Icon name="convergence" size={20} /> Near point of convergence</div>
-        <p class="mot-head__hint" key={hint} aria-live="polite">{hint}</p>
+        <div class="mot-head__title"><Icon name="convergence" size={20} /> {t.convTitle}</div>
+        <p class="mot-head__hint" key={hint} aria-live="polite">{fixBidi(hint, loc)}</p>
         {phase === 'amp' ? (
-          <div class="mot-seg" role="group" aria-label="Eye under test">
+          <div class="mot-seg" role="group" aria-label={t.eyeUnderTest} dir="ltr">
             {(['OD', 'OS'] as Eye[]).map((e) => (
               <button key={e} type="button" class={`mot-seg__b${ampEye === e ? ' is-on' : ''}`} aria-pressed={ampEye === e} onClick={() => chooseEye(e)}>{e}{amp(e) != null ? ' ✓' : ''}</button>
             ))}
           </div>
         ) : null}
-        <button type="button" class="mot-help" onClick={() => setTutorial(true)} aria-label="Show tutorial"><Icon name="info" size={18} /></button>
+        <button type="button" class="mot-help" onClick={() => setTutorial(true)} aria-label={t.showTutorial}><Icon name="info" size={18} /></button>
       </header>
       <div class="mot-main mot-main--conv">
         <div class="mot-wrap">
           <div class="mot-sayrow" aria-live="polite">{say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}</div>
-          <div class="mot-stage mot-stage--conv" style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}>
+          <div class="mot-stage mot-stage--conv" dir="ltr" style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}>
             <Face dy={-8} />
             <EyePair frame={frame} flag={phase === 'amp' || ctx.mode !== 'practice' ? null : flag} covered={phase === 'amp' ? OTHER(ampEye) : null} />
             <div ref={beamRef} class="mot-beam" aria-hidden="true" />
-            <div ref={cardRef} class="mot-tcard" aria-hidden="true"><span class="mot-tcard__wand" /><span class="mot-tcard__grip" /><div ref={lettersRef} class="mot-tcard__l">E F P T</div><span ref={chipRef} class="mot-tcard__cm mot-num">40.0 cm</span></div>
+            <div ref={cardRef} class="mot-tcard" aria-hidden="true"><span class="mot-tcard__wand" /><span class="mot-tcard__grip" /><div ref={lettersRef} class="mot-tcard__l">E F P T</div><span ref={chipRef} class="mot-tcard__cm mot-num">{t.cm("40.0")}</span></div>
           </div>
-          <div class="mot-ruler" aria-label="Ruler">
-            <div class="mot-ruler__eye" aria-hidden="true"><Icon name="eye" size={20} /><small>{phase === 'amp' ? 'eye' : 'nose'}</small><span ref={readRef} class="mot-ruler__read mot-num">40.0 cm</span></div>
+          <div class="mot-ruler" aria-label={t.rulerAria} dir="ltr">
+            <div class="mot-ruler__eye" aria-hidden="true"><Icon name="eye" size={20} /><small>{phase === 'amp' ? t.rulerEye : t.rulerNose}</small><span ref={readRef} class="mot-ruler__read mot-num">{t.cm("40.0")}</span></div>
             <div ref={trackRef} class="mot-ruler__track" onPointerDown={(e) => { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); c.current.drag = true; rulerTo(e.clientX); rootRef.current?.focus({ preventScroll: true }); }}
               onPointerMove={(e) => { if (c.current.drag) rulerTo(e.clientX); }} onPointerUp={() => { c.current.drag = false; }} onPointerCancel={() => { c.current.drag = false; }}
               onWheel={(e) => { e.preventDefault(); c.current.td += Math.sign(e.deltaY) * 0.5; }}>
@@ -288,59 +288,59 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
               {marks.brk != null && phase !== 'amp' ? <span class="mot-pin mot-pin--b" style={{ left: `${(marks.brk / max) * 100}%` }}>B {fmt(marks.brk)}</span> : null}
               {marks.rec != null && phase !== 'amp' ? <span class="mot-pin mot-pin--r" style={{ left: `${(marks.rec / max) * 100}%` }}>R {fmt(marks.rec)}</span> : null}
               {phase === 'amp' && amp(ampEye) != null ? <span class="mot-pin mot-pin--b" style={{ left: `${(100 / amp(ampEye)! / max) * 100}%` }}>{fmt(amp(ampEye)!)} D</span> : null}
-              <div ref={handleRef} class="mot-handle" role="slider" aria-label="Target distance in centimetres" aria-valuemin={1.5} aria-valuemax={max} aria-valuenow={Math.round(c.current.td)}>
+              <div ref={handleRef} class="mot-handle" role="slider" aria-label={t.sliderAria} aria-valuemin={1.5} aria-valuemax={max} aria-valuenow={Math.round(c.current.td)}>
                 <span class="mot-handle__card">E</span>
               </div>
               </div>
             </div>
           </div>
-          <div class="mot-ctl">
-            <button type="button" class="mot-hold" {...hold(-1)} aria-label="Hold to bring the target toward the nose (left arrow)"><Icon name="chevron-left" size={18} /> Approach <kbd>←</kbd></button>
+          <div class="mot-ctl" dir="ltr">
+            <button type="button" class="mot-hold" {...hold(-1)} aria-label={t.approachAria}><Icon name="chevron-left" size={18} /> {t.approach} <kbd>←</kbd></button>
             <div class="mot-pace" aria-hidden="true"><span class="mot-pace__bar"><i class="mot-pace__ok" /><i ref={paceRef} /></span><span ref={paceTxt} class="mot-pace__t">still</span></div>
-            <button type="button" class="mot-hold" {...hold(1)} aria-label="Hold to move the target away (right arrow)"><kbd>→</kbd> Retreat <Icon name="chevron-right" size={18} /></button>
+            <button type="button" class="mot-hold" {...hold(1)} aria-label={t.retreatAria}><kbd>→</kbd> {t.retreat} <Icon name="chevron-right" size={18} /></button>
             <Button variant="primary" onClick={mark} icon="target" disabled={tutorial || !!debrief}>{label}</Button>
-            {phase !== 'amp' ? <Button variant="ghost" size="sm" icon="refresh" onClick={retry} disabled={tutorial || !!debrief}>Repeat</Button> : null}
+            {phase !== 'amp' ? <Button variant="ghost" size="sm" icon="refresh" onClick={retry} disabled={tutorial || !!debrief}>{t.repeat}</Button> : null}
           </div>
         </div>
-        <aside class="mot-panel mot-panel--conv" aria-label="Measurements">
-          <p class="mot-eyebrow">Plan view</p>
-          <div class="mot-planwrap"><PlanView bind={(fn) => { planDraw.current = fn; }} /></div>
+        <aside class="mot-panel mot-panel--conv" aria-label={t.measAria}>
+          <p class="mot-eyebrow">{t.planView}</p>
+          <div class="mot-planwrap"><PlanView t={t} bind={(fn) => { planDraw.current = fn; }} /></div>
           <div class="mot-live" aria-hidden="true">
-            <div><span>Target</span><b ref={liveRead} class="mot-num">40.0 cm</b></div>
-            <div><span>Demand</span><b ref={livePD} class="mot-num">16 Δ</b></div>
-            <div><span>Eyes</span><b ref={liveEyes} data-s="ok">fused</b></div>
+            <div><span>{t.liveTarget}</span><b ref={liveRead} class="mot-num">{t.cm("40.0")}</b></div>
+            <div><span>{t.liveDemand}</span><b ref={livePD} class="mot-num" dir="ltr">16 Δ</b></div>
+            <div><span>{t.liveEyes}</span><b ref={liveEyes} data-s="ok">{t.stateFused}</b></div>
           </div>
-          <p class="mot-eyebrow">Measurements</p>
+          <p class="mot-eyebrow">{t.measTitle}</p>
           <dl class="mot-meas">
-            <div><dt>NPC break</dt><dd class="mot-num">{marks.brk != null ? `${fmt(marks.brk)} cm` : '—'}</dd></div>
-            <div><dt>NPC recovery</dt><dd class="mot-num">{marks.rec != null ? `${fmt(marks.rec)} cm` : '—'}</dd></div>
-            <div><dt>Amplitude OD</dt><dd class="mot-num">{amp('OD') != null ? `${fmt(amp('OD')!)} D` : '—'}</dd></div>
-            <div><dt>Amplitude OS</dt><dd class="mot-num">{amp('OS') != null ? `${fmt(amp('OS')!)} D` : '—'}</dd></div>
+            <div><dt>{t.mBreak}</dt><dd class="mot-num">{marks.brk != null ? t.cm(fmt(marks.brk)) : '—'}</dd></div>
+            <div><dt>{t.mRecovery}</dt><dd class="mot-num">{marks.rec != null ? t.cm(fmt(marks.rec)) : '—'}</dd></div>
+            <div><dt>{t.mAmpOD}</dt><dd class="mot-num">{amp('OD') != null ? `${fmt(amp('OD')!)} D` : '—'}</dd></div>
+            <div><dt>{t.mAmpOS}</dt><dd class="mot-num">{amp('OS') != null ? `${fmt(amp('OS')!)} D` : '—'}</dd></div>
           </dl>
-          <div class="mot-gauge" aria-hidden="true">
+          <div class="mot-gauge" aria-hidden="true" dir="ltr">
             <div class="mot-gauge__bar"><i class="z-ok" /><i class="z-mid" /><i class="z-bad" /><span ref={gaugeRef} class="mot-gauge__now" />
               {marks.brk != null ? <span class="mot-gauge__pin" style={{ left: `${Math.min(100, (marks.brk / 20) * 100)}%` }}>B</span> : null}</div>
-            <p><span>0</span><span>6 cm normal</span><span>10 receded</span><span>20</span></p>
+            <p><span>0</span><span>{t.gaugeNormal}</span><span>{t.gaugeReceded}</span><span>20</span></p>
           </div>
-          <p class="mot-norms">Expected amplitude for {age}: about {fmt(Math.max(h.avg, 0.5))} D ({h.min >= 0.5 ? `minimum ${fmt(h.min)} D` : 'no minimum expected at this age'}). Keys: <b>←</b> approach (toward the nose), <b>→</b> retreat, Shift = slower, <b>B</b> or <b>Space</b> marks, <b>R</b> repeats.</p>
+          <p class="mot-norms">{fixBidi(t.norms(age, fmt(Math.max(h.avg, 0.5)), h.min >= 0.5 ? fmt(h.min) : null), loc)}{' '}{t.normsKeys.map(([k, txt]) => <span key={k}><b dir="ltr">{k}</b>{txt}</span>)}</p>
         </aside>
       </div>
-      {nudge ? <div class="mot-toast" role="status" key={nudge}>{nudge}</div> : null}
+      {nudge ? <div class="mot-toast" role="status" key={nudge}>{fixBidi(nudge, loc)}</div> : null}
       <footer class="mot-foot">
-        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{stepsDone}/4 measured</span><ProgressBar value={stepsDone} max={4} ariaLabel="Measurements completed" accent="#ffd27a" size="sm" /></div>
-        {!canRecord && !tutorial ? <span class="mot-foot__note" id="mot-gate">{gateHint}</span> : null}
-        <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief || !canRecord} aria-describedby={canRecord ? undefined : 'mot-gate'}>Record findings</Button>
+        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{t.measuredLabel(stepsDone)}</span><ProgressBar value={stepsDone} max={4} ariaLabel={t.measuredAria} accent="#ffd27a" size="sm" /></div>
+        {!canRecord && !tutorial ? <span class="mot-foot__note" id="mot-gate">{fixBidi(gateHint, loc)}</span> : null}
+        <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief || !canRecord} aria-describedby={canRecord ? undefined : 'mot-gate'}>{t.recordFindings}</Button>
       </footer>
-      {tutorial ? <Tutorial eyebrow="Convergence & accommodation" steps={STEPS} onClose={() => { setTutorial(false); rootRef.current?.focus({ preventScroll: true }); }} /> : null}
+      {tutorial ? <Tutorial t={t} loc={loc} eyebrow={t.convTutEyebrow} steps={t.convSteps.map((s, i) => ({ ...s, target: STEP_TARGETS[i] }))} onClose={() => { setTutorial(false); rootRef.current?.focus({ preventScroll: true }); }} /> : null}
       {debrief ? (
-        <Debrief title="Convergence & accommodation" score={debrief.accuracy} challenge={challenge} picked={picked} onPick={pick} onFinish={finish} finishLabel={ctx.mode === 'practice' ? 'Finish' : 'Write to chart'}>
+        <Debrief t={t} loc={loc} title={t.convTutEyebrow} score={debrief.accuracy} challenge={challenge} picked={picked} onPick={pick} onFinish={finish} finishLabel={ctx.mode === 'practice' ? t.finish : t.writeToChart}>
           <table class="mot-cmp">
-            <thead><tr><th /><th>You</th><th>Actual</th></tr></thead>
+            <thead><tr><th /><th>{t.cmp.you}</th><th>{t.cmp.actual}</th></tr></thead>
             <tbody>
-              <tr><th>NPC break</th><td>{fmt(marks.brk!)} cm</td><td>{fmt(truth.breakCm)} cm</td></tr>
-              <tr><th>NPC recovery</th><td>{fmt(marks.rec!)} cm</td><td>{fmt(truth.recoveryCm)} cm</td></tr>
+              <tr><th>{t.mBreak}</th><td>{t.cm(fmt(marks.brk!))}</td><td>{t.cm(fmt(truth.breakCm))}</td></tr>
+              <tr><th>{t.mRecovery}</th><td>{t.cm(fmt(marks.rec!))}</td><td>{t.cm(fmt(truth.recoveryCm))}</td></tr>
               {(['OD', 'OS'] as Eye[]).map((e) => (
-                <tr key={e}><th>Amplitude {e}</th><td>{amp(e) != null ? `${fmt(amp(e)!)} D` : 'not measured'}</td><td>{amps[e] < 1.6 ? `≤ ${fmt(Math.max(amps[e], 1.5))}` : fmt(amps[e])} D</td></tr>
+                <tr key={e}><th>{t.cmp.ampOf(e)}</th><td>{amp(e) != null ? `${fmt(amp(e)!)} D` : t.cmp.notMeasured}</td><td>{amps[e] < 1.6 ? `≤ ${fmt(Math.max(amps[e], 1.5))}` : fmt(amps[e])} D</td></tr>
               ))}
             </tbody>
           </table>

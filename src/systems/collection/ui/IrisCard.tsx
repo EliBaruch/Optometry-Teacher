@@ -86,7 +86,7 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
           <div class="gc-face gc-face--front" aria-hidden="true">
             <div class="gc-front">
               <div class="gc-head">
-                <span>{no}<span style={{ opacity: 0.5 }}> / {num(view.total)}</span></span>
+                <span dir="ltr" class="gc-no">{no}<span style={{ opacity: 0.5 }}> / {num(view.total)}</span></span>
                 <span class="gc-head__rar"><i class="gc-gem" />{t.rarity[card.rarity]}</span>
               </div>
               <div class="gc-art" style={{ '--gc-iris': palette[1], '--gc-acc': wing.color }}>
@@ -193,7 +193,7 @@ export function GhostCard({ number, total, category, glimpsedName, class: klass 
         <div class="gc-flip">
           <div class="gc-face" aria-hidden="true">
             <div class="gc-ghost">
-              <span class="gc-ghost__no">{t.noMark} {num(number)} / {num(total)}</span>
+              <span class="gc-ghost__no" dir="ltr">{t.noMark} {num(number)} / {num(total)}</span>
               <EyeGlyph />
               {glimpsedName ? (
                 <>

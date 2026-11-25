@@ -24,7 +24,7 @@ export function spokenDuration(sec: number, locale: Locale = 'en'): string {
   const s = whole % 60;
   const mm = m > 0 ? t.minutes(m) : '';
   const ss = s > 0 || !m ? t.seconds(s) : '';
-  return [mm, ss].filter(Boolean).join(' ');
+  return [mm, ss].filter(Boolean).join(locale === 'he' ? t.and : ' ');
 }
 
 const THRESHOLDS: [number, 'oneMinute' | 'thirty' | 'ten'][] = [

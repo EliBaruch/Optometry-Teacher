@@ -121,9 +121,9 @@ export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => vo
           {info.dxName} <span aria-hidden="true">·</span> {tx.calledIn}<span class="lm-num">{info.sec < 1 ? tx.underSecond : formatDuration(info.sec, loc)}</span>
         </p>
         <div class="cr-saved__chips">
-          <span class="cr-saved__chip cr-saved__chip--gold" style={{ '--i': 0 }}>+{reward.coins} ✦</span>
-          <span class="cr-saved__chip" style={{ '--i': 1 }}>+{reward.xp} XP</span>
-          {reward.grandCoins > 0 && <span class="cr-saved__chip cr-saved__chip--grand" style={{ '--i': 2 }}>{tx.grandRounds} +{reward.grandCoins} ✦</span>}
+          <span class="cr-saved__chip cr-saved__chip--gold" style={{ '--i': 0 }} dir="ltr">+{reward.coins} ✦</span>
+          <span class="cr-saved__chip" style={{ '--i': 1 }} dir="ltr">+{reward.xp} XP</span>
+          {reward.grandCoins > 0 && <span class="cr-saved__chip cr-saved__chip--grand" style={{ '--i': 2 }}>{tx.grandRounds} <bdi dir="ltr">+{reward.grandCoins} ✦</bdi></span>}
         </div>
         {info.note && <p class="cr-saved__note">{info.note}</p>}
       </div>

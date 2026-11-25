@@ -2,13 +2,14 @@
  * Binds the pure league logic to the game: persisted slot, bus listeners, rewards, toasts and juice.
  * UI components reach the controller through `rivalsFor(services)`.
  */
-import type { GameServices, Signal } from '@core';
+import { type GameServices, type Signal } from '@core';
 import {
   PLAYER_ID, STATE_VERSION, applyCase, checkSlipped, initialState, playerRank, rollWeek, standings, startRun, weekReward,
   type RivalsState, type Standing,
 } from './league';
 import { isoWeekStart } from './week';
 import { RIVAL_BY_ID, ROSTER, type Rival } from './roster';
+import { rivalText, text } from './strings';
 import { humanizeId, simulateRival, simulateRivalGeneric, type RivalCaseResult } from './sim';
 
 export const SYSTEM_ID = 'rivals';
@@ -51,7 +52,7 @@ export function createController(services: GameServices): RivalsController {
     simulate(caseId) {
       const kase = services.registries.cases.get(caseId);
       const diagnosis = (id: string) => services.registries.diagnoses.get(id);
-      return ROSTER.map((r) => (kase ? simulateRival(r, kase, { diagnosisName, diagnosis }) : simulateRivalGeneric(r, caseId)));
+      return ROSTER.map((r) => (kase ? simulateRival(r, kase, { diagnosisName, diagnosis, locale: services.locale }) : simulateRivalGeneric(r, caseId)));
     },
     accuracy(id) {
       const cases = services.registries.cases.all();
@@ -61,7 +62,7 @@ export function createController(services: GameServices): RivalsController {
         const byId = new Map<string, number>();
         const diagnosis = (d: string) => services.registries.diagnoses.get(d);
         for (const r of ROSTER) {
-          const ok = cases.filter((k) => simulateRival(r, k, { diagnosisName, diagnosis }).diagnosisCorrect).length;
+          const ok = cases.filter((k) => simulateRival(r, k, { diagnosisName, diagnosis, locale: services.locale }).diagnosisCorrect).length;
           byId.set(r.id, ok / cases.length);
         }
         accCache = { n: cases.length, byId };
@@ -99,6 +100,9 @@ function safe(fn: () => void) {
 export function bindRivals(services: GameServices): () => void {
   const ctl = rivalsFor(services);
   const { bus } = services;
+  const t = text(services.locale);
+  const locale = services.locale;
+  const rt = (r: Rival) => rivalText(r, services.locale);
   const offs: (() => void)[] = [];
   const timers = new Set<ReturnType<typeof setTimeout>>();
   const later = (fn: () => void, ms: number) => {
@@ -126,16 +130,12 @@ export function bindRivals(services: GameServices): () => void {
     const coins = weekReward(lw);
     const top = lw.rank === 1;
     bus.emit('toast', {
-      message: top
-        ? `Last week's board is closed — you finished top of ${lw.field}. A fresh week begins.`
-        : lw.rank <= 3
-          ? `Last week's board is closed — you finished #${lw.rank} of ${lw.field}. A fresh week begins.`
-          : `Last week's board is closed — ${lw.cases} patients and ${lw.points.toLocaleString('en')} pts of good work. A fresh week begins.`,
+      message: top ? t.toastTop(lw.field) : lw.rank <= 3 ? t.toastPodium(lw.rank, lw.field) : t.toastWeek(lw.cases, lw.points),
       icon: top ? 'crown' : 'users',
       tone: top ? 'epic' : 'good',
     });
-    if (coins > 0) bus.emit('currency:grant', { amount: coins, reason: 'Weekly colleagues board' });
-    if (top) unlock('top-week', 'Top of the Board', 'Finish a week at the top of the colleagues board.', 'crown');
+    if (coins > 0) bus.emit('currency:grant', { amount: coins, reason: t.weekReason });
+    if (top) unlock('top-week', t.achTopTitle, t.achTopDesc, 'crown');
   };
 
   const nudge = () => {
@@ -144,9 +144,8 @@ export function bindRivals(services: GameServices): () => void {
     if (r.passedBy?.rival && r.gap !== undefined) {
       const gap = Math.max(1, r.gap);
       // One excellent case earns up to ~160 points; don't promise more than that.
-      const close = gap <= 150 ? 'one sharp work-up closes that gap' : gap <= 320 ? 'a couple of focused work-ups will close it' : 'a few careful patients will reel them back in';
       bus.emit('toast', {
-        message: `${r.passedBy.rival.short} edged ahead by ${gap.toLocaleString('en')} pts. ${close[0]!.toUpperCase()}${close.slice(1)}.`,
+        message: t.nudgeMsg(rt(r.passedBy.rival).short, gap, t.nudgeClose(gap), r.passedBy.rival.avatar.sex === 'F'),
         icon: 'users',
         tone: 'info',
       });
@@ -162,35 +161,35 @@ export function bindRivals(services: GameServices): () => void {
 
       bus.emit('reward:granted', {
         source: SYSTEM_ID,
-        label: 'Colleagues board',
-        value: `+${res.points}`,
+        label: t.rewardBoard,
+        value: locale === 'he' ? `\u2066+${res.points}\u2069` : `+${res.points}`,
         icon: 'users',
         color: ACCENT,
         rarity: res.points >= 140 ? 'rare' : 'common',
       });
 
       if (res.bestOnCase) {
-        bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Best work-up on the ward', value: '1st', icon: 'star', color: ACCENT, rarity: 'rare' });
-        unlock('best-on-case', 'Best on the Ward', 'Out-score every colleague on the same patient.', 'star');
+        bus.emit('reward:granted', { source: SYSTEM_ID, label: t.rewardBestLabel, value: t.rewardBestValue, icon: 'star', color: ACCENT, rarity: 'rare' });
+        unlock('best-on-case', t.achBestTitle, t.achBestDesc, 'star');
       }
 
       if (res.passed.length) {
         const lead = res.passed[0]!;
-        const names = res.passed.map((r) => r.short);
-        const label = names.length === 1 ? `Passed ${names[0]}` : `Passed ${names.length} colleagues`;
+        const names = res.passed.map((r) => rt(r).short);
+        const label = t.rewardPassed(names);
         bus.emit('reward:granted', {
           source: SYSTEM_ID,
           label,
-          value: `#${rank}`,
+          value: locale === 'he' ? `\u2066#${rank}\u2069` : `#${rank}`,
           icon: rank === 1 ? 'crown' : 'trophy',
           color: rank === 1 ? '#ffd27a' : ACCENT,
           rarity: rank === 1 ? 'epic' : 'rare',
         });
-        unlock('first-pass', 'Fresh Competition', 'Overtake a colleague on the weekly board.', 'trophy');
+        unlock('first-pass', t.achPassTitle, t.achPassDesc, 'trophy');
         // Celebrate only on a correct diagnosis: confetti over a missed case teaches the wrong lesson.
         if (score.diagnosisCorrect) later(() => {
           bus.emit('toast', {
-            message: rank === 1 ? `You passed ${lead.short} — top of the board!` : `You passed ${names.length === 1 ? lead.short : names.join(' and ')}! Now #${rank}.`,
+            message: rank === 1 ? t.toastPassTop(rt(lead).short) : t.toastPass(names, rank),
             icon: rank === 1 ? 'crown' : 'trophy',
             tone: rank === 1 ? 'epic' : 'good',
           });

@@ -4,6 +4,7 @@ import { MotilityGame } from './MotilityGame';
 import { ConvergenceGame } from './ConvergenceGame';
 import { convergenceScenario, motilityScenario } from './practice';
 import { reportConvergence, reportMotility } from './report';
+import { CONVERGENCE_TEXT, MOTILITY_TEXT } from './strings';
 import './motility.css';
 
 const mountWith = (Comp: typeof MotilityGame): MiniGameModule['mount'] => (host, ctx, done) => {
@@ -29,6 +30,7 @@ const motility: MiniGameModule = {
     'CN III palsy: eye down and out with ptosis, ± a dilated pupil (an emergency if pupil-involving)',
     'Pain on eye movement with full ductions suggests optic neuritis',
   ],
+  text: { he: MOTILITY_TEXT },
   mount: mountWith(MotilityGame),
   report: reportMotility,
   practice: motilityScenario,
@@ -46,6 +48,7 @@ const convergence: MiniGameModule = {
     'Amplitude of accommodation = 100 ÷ near point (cm); Hofstetter average 18.5 − 0.3 × age',
     'A big difference between the two eyes’ amplitude is a red flag (CN III, Adie pupil, drugs)',
   ],
+  text: { he: CONVERGENCE_TEXT },
   mount: mountWith(ConvergenceGame as never),
   report: reportConvergence,
   practice: convergenceScenario,

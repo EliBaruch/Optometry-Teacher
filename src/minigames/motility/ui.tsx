@@ -1,9 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
-import type { Eye } from '@core';
+import type { Eye, Locale } from '@core';
 import { Button, Kbd } from '@ui-kit';
 import { drawEye, type EyeState } from '@render';
 import type { Challenge } from './practice';
+import { fixBidi, type S } from './strings';
+
+type Tx = typeof S.en;
 
 export const SKIN_HEX = ['#f7dccb', '#eec3a2', '#d6a27a', '#b77d55', '#8c5a3b', '#5f3b26'];
 
@@ -133,7 +136,7 @@ interface Spot { x: number; y: number; w: number; h: number }
  * Skippable micro-tutorial. Each step cuts a spotlight hole around the control it describes (no blur, light dim)
  * and docks its card beside it, so the instrument stays visible. Esc skips.
  */
-export function Tutorial({ eyebrow, steps, onClose, onStep }: { eyebrow: string; steps: TutStep[]; onClose: () => void; onStep?: (i: number) => void }) {
+export function Tutorial({ t, loc, eyebrow, steps, onClose, onStep }: { t: Tx; loc: Locale; eyebrow: string; steps: TutStep[]; onClose: () => void; onStep?: (i: number) => void }) {
   const [i, setI] = useState(0);
   const [spot, setSpot] = useState<Spot | null>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -184,13 +187,13 @@ export function Tutorial({ eyebrow, steps, onClose, onStep }: { eyebrow: string;
       <div ref={card} class="mot-card mot-card--tut" key={i} style={pos ? { left: `${pos.left}px`, top: `${pos.top}px` } : { visibility: 'hidden' }}>
         <p class="mot-eyebrow">{eyebrow} · {i + 1}/{steps.length}</p>
         <h3 id="mot-tut-title" class="mot-card__title">{s.title}</h3>
-        <p class="mot-card__body">{s.body}</p>
-        <p class="mot-card__keys">{s.keys.map((k) => <Kbd key={k}>{k}</Kbd>)}</p>
+        <p class="mot-card__body">{fixBidi(s.body, loc)}</p>
+        <p class="mot-card__keys" dir="ltr">{s.keys.map((k) => <Kbd key={k}>{k}</Kbd>)}</p>
         <div class="mot-dots" aria-hidden="true">{steps.map((_, j) => <span key={j} class={j === i ? 'is-on' : ''} />)}</div>
         <div class="mot-card__actions">
-          <Button variant="ghost" size="sm" sfx={false} onClick={onClose}>Skip</Button>
+          <Button variant="ghost" size="sm" sfx={false} onClick={onClose}>{t.skip}</Button>
           <Button variant="primary" size="sm" sfx={false} trailingIcon={last ? 'check' : 'arrow-right'} onClick={() => (last ? onClose() : setI(i + 1))} autoFocus>
-            {last ? 'Start examining' : 'Next'}
+            {last ? t.startExamining : t.next}
           </Button>
         </div>
       </div>
@@ -199,41 +202,41 @@ export function Tutorial({ eyebrow, steps, onClose, onStep }: { eyebrow: string;
 }
 
 /** Multiple-choice recognition challenge shown after practice runs. */
-export function ChallengeBox({ c, picked, onPick }: { c: Challenge; picked: number | null; onPick: (i: number) => void }) {
+export function ChallengeBox({ t, loc, c, picked, onPick }: { t: Tx; loc: Locale; c: Challenge; picked: number | null; onPick: (i: number) => void }) {
   return (
     <div class="mot-chal">
-      <p class="mot-eyebrow">Recognition challenge</p>
+      <p class="mot-eyebrow">{t.recognition}</p>
       <h4 class="mot-chal__q">{c.question}</h4>
       <div class="mot-chal__opts" role="radiogroup" aria-label={c.question}>
         {c.options.map((o, i) => {
           const state = picked == null ? '' : i === c.correct ? ' is-right' : i === picked ? ' is-wrong' : ' is-dim';
           return (
             <button key={i} type="button" role="radio" aria-checked={picked === i} class={`mot-opt${state}`} disabled={picked != null} onClick={() => onPick(i)}>
-              <span class="mot-opt__k">{String.fromCharCode(65 + i)}</span><span>{o}</span>
+              <span class="mot-opt__k">{String.fromCharCode(65 + i)}</span><span>{fixBidi(o, loc)}</span>
             </button>
           );
         })}
       </div>
       {picked != null ? (
         <p class={`mot-chal__fb ${picked === c.correct ? 'ok' : 'no'}`} role="status">
-          <b>{picked === c.correct ? 'Correct. ' : 'Not quite. '}</b>{c.explain}
+          <b>{picked === c.correct ? t.correct : t.notQuite}</b>{fixBidi(c.explain, loc)}
         </p>
       ) : null}
     </div>
   );
 }
 
-export function Debrief({ title, score, children, challenge, picked, onPick, onFinish, finishLabel }: {
-  title: string; score: number; children: ComponentChildren; challenge: Challenge | null; picked: number | null; onPick: (i: number) => void; onFinish: () => void; finishLabel: string;
+export function Debrief({ t, loc, title, score, children, challenge, picked, onPick, onFinish, finishLabel }: {
+  t: Tx; loc: Locale; title: string; score: number; children: ComponentChildren; challenge: Challenge | null; picked: number | null; onPick: (i: number) => void; onFinish: () => void; finishLabel: string;
 }) {
   const ready = !challenge || picked != null;
   return (
     <div class="mot-overlay mot-overlay--scroll" role="dialog" aria-modal="true" aria-label={title}>
       <div class="mot-card mot-card--wide">
         <p class="mot-eyebrow">{title}</p>
-        <div class="mot-score"><span class="mot-num">{Math.round(score * 100)}</span><small>% technique</small></div>
+        <div class="mot-score"><span class="mot-num">{Math.round(score * 100)}</span><small>{t.techniqueSuffix}</small></div>
         {children}
-        {challenge ? <ChallengeBox c={challenge} picked={picked} onPick={onPick} /> : null}
+        {challenge ? <ChallengeBox t={t} loc={loc} c={challenge} picked={picked} onPick={onPick} /> : null}
         <div class="mot-card__actions">
           <Button variant="primary" trailingIcon="check" disabled={!ready} onClick={onFinish} autoFocus={!challenge}>{finishLabel}</Button>
         </div>

@@ -1,11 +1,12 @@
 /** Practice scenarios (clinically coherent deviations) and the recognition challenge. Pure. */
 import {
-  buildFindings, type DeepPartial, type Deviation, type Eye, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
+  buildFindings, isolateLtrRuns, pickStrings, type DeepPartial, type Deviation, type Eye, type Locale, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { describe, kindLabel, resolve, type Dir, type Kind, type Truth } from './model';
 import { pattern } from './report';
 import { explain } from './teach';
+import { S } from './strings';
 
 export type ScenarioKind =
   | 'normal' | 'exophoria' | 'esophoria' | 'convergence-insufficiency' | 'esotropia' | 'accommodative-esotropia'
@@ -112,9 +113,9 @@ export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
 export interface Challenge { question: string; options: string[]; correct: number; explain: string }
 
 const DIRS: Dir[] = ['eso', 'exo', 'hyperR', 'hyperL'];
-const lab = (k: Kind, dir: Dir, eye?: Eye | 'alternating') => (k === 'ortho' ? 'Orthophoria (no movement)' : kindLabel(k, dir, eye));
-
-export function makeChallenge(findings: PatientFindings, rng: Rng): Challenge {
+export function makeChallenge(findings: PatientFindings, rng: Rng, locale: Locale = 'en'): Challenge {
+  const w = pickStrings(S, locale);
+  const lab = (k: Kind, dir: Dir, eye?: Eye | 'alternating') => (k === 'ortho' ? w.orthoMove : kindLabel(k, dir, eye, locale));
   const d = resolve(findings.motility.distance);
   const n = resolve(findings.motility.near);
   const useNear = d.kind === 'ortho' && n.kind !== 'ortho';
@@ -138,11 +139,12 @@ export function makeChallenge(findings: PatientFindings, rng: Rng): Challenge {
   // prefer near-miss distractors first (they are inserted first); keep three
   const near3 = [...pool].slice(0, 3);
   const opts = rng.shuffle([right, ...(near3.length >= 3 ? near3 : list.slice(0, 3))]);
-  const label = useNear ? 'near (33 cm)' : 'distance (6 m)';
+  const label = useNear ? w.labNear : w.labDist;
+  const iso = (x: string) => (locale === 'he' ? isolateLtrRuns(x) : x);
   return {
-    question: `Which best describes this patient's ${label} alignment?`,
-    options: opts,
+    question: iso(w.qAlign(label)),
+    options: opts.map(iso),
     correct: opts.indexOf(right),
-    explain: `${describe(t)}. ${explain(t)}`,
+    explain: `${describe(t, locale)}. ${explain(t, locale)}`,
   };
 }

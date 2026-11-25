@@ -149,7 +149,7 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
           <section key={s.category} class={cx('gs-room', s.complete && 'is-complete')} style={{ '--c': s.info.color }} aria-label={wingText(t, s.category).wing}>
             <header class="gs-room__head">
               <h3 class="gs-room__title">{wingText(t, s.category).wing}</h3>
-              <span class="gs-room__count lm-num">{s.owned} / {s.total}</span>
+              <span class="gs-room__count lm-num" dir="ltr">{s.owned} / {s.total}</span>
               <span class="gs-room__seal" title={s.complete ? t.setComplete : t.completeSetTitle(reward.xp, reward.coins)}>
                 {s.complete ? <><Icon name="trophy" /> {t.complete}</> : <>{t.setReward(reward.xp)}</>}
               </span>

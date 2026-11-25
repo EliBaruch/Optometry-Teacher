@@ -1,58 +1,57 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Eye, Gaze, MiniGameContext, MiniGameDone } from '@core';
 import { Button, Icon, ProgressBar } from '@ui-kit';
+import { pickStrings } from '@core';
 import { eyeStateFromFindings } from '@render';
 import {
   EYES, GAZE_IDS, GAZE_X, GAZE_Y, NODES, classifyMotility, emptyGrid, eyeGazeAt, gradeText, misalignment, multiplierGrid, nodeNear, trueGrid,
   type Grid,
 } from './model';
 import { gradingScore, motilityAccuracy, missedDeficitShare } from './scoring';
-import { reportMotility } from './report';
+import { reportMotilityFor } from './report';
 import { motilityChallenge, motilityTeach } from './practice';
-import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, useNudge, type EyeFrame, type TutStep } from './ui';
+import { S, fixBidi, patternChart } from './strings';
+import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, useNudge, type EyeFrame } from './ui';
 
-const STEPS: TutStep[] = [
-  { title: 'Lead the eyes through the H', body: 'Drag the glowing wand, or use the arrow keys, to the nine positions of gaze: straight ahead, right, left, up, down and the four diagonals. Hold briefly at each one so the patient can follow.', keys: ['Drag', '← ↑ → ↓', '1–9'], target: '.mot-wand__halo' },
-  { title: 'Watch both eyes, and listen', body: 'Both eyes should move together, smoothly and fully. Notice an eye that stops short (underaction) or overshoots (overaction), and any double vision or pain the patient reports.', keys: ['Eyes', 'Patient'], target: '.mot-eyes' },
-  { title: 'Grade every gaze for each eye', body: 'Pick a cell on the OD or OS chart, then grade it: 0 is full movement, −1 to −4 is increasing underaction, +1 to +4 overaction. Record when you are done.', keys: ['+', '−', '0'], target: '.mot-panel' },
-];
-const DIP_WORD = { horizontal: 'side by side', vertical: 'one above the other', oblique: 'at a slant' } as const;
-const whereName = (x: number, y: number) => {
+const STEP_TARGETS = ['.mot-wand__halo', '.mot-eyes', '.mot-panel'];
+const whereName = (x: number, y: number, t: typeof S.en) => {
   const u = x < -0.35 ? -1 : x > 0.35 ? 1 : 0, v = y < -0.35 ? -1 : y > 0.35 ? 1 : 0;
   const n = NODES.find((q) => q.u === u && q.v === v)!;
-  return n.id === 'primary' ? 'Straight ahead' : n.name.replace(/^./, (c) => c.toUpperCase());
+  return n.id === 'primary' ? t.straightAhead : t.nodeNames[n.id].replace(/^./, (c) => c.toUpperCase());
 };
 const ID = (id: string) => `mot-${id}`;
 type GradeSel = { eye: Eye; gaze: Gaze } | null;
 const GRADES = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
 
-function HChart({ eye, grid, truth, sel, onSel }: { eye: Eye; grid: Record<Gaze, number>; truth?: Record<Gaze, number>; sel: GradeSel; onSel?: (g: Gaze) => void }) {
+function HChart({ t, eye, grid, truth, sel, onSel }: { t: typeof S.en; eye: Eye; grid: Record<Gaze, number>; truth?: Record<Gaze, number>; sel: GradeSel; onSel?: (g: Gaze) => void }) {
   return (
-    <div class="mot-chart" role="group" aria-label={`${eye === 'OD' ? 'Right' : 'Left'} eye motility chart`}>
-      <p class="mot-chart__t"><b>{eye}</b><span>{eye === 'OD' ? 'right eye' : 'left eye'}</span></p>
-      <div class="mot-chart__grid">
+    <div class="mot-chart" role="group" aria-label={t.chartAria(eye === 'OD')}>
+      <p class="mot-chart__t"><b>{eye}</b><span>{t.eyeName(eye === 'OD')}</span></p>
+      <div class="mot-chart__grid" dir="ltr">
         {NODES.map((n) => {
           if (n.id === 'primary') return <span key={n.id} class="mot-cellc mot-cellc--c" aria-hidden="true">+</span>;
           const g = grid[n.id as Gaze];
-          const t = truth?.[n.id as Gaze];
-          const state = t == null ? '' : g === t ? ' is-ok' : Math.abs(g - t) === 1 ? ' is-near' : ' is-off';
+          const tv = truth?.[n.id as Gaze];
+          const state = tv == null ? '' : g === tv ? ' is-ok' : Math.abs(g - tv) === 1 ? ' is-near' : ' is-off';
           const on = sel?.eye === eye && sel.gaze === n.id;
           return (
-            <button key={n.id} type="button" class={`mot-cellc${on ? ' is-sel' : ''}${state}`} data-g={truth ? t : g} disabled={!onSel}
-              aria-label={`${eye} ${n.name} gaze, grade ${gradeText(truth ? t! : g)}`} aria-pressed={on} onFocus={() => { if (!on) onSel?.(n.id as Gaze); }} onClick={() => onSel?.(n.id as Gaze)}>
-              <span class="mot-num" key={truth ? t : g}>{gradeText(truth ? t! : g)}</span>
-              {truth && g !== t ? <small>you {gradeText(g)}</small> : null}
+            <button key={n.id} type="button" class={`mot-cellc${on ? ' is-sel' : ''}${state}`} data-g={truth ? tv : g} disabled={!onSel}
+              aria-label={t.cellAria(eye, t.nodeNames[n.id], gradeText(truth ? tv! : g))} aria-pressed={on} onFocus={() => { if (!on) onSel?.(n.id as Gaze); }} onClick={() => onSel?.(n.id as Gaze)}>
+              <span class="mot-num" key={truth ? tv : g}>{gradeText(truth ? tv! : g)}</span>
+              {truth && g !== tv ? <small>{t.youGraded(gradeText(g))}</small> : null}
             </button>
           );
         })}
       </div>
-      <div class="mot-chart__cap" aria-hidden="true"><span>R gaze</span><span>L gaze</span></div>
+      <div class="mot-chart__cap" aria-hidden="true" dir="ltr"><span>{t.capR}</span><span>{t.capL}</span></div>
     </div>
   );
 }
 
 export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
   const { audio, fx } = ctx;
+  const t = pickStrings(S, ctx.locale);
+  const loc = ctx.locale;
   const f = ctx.findings;
   const rng = useMemo(() => ctx.rng.fork('motility'), []);
   const truth = useMemo(() => trueGrid(f), []);
@@ -62,7 +61,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
     const o = { irisColor: ctx.patient.avatar.irisColor, skinTone: SKIN_HEX[ctx.patient.avatar.skin] };
     return { OD: eyeStateFromFindings(f, 'OD', o), OS: eyeStateFromFindings(f, 'OS', o) };
   }, []);
-  const challenge = useMemo(() => (ctx.mode === 'practice' ? motilityChallenge(f, rng.fork('q')) : null), []);
+  const challenge = useMemo(() => (ctx.mode === 'practice' ? motilityChallenge(f, rng.fork('q'), ctx.locale) : null), []);
 
   const [tutorial, setTutorial] = useState(true);
   const [mine, setMine] = useState<Grid>(emptyGrid);
@@ -173,12 +172,12 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
     // the patient reports what the patient would feel
     if (seesDouble && !s.dip && now - s.dipAt > 1800) {
       s.dip = true; s.dipAt = now;
-      speak(`I see two! ${DIP_WORD[mis.kind!].replace(/^./, (c) => c.toUpperCase())}.`, whereName(w.x, w.y));
+      speak(t.sawTwo(t.dip[mis.kind!]), whereName(w.x, w.y, t));
       play('pop', { pitch: 0.8 });
     } else if (!seesDouble && s.dip) s.dip = false;
     if (f.motility.painOnMovement && speed > 0.25 && Math.hypot(w.x, w.y) > 0.45 && now - s.painAt > 3500) {
       s.painAt = now; s.painUntil = now + 900;
-      speak('Ow — it hurts when I move my eyes that way.', whereName(w.x, w.y));
+      speak(t.painSay, whereName(w.x, w.y, t));
       play('thud', { volume: 0.5 });
     }
     return out;
@@ -205,7 +204,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const onKeyUp = (e: KeyboardEvent) => { heldKeys.current.delete(e.key); };
 
   const grade = (v: number) => {
-    if (!sel) { setNudge('Tap a cell on the OD or OS chart first, then choose its grade.'); play('error', { volume: 0.4 }); return; }
+    if (!sel) { setNudge(t.nudgeTapCell); play('error', { volume: 0.4 }); return; }
     const nv = Math.max(-4, Math.min(4, v));
     setMine((m) => ({ ...m, [sel.eye]: { ...m[sel.eye], [sel.gaze]: nv } }));
     setTouched((t) => (t.includes(`${sel.eye}:${sel.gaze}`) ? t : [...t, `${sel.eye}:${sel.gaze}`]));
@@ -244,7 +243,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
 
   const gradedCount = EYES.reduce((n, e) => n + GAZE_IDS.filter((g) => mine[e][g] !== 0).length, 0);
   const canRecord = visited.length >= 9 && touched.length >= 16;
-  const gateHint = visited.length < 9 ? `Examine all nine positions first (${visited.length}/9).` : `Grade every cell of both charts (${touched.length}/16). Enter 0 for normal movement.`;
+  const gateHint = visited.length < 9 ? t.gateSweep(visited.length) : t.gateGrade(touched.length);
   const record = () => {
     if (!canRecord) { setNudge(gateHint); play('error', { volume: 0.5 }); return; }
     const grading = gradingScore(mine, truth);
@@ -259,7 +258,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
     const accuracy = challenge ? 0.65 * debrief.technique + 0.35 * (right ? 1 : 0) : debrief.technique;
     const perfect = debrief.grading >= 0.97 && visited.length === 9 && accuracy >= 0.95;
     play(accuracy > 0.7 ? 'success' : 'select');
-    done({ testId: 'motility', accuracy: Math.max(0, Math.min(1, accuracy)), timeMs: Math.round(performance.now() - startAt.current), findings: reportMotility(f, ctx.patient), perfect });
+    done({ testId: 'motility', accuracy: Math.max(0, Math.min(1, accuracy)), timeMs: Math.round(performance.now() - startAt.current), findings: reportMotilityFor(f, ctx.patient, ctx.locale), perfect });
   };
   const pick = (i: number) => {
     setPicked(i);
@@ -268,30 +267,30 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
 
   const all = visited.length >= 9;
   useEffect(() => {
-    if (all && !autoTab.current) { autoTab.current = true; setTab('grade'); setNudge('All nine positions seen. Now grade each eye.'); }
+    if (all && !autoTab.current) { autoTab.current = true; setTab('grade'); setNudge(t.nudgeAllSeen); }
   }, [all]);
-  const hint = tutorial ? 'Watch the tutorial, or skip it.' : !all ? 'Guide the wand through all nine positions of gaze and watch each eye follow.' : 'Now grade each eye in every gaze: 0 full, − underaction, + overaction.';
+  const hint = tutorial ? t.watchTutorial : !all ? t.hintSweep : t.hintGrade;
   const cur = sel ? mine[sel.eye][sel.gaze] : 0;
 
   return (
     <div class={`mot-root${ctx.reducedMotion ? ' is-rm' : ''}`} onKeyDown={onRootKey} onKeyUp={onKeyUp} onBlur={(e) => { if (!(e.relatedTarget as HTMLElement | null)?.closest?.('.mot-root')) heldKeys.current.clear(); }}>
       <header class="mot-head">
-        <div class="mot-head__title"><Icon name="motility" size={20} /> Extraocular motility</div>
-        <p class="mot-head__hint" key={hint} aria-live="polite">{hint}</p>
-        <button type="button" class="mot-help" onClick={() => setTutorial(true)} aria-label="Show tutorial"><Icon name="info" size={18} /></button>
+        <div class="mot-head__title"><Icon name="motility" size={20} /> {t.motTitle}</div>
+        <p class="mot-head__hint" key={hint} aria-live="polite">{fixBidi(hint, loc)}</p>
+        <button type="button" class="mot-help" onClick={() => setTutorial(true)} aria-label={t.showTutorial}><Icon name="info" size={18} /></button>
       </header>
       <div class="mot-main" data-tab={tab}>
-        <div class="mot-tabs" role="tablist" aria-label="Examination step">
-          <button type="button" role="tab" aria-selected={tab === 'sweep'} class={tab === 'sweep' ? 'is-on' : ''} onClick={() => setTab('sweep')}>1 · Sweep <small>{visited.length}/9</small></button>
-          <button type="button" role="tab" aria-selected={tab === 'grade'} class={tab === 'grade' ? 'is-on' : ''} onClick={() => setTab('grade')}>2 · Grade <small>{gradedCount}</small></button>
+        <div class="mot-tabs" role="tablist" aria-label={t.tabsAria}>
+          <button type="button" role="tab" aria-selected={tab === 'sweep'} class={tab === 'sweep' ? 'is-on' : ''} onClick={() => setTab('sweep')}>{t.tabSweep} <small dir="ltr">{visited.length}/9</small></button>
+          <button type="button" role="tab" aria-selected={tab === 'grade'} class={tab === 'grade' ? 'is-on' : ''} onClick={() => setTab('grade')}>{t.tabGrade} <small>{gradedCount}</small></button>
         </div>
         <div class="mot-wrap">
           <div class="mot-sayrow" aria-live="polite">{say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}</div>
-          <div ref={stageRef} class="mot-stage" tabIndex={0} role="application" aria-label="Fixation wand. Arrow keys step it between positions of gaze, hold to sweep; number keys 1 to 9 jump to a position."
+          <div ref={stageRef} class="mot-stage" tabIndex={0} role="application" aria-label={t.stageAria} dir="ltr"
             style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}
             onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
             <Face dy={22} />
-            <div class="mot-kbd" aria-hidden="true"><kbd>← ↑ → ↓</kbd> step · hold to sweep · <kbd>1–9</kbd> jump</div>
+            <div class="mot-kbd" aria-hidden="true" dir={loc === 'he' ? 'rtl' : 'ltr'}><kbd dir="ltr">← ↑ → ↓</kbd> {t.kbdStep} · {t.kbdHold} · <kbd dir="ltr">1–9</kbd> {t.kbdJump}</div>
             <svg class="mot-h" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <path d="M10 12H90M10 50H90M10 88H90M50 12V88" />
             </svg>
@@ -299,67 +298,67 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
               <i key={n.id} id={ID(n.id)} class={`mot-node${visited.includes(n.id) ? ' is-seen' : ''}`} aria-hidden="true"
                 style={{ left: `${50 + n.u * 40}%`, top: `${50 + n.v * 38}%` }}><b>{visited.includes(n.id) ? '✓' : n.key}</b></i>
             ))}
-            <div class="mot-side mot-side--l" aria-hidden="true">Patient's right</div><div class="mot-side mot-side--r" aria-hidden="true">Patient's left</div>
+            <div class="mot-side mot-side--l" aria-hidden="true">{t.patientsRight}</div><div class="mot-side mot-side--r" aria-hidden="true">{t.patientsLeft}</div>
             <EyePair frame={frame} />
             <div ref={ghostEl} class="mot-ghost" aria-hidden="true" />
             <div ref={wandEl} class="mot-wand" aria-hidden="true"><span class="mot-wand__halo" /><span class="mot-wand__core" /></div>
           </div>
         </div>
-        <aside class="mot-panel" aria-label="Motility chart">
+        <aside class="mot-panel" aria-label={t.panelAria}>
           <div class="mot-charts">
-            <HChart eye="OD" grid={mine.OD} sel={sel} onSel={(g) => { setSel({ eye: 'OD', gaze: g }); play('dial', { volume: 0.4 }); }} />
-            <HChart eye="OS" grid={mine.OS} sel={sel} onSel={(g) => { setSel({ eye: 'OS', gaze: g }); play('dial', { volume: 0.4 }); }} />
+            <HChart t={t} eye="OD" grid={mine.OD} sel={sel} onSel={(g) => { setSel({ eye: 'OD', gaze: g }); play('dial', { volume: 0.4 }); }} />
+            <HChart t={t} eye="OS" grid={mine.OS} sel={sel} onSel={(g) => { setSel({ eye: 'OS', gaze: g }); play('dial', { volume: 0.4 }); }} />
           </div>
-          <div class="mot-strip" role="group" aria-label="Grade">
-            <p class="mot-eyebrow">{sel ? `${sel.eye} · ${NODES.find((n) => n.id === sel.gaze)!.name} gaze` : 'Tap a cell, then grade it'}</p>
-            <div class="mot-strip__row">
+          <div class="mot-strip" role="group" aria-label={t.gradeAria}>
+            <p class="mot-eyebrow">{sel ? fixBidi(t.selLabel(sel.eye, t.nodeNames[sel.gaze]), loc) : t.tapCell}</p>
+            <div class="mot-strip__row" dir="ltr">
               {GRADES.map((g) => (
-                <button key={g} type="button" class={`mot-g${sel && cur === g ? ' is-on' : ''}`} data-g={g} aria-pressed={!!sel && cur === g} aria-label={`Grade ${gradeText(g)}`} onClick={() => grade(g)}>{gradeText(g)}</button>
+                <button key={g} type="button" class={`mot-g${sel && cur === g ? ' is-on' : ''}`} data-g={g} aria-pressed={!!sel && cur === g} aria-label={t.gradeBtnAria(gradeText(g))} onClick={() => grade(g)}>{gradeText(g)}</button>
               ))}
             </div>
-            <p class="mot-legend"><span>underaction</span><span>full</span><span>overaction</span></p>
+            <p class="mot-legend"><span>{t.under}</span><span>{t.full}</span><span>{t.over}</span></p>
           </div>
-          <div class="mot-log" aria-label="Patient reports" aria-live="polite">
-            <p class="mot-eyebrow">Patient reports</p>
+          <div class="mot-log" aria-label={t.reportsAria} aria-live="polite">
+            <p class="mot-eyebrow">{t.reportsTitle}</p>
             {log.length ? (
               <ul>{log.slice().reverse().map((l, i) => <li key={l.id} class={i === 0 ? 'is-latest' : ''}>{l.where ? <b>{l.where}</b> : null}{l.text}</li>)}</ul>
-            ) : <p class="mot-log__empty">Nothing yet. Double vision or pain on movement appears here with the gaze where it happened.</p>}
+            ) : <p class="mot-log__empty">{t.reportsEmpty}</p>}
           </div>
-          <div class="mot-look" aria-label="What to look for">
-            <p class="mot-eyebrow">Look for</p>
+          <div class="mot-look" aria-label={t.lookAria}>
+            <p class="mot-eyebrow">{t.lookTitle}</p>
             <ul>
-              <li><b>Range</b> does either eye stop short of the target?</li>
-              <li><b>Overshoot</b> does an eye shoot up or in when it should not?</li>
-              <li><b>Symptoms</b> double vision, or pain on moving the eyes.</li>
+              <li><b>{t.lookRange[0]}</b> {t.lookRange[1]}</li>
+              <li><b>{t.lookOver[0]}</b> {t.lookOver[1]}</li>
+              <li><b>{t.lookSym[0]}</b> {t.lookSym[1]}</li>
             </ul>
           </div>
-          <div class="mot-legendcard" aria-label="Grading key">
-            <p class="mot-eyebrow">Grading key</p>
+          <div class="mot-legendcard" aria-label={t.keyAria}>
+            <p class="mot-eyebrow">{t.keyTitle}</p>
             <ul>
-              <li><i data-g="0" /><b>0</b> full, smooth movement</li>
-              <li><i data-g="-1" /><b>−1 / −2</b> slight to moderate underaction</li>
-              <li><i data-g="-3" /><b>−3 / −4</b> marked; −4 cannot pass the midline</li>
-              <li><i data-g="2" /><b>+1 to +4</b> overaction, same scale</li>
+              <li><i data-g="0" /><b>0</b> {t.key0}</li>
+              <li><i data-g="-1" /><b dir="ltr">−1 / −2</b> {t.key1}</li>
+              <li><i data-g="-3" /><b dir="ltr">−3 / −4</b> {fixBidi(t.key3, loc)}</li>
+              <li><i data-g="2" /><b dir="ltr">{loc === 'he' ? '+1…+4' : '+1 to +4'}</b> {t.keyPlus}</li>
             </ul>
           </div>
         </aside>
       </div>
-      {nudge ? <div class="mot-toast" role="status" key={nudge}>{nudge}</div> : null}
+      {nudge ? <div class="mot-toast" role="status" key={nudge}>{fixBidi(nudge, loc)}</div> : null}
       <footer class="mot-foot">
-        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{visited.length}/9 positions<em> · {touched.length}/16 graded</em></span><ProgressBar value={visited.length} max={9} ariaLabel="Positions of gaze examined" accent="#ffd27a" size="sm" /></div>
-        {!canRecord && !tutorial ? <span class="mot-foot__note" id="mot-gate">{gateHint}</span> : null}
-        <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief || !canRecord} aria-describedby={canRecord ? undefined : 'mot-gate'}>Record findings</Button>
+        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{t.positionsLabel(visited.length)}<em>{t.gradedLabel(touched.length)}</em></span><ProgressBar value={visited.length} max={9} ariaLabel={t.positionsAria} accent="#ffd27a" size="sm" /></div>
+        {!canRecord && !tutorial ? <span class="mot-foot__note" id="mot-gate">{fixBidi(gateHint, loc)}</span> : null}
+        <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief || !canRecord} aria-describedby={canRecord ? undefined : 'mot-gate'}>{t.recordFindings}</Button>
       </footer>
-      {tutorial ? <Tutorial eyebrow="Extraocular motility" steps={STEPS} onStep={(i) => setTab(i === 2 ? 'grade' : 'sweep')} onClose={() => { setTutorial(false); setTab('sweep'); timers.current.push(window.setTimeout(() => stageRef.current?.focus({ preventScroll: true }), 0)); }} /> : null}
+      {tutorial ? <Tutorial t={t} loc={loc} eyebrow={t.motTitle} steps={t.motSteps.map((s, i) => ({ ...s, target: STEP_TARGETS[i] }))} onStep={(i) => setTab(i === 2 ? 'grade' : 'sweep')} onClose={() => { setTutorial(false); setTab('sweep'); timers.current.push(window.setTimeout(() => stageRef.current?.focus({ preventScroll: true }), 0)); }} /> : null}
       {debrief ? (
-        <Debrief title="Motility chart" score={debrief.technique} challenge={challenge} picked={picked} onPick={pick} onFinish={finish} finishLabel={ctx.mode === 'practice' ? 'Finish' : 'Write to chart'}>
+        <Debrief t={t} loc={loc} title={t.chartTitle} score={debrief.technique} challenge={challenge} picked={picked} onPick={pick} onFinish={finish} finishLabel={ctx.mode === 'practice' ? t.finish : t.writeToChart}>
           <div class="mot-charts mot-charts--debrief">
-            <HChart eye="OD" grid={mine.OD} truth={truth.OD} sel={null} />
-            <HChart eye="OS" grid={mine.OS} truth={truth.OS} sel={null} />
+            <HChart t={t} eye="OD" grid={mine.OD} truth={truth.OD} sel={null} />
+            <HChart t={t} eye="OS" grid={mine.OS} truth={truth.OS} sel={null} />
           </div>
           {ctx.mode === 'case' || picked != null
-            ? <p class="mot-card__body"><b>{pat.chart}.</b> {motilityTeach(pat)}</p>
-            : <p class="mot-card__body">Answer the question to see the explanation.</p>}
+            ? <p class="mot-card__body"><b>{fixBidi(patternChart(pat, loc), loc)}.</b> {fixBidi(motilityTeach(pat, loc), loc)}</p>
+            : <p class="mot-card__body">{t.answerToSee}</p>}
         </Debrief>
       ) : null}
     </div>

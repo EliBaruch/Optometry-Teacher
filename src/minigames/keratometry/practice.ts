@@ -3,10 +3,11 @@
  * recognition challenge. Pure: rng in, data out.
  */
 import {
-  buildFindings, EYES, type DeepPartial, type Eye, type Keratometry, type PatientFindings, type PatientProfile,
-  type PerEye, type PracticeScenario, type Rng,
+  buildFindings, EYES, isolateLtrRuns, pickStrings, type DeepPartial, type Eye, type Keratometry, type PatientFindings, type PatientProfile,
+  type Locale, type PerEye, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
+import { P, S } from './strings';
 import { cornealCyl, fmtK, fmtReading, normalizeK, ORIENTATION_SHORT, orientation, quarter, wrapAxis } from './optics';
 
 export type CorneaKind = 'normal' | 'regular' | 'oblique' | 'keratoconus';
@@ -122,12 +123,13 @@ function coherentPatch(kind: CorneaKind, g: Gen, rng: Rng): DeepPartial<PatientF
   return patch;
 }
 
-export function describeKind(k: Keratometry): string {
+export function describeKind(k: Keratometry, locale: Locale = 'en'): string {
   const n = normalizeK(k);
-  if (n.mires !== 'regular') return 'Irregular cornea — suspect keratoconus';
-  if (cornealCyl(n) < 1) return 'Normal, near-spherical cornea';
+  const t = pickStrings(P, locale).kind;
+  if (n.mires !== 'regular') return t.irr;
+  if (cornealCyl(n) < 1) return t.sph;
   const o = orientation(n.axisK1);
-  return o === 'with-the-rule' ? 'Regular with-the-rule astigmatism' : o === 'against-the-rule' ? 'Regular against-the-rule astigmatism' : 'Regular oblique astigmatism';
+  return o === 'with-the-rule' ? t.wtr : o === 'against-the-rule' ? t.atr : t.obl;
 }
 
 export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
@@ -157,51 +159,48 @@ export interface Challenge {
   explain: string;
 }
 
-const DESCRIPTIONS = [
-  'Normal, near-spherical cornea',
-  'Regular with-the-rule astigmatism',
-  'Regular against-the-rule astigmatism',
-  'Regular oblique astigmatism',
-  'Irregular cornea — suspect keratoconus',
-];
+const DESCRIPTION_KEYS = ['sph', 'wtr', 'atr', 'obl', 'irr'] as const;
 
-export function explainEye(eye: Eye, raw: Keratometry): string {
+export function explainEye(eye: Eye, raw: Keratometry, locale: Locale = 'en'): string {
   const k = normalizeK(raw);
+  const t = pickStrings(P, locale);
   const cyl = cornealCyl(k);
   const steepAx = wrapAxis(k.axisK1 + 90);
-  const base = `${eye}: K1 ${fmtK(k.k1)} D @ ${k.axisK1}°, K2 ${fmtK(k.k2)} D @ ${steepAx}°. Corneal cylinder is simply K2 − K1 = ${cyl.toFixed(2)} D`;
+  const base = t.base(eye, fmtK(k.k1), k.axisK1, fmtK(k.k2), steepAx, cyl.toFixed(2));
+  let out: string;
   if (k.mires !== 'regular') {
-    return `${base}. Mires that wobble and refuse to superimpose mean irregular astigmatism${k.k2 > 47 ? `, and a steep K of ${fmtK(k.k2)} D (above 47 D) adds weight` : ''} — refer for corneal topography/tomography to confirm keratoconus and watch for progression (cross-linking).`;
+    out = `${base}${t.irregular(k.k2 > 47 ? t.steepNote(fmtK(k.k2)) : '')}`;
+  } else if (cyl < 1) {
+    out = `${base}${t.physiologic}`;
+  } else {
+    const o = orientation(k.axisK1);
+    const why = o === 'with-the-rule' ? t.whyWtr : o === 'against-the-rule' ? t.whyAtr : t.whyObl;
+    out = `${base}${t.regularTail(cyl.toFixed(2), String(k.axisK1).padStart(3, '0'), why)}`;
   }
-  if (cyl < 1) return `${base} — physiological. Young corneas are usually slightly steeper vertically (with-the-rule).`;
-  const o = orientation(k.axisK1);
-  const why = o === 'with-the-rule'
-    ? 'the vertical meridian is steepest (with-the-rule, minus-cyl axis near 180).'
-    : o === 'against-the-rule'
-      ? 'the horizontal meridian is steepest (against-the-rule, common after 60).'
-      : 'the principal meridians sit between 30–60° / 120–150°, so it is oblique.';
-  return `${base} (−${cyl.toFixed(2)} × ${String(k.axisK1).padStart(3, '0')}); ${why} Round, crisp mires say the cornea is regular, so spectacles or toric lenses will correct it.`;
+  return locale === 'he' ? isolateLtrRuns(out) : out;
 }
 
-export function makeChallenge(findings: PatientFindings, rng: Rng): Challenge {
+export function makeChallenge(findings: PatientFindings, rng: Rng, locale: Locale = 'en'): Challenge {
   const ks = findings.keratometry;
+  const t = pickStrings(P, locale);
+  const iso = (x: string) => (locale === 'he' ? isolateLtrRuns(x) : x);
   const abnormal = EYES.find((e) => ks[e].mires !== 'regular');
   const eye: Eye = abnormal ?? (cornealCyl(ks.OD) >= cornealCyl(ks.OS) ? 'OD' : 'OS');
   const k = normalizeK(ks[eye]);
   const cyl = cornealCyl(k);
   const kind = abnormal ? 'describe' : rng.pick(['describe', 'amount'] as const);
   if (kind === 'describe') {
-    const right = describeKind(k);
-    const others = rng.shuffle(DESCRIPTIONS.filter((d) => d !== right)).slice(0, 3);
+    const right = describeKind(k, locale);
+    const others = rng.shuffle(DESCRIPTION_KEYS.map((x) => t.kind[x]).filter((d) => d !== right)).slice(0, 3);
     const options = rng.shuffle([right, ...others]);
-    return { eye, question: `Which best describes the ${eye} cornea?`, options, correct: options.indexOf(right), explain: explainEye(eye, k) };
+    return { eye, question: iso(t.qDescribe(eye)), options, correct: options.indexOf(right), explain: explainEye(eye, k, locale) };
   }
   const o = ORIENTATION_SHORT[orientation(k.axisK1)];
-  const fmt = (c: number, ori: string) => (c < 0.125 ? 'None — spherical' : `${c.toFixed(2)} D ${ori}`);
+  const fmt = (c: number, ori: string) => (c < 0.125 ? t.noneSph : iso(`${c.toFixed(2)} D ${locale === 'he' && ori === 'oblique' ? pickStrings(S, 'he').ori.oblique : ori}`));
   const right = fmt(cyl, o);
   const flip = o === 'WTR' ? 'ATR' : o === 'ATR' ? 'WTR' : 'WTR';
   const pool = [fmt(cyl, flip), fmt(cyl + 1, o), fmt(Math.max(0, cyl - 0.75), o), fmt(cyl + 0.5, flip), fmt(cyl + 1.5, o)];
   const distract = [...new Set(pool.filter((p) => p !== right))].slice(0, 3);
   const options = rng.shuffle([right, ...distract]);
-  return { eye, question: `How much corneal astigmatism does ${eye} have?`, options, correct: options.indexOf(right), explain: explainEye(eye, k) };
+  return { eye, question: iso(t.qAmount(eye)), options, correct: options.indexOf(right), explain: explainEye(eye, k, locale) };
 }

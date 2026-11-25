@@ -11,7 +11,8 @@
  *  - tritan:     blue-yellow symbol (HRR style) missed by tritan / acquired B-Y loss
  *  - path:       a winding line for non-readers (vanishing type)
  */
-import { createRng, type ColorVision, type Rng } from '@core';
+import { createRng, type ColorVision, type Locale, type Rng } from '@core';
+import { T } from './strings';
 import { hexToLinear, rgbToLms, offsetLms, clampRgb, simulate, simulateAcquired, type Vec3 } from './color';
 import { digitAt, inFigure, numberFigure, pathFigure, symbolFigure, type Figure, type SymbolName } from './glyphs';
 import type { Dot } from './packing';
@@ -189,35 +190,35 @@ export function readPlate(plate: Plate, eye: EyeVision): { reading: string; hint
   }
 }
 
-const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
-const NOTHING = ["I don't see a number.", 'Just dots, I think.', 'Nothing there… is there meant to be?', "Sorry — I can't see anything in that one."];
-const NUMBER_FRAMES = ['{n}.', "That's {n}.", 'I see {n}.', '{n}, I think.'];
+const SYMBOL_HE: Record<string, string> = { circle: 'עיגול', triangle: 'משולש' };
 
-export function speak(plate: Plate, r: { reading: string; hint?: string; blur?: boolean }): string {
+export function speak(plate: Plate, r: { reading: string; hint?: string; blur?: boolean }, locale: Locale = 'en'): string {
+  const t = T(locale);
+  const NOTHING = t.nothing;
   const v = plate.index;
-  if (r.blur) return "It's all a blur — I can't make anything out.";
-  if (plate.kind === 'demo') return r.reading ? 'Twelve. Easy.' : NOTHING[0]!;
-  if (plate.kind === 'path') return r.reading ? 'There’s a line — it winds from the left across to the right.' : "I can't find any line.";
+  if (r.blur) return t.blur;
+  if (plate.kind === 'demo') return r.reading ? t.demoSaid : NOTHING[0]!;
+  if (plate.kind === 'path') return r.reading ? t.pathSaid : t.pathNone;
   if (plate.kind === 'tritan') {
-    if (!r.reading) return v % 2 ? 'No shape… just grey dots.' : "I can't see a shape.";
-    return r.reading === 'cross' ? 'A cross — like an X.' : `A ${r.reading}.`;
+    if (!r.reading) return v % 2 ? t.tritanNoneA : t.tritanNoneB;
+    return r.reading === 'cross' ? t.cross : t.symbol(locale === 'he' ? SYMBOL_HE[r.reading] ?? r.reading : r.reading);
   }
-  if (plate.kind === 'hidden' && !r.reading) return v % 2 ? 'Just dots — no number.' : 'Lots of colours, but no number.';
+  if (plate.kind === 'hidden' && !r.reading) return v % 2 ? t.hiddenNoneA : t.hiddenNoneB;
   if (!r.reading) return NOTHING[v % NOTHING.length]!;
   if (plate.kind === 'classify') {
-    if (r.reading.length === 1) return `Just a ${r.reading}.`;
-    if (r.hint) return `${r.reading} — though the ${r.hint} stands out more.`;
+    if (r.reading.length === 1) return t.justA(r.reading);
+    if (r.hint) return t.standsOut(r.reading, r.hint);
   }
   const n = Number(r.reading);
-  const word = r.reading.length === 1 && NUMBER_WORDS[n] ? NUMBER_WORDS[n]! : r.reading;
-  const frame = NUMBER_FRAMES[v % NUMBER_FRAMES.length]!;
+  const word = r.reading.length === 1 && t.numberWords[n] ? t.numberWords[n]! : r.reading;
+  const frame = t.frames[v % t.frames.length]!;
   const out = frame.replace('{n}', word);
-  return out[0]!.toUpperCase() + out.slice(1);
+  return t.upper ? out[0]!.toUpperCase() + out.slice(1) : out;
 }
 
-export function respond(plate: Plate, eye: EyeVision): PlateResponse {
+export function respond(plate: Plate, eye: EyeVision, locale: Locale = 'en'): PlateResponse {
   const r = readPlate(plate, eye);
-  return { reading: r.reading, correct: r.reading === plate.key, said: speak(plate, r), blur: r.blur };
+  return { reading: r.reading, correct: r.reading === plate.key, said: speak(plate, r, locale), blur: r.blur };
 }
 
 // ───────────────────────────────────────────────────────── dot colouring

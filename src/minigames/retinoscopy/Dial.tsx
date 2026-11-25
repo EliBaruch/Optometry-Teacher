@@ -1,3 +1,4 @@
+import { useT } from './strings';
 import { useEffect, useRef } from 'preact/hooks';
 import type { JSX } from 'preact';
 import { fmtAxis, wrapPhi } from './optics';
@@ -15,6 +16,7 @@ const clamp180 = (a: number) => wrapPhi(a);
 
 /** Rotary sleeve: drag, wheel or arrow keys set the meridian the streak is swept along. */
 export function MeridianDial(p: MeridianDialProps) {
+  const t = useT();
   const ref = useRef<SVGSVGElement>(null);
   const live = useRef(p);
   live.current = p;
@@ -100,8 +102,8 @@ export function MeridianDial(p: MeridianDialProps) {
   const v = p.value;
   return (
     <svg
-      ref={ref} class={`rt-dial${p.disabled ? ' is-disabled' : ''}`} viewBox="0 0 200 200" role="slider" tabIndex={p.disabled ? -1 : 0}
-      aria-label="Sweep meridian" aria-valuemin={0} aria-valuemax={180} aria-valuenow={Math.round(v) || 180} aria-valuetext={`${fmtAxis(Math.round(v) || 180)} degrees`}
+      dir="ltr" ref={ref} class={`rt-dial${p.disabled ? ' is-disabled' : ''}`} viewBox="0 0 200 200" role="slider" tabIndex={p.disabled ? -1 : 0}
+      aria-label={t.sweepAria} aria-valuemin={0} aria-valuemax={180} aria-valuenow={Math.round(v) || 180} aria-valuetext={t.degrees(fmtAxis(Math.round(v) || 180))}
       aria-disabled={p.disabled || undefined} onKeyDown={onKey}
     >
       <defs>

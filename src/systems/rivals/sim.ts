@@ -11,10 +11,11 @@
  */
 import {
   ALL_TESTS, TEST_CATALOG, URGENCIES, createRng, gradeFor, parTimeSec, scoreCase,
-  type ClinicalCase, type Diagnosis, type DiagnosisId, type Grade, type MiniGameResult, type Rng, type TestId, type Urgency,
+  type ClinicalCase, type Diagnosis, type DiagnosisId, type Grade, type Locale, type MiniGameResult, type Rng, type TestId, type Urgency,
 } from '@core';
 import { CONTRASTS, canSkipAndStillDiagnose, contrastsFor, findingsNoun, separatingLesson, skipLesson, skipPhrase, testNameInline, urgencyLesson } from './clinical';
 import { URGENCY_BOOKED, URGENCY_NEEDED, type ResultSlipKind, type Rival } from './roster';
+import { URGENCY_BOOKED_HE, URGENCY_NEEDED_HE, rivalText, text } from './strings';
 
 export interface RivalSlip {
   kind: ResultSlipKind;
@@ -42,6 +43,8 @@ export interface SimContext {
   diagnosisName(id: DiagnosisId): string;
   /** Optional registry lookup (key findings, aka, typical urgency) for richer lessons. */
   diagnosis?(id: DiagnosisId): Diagnosis | undefined;
+  /** Edition language for the generated sentences (default English). */
+  locale?: Locale;
 }
 
 const testName = (t: TestId) => TEST_CATALOG[t]?.name ?? t;
@@ -51,10 +54,6 @@ export function humanizeId(id: string): string {
   return id.split('-').map((w) => (w ? w[0]!.toUpperCase() + w.slice(1) : w)).join(' ');
 }
 
-function listNames(names: string[]): string {
-  if (names.length <= 1) return names[0] ?? '';
-  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-}
 
 function fakeResult(testId: TestId, accuracy: number): MiniGameResult {
   return { testId, accuracy: Math.max(0.05, Math.min(1, accuracy)), timeMs: 0, findings: [] };
@@ -105,19 +104,24 @@ interface Draft {
 /** The colleague's signature slip, if it applies to this case. */
 function signatureSlip(rival: Rival, kase: ClinicalCase, ctx: SimContext, rng: Rng, d: Draft): void {
   const dxName = ctx.diagnosisName;
+  const loc = ctx.locale ?? 'en';
+  const tx = text(loc);
+  const f = rival.avatar.sex === 'F';
+  const needed = (u: Urgency) => (loc === 'he' ? URGENCY_NEEDED_HE : URGENCY_NEEDED)[u];
+  const booked = (u: Urgency) => (loc === 'he' ? URGENCY_BOOKED_HE : URGENCY_BOOKED)[u];
   switch (rival.slip) {
     case 'skips-basics':
     case 'rushes-posterior': {
       const inPlan = rival.skipPrefs.filter((t) => d.tests.has(t));
       // A skip that genuinely misleads (curated: the skipped test is what separates the two).
-      const misleading = contrastsFor(kase).find((c) => c.skip && inPlan.includes(c.test));
+      const misleading = contrastsFor(kase, loc).find((c) => c.skip && inPlan.includes(c.test));
       if (misleading && rng.chance(0.8)) {
         d.tests.delete(misleading.test);
         d.diagnosisId = misleading.mimic;
         d.urgency = urgencyFor(misleading.mimic, kase, ctx);
         d.slip = {
           kind: rival.slip,
-          text: `Skipped ${skipPhrase(misleading.test)}, called it ${dxName(misleading.mimic)} and missed the ${dxName(kase.diagnosis)}.`,
+          text: tx.simSkipMisled(skipPhrase(misleading.test, loc), dxName(misleading.mimic), dxName(kase.diagnosis), f),
           lesson: misleading.finding,
         };
         d.timeFactor = 0.85;
@@ -128,7 +132,7 @@ function signatureSlip(rival: Rival, kase: ClinicalCase, ctx: SimContext, rng: R
       if (safe.length) {
         const t = rng.pick(safe);
         d.tests.delete(t);
-        d.slip = { kind: rival.slip, text: `Skipped ${skipPhrase(t)}. Right diagnosis, but an incomplete work-up.`, lesson: skipLesson(kase, t) };
+        d.slip = { kind: rival.slip, text: tx.simSkipSafe(skipPhrase(t, loc), f), lesson: skipLesson(kase, t, loc) };
         d.timeFactor = 0.85;
       }
       return;
@@ -140,8 +144,8 @@ function signatureSlip(rival: Rival, kase: ClinicalCase, ctx: SimContext, rng: R
         extras.forEach((t) => d.tests.add(t));
         d.slip = {
           kind: 'over-tests',
-          text: `Added ${listNames(extras.map(testNameInline))} “to be safe”. Right answer, but slower and less focused.`,
-          lesson: 'Each test should answer a question you are actually asking.',
+          text: tx.simOverText(tx.listJoin(extras.map((t) => testNameInline(t, loc))), f),
+          lesson: tx.simOverLesson,
         };
         d.timeFactor = 1.3;
       }
@@ -153,8 +157,8 @@ function signatureSlip(rival: Rival, kase: ClinicalCase, ctx: SimContext, rng: R
         d.urgency = URGENCIES[idx - 1]!;
         d.slip = {
           kind: 'under-triages',
-          text: `Right diagnosis, but booked it as ${URGENCY_BOOKED[d.urgency]}. This patient needed ${URGENCY_NEEDED[kase.urgency]}.`,
-          lesson: urgencyLesson(kase, dxName(kase.diagnosis), URGENCY_NEEDED[kase.urgency]),
+          text: tx.simUnderText(booked(d.urgency), needed(kase.urgency)),
+          lesson: urgencyLesson(kase, dxName(kase.diagnosis), needed(kase.urgency), loc),
         };
       }
       return;
@@ -165,10 +169,10 @@ function signatureSlip(rival: Rival, kase: ClinicalCase, ctx: SimContext, rng: R
       const sep = separatingLesson(kase, mimic, ctx);
       d.diagnosisId = mimic;
       d.urgency = urgencyFor(mimic, kase, ctx);
-      const talked = sep.test && d.tests.has(sep.test) ? ` and talked past the ${findingsNoun(sep.test)} findings` : '';
+      const talked = sep.test && d.tests.has(sep.test) ? tx.simTalked(findingsNoun(sep.test, loc), f) : '';
       d.slip = {
         kind: 'anchors',
-        text: `Settled on ${dxName(mimic)} from the history${talked}. It was ${dxName(kase.diagnosis)}.`,
+        text: tx.simAnchorText(dxName(mimic), talked, dxName(kase.diagnosis), f),
         lesson: sep.finding,
       };
       return;
@@ -180,6 +184,9 @@ function signatureSlip(rival: Rival, kase: ClinicalCase, ctx: SimContext, rng: R
 export function simulateRival(rival: Rival, kase: ClinicalCase, ctx: SimContext): RivalCaseResult {
   const rng = createRng(`rivals:case:${rival.id}:${kase.id}`);
   const dxName = ctx.diagnosisName;
+  const loc = ctx.locale ?? 'en';
+  const tx = text(loc);
+  const f = rival.avatar.sex === 'F';
   const difficulty = kase.difficulty;
 
   // Baseline plan: every essential test, some helpful ones (by thoroughness).
@@ -202,7 +209,7 @@ export function simulateRival(rival: Rival, kase: ClinicalCase, ctx: SimContext)
       const sep = separatingLesson(kase, mimic, ctx);
       d.diagnosisId = mimic;
       d.urgency = urgencyFor(mimic, kase, ctx);
-      d.slip = { kind: 'misread', text: `Called it ${dxName(mimic)}. It was ${dxName(kase.diagnosis)}.`, lesson: sep.finding };
+      d.slip = { kind: 'misread', text: tx.simMisread(dxName(mimic), dxName(kase.diagnosis), f), lesson: sep.finding };
     }
   }
 
@@ -212,7 +219,7 @@ export function simulateRival(rival: Rival, kase: ClinicalCase, ctx: SimContext)
     if (safe.length) {
       const t = rng.pick(safe);
       d.tests.delete(t);
-      d.slip = { kind: 'forgot-test', text: `Forgot ${skipPhrase(t)}. Right diagnosis, incomplete work-up.`, lesson: skipLesson(kase, t) };
+      d.slip = { kind: 'forgot-test', text: tx.simForgot(skipPhrase(t, loc), f), lesson: skipLesson(kase, t, loc) };
     }
   }
 
@@ -225,13 +232,13 @@ export function simulateRival(rival: Rival, kase: ClinicalCase, ctx: SimContext)
     const down = want === 'under' ? canDown : !canUp;
     const u = URGENCIES[down ? idx - 1 : idx + 1]!;
     d.urgency = u;
-    const booked = down
-      ? `booked it as ${URGENCY_BOOKED[u]}. This patient needed ${URGENCY_NEEDED[kase.urgency]}.`
-      : `booked it as ${URGENCY_BOOKED[u]} when ${URGENCY_BOOKED[kase.urgency]} was right.`;
-    const lesson = down ? urgencyLesson(kase, dxName(kase.diagnosis), URGENCY_NEEDED[kase.urgency]) : 'Over-triage is not free: it takes urgent slots from patients who need them, and worries this one.';
+    const B = loc === 'he' ? URGENCY_BOOKED_HE : URGENCY_BOOKED;
+    const N = loc === 'he' ? URGENCY_NEEDED_HE : URGENCY_NEEDED;
+    const bookedText = down ? tx.simBookedDown(B[u], N[kase.urgency]) : tx.simBookedUp(B[u], B[kase.urgency]);
+    const lesson = down ? urgencyLesson(kase, dxName(kase.diagnosis), N[kase.urgency], loc) : tx.simOverTriage;
     d.slip = d.slip
-      ? { ...d.slip, text: `${d.slip.text} Also ${booked}` }
-      : { kind: 'mistriaged', text: `Right diagnosis, but ${booked}`, lesson };
+      ? { ...d.slip, text: tx.simAlso(d.slip.text, bookedText) }
+      : { kind: 'mistriaged', text: tx.simRightBut(bookedText), lesson };
   }
 
   // Everyone occasionally orders one test the case didn't need.
@@ -285,10 +292,11 @@ export function simulateRivalGeneric(rival: Rival, caseId: string, max = 1300): 
 }
 
 /** One quip for the results panel, chosen deterministically. */
-export function pickQuip(rival: Rival, r: RivalCaseResult, playerTotal: number, caseId: string): string {
+export function pickQuip(rival: Rival, r: RivalCaseResult, playerTotal: number, caseId: string, locale: Locale = 'en'): string {
   const rng = createRng(`rivals:quip:${rival.id}:${caseId}`);
-  if (r.slip?.kind === rival.slip || !r.diagnosisCorrect) return rng.pick(rival.quips.slipped);
-  return rng.pick(r.total > playerTotal ? rival.quips.ahead : rival.quips.behind);
+  const quips = rivalText(rival, locale).quips;
+  if (r.slip?.kind === rival.slip || !r.diagnosisCorrect) return rng.pick(quips.slipped);
+  return rng.pick(r.total > playerTotal ? quips.ahead : quips.behind);
 }
 
 /** "1:12" */

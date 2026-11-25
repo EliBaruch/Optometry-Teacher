@@ -124,6 +124,7 @@ export function Drum(p: DrumProps) {
       <div
         ref={ref}
         id={p.id}
+        dir="ltr"
         class={`kr-drum__barrel kr-drum__barrel--${p.kind}`}
         role="slider"
         tabIndex={p.disabled ? -1 : 0}

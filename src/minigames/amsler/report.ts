@@ -3,8 +3,9 @@
  * Location is expressed in VISUAL-FIELD terms per eye: for OD the patient's
  * right side of the card is the temporal field; for OS it is the nasal field.
  */
-import { EYES, type AmslerFinding, type Eye, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
+import { EYES, type AmslerFinding, type Eye, type Locale, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
 import { classOf, directionOf, normalizeAmsler, type AmslerClass } from './geometry';
+import { T, fixBidi } from './strings';
 
 export type FieldLocation =
   | 'central' | 'superior' | 'inferior' | 'temporal' | 'nasal'
@@ -36,16 +37,18 @@ export const CLASS_LABEL: Record<AmslerClass, string> = {
 };
 
 /** "Metamorphopsia — central, 8° across" etc. */
-export function describeAmsler(f: AmslerFinding, eye: Eye): string {
-  if (f.result === 'normal') return 'Normal — lines straight, no missing areas';
-  const loc = locationOf(f, eye);
+export function describeAmsler(f: AmslerFinding, eye: Eye, locale: Locale = 'en'): string {
+  const t = T(locale);
+  if (f.result === 'normal') return t.descNormal;
+  const key = locationOf(f, eye);
+  const loc = t.locs[key];
   const ext = extentDeg(f);
-  const size = ext >= 18 ? 'fills the grid' : `${ext}° across`;
-  if (f.result === 'metamorphopsia') return `Metamorphopsia — ${loc}, ${size}`;
+  const size = ext >= 18 ? t.fills : t.across(ext);
+  if (f.result === 'metamorphopsia') return t.descMeta(loc, size);
   if (f.result === 'central-scotoma') {
-    return loc === 'central' ? `Central scotoma — ${size}` : `Central scotoma — ${loc}, ${size}`;
+    return key === 'central' ? t.descCentral(size) : t.descCentralLoc(loc, size);
   }
-  return `Paracentral scotoma — ${loc}, ${size}`;
+  return t.descPara(loc, size);
 }
 
 export function flagOf(f: AmslerFinding): RevealedFinding['flag'] {
@@ -56,9 +59,15 @@ export function flagOf(f: AmslerFinding): RevealedFinding['flag'] {
   return 'abnormal';
 }
 
-export function report(findings: PatientFindings, _patient: PatientProfile): RevealedFinding[] {
+/** English chart lines (what the module's `report()` returns). */
+export function report(findings: PatientFindings, patient: PatientProfile): RevealedFinding[] {
+  return reportFor(findings, patient, 'en');
+}
+
+/** Chart lines in the edition's language; `mount()` uses this with `ctx.locale`. */
+export function reportFor(findings: PatientFindings, _patient: PatientProfile, locale: Locale): RevealedFinding[] {
   return EYES.map((eye) => {
     const f = findings.amsler[eye] ?? { result: 'normal' as const };
-    return { label: 'Amsler', value: describeAmsler(f, eye), eye, flag: flagOf(f) };
+    return { label: T(locale).repLabel, value: fixBidi(describeAmsler(f, eye, locale), locale), eye, flag: flagOf(f) };
   });
 }

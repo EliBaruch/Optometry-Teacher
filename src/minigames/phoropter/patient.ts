@@ -4,11 +4,12 @@
  * difference and a little noise that grows with difficulty — patients are
  * uncertain near the endpoint, exactly like real ones.
  */
-import type { Eye, Rng } from '@core';
+import { pickStrings, type Eye, type Locale, type Rng } from '@core';
 import {
   blurLoss, CHART_LINES, duochromeResiduals, effectiveResidual, jccRedAxis, jccVector, lensMagnification, perceivedVA, toVector, vlen,
   type EyeModel, type JccMode, type Lens,
 } from './optics';
+import { S } from './strings';
 
 export type Choice = 'one' | 'two' | 'same';
 
@@ -23,7 +24,11 @@ export interface Answer {
 export interface Listener {
   rng: Rng;
   difficulty: number;
+  /** Edition the patient speaks in (default English). */
+  locale?: Locale;
 }
+
+const tOf = (who: Listener) => pickStrings(S, who.locale ?? 'en');
 
 /** Just-noticeable logMAR difference: wider for eyes with pathology and for "harder" patients. */
 export function jnd(eye: EyeModel, difficulty: number): number {
@@ -48,11 +53,13 @@ export function decide(va1: number, va2: number, eye: EyeModel, who: Listener): 
 
 const pick = (rng: Rng, xs: string[]) => xs[Math.floor(rng.next() * xs.length)]!;
 
-function sayChoice(c: Choice, unsure: boolean, rng: Rng, extra = ''): string {
-  if (c === 'same') return pick(rng, ['They look about the same.', 'Honestly… no difference.', 'Same to me.', 'I can’t tell them apart.']) + extra;
-  const n = c === 'one' ? 'One' : 'Two';
-  if (unsure) return pick(rng, [`Um… maybe ${n.toLowerCase()}?`, `${n}, I think. Just barely.`, `Hmm. ${n}? It’s close.`]) + extra;
-  return pick(rng, [`${n}. Definitely ${n.toLowerCase()}.`, `${n} — much clearer.`, `${n} is sharper.`, `${n}!`]) + extra;
+function sayChoice(c: Choice, unsure: boolean, who: Listener, extra = ''): string {
+  const t = tOf(who);
+  const rng = who.rng;
+  if (c === 'same') return pick(rng, t.same) + extra;
+  const n = c === 'one' ? t.one : t.two;
+  if (unsure) return pick(rng, t.unsure(n)) + extra;
+  return pick(rng, t.sure(n)) + extra;
 }
 
 /** Sphere / cylinder comparison: lens 1 (before your clicks) vs lens 2 (now). */
@@ -66,10 +73,10 @@ export function compareLenses(eye: EyeModel, one: Lens, two: Lens, who: Listener
     const m2 = toVector(two).M;
     if (Math.abs(m1 - m2) >= 0.2) {
       const smaller = lensMagnification(m2) < lensMagnification(m1) ? 'two' : 'one';
-      extra = ` ${smaller === 'two' ? 'Two' : 'One'} looks smaller and darker, though.`;
+      extra = tOf(who).smallerDarker(smaller);
     }
   }
-  return { choice, unsure, text: sayChoice(choice, unsure, who.rng, extra) };
+  return { choice, unsure, text: sayChoice(choice, unsure, who, extra) };
 }
 
 /** Jackson cross-cylinder flip: compares the lens with the JCC in position 1 vs 2. */
@@ -77,7 +84,7 @@ export function compareJcc(eye: EyeModel, lens: Lens, mode: JccMode, who: Listen
   const v1 = perceivedVA(eye, lens, jccVector(jccRedAxis(mode, lens.axis, 1)));
   const v2 = perceivedVA(eye, lens, jccVector(jccRedAxis(mode, lens.axis, 2)));
   const { choice, unsure } = decide(v1, v2, eye, who);
-  return { choice, unsure, text: sayChoice(choice, unsure, who.rng) };
+  return { choice, unsure, text: sayChoice(choice, unsure, who) };
 }
 
 export type DuoAnswer = 'red' | 'green' | 'equal' | 'unreliable';
@@ -85,19 +92,19 @@ export type DuoAnswer = 'red' | 'green' | 'equal' | 'unreliable';
 export function duochrome(eye: EyeModel, lens: Lens, who: Listener): { answer: DuoAnswer; text: string } {
   const plain = perceivedVA(eye, lens);
   if (plain > 0.32) {
-    return { answer: 'unreliable', text: pick(who.rng, ['Both sides are too fuzzy to compare.', 'I can’t really make out either side.']) };
+    return { answer: 'unreliable', text: pick(who.rng, tOf(who).duoUnreliable) };
   }
   const { red, green } = duochromeResiduals(eye, lens);
   const vr = eye.best + eye.k * blurLoss(vlen(red));
   const vg = eye.best + eye.k * blurLoss(vlen(green));
   const { choice } = decide(vr, vg, eye, who); // "one" = red better
-  if (choice === 'same') return { answer: 'equal', text: pick(who.rng, ['They’re equally black.', 'Same on both sides.', 'Equal, I’d say.']) };
+  if (choice === 'same') return { answer: 'equal', text: pick(who.rng, tOf(who).duoEqual) };
   const red1 = choice === 'one';
   return {
     answer: red1 ? 'red' : 'green',
     text: red1
-      ? pick(who.rng, ['The letters on the red are blacker.', 'Red side is crisper.', 'Red. The red side.'])
-      : pick(who.rng, ['The green side looks blacker.', 'Green is sharper.', 'Green, I think.']),
+      ? pick(who.rng, tOf(who).duoRed)
+      : pick(who.rng, tOf(who).duoGreen),
   };
 }
 
@@ -109,10 +116,10 @@ export function balance(
   const vOS = perceivedVA(eyes.OS, lenses.OS);
   const model = eyes.OD.best > eyes.OS.best ? eyes.OD : eyes.OS;
   const { choice } = decide(vOS, vOD, model, who); // one = top (OS) better
-  if (choice === 'same') return { answer: 'equal', text: pick(who.rng, ['Top and bottom look the same.', 'Equally blurry.', 'Both the same.']) };
+  if (choice === 'same') return { answer: 'equal', text: pick(who.rng, tOf(who).balEqual) };
   return choice === 'one'
-    ? { answer: 'top', text: pick(who.rng, ['The top line is clearer.', 'Top.', 'The top one, a little.']) }
-    : { answer: 'bottom', text: pick(who.rng, ['The bottom line is clearer.', 'Bottom.', 'Bottom is sharper.']) };
+    ? { answer: 'top', text: pick(who.rng, tOf(who).balTop) }
+    : { answer: 'bottom', text: pick(who.rng, tOf(who).balBottom) };
 }
 
 const CONFUSE: Record<string, string> = { C: 'O', O: 'C', D: 'O', H: 'N', N: 'H', K: 'R', R: 'K', S: 'Z', Z: 'S', V: 'K' };
@@ -121,22 +128,24 @@ const CONFUSE: Record<string, string> = { C: 'O', O: 'C', D: 'O', H: 'N', N: 'H'
  * The patient reads the smallest line they can attempt: letters near
  * threshold are sometimes misread (C↔O, H↔N…). Returns the line and the reading.
  */
-export function readChart(va: number, rng: Rng): { denom: number | null; text: string } {
+export function readChart(va: number, rng: Rng, locale: Locale = 'en'): { denom: number | null; text: string } {
+  const t = pickStrings(S, locale);
   let line = null as (typeof CHART_LINES)[number] | null;
   for (const l of CHART_LINES) if (l.logmar >= va - 0.06) line = l;
-  if (!line) return { denom: null, text: pick(rng, ['I can’t even make out the big letter.', 'Is there a letter up there? It’s all a smudge.']) };
+  if (!line) return { denom: null, text: pick(rng, t.noLetter) };
   const margin = line.logmar - va; // > 0: comfortably above threshold
   const pWrong = margin > 0.06 ? 0.02 : margin > 0 ? 0.18 : 0.4;
   const said = [...line.letters].map((ch) => (rng.next() < pWrong ? `${CONFUSE[ch] ?? ch}?` : ch));
   const hesitant = margin < 0.03;
   const reading = said.join(hesitant ? '… ' : ' ');
-  return { denom: line.denom, text: hesitant ? `${reading}… that’s my best guess.` : `${reading}.` };
+  return { denom: line.denom, text: hesitant ? t.bestGuess(reading) : t.readDone(reading) };
 }
 
 /** Blur description the patient volunteers when the eye is changed / fogged. */
-export function blurComment(eye: EyeModel, lens: Lens): string {
+export function blurComment(eye: EyeModel, lens: Lens, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   const r = effectiveResidual(eye, lens);
-  if (r.raw.M < -0.6) return 'Everything just went blurry.';
-  if (r.B < 0.2) return 'That’s nice and clear.';
-  return 'It’s a bit fuzzy.';
+  if (r.raw.M < -0.6) return t.blurAll;
+  if (r.B < 0.2) return t.blurClear;
+  return t.blurSome;
 }

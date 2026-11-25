@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Eye, PatientProfile } from '@core';
 import { PatientAvatar, type AvatarExpression } from '@render';
 import type { OpenEyes } from './optics';
+import { useT } from './strings';
 
 export interface PatientPaneProps {
   patient: PatientProfile;
@@ -57,6 +58,7 @@ function Paddle(props: { eye: Eye; age: number; on: boolean; pinhole: boolean; f
 let uidSeq = 0;
 
 export function PatientPane(p: PatientPaneProps) {
+  const t = useT();
   const uid = useRef(`vao${++uidSeq}`).current;
   const [flipping, setFlipping] = useState(false);
   const [face, setFace] = useState<Eye | null>(p.pinholeEye);
@@ -90,7 +92,7 @@ export function PatientPane(p: PatientPaneProps) {
         lookAt={{ x: -0.35, y: -0.3 }}
         reducedMotion={p.reducedMotion}
         size="100%"
-        label={`${p.patient.name}, reading the chart`}
+        label={t.patientAria(p.patient.name)}
       />
       <svg class="va-occ" viewBox="0 0 200 240" aria-hidden="true">
         <defs>
@@ -133,7 +135,7 @@ export function PatientPane(p: PatientPaneProps) {
               class={`va-eyehit${p.covered[e] ? ' is-covered' : ''}`}
               style={{ left: `${(c.x / 200) * 100}%`, top: `${(c.y / 240) * 100}%` }}
               aria-pressed={p.covered[e]}
-              aria-label={`${p.covered[e] ? 'Uncover' : 'Cover'} the patient's ${e === 'OD' ? 'right' : 'left'} eye (${e})`}
+              aria-label={t.eyeToggleAria(p.covered[e], e)}
               onClick={() => p.onToggleEye!(e)}
             >
               <span class="va-eyehit__tag">{e}</span>

@@ -1,3 +1,4 @@
+import { useT } from './strings';
 import { useEffect, useRef } from 'preact/hooks';
 import type { JSX } from 'preact';
 import { fmtSigned } from './optics';
@@ -14,6 +15,7 @@ const PPD = 56; // px per dioptre
 
 /** Horizontal brass drum of trial lenses, 0.25 D per click. Drag, wheel, arrow keys. */
 export function LensDrum(p: LensDrumProps) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const live = useRef(p);
   live.current = p;
@@ -94,8 +96,8 @@ export function LensDrum(p: LensDrumProps) {
   }
   return (
     <div
-      ref={ref} class={`rt-drum${p.disabled ? ' is-disabled' : ''}`} role="slider" tabIndex={p.disabled ? -1 : 0} onKeyDown={onKey}
-      aria-label="Trial lens power" aria-valuemin={p.min} aria-valuemax={p.max} aria-valuenow={p.value} aria-valuetext={`${fmtSigned(p.value)} dioptres`}
+      dir="ltr" ref={ref} class={`rt-drum${p.disabled ? ' is-disabled' : ''}`} role="slider" tabIndex={p.disabled ? -1 : 0} onKeyDown={onKey}
+      aria-label={t.drumAria} aria-valuemin={p.min} aria-valuemax={p.max} aria-valuenow={p.value} aria-valuetext={t.dioptres(fmtSigned(p.value))}
       aria-disabled={p.disabled || undefined} style={{ '--rt-off': `${(-p.value * PPD).toFixed(2)}px`, '--rt-ppd': `${PPD}px` } as JSX.CSSProperties}
     >
       <div class="rt-drum__track" />

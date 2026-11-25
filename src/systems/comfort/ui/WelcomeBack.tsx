@@ -112,7 +112,7 @@ export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }
               {kept > 0 && <p class="cf-welcome__kept">{t.includesKept(kept)}</p>}
               {comeback > 0 && (
                 <div class="cf-welcome__bonus">
-                  <strong>+{comeback}</strong>{t.bonusLabel}
+                  <strong><bdi dir="ltr">+{comeback}</bdi></strong>{t.bonusLabel}
                   {note.awayMs >= COMEBACK_AFTER_MS && <span>{t.chairWarm}</span>}
                 </div>
               )}

@@ -69,6 +69,7 @@
 }
 .sk-chip:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px rgba(251, 146, 60, 0.7), 0 0 24px -4px rgba(251, 146, 60, 0.65), var(--lm-shadow-1); }
 .sk-chip:active { transform: scale(0.96); }
+.sk-meter__mult, .sk-mo__x, .sk-mo__xp, .sk-ladder__mult { direction: ltr; unicode-bidi: isolate; }
 .sk-chip:focus-visible { outline: none; box-shadow: var(--lm-focus-ring); }
 .sk-chip__flame { margin-top: -6px; }
 .sk-chip__num { font-size: var(--lm-fs-md); font-weight: 700; min-width: 1ch; text-shadow: 0 0 12px rgba(251, 146, 60, 0.7); animation: sk-pop 0.55s var(--lm-ease-spring); }

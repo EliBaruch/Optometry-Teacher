@@ -134,16 +134,16 @@ function Reveal({ store, pull }: { store: CollectionStore; pull: Pull }) {
             <p class="gp-name">{name}</p>
             <p class="gp-rarity"><i class="gp-gem" />{t.pullRarity(t.rarity[pull.rarity])}{pull.isNew ? '' : t.pullShine(pull.shineGained)}</p>
             {!pull.isNew && next && (
-              <ProgressBar value={view.card.shine - next.from} max={next.to - next.from} label={t.polishTo(t.frame[next.tier])} valueText={`${view.card.shine} / ${next.to}`} size="sm" accent={GALLERY_COLOR} />
+              <ProgressBar value={view.card.shine - next.from} max={next.to - next.from} label={t.polishTo(t.frame[next.tier])} valueText={`\u2066${view.card.shine} / ${next.to}\u2069`} size="sm" accent={GALLERY_COLOR} />
             )}
             {set && (
               <p class="gp-set" style={{ '--c': set.color }}>
-                {t.setDone(wingText(t, pull.setCompleted as never).wing)} <span class="lm-num">+{setReward(setSize).xp} XP</span>
+                {t.setDone(wingText(t, pull.setCompleted as never).wing)} <span class="lm-num"><bdi dir="ltr">+{setReward(setSize).xp} XP</bdi></span>
               </p>
             )}
             <p class="gp-hint">{t.packHint}</p>
             <div class="gp-actions">
-              <Button size="sm" icon="refresh" onClick={() => setFlipped((f) => !f)} sfx="whoosh">Flip</Button>
+              <Button size="sm" icon="refresh" onClick={() => setFlipped((f) => !f)} sfx="whoosh">{t.flip}</Button>
               <Button size="sm" variant="ghost" trailingIcon="arrow-right" onClick={() => services.router.go('gallery')}>{t.openGallery}</Button>
             </div>
           </>

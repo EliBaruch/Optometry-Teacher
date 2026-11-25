@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
-  TEST_CATALOG, scoreCase, type ClinicalCase, type GameServices, type MiniGameResult, type RewardGrant, type ScoreBreakdown, type TestId,
+  TEST_CATALOG, defineStrings, pickStrings, scoreCase, type ClinicalCase, type GameServices, type MiniGameResult, type RewardGrant, type ScoreBreakdown, type TestId,
 } from '@core';
 import { Button, HudSlot, ToastHost, asComponent, useRegistry, useSignal } from '@ui-kit';
 import rivals, { rivalsFor } from '../../../systems/rivals';
@@ -34,6 +34,29 @@ function fakeWorkup(kase: ClinicalCase, q: Quality, elapsedScale = 1): { score: 
 
 const fakeScore = (kase: ClinicalCase, q: Quality, elapsedScale = 1) => fakeWorkup(kase, q, elapsedScale).score;
 
+const T = defineStrings({
+  en: {
+    title: 'Rivals — system preview',
+    sub: (clock: string, cases: number, tests: number) => `Sandbox clock: ${clock}. ${cases} cases registered. Tests known: ${tests}.`,
+    shiftStarted: '— shift started —',
+    finishPatient: 'Finish a patient', great: 'Excellent case', average: 'Average case', wrong: 'Wrong diagnosis',
+    examShift: 'Exam & shift', examBusy: 'Exam in progress', startExam: 'Start an exam', startShift: 'Start a shift',
+    showResults: 'Show results view', showSummary: 'Show run-summary view',
+    time: 'Time', plus6h: '+6 hours', plus1d: '+1 day', nextWeek: 'Next week',
+    state: 'State', seed: 'Seed demo week', reset: 'Reset', openScene: 'Open Rivals scene', log: 'reward:granted log',
+  },
+  he: {
+    title: 'עמיתים — תצוגה מקדימה של המערכת',
+    sub: (clock: string, cases: number, tests: number) => `שעון הארגז: ${clock}. ${cases} מקרים רשומים. בדיקות מוכרות: ${tests}.`,
+    shiftStarted: '— המשמרת התחילה —',
+    finishPatient: 'סיום טיפול במטופל', great: 'מקרה מצוין', average: 'מקרה בינוני', wrong: 'אבחנה שגויה',
+    examShift: 'בדיקה ומשמרת', examBusy: 'בדיקה מתנהלת', startExam: 'התחלת בדיקה', startShift: 'התחלת משמרת',
+    showResults: 'הצגת תצוגת התוצאות', showSummary: 'הצגת סיכום הסבב',
+    time: 'זמן', plus6h: '+6 שעות', plus1d: '+יום', nextWeek: 'השבוע הבא',
+    state: 'מצב', seed: 'מילוי שבוע לדוגמה', reset: 'איפוס', openScene: 'פתיחת מסך העמיתים', log: 'יומן reward:granted',
+  },
+});
+
 const CSS = `
 .sbrv { position: absolute; inset: 0; overflow: auto; color: #f6efe4; font-family: var(--lm-font-ui);
   background: radial-gradient(120% 80% at 30% 0%, #2a1748 0%, #1a0f2e 50%, #0b0716 100%); }
@@ -54,6 +77,7 @@ const CSS = `
 `;
 
 function SysRivalsPage({ services }: { services: GameServices }) {
+  const t = pickStrings(T, services.locale);
   const offset = useRef(0);
   const q = useMemo(() => new URLSearchParams(location.search), []);
   const [rewards, setRewards] = useState<string[]>([]);
@@ -77,7 +101,7 @@ function SysRivalsPage({ services }: { services: GameServices }) {
     };
   }, []);
 
-  const tick = () => setClockLabel(new Date(services.clock.now()).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }));
+  const tick = () => setClockLabel(new Date(services.clock.now()).toLocaleString(services.locale === 'he' ? 'he-IL' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }));
 
   /** Run a real case session end to end (start → history → tests → submit), on the sandbox clock. */
   const begin = (kase: ClinicalCase) => {
@@ -114,7 +138,7 @@ function SysRivalsPage({ services }: { services: GameServices }) {
   };
   const startShift = () => {
     services.bus.emit('mode:started', { modeId: 'shift' });
-    setRewards((l) => ['— shift started —', ...l]);
+    setRewards((l) => [t.shiftStarted, ...l]);
   };
   const toggleSummary = () => {
     services.router.replace(route.id === 'run-summary' ? home : 'run-summary');
@@ -169,8 +193,8 @@ function SysRivalsPage({ services }: { services: GameServices }) {
       <style>{CSS}</style>
       <div class="sbrv-wrap">
         <header>
-          <h1>Rivals — system preview</h1>
-          <p class="sbrv-sub">Sandbox clock: {clockLabel}. {cases.length} cases registered. Tests known: {Object.keys(TEST_CATALOG).length}.</p>
+          <h1>{t.title}</h1>
+          <p class="sbrv-sub">{t.sub(clockLabel, cases.length, Object.keys(TEST_CATALOG).length)}</p>
         </header>
         <div class="sbrv-bar">
           <span>topbar-right</span>
@@ -179,33 +203,33 @@ function SysRivalsPage({ services }: { services: GameServices }) {
         <div class="sbrv-grid">
           <div class="sbrv-col">
             <div class="sbrv-ctl">
-              <b>Finish a patient</b>
-              <Button size="sm" variant="primary" onClick={() => complete('great')}>Excellent case</Button>
-              <Button size="sm" onClick={() => complete('average')}>Average case</Button>
-              <Button size="sm" onClick={() => complete('wrong')}>Wrong diagnosis</Button>
+              <b>{t.finishPatient}</b>
+              <Button size="sm" variant="primary" onClick={() => complete('great')}>{t.great}</Button>
+              <Button size="sm" onClick={() => complete('average')}>{t.average}</Button>
+              <Button size="sm" onClick={() => complete('wrong')}>{t.wrong}</Button>
             </div>
             <div class="sbrv-ctl">
-              <b>Exam &amp; shift</b>
-              <Button size="sm" onClick={startExam} disabled={!!exam}>{exam ? 'Exam in progress' : 'Start an exam'}</Button>
-              <Button size="sm" onClick={startShift}>Start a shift</Button>
+              <b>{t.examShift}</b>
+              <Button size="sm" onClick={startExam} disabled={!!exam}>{exam ? t.examBusy : t.startExam}</Button>
+              <Button size="sm" onClick={startShift}>{t.startShift}</Button>
               <Button size="sm" variant={route.id === 'run-summary' ? 'primary' : 'glass'} onClick={toggleSummary}>
-                {route.id === 'run-summary' ? 'Show results view' : 'Show run-summary view'}
+                {route.id === 'run-summary' ? t.showResults : t.showSummary}
               </Button>
             </div>
             <div class="sbrv-ctl">
-              <b>Time</b>
-              <Button size="sm" onClick={() => shift(6 * 3_600_000)}>+6 hours</Button>
-              <Button size="sm" onClick={() => shift(DAY_MS)}>+1 day</Button>
-              <Button size="sm" onClick={() => shift(WEEK_MS)}>Next week</Button>
+              <b>{t.time}</b>
+              <Button size="sm" onClick={() => shift(6 * 3_600_000)}>{t.plus6h}</Button>
+              <Button size="sm" onClick={() => shift(DAY_MS)}>{t.plus1d}</Button>
+              <Button size="sm" onClick={() => shift(WEEK_MS)}>{t.nextWeek}</Button>
             </div>
             <div class="sbrv-ctl">
-              <b>State</b>
-              <Button size="sm" onClick={seedDemo}>Seed demo week</Button>
-              <Button size="sm" variant="ghost" onClick={reset}>Reset</Button>
-              <Button size="sm" icon="users" onClick={() => services.router.go('rivals')}>Open Rivals scene</Button>
+              <b>{t.state}</b>
+              <Button size="sm" onClick={seedDemo}>{t.seed}</Button>
+              <Button size="sm" variant="ghost" onClick={reset}>{t.reset}</Button>
+              <Button size="sm" icon="users" onClick={() => services.router.go('rivals')}>{t.openScene}</Button>
             </div>
             <div class="sbrv-ctl">
-              <b>reward:granted log</b>
+              <b>{t.log}</b>
               <ol class="sbrv-log">{rewards.map((r, i) => <li key={i}>{r}</li>)}</ol>
             </div>
             <HudSlot slot="hub-sidebar" />
