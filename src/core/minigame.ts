@@ -38,6 +38,8 @@ export interface MiniGameContext {
   audio: AudioPort;
   fx: FxPort;
   reducedMotion: boolean;
+  /** Edition language — mini-games render their own text in it. */
+  locale: import('./i18n').Locale;
 }
 
 export type MiniGameDone = (result: MiniGameResult) => void;
@@ -66,6 +68,8 @@ export interface MiniGameModule {
   mount(host: HTMLElement, ctx: MiniGameContext, done: MiniGameDone): () => void;
   /** Canonical chart entries for these findings — used for auto-run & reports. */
   report(findings: PatientFindings, patient: PatientProfile): RevealedFinding[];
+  /** Static metadata written natively for other editions (see miniGameText). */
+  text?: Partial<Record<import('./i18n').Locale, import('./i18n').MiniGameText>>;
   /** Generate a random standalone scenario for Arcade practice. */
   practice?(rng: Rng, difficulty: number): PracticeScenario;
 }

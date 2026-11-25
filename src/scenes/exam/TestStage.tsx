@@ -61,6 +61,7 @@ export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTec
           audio: services.audio,
           fx: services.fx,
           reducedMotion: reduced,
+          locale: services.locale,
         },
         (result) => {
           if (finished || !alive || !result) return;

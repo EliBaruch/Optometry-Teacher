@@ -12,7 +12,7 @@ function ctx(mode: 'case' | 'practice'): MiniGameContext {
     mode, difficulty: 0.5, rng: createRng('phoropter-mount'),
     audio: { play: vi.fn() } as unknown as MiniGameContext['audio'],
     fx: { burst: vi.fn(), shake: vi.fn(), floatText: vi.fn() } as unknown as MiniGameContext['fx'],
-    reducedMotion: true,
+    reducedMotion: true, locale: 'en',
   };
 }
 

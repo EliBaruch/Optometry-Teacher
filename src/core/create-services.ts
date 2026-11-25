@@ -21,6 +21,7 @@ export interface ServiceOverrides {
   seed?: number | string;
   now?: () => number;
   initialScene?: string;
+  locale?: import('./i18n').Locale;
 }
 
 /**
@@ -55,6 +56,7 @@ export function createServices(o: ServiceOverrides = {}): GameServices {
     session: createCaseSession(bus, registries.cases, now),
     run: createRunController(bus, () => services),
     settings,
+    locale: o.locale ?? 'en',
   };
   return services;
 }

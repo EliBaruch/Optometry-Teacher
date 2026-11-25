@@ -11,7 +11,7 @@ const realCancel = globalThis.cancelAnimationFrame?.bind(globalThis) ?? ((id: nu
 
 function ctxFor(mode: 'case' | 'practice', reducedMotion = false): MiniGameContext {
   const sc = makeScenario(createRng(3), 0.5);
-  return { testId: 'retinoscopy', patient: sc.patient, findings: sc.findings, mode, difficulty: 0.5, rng: createRng(5), audio: nullAudio, fx: nullFx, reducedMotion };
+  return { testId: 'retinoscopy', patient: sc.patient, findings: sc.findings, mode, difficulty: 0.5, rng: createRng(5), audio: nullAudio, fx: nullFx, reducedMotion, locale: 'en' };
 }
 const click = (host: HTMLElement, text: RegExp) => {
   const b = [...host.querySelectorAll('button')].find((x) => text.test(x.textContent ?? ''));

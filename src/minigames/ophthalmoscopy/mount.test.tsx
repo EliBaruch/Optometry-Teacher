@@ -38,7 +38,7 @@ function fakeCtx(): unknown {
 
 function ctxFor(mode: 'case' | 'practice'): MiniGameContext {
   const sc = practiceScenario(createRng(11), 0.4);
-  return { testId: 'ophthalmoscopy', patient: sc.patient, findings: sc.findings, mode, difficulty: 0.4, rng: createRng(5), audio: nullAudio, fx: nullFx, reducedMotion: true };
+  return { testId: 'ophthalmoscopy', patient: sc.patient, findings: sc.findings, mode, difficulty: 0.4, rng: createRng(5), audio: nullAudio, fx: nullFx, reducedMotion: true , locale: 'en'};
 }
 const flush = (ms = 0) => new Promise((r) => setTimeout(r, ms));
 const click = (host: HTMLElement, sel: string) => {

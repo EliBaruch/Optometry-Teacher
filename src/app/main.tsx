@@ -3,7 +3,13 @@ import '@fontsource-variable/inter';
 import '@fontsource-variable/fraunces';
 import '@fontsource/space-grotesk/500.css';
 import '@fontsource/space-grotesk/700.css';
-import { browserStorage, createServices } from '@core';
+// Hebrew edition typography (unicode-range subsets: only downloaded when Hebrew glyphs render)
+import '@fontsource/frank-ruhl-libre/400.css';
+import '@fontsource/frank-ruhl-libre/500.css';
+import '@fontsource/frank-ruhl-libre/700.css';
+import '@fontsource-variable/heebo';
+import { browserStorage, createServices, isLocale, isRtl, type Locale } from '@core';
+import { APP_TEXT } from './strings';
 import { ServicesProvider } from '@ui-kit';
 import { createAudio } from '@audio';
 import { createFx } from '@render';
@@ -20,7 +26,9 @@ async function boot() {
   const root = document.getElementById('app')!;
   const fxLayer = document.getElementById('fx-layer')!;
 
-  const services = createServices({ storage: browserStorage(), seed: Date.now() });
+  const locale = editionLocale();
+  applyEdition(locale);
+  const services = createServices({ storage: browserStorage(), seed: Date.now(), locale });
   services.audio = createAudio();
   services.fx = createFx(fxLayer, root, { reducedMotion: () => services.settings.get().reducedMotion });
   services.learning = createLearning(services.save, services.clock.now);
@@ -91,6 +99,24 @@ function watchHostBadge() {
   });
   obs.observe(document.body, { childList: true });
   window.addEventListener('resize', apply);
+}
+
+/** The edition is fixed at build time (VITE_LOCALE); `?lang=` overrides it for development. */
+function editionLocale(): Locale {
+  const fromUrl = new URLSearchParams(location.search).get('lang');
+  if (isLocale(fromUrl)) return fromUrl;
+  const fromBuild = import.meta.env.VITE_LOCALE as unknown;
+  return isLocale(fromBuild) ? fromBuild : 'en';
+}
+
+function applyEdition(locale: Locale) {
+  const t = APP_TEXT[locale];
+  const html = document.documentElement;
+  html.lang = locale;
+  html.dir = isRtl(locale) ? 'rtl' : 'ltr';
+  document.title = t.title;
+  document.querySelector('meta[name="description"]')?.setAttribute('content', t.description);
+  html.style.setProperty('--host-badge-text', JSON.stringify(t.badgeStrip));
 }
 
 void boot();

@@ -19,7 +19,7 @@ const origRemove = EventTarget.prototype.removeEventListener;
 
 function ctxFor(mode: 'case' | 'practice', reducedMotion = false): MiniGameContext {
   const sc = makeScenario(createRng(3), 0.5, 'rapd');
-  return { testId: 'pupils', patient: sc.patient, findings: sc.findings, mode, difficulty: 0.5, rng: createRng(5), audio: nullAudio, fx: nullFx, reducedMotion };
+  return { testId: 'pupils', patient: sc.patient, findings: sc.findings, mode, difficulty: 0.5, rng: createRng(5), audio: nullAudio, fx: nullFx, reducedMotion, locale: 'en' };
 }
 const flush = (ms = 0) => new Promise((r) => setTimeout(r, ms));
 /** Let preact effects (scheduled after paint) and a few real frames run. */

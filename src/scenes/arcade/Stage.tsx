@@ -46,6 +46,7 @@ export function Stage({ services, mg, diff, run, reducedMotion, onDone, onScenar
           audio: services.audio,
           fx: services.fx,
           reducedMotion,
+          locale: services.locale,
         },
         (result) => {
           if (finished || !alive) return;

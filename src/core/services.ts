@@ -12,6 +12,7 @@ import type { Settings } from './settings';
 import type { Signal } from './signal';
 import type { SystemModule } from './systems';
 import type { HubEntry, HudWidget, SceneModule } from './ui';
+import type { Locale } from './i18n';
 
 export interface Registries {
   minigames: Registry<MiniGameModule>;
@@ -41,4 +42,6 @@ export interface GameServices {
   session: CaseSessionController;
   run: RunController;
   settings: Signal<Settings>;
+  /** The edition's language (fixed per build: the Hebrew edition is a separate site). */
+  locale: Locale;
 }

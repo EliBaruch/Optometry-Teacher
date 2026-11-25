@@ -104,7 +104,7 @@ function MiniGameHarness(props: { services: GameServices; mg: MiniGameModule; ca
     setResult(null);
     const cleanup = props.mg.mount(host.current!, {
       testId: props.mg.id, patient, findings, mode: kase ? 'case' : 'practice', difficulty: props.difficulty,
-      rng, audio: s.audio, fx: s.fx, reducedMotion: false,
+      rng, audio: s.audio, fx: s.fx, reducedMotion: false, locale: s.locale,
     }, (r) => setResult(r));
     return cleanup;
   }, [run]);
