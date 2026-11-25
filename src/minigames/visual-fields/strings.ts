@@ -286,8 +286,8 @@ export const S = defineStrings({
     dIsland: 'אובדן כמעט מלא — נשאר רק אי טמפורלי קטן',
     dArcuate: (anat: string) => `פגם ארקואטי ${anat} — נעצר בקו האמצע האופקי`,
     dAltitudinal: (anat: string) => `פגם אלטיטודינלי ${anat} — נעצר בקו האמצע האופקי`,
-    dHemianopia: (side: 'left' | 'right', anat: string) => `המיאנופסיה ${side === 'left' ? 'שמאלית' : 'ימנית'} (${anat}) — נעצרת בקו האמצע האנכי`,
-    dQuadrant: (sideLabel: string, anat: string) => `קוודרנטנופסיה ${sideLabel} (${anat})`,
+    dHemianopia: (side: 'left' | 'right', anat: string) => `המיאנופסיה ${side === 'left' ? 'שמאלית' : 'ימנית'} (${anat.replace(/י$/, 'ית')}) — נעצרת בקו האמצע האנכי`,
+    dQuadrant: (sideLabel: string, anat: string) => `קוודרנטנופסיה ${sideLabel.replace('שמאל', 'שמאלית').replace('ימין', 'ימנית').replace('עליון', 'עליונה').replace('תחתון', 'תחתונה')} (${anat})`,
     dCurtain: (anat: string) => `אובדן היקפי ${anat} — הקיבוע נשמר`,
     hints: {
       arcuate: 'שכבת סיבי העצב בדיסקה (דפוס גלאוקומטי, או חסימת ענף ורידי)',
@@ -338,7 +338,7 @@ export const S = defineStrings({
     ],
     tutAria: 'איך עובדת בדיקת שדה הראייה',
     tutStep: (i: number, n: number) => `שלב ${i} מתוך ${n}`,
-    begin: 'מתחילים', next: 'הבא', skip: 'דלגו',
+    begin: 'מתחילים', next: 'הבא', skip: 'דילוג',
 
     title: 'שדה ראייה',
     eyeName: { OD: 'עין ימין', OS: 'עין שמאל' },
@@ -358,8 +358,8 @@ export const S = defineStrings({
     tabPlot: (n: number) => `גרף ובקרה · ${n} נק׳`,
     plotsNote: 'מוצג כפי שהמטופל רואה: עין שמאל משמאל, עין ימין מימין',
     plotsKey: 'גווני אפור / dB',
-    btnInterpret: 'לפירוש השדות', btnRecord: 'רשמו ממצאים', btnFinish: 'סיום', btnAdd: 'הוספה לתיק',
-    floatOk: 'נכון', floatNo: 'כמעט',
+    btnInterpret: 'לפירוש השדות', btnRecord: 'תיעוד ממצאים', btnFinish: 'סיום', btnAdd: 'הוספה לתיק',
+    floatOk: 'נכון', floatNo: 'לא בדיוק',
 
     printView: 'תצוגת ההדפס', grey: 'גווני אפור', numeric: 'ערכי dB',
     patternOf: (eye: string, eyeName: string) => `${eye} — דפוס ב${eyeName}`,
@@ -391,7 +391,7 @@ export const S = defineStrings({
     pts: 'נק׳', stim: 'גירויים', fl: 'FL',
     pathL: 'שמ׳', pathR: 'ימ׳',
 
-    vLocalised: 'הפגיעה אותרה', vNotQuite: 'כמעט', vLocCorrect: 'המיקום נכון', vLocMissed: 'המיקום לא נכון',
+    vLocalised: 'הפגיעה אותרה', vNotQuite: 'לא בדיוק', vLocCorrect: 'המיקום נכון', vLocMissed: 'המיקום לא נכון',
     youChose: (label: string) => ` — בחרתם: ${label}`,
     coverage: (n: number) => `כיסוי ${n}/8 גזרות`,
     points: (n: number) => `${n} נקודות`,
@@ -433,10 +433,10 @@ export const PRACTICE_HE = {
   ] as [string, string][],
   causes: {
     healthy: 'מסלולי ראייה תקינים — רק הכתם העיוור הפיזיולוגי, ב-15° טמפורלית בכל עין',
-    poag: 'גלאוקומה עם זווית פתוחה ראשונית — אובדן ארקואטי בצרור סיבי העצב, מול החלק שבו שפת הדיסקה (הרים) התדלדלה',
+    poag: 'גלאוקומה עם זווית פתוחה ראשונית — אובדן ארקואטי בצרור סיבי העצב, מול האזור שבו ה-rim של הדיסקה התדלדל',
     pituitary: 'מקרואדנומה של יותרת המוח הלוחצת על הכיאזמה מלמטה — הסיבים הנזאליים החוצים (השדות הטמפורליים) נפגעים ראשונים, מלמעלה',
     stroke: 'שבץ בעורק המוח האחורי — המיאנופסיה הומונימית בצד הנגדי לפגיעה',
-    'optic-neuritis': 'דלקת דמיאלינטיבית בעצב הראייה — סקוטומה מרכזית עם RAPD וחוסר רוויה של אדום באותה עין',
+    'optic-neuritis': 'דלקת בעצב הראייה על רקע דה-מיילינציה — סקוטומה מרכזית עם RAPD וחוסר רוויה של אדום באותה עין',
     toxic: 'נוירופתיה אופטית טוקסית / תזונתית דו-צדדית — סקוטומות צקוצנטרליות סימטריות דרך האגד הפפילומקולרי',
     papilloedema: 'בצקת בדיסקה מלחץ תוך-גולגולתי מוגבר — דיסקות נפוחות מגדילות את שני הכתמים העיוורים; החדות בדרך כלל נשמרת',
     aion: 'נוירופתיה אופטית איסכמית קדמית — פגם אלטיטודינלי (בדרך כלל תחתון); מעל גיל 50 חובה לשלול דלקת עורקים גיגנטוצלולרית עוד היום',

@@ -348,3 +348,7 @@
 .sl-reads span { flex: 1; text-align: center; font: 600 0.72rem var(--lm-font-num); padding: 4px 0; border-radius: 8px; background: rgba(8, 4, 16, 0.5); color: var(--lm-faint); border: 1px solid rgba(255, 236, 210, 0.08); }
 .sl-reads span.is-on { color: #c6ff9b; border-color: rgba(163, 255, 110, 0.4); }
 .sl-root--fluo .sl-head__hint { color: var(--lm-ivory); }
+
+/* the per-eye debrief columns keep OD on the viewer's left, like the OD/OS switch */
+:root[dir='rtl'] .sl-debrief__cols { direction: ltr; }
+:root[dir='rtl'] .sl-debrief__cols > section { direction: rtl; }

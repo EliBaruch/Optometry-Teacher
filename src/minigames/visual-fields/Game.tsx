@@ -396,7 +396,7 @@ export function Game({ ctx, finish }: GameProps) {
         <div class="vf__body vf__body--read">
           <section class="vf__plots" ref={plotsRef}>
             <div class="vf__plots-row" dir="ltr">{printout('OS', true)}{printout('OD', true)}</div>
-            <p class="vf__plots-note">{t.plotsNote} · <Kbd>G</Kbd> {t.plotsKey}</p>
+            <p class="vf__plots-note">{t.plotsNote} · <bdi class="vf__plots-key"><Kbd>G</Kbd> {t.plotsKey}</bdi></p>
           </section>
           <aside class="vf__side vf__side--read">
             {phase === 'interpret' && (

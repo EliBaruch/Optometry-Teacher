@@ -210,7 +210,7 @@ export function makeChallenge(findings: PatientFindings, rng: Rng, locale: Local
     return { eye, question: iso(t.qDescribe(eye)), options, correct: options.indexOf(right), explain: explainEye(eye, k, locale) };
   }
   const o = ORIENTATION_SHORT[orientation(k.axisK1)];
-  const fmt = (c: number, ori: string) => (c < 0.125 ? t.noneSph : iso(`${c.toFixed(2)} D ${locale === 'he' && ori === 'oblique' ? pickStrings(S, 'he').ori.oblique : ori}`));
+  const fmt = (c: number, ori: string) => (c < 0.125 ? t.noneSph : locale === 'he' ? (ori === 'oblique' ? isolateLtrRuns(`${c.toFixed(2)} D ${pickStrings(S, 'he').ori.oblique}`) : isolateLtr(`${c.toFixed(2)} D ${ori}`)) : `${c.toFixed(2)} D ${ori}`);
   const right = fmt(cyl, o);
   const flip = o === 'WTR' ? 'ATR' : o === 'ATR' ? 'WTR' : 'WTR';
   const pool = [fmt(cyl, flip), fmt(cyl + 1, o), fmt(Math.max(0, cyl - 0.75), o), fmt(cyl + 0.5, flip), fmt(cyl + 1.5, o)];

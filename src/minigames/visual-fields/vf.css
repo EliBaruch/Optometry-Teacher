@@ -412,11 +412,11 @@
   .vf-progress__txt { display: none; }
 }
 
-/* directional icons flip in the RTL edition */
-:root[dir='rtl'] .vf-flip { transform: scaleX(-1); }
+/* directional icons flip in the RTL edition via the global ui-kit rule */
 /* the printout paper is a spatial chart: N/T letters stay on their physical sides */
 .vf-print__paper { direction: ltr; }
 .vf-meter__track { direction: ltr; }
 /* Hebrew has no case; tracked-out letters read badly, so drop the tracking there */
 .vf:lang(he) :is(h2, h3, .vf-monitor__label, .vf-buzzer span, .vf-dial__label, .vf-meter__label, .vf-tutorial__step, .vf-print__head, .vf-eyes__name),
 .vf-tutorial:lang(he) :is(.vf-tutorial__step) { letter-spacing: 0; text-transform: none; }
+.vf__plots-key { white-space: nowrap; }

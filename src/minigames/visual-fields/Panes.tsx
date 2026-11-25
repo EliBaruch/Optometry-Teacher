@@ -63,7 +63,7 @@ export function InterpretPane({ eye, picks, loc, practice, onPick, onLoc, onEye 
         <Picker eye={eye} value={picks[eye]} onChange={onPick} />
         {picks[eye] && !picks[otherEye(eye)] && (
           <button type="button" class="vf-next" onClick={() => onEye(otherEye(eye))}>
-            {t.nextEye(otherEye(eye))} <Icon name="arrow-right" size={13} class="vf-flip" />
+            {t.nextEye(otherEye(eye))} <Icon name="arrow-right" size={13} />
           </button>
         )}
       </div>
