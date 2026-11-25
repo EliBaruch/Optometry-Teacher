@@ -55,21 +55,50 @@ export interface DiagnosisText {
   pearls: string[];
 }
 
+const LRI = '\u2066';
+const PDI = '\u2069';
+/** A left-to-right run inside RTL text: measurements, signs, units, Latin terms ("−6.00 D", "40–80 mmHg", "RAPD"). */
+// A leading sign belongs to the number only when it is not a Hebrew prefix hyphen ("ל-40").
+const SIGN = '(?:(?<![\\u0590-\\u05FF])[+\\-−±≈~<>≤≥])?';
+const LTR_RUN = new RegExp(`${SIGN}[0-9A-Za-z][0-9A-Za-z.,:/%°×–\\-−+±'’Δ²³µ ]*[0-9A-Za-z%°Δ²³µ]|${SIGN}[0-9A-Za-z]`, 'g');
+
+/**
+ * Wrap each left-to-right run of a right-to-left string in Unicode isolates (LRI…PDI) so signs,
+ * units and Latin terms keep their order inside Hebrew text. Text that is not RTL, or already
+ * isolated, is returned unchanged.
+ */
+export function isolateLtrRuns(text: string): string {
+  if (!/[\u0590-\u05FF]/.test(text) || text.includes(LRI)) return text;
+  return text.replace(LTR_RUN, (run) => `${LRI}${run}${PDI}`);
+}
+
+const iso = isolateLtrRuns;
+
 export function applyCaseText(kase: ClinicalCase, t: CaseText): ClinicalCase {
   return {
     ...kase,
     patient: { ...kase.patient, ...t.patient },
-    chiefComplaint: t.chiefComplaint,
-    triageNote: t.triageNote ?? kase.triageNote,
-    history: kase.history.map((h) => (t.history[h.id] ? { ...h, ...t.history[h.id] } : h)),
-    management: t.management,
-    teachingPoints: t.teachingPoints,
-    redFlags: t.redFlags ?? kase.redFlags,
+    chiefComplaint: iso(t.chiefComplaint),
+    triageNote: t.triageNote !== undefined ? iso(t.triageNote) : kase.triageNote,
+    history: kase.history.map((h) => {
+      const r = t.history[h.id];
+      return r ? { ...h, q: iso(r.q), a: iso(r.a) } : h;
+    }),
+    management: iso(t.management),
+    teachingPoints: t.teachingPoints.map(iso),
+    redFlags: t.redFlags ? t.redFlags.map(iso) : kase.redFlags,
   };
 }
 
 export function applyDiagnosisText(d: Diagnosis, t: DiagnosisText): Diagnosis {
-  return { ...d, name: t.name, aka: t.aka ?? d.aka, summary: t.summary, keyFindings: t.keyFindings, pearls: t.pearls };
+  return {
+    ...d,
+    name: iso(t.name),
+    aka: t.aka ? t.aka.map(iso) : d.aka,
+    summary: iso(t.summary),
+    keyFindings: t.keyFindings.map(iso),
+    pearls: t.pearls.map(iso),
+  };
 }
 
 // ───────────────────────── Localised names for plugin metadata
