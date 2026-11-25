@@ -208,6 +208,17 @@ export function Projector(p: ProjectorProps) {
             <stop offset="93%" stop-color="#e6ddcf" stop-opacity="0" />
             <stop offset="100%" stop-color="#d9cfbf" stop-opacity="1" />
           </linearGradient>
+          <radialGradient id={`${uid}-vig`} cx="50%" cy="46%" r="72%">
+            <stop offset="0%" stop-color="#fff6dc" stop-opacity="0.12" />
+            <stop offset="45%" stop-color="#2a1c08" stop-opacity="0" />
+            <stop offset="85%" stop-color="#1a1005" stop-opacity="0.34" />
+            <stop offset="100%" stop-color="#0c0703" stop-opacity="0.55" />
+          </radialGradient>
+          <linearGradient id={`${uid}-sheen`} x1="0" y1="0" x2="0.35" y2="1">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22" />
+            <stop offset="22%" stop-color="#ffffff" stop-opacity="0.05" />
+            <stop offset="40%" stop-color="#ffffff" stop-opacity="0" />
+          </linearGradient>
           <clipPath id={`${uid}-box`} clipPathUnits="userSpaceOnUse"><rect x="0" y="0" width="5" height="5" /></clipPath>
           <filter id={`${uid}-blur`} x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
             {warpOn && <feTurbulence type="fractalNoise" baseFrequency={(0.9 / sel.h).toFixed(4)} numOctaves={2} seed={7} result="noise" />}
@@ -234,13 +245,15 @@ export function Projector(p: ProjectorProps) {
           )}
         </g>
 
-        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-edge)`} pointer-events="none" />
+        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-vig)`} pointer-events="none" />
+        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-edge)`} pointer-events="none" opacity="0.6" />
         {b.scotoma > 0.01 && <circle cx={W / 2} cy={selY} r={scotR} fill={`url(#${uid}-scot)`} opacity={Math.min(1, b.scotoma + 0.15)} />}
         {veil > 0.01 && <rect x="0" y="0" width={W} height={H} fill="#fffaf0" opacity={veil * 0.42} />}
         {p.pinhole && <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-ph)`} />}
         {b.luminance < 1 && <rect x="0" y="0" width={W} height={H} fill="#0b0716" opacity={(1 - b.luminance) * 0.55} />}
         {b.dark && <rect class="va-proj__dark" x="0" y="0" width={W} height={H} fill="#06030d" opacity="0.94" />}
 
+        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-sheen)`} pointer-events="none" />
         {/* examiner overlays: pointer chevrons + marks */}
         <g class="va-proj__ptr" filter={`url(#${uid}-glow)`}>
           <path d={`M${W / 2 - selHalfW - selH * 0.75 - 14} ${selY - 8} l12 8 l-12 8z`} fill="#f5b942" />

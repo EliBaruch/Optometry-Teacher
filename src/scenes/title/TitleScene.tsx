@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import type { SceneProps } from '@core';
 import { Backdrop, Button, Icon, Modal, useReducedMotion, useSignal } from '@ui-kit';
 import { Intro } from './Intro';
+import { Flare, updateFlare } from './Flare';
 import { LivingEye } from './LivingEye';
+import { RainGlass } from './RainGlass';
 import './title.css';
 
 const ZOOM_MS = 1150;
@@ -25,13 +27,23 @@ export function TitleScene({ services }: SceneProps) {
   const [phase, setPhase] = useState<'idle' | 'intro' | 'zoom'>('idle');
   const [credits, setCredits] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const flareRef = useRef<HTMLDivElement>(null);
+  const dims = useRef({ w: 0, h: 0, reduced });
   const timer = useRef(0);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
 
   const narrow = vp.w < 640;
-  const eyeW = Math.round(Math.min(vp.w * (narrow ? 1.04 : 0.8), 980, vp.h * (narrow ? 0.9 : 1.2)));
+  const landscape = vp.h <= 520 && vp.w > vp.h;
+  const eyeW = Math.round(
+    landscape
+      ? Math.min(vp.w * 0.46, vp.h * 1.1)
+      : Math.min(vp.w * (narrow ? 1.32 : 0.8), 980, vp.h * (narrow ? 0.98 : 1.2)),
+  );
   const eyeH = Math.round(eyeW * 0.5);
+  dims.current = { w: eyeW, h: eyeH, reduced };
+  const onSweep = useCallback((ph: number) => updateFlare(flareRef.current, ph, dims.current.w, dims.current.h, dims.current.reduced), []);
+  const burst = Math.ceil((Math.max(vp.w, vp.h) * 2.4) / Math.max(40, eyeH * 0.42));
 
   // parallax: smoothed pointer offset written to CSS variables (no re-render)
   useEffect(() => {
@@ -99,36 +111,36 @@ export function TitleScene({ services }: SceneProps) {
   return (
     <div ref={rootRef} class={`ttl ${zooming ? 'is-zoom' : ''} ${reduced ? 'is-reduced' : ''}`}>
       <Backdrop variant="title" fixed />
-      <div class="ttl__layer ttl__dome" aria-hidden="true" style={{ '--depth': 6 } as never}>
-        <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+      <div class="ttl__layer ttl__arch" aria-hidden="true" style={{ '--depth': 4 } as never}>
+        <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMax slice">
           <defs>
-            <linearGradient id="ttl-rib" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#ffd27a" stop-opacity="0.35" />
-              <stop offset="1" stop-color="#a78bfa" stop-opacity="0.04" />
+            <linearGradient id="ttl-arch" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#cdbbff" stop-opacity="0.5" />
+              <stop offset="1" stop-color="#ffd27a" stop-opacity="0.05" />
             </linearGradient>
           </defs>
-          <g fill="none" stroke="url(#ttl-rib)" stroke-width="1.2">
-            {[0.25, 0.5, 0.75, 1, 1.28, 1.6].map((k) => (
-              <ellipse key={k} cx="600" cy="880" rx={560 * k} ry={760} />
-            ))}
-            {[-480, -300, -150, 0, 150, 300, 480].map((x) => (
-              <path key={x} d={`M600 -40 Q ${600 + x * 0.55} 300 ${600 + x * 1.5} 820`} />
-            ))}
+          <g fill="none" stroke="url(#ttl-arch)">
+            <path d="M120 1000 V420 Q120 120 500 20 Q880 120 880 420 V1000" stroke-width="2.4" />
+            <path d="M200 1000 V440 Q200 190 500 110 Q800 190 800 440 V1000" stroke-width="1.2" />
           </g>
         </svg>
       </div>
+      <div class="ttl__layer ttl__lattice ttl__lattice--far" aria-hidden="true" style={{ '--depth': 8 } as never} />
+      <div class="ttl__layer ttl__lattice ttl__lattice--mid" aria-hidden="true" style={{ '--depth': 16 } as never} />
       <div class="ttl__layer ttl__stars" aria-hidden="true" style={{ '--depth': 14 } as never} />
       <div class="ttl__layer ttl__halo" aria-hidden="true" style={{ '--depth': 22 } as never} />
 
-      <div class="ttl__stage">
-        <div class={`ttl-eye ${zooming ? 'is-zoom' : ''}`} style={{ width: `${eyeW}px`, height: `${eyeH}px`, '--depth': 30 } as never}>
+      <div class="ttl__stage" {...(phase === 'intro' ? ({ inert: true, 'aria-hidden': true } as object) : {})}>
+        <div class={`ttl-eye ${zooming ? 'is-zoom' : ''}`} style={{ width: `${eyeW}px`, height: `${eyeH}px`, '--depth': 30, '--eye-h': `${eyeH}px` } as never}>
           <div class="ttl-eye__glow" aria-hidden="true" />
           <div class="ttl-eye__frame">
-            <LivingEye width={eyeW} height={eyeH} reduced={reduced} focusCentre={zooming} />
+            <LivingEye width={eyeW} height={eyeH} reduced={reduced} focusCentre={zooming} onSweep={onSweep} />
           </div>
-          <div class="ttl-flare" aria-hidden="true" />
+          <Flare elRef={flareRef} />
+          <div class="ttl-eye__burst" aria-hidden="true" style={{ '--burst': burst } as never} />
         </div>
 
+        <div class="ttl-copy">
         <header class={`ttl-mark ${zooming ? 'is-out' : ''}`}>
           <div class="lm-eyebrow ttl-mark__eyebrow lm-enter" style={{ '--lm-delay': '500ms' } as never}>An after-hours eye clinic</div>
           <h1 class="ttl-mark__word lm-enter" style={{ '--lm-delay': '650ms' } as never} aria-label="Lumen">
@@ -148,8 +160,9 @@ export function TitleScene({ services }: SceneProps) {
           <div class="ttl-cta__hint">
             Press <kbd class="lm-num">Enter</kbd>
           </div>
+          <div class="ttl-cta__touch">Touch the glass: the eye is watching</div>
         </div>
-      </div>
+        </div>
 
       <nav class={`ttl-links ${zooming ? 'is-out' : ''}`} aria-label="Secondary">
         <button type="button" class="ttl-link" onClick={() => { services.audio.play('click'); services.router.go('settings'); }}>
@@ -159,6 +172,9 @@ export function TitleScene({ services }: SceneProps) {
           <Icon name="info" size={16} /> Credits
         </button>
       </nav>
+      </div>
+      <div class="ttl__layer ttl__pillars" aria-hidden="true" style={{ '--depth': 46 } as never} />
+      <RainGlass reduced={reduced} />
 
       {phase === 'intro' && <Intro onDone={finishIntro} />}
       <div class="ttl__veil" aria-hidden="true" />
@@ -168,7 +184,10 @@ export function TitleScene({ services }: SceneProps) {
           Lumen is a teaching game about the optometric consultation. Every eye, iris and chart is painted procedurally in your browser.
         </p>
         <p class="ttl-credits ttl-credits--small">
-          Fonts: Fraunces, Inter and Space Grotesk. Clinical content is for education only and is not a substitute for supervised training.
+          Typography: Fraunces for titles, Inter for text and Space Grotesk for numerals, all open-licence fonts. Rain, glass, light and every iris are generated live on a canvas; there are no image files.
+        </p>
+        <p class="ttl-credits ttl-credits--small">
+          Clinical content is written for education and is not a substitute for supervised training, local guidelines or professional judgement. Real patients with a red, painful or sudden visual change need prompt examination.
         </p>
       </Modal>
     </div>

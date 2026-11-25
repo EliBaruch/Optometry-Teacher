@@ -13,6 +13,7 @@ import { LowVisionCard } from './LowVision';
 import { formatFeet } from './notation';
 import { binocularLogmar, effectiveLogmar, pinholeLogmar, viewBlur, type OpenEyes } from './optics';
 import { ChallengeCard, ChartedStamp, Tutorial } from './Overlays';
+import { ChartLog } from './ChartLog';
 import { PatientPane } from './PatientPane';
 import { Projector } from './Projector';
 import { readLine, type Mood } from './reader';
@@ -178,8 +179,23 @@ export function Game({ ctx, variant, finish }: GameProps) {
     if (r && !ctx.reducedMotion) ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind, count: 14, color: '#ffd27a' });
   };
 
+  const occluderOkNow = () => (slot === 'OU' ? open.OD && open.OS : open[slot as Eye] && !open[slot === 'OD' ? 'OS' : 'OD']);
+  const [toast, setToast] = useState<{ text: string; n: number } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
+  const warn = (text: string) => {
+    setToast((t) => ({ text, n: (t?.n ?? 0) + 1 }));
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 3200);
+    play('fail', { volume: 0.4 });
+  };
+
   const record = () => {
     if (phase !== 'exam') return;
+    if (!isPH && !occluderOkNow()) {
+      warn(slot === 'OU' ? 'Binocular acuity needs both eyes open — uncover the patient first.' : `Chart ${slot} only with ${slot === 'OD' ? 'OS' : 'OD'} covered and ${slot} open — set the occluder first.`);
+      return;
+    }
     let entry: SlotRecord;
     if (isPH) {
       const v = verdicts[slot as Eye];
@@ -317,10 +333,11 @@ export function Game({ ctx, variant, finish }: GameProps) {
     const h = (e: KeyboardEvent) => {
       if (tutorial || phase !== 'exam' || e.ctrlKey || e.metaKey || e.altKey) return;
       const t = e.target as HTMLElement | null;
-      const onControl = !!t?.closest('button, input, [role="slider"], [role="radio"]');
+      const ownsArrows = !!t?.closest('input, [role="slider"]');
+      const onControl = ownsArrows || !!t?.closest('button, [role="radio"], [role="tab"]');
       const k = e.key;
-      if (k === 'ArrowUp' && !onControl) changeLevel(level - 1);
-      else if (k === 'ArrowDown' && !onControl) changeLevel(level + 1);
+      if (k === 'ArrowUp' && !ownsArrows) changeLevel(level - 1);
+      else if (k === 'ArrowDown' && !ownsArrows) changeLevel(level + 1);
       else if (k === ' ' && !onControl) ask();
       else if (k === 'Enter' && !onControl) record();
       else if (k === 'c' || k === 'C') swapOccluder();
@@ -328,8 +345,18 @@ export function Game({ ctx, variant, finish }: GameProps) {
       else return;
       e.preventDefault();
     };
+    // After a mouse/touch click on a control, hand focus back to the instrument
+    // so the line / read / chart keys keep working (keyboard activations keep focus).
+    const refocus = (e: MouseEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.detail > 0 && t?.closest('button') && !t.closest('.va-overlay')) el.focus({ preventScroll: true });
+    };
     el.addEventListener('keydown', h);
-    return () => el.removeEventListener('keydown', h);
+    el.addEventListener('click', refocus);
+    return () => {
+      el.removeEventListener('keydown', h);
+      el.removeEventListener('click', refocus);
+    };
   });
 
   useEffect(() => {
@@ -350,7 +377,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
   const occluderHint = isPH
     ? `${slot === 'OD' ? 'OS' : 'OD'} occluded · pinhole ${ph ? 'on' : 'off'}`
     : open.OD && open.OS ? 'Both open — tap an eye to cover' : !open.OD && !open.OS ? 'Both eyes covered!' : `${open.OD ? 'OS' : 'OD'} covered · ${open.OD ? 'OD' : 'OS'} reading`;
-  const occluderOk = isPH || (slot === 'OU' ? open.OD && open.OS : open[slot as Eye] && !open[slot === 'OD' ? 'OS' : 'OD']);
+  const occluderOk = isPH || occluderOkNow();
   const instruction = isPH
     ? 'Pinhole over the tested eye: re-measure, then judge — improves, or no improvement?'
     : 'Cover one eye, point to a line, chart the smallest line read — OD, then OS.';
@@ -449,6 +476,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
               },
             } : undefined}
           />
+          <ChartLog slots={slots} records={records} current={slot} isPH={isPH} />
         </aside>
       </div>
 
@@ -469,6 +497,11 @@ export function Game({ ctx, variant, finish }: GameProps) {
         </div>
       </footer>
 
+      {toast && (
+        <div class="va-toast" role="alert" key={toast.n}>
+          <Icon name="warning" size={16} /> {toast.text}
+        </div>
+      )}
       {phase === 'quiz' && outcome && challenge && (
         <ChallengeCard
           challenge={challenge}

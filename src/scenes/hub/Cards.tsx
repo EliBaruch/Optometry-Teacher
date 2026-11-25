@@ -2,45 +2,52 @@ import { Badge, GlassPanel, Icon, IconOrText, useSfx } from '@ui-kit';
 import type { ModeModule } from '@core';
 import { rulesSummary, type WingView } from './logic';
 
-export function ModeCard({ mode, index, lockedReason, onStart, pending }: {
-  mode: ModeModule; index: number; lockedReason?: string; onStart: (m: ModeModule, el: HTMLElement) => void; pending: boolean;
+function deny(el: HTMLElement) {
+  el.classList.remove('is-denied');
+  void el.offsetWidth;
+  el.classList.add('is-denied');
+}
+
+/** A playable session, as a wide row: medallion, story, rule chips, go. */
+export function ModeCard({ mode, index, onStart, pending }: {
+  mode: ModeModule; index: number; onStart: (m: ModeModule, el: HTMLElement) => void; pending: boolean;
 }) {
-  const play = useSfx();
-  const locked = !!lockedReason;
-  const click = (e: MouseEvent) => {
-    if (locked) {
-      play('error');
-      const el = e.currentTarget as HTMLElement;
-      el.classList.remove('is-denied');
-      void el.offsetWidth;
-      el.classList.add('is-denied');
-      return;
-    }
-    if (!pending) onStart(mode, e.currentTarget as HTMLElement);
-  };
   return (
     <GlassPanel
-      interactive glow={!locked} accent={mode.accent} padding="none" sfx={locked ? false : 'select'}
-      class={`hub-mode${locked ? ' is-locked' : ''}`} style={{ '--i': index, '--acc': mode.accent }}
-      onClick={click} aria-disabled={locked || undefined}
-      aria-label={`${mode.title}. ${locked ? `Locked: ${lockedReason}` : mode.tagline}`}
+      interactive glow accent={mode.accent} padding="none" sfx="select"
+      class="hub-mode" style={{ '--i': index, '--acc': mode.accent }}
+      onClick={(e: MouseEvent) => { if (!pending) onStart(mode, e.currentTarget as HTMLElement); }}
+      aria-label={`${mode.title}. ${mode.tagline}. ${rulesSummary(mode.rules).join(', ')}`}
     >
       <div class="hub-mode__shine" aria-hidden="true" />
-      <div class="hub-mode__body">
-        <div class="hub-mode__medal" aria-hidden="true">
-          {locked ? <Icon name="lock" size={30} /> : <IconOrText icon={mode.icon} size={34} />}
-        </div>
-        <div class="hub-mode__text">
-          <h3 class="hub-mode__title">{mode.title}</h3>
-          <p class="hub-mode__tag">{locked ? lockedReason : mode.tagline}</p>
-        </div>
+      <div class="hub-mode__medal" aria-hidden="true"><IconOrText icon={mode.icon} size={30} /></div>
+      <div class="hub-mode__text">
+        <h3 class="hub-mode__title">{mode.title}</h3>
+        <p class="hub-mode__tag">{mode.tagline}</p>
       </div>
-      <div class="hub-mode__foot">
-        <ul class="hub-mode__rules" aria-label="Rules">
-          {rulesSummary(mode.rules).map((r) => <li key={r}>{r}</li>)}
-        </ul>
-        <span class="hub-mode__go" aria-hidden="true"><Icon name={locked ? 'lock' : 'arrow-right'} size={18} /></span>
-      </div>
+      <ul class="hub-mode__rules" aria-hidden="true">
+        {rulesSummary(mode.rules).map((r) => <li key={r}>{r}</li>)}
+      </ul>
+      <span class="hub-mode__go" aria-hidden="true"><Icon name="arrow-right" size={18} /></span>
+    </GlassPanel>
+  );
+}
+
+/** A locked session, shown compactly in the "Coming up" row. */
+export function SoonCard({ mode, reason, onDenied }: { mode: ModeModule; reason: string; onDenied: (m: ModeModule, reason: string) => void }) {
+  const play = useSfx();
+  return (
+    <GlassPanel
+      interactive accent={mode.accent} padding="none" sfx={false}
+      class="hub-soon" style={{ '--acc': mode.accent }} aria-disabled="true"
+      onClick={(e: MouseEvent) => { play('error'); deny(e.currentTarget as HTMLElement); onDenied(mode, reason); }}
+      aria-label={`${mode.title}. Locked: ${reason}`}
+    >
+      <span class="hub-soon__lock" aria-hidden="true"><Icon name="lock" size={16} /></span>
+      <span class="hub-soon__text">
+        <span class="hub-soon__title">{mode.title}</span>
+        <span class="hub-soon__why">{reason}</span>
+      </span>
     </GlassPanel>
   );
 }
@@ -52,7 +59,7 @@ export function WingTile({ wing, index, onOpen }: { wing: WingView; index: numbe
     <GlassPanel
       interactive accent={wing.accent} padding="none" sfx={locked ? false : 'click'}
       class={`hub-wing${locked ? ' is-locked' : ''}`} style={{ '--i': index, '--acc': wing.accent }}
-      onClick={() => (locked ? play('error') : onOpen(wing))}
+      onClick={() => (locked ? play('error') : onOpen(wing))} aria-disabled={locked || undefined}
       aria-label={`${wing.title}. ${locked ? `Locked: ${wing.lockedReason}` : wing.subtitle}${wing.badge ? `. ${wing.badge}` : ''}`}
     >
       <span class="hub-wing__icon" aria-hidden="true">
@@ -66,5 +73,3 @@ export function WingTile({ wing, index, onOpen }: { wing: WingView; index: numbe
     </GlassPanel>
   );
 }
-
-

@@ -82,3 +82,38 @@ function safe<T>(fn: () => T): T | undefined {
 export function modeLock(mode: ModeModule, lock: (m: ModeModule) => string | undefined): string | undefined {
   return safe(() => lock(mode));
 }
+
+export interface ModeSplit<T> { playable: T[]; soon: { mode: T; reason: string }[] }
+
+/** Splits ordered modes into playable ones and locked ("coming up") ones with their reasons. */
+export function splitModes<T extends { order: number; id: string }>(
+  modes: readonly T[],
+  lock: (m: T) => string | undefined,
+): ModeSplit<T> {
+  const out: ModeSplit<T> = { playable: [], soon: [] };
+  for (const m of byOrder(modes)) {
+    const reason = safe(() => lock(m));
+    if (reason) out.soon.push({ mode: m, reason });
+    else out.playable.push(m);
+  }
+  return out;
+}
+
+export interface Sitter { seed: number; age: number; sex: 'M' | 'F' }
+const SITTER_POOL: Sitter[] = [
+  { seed: 11, age: 71, sex: 'F' }, { seed: 42, age: 9, sex: 'M' }, { seed: 77, age: 38, sex: 'M' },
+  { seed: 5, age: 54, sex: 'F' }, { seed: 93, age: 27, sex: 'F' }, { seed: 130, age: 66, sex: 'M' },
+  { seed: 61, age: 12, sex: 'F' }, { seed: 208, age: 45, sex: 'M' },
+];
+
+/** Picks `n` distinct waiting-room patients, varying with `salt` (e.g. the visit time). */
+export function pickSitters(salt: number, n = 3): Sitter[] {
+  const pool = [...SITTER_POOL];
+  let s = (salt >>> 0) || 1;
+  const out: Sitter[] = [];
+  while (out.length < n && pool.length) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    out.push(pool.splice(s % pool.length, 1)[0]!);
+  }
+  return out;
+}

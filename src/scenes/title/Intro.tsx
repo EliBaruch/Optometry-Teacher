@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { Button, Icon, useSfx } from '@ui-kit';
+import { Button, Icon, useFocusTrap, useSfx } from '@ui-kit';
 import { INTRO_CARDS } from './logic';
 
 export interface IntroProps {
@@ -10,14 +10,21 @@ export interface IntroProps {
 export function Intro({ onDone }: IntroProps) {
   const [i, setI] = useState(0);
   const play = useSfx();
-  const nextRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const doneRef = useRef(false);
+  useFocusTrap(rootRef, true, '.ttl-intro__next');
   const last = i === INTRO_CARDS.length - 1;
   const card = INTRO_CARDS[i]!;
 
+  const finish = () => {
+    if (doneRef.current) return; // exactly once, however many keys/clicks arrive
+    doneRef.current = true;
+    onDone();
+  };
   const next = () => {
     if (last) {
       play('reveal');
-      onDone();
+      finish();
     } else {
       play('whoosh');
       setI(i + 1);
@@ -25,32 +32,32 @@ export function Intro({ onDone }: IntroProps) {
   };
   const skip = () => {
     play('back');
-    onDone();
+    finish();
   };
 
-  useEffect(() => {
-    nextRef.current?.focus();
-  }, [i]);
+  const act = useRef({ next, skip, i });
+  act.current = { next, skip, i };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const a = act.current;
       if (e.key === 'Escape') {
         e.preventDefault();
-        skip();
+        a.skip();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        next();
-      } else if (e.key === 'ArrowLeft' && i > 0) {
+        a.next();
+      } else if (e.key === 'ArrowLeft' && a.i > 0) {
         e.preventDefault();
-        setI(i - 1);
+        setI(a.i - 1);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  });
+  }, []);
 
   return (
-    <div class="ttl-intro" role="dialog" aria-modal="true" aria-label="Welcome to Lumen">
+    <div ref={rootRef} class="ttl-intro" role="dialog" aria-modal="true" aria-label="Welcome to Lumen">
       <div class="ttl-intro__card" key={i}>
         <div class="ttl-intro__icon"><Icon name={card.icon} size={30} /></div>
         <div class="lm-eyebrow">{card.eyebrow}</div>
@@ -73,7 +80,7 @@ export function Intro({ onDone }: IntroProps) {
         </div>
         <div class="ttl-intro__btns">
           <Button variant="ghost" size="sm" onClick={skip} sfx={false}>Skip</Button>
-          <button ref={nextRef} type="button" class="ttl-intro__next" onClick={next}>
+          <button type="button" class="ttl-intro__next" onClick={next}>
             {last ? 'Begin' : 'Next'}
           </button>
         </div>

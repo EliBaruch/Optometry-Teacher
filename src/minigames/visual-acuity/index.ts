@@ -18,10 +18,19 @@ function mountWith(variant: Variant): MiniGameModule['mount'] {
       called = true;
       done(r);
     };
+    // Dev sandbox only resolves the folder's first id, so ?sandbox=minigame/visual-acuity&variant=pinhole
+    // opens the pinhole workflow for review.
+    let v = variant;
+    try {
+      const q = new URLSearchParams(location.search);
+      if (q.has('sandbox') && q.get('variant') === 'pinhole') v = 'pinhole';
+    } catch {
+      /* no location */
+    }
     const root = document.createElement('div');
     root.className = 'va-host';
     host.appendChild(root);
-    render(h(Game, { ctx, variant, finish }), root);
+    render(h(Game, { ctx, variant: v, finish }), root);
     return () => {
       render(null, root);
       root.remove();
