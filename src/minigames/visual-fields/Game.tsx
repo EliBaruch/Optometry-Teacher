@@ -12,7 +12,7 @@ import { localise, patternOf, type Localisation, type Pattern } from './interpre
 import { grid242, pointKey, type FieldPoint } from './model';
 import { makeResponder, MAX_DB, type PointResult, type Responder, type TestMode } from './patient';
 import { report, fieldOf } from './report';
-import { Runner } from './runner';
+import { FAST_POINT_MS, Runner } from './runner';
 import { classifyScore, localisationScore, MIN_POINTS, scoreExam, techniqueScore, type ExamScore, type TechniqueScore } from './scoring';
 
 type Phase = 'test' | 'interpret' | 'debrief';
@@ -75,6 +75,9 @@ export function Game({ ctx, finish }: GameProps) {
 
   const [version, setVersion] = useState(0);
   const bump = () => setVersion((v) => v + 1);
+  // Plotted-point counts live in React state so every control that depends on them re-renders.
+  const [counts, setCounts] = useState<Record<Eye, number>>({ OD: 0, OS: 0 });
+  const [tab, setTab] = useState<'bowl' | 'plot'>('bowl');
   const [eye, setEye] = useState<Eye>('OD');
   const [phase, setPhase] = useState<Phase>('test');
   const [mode, setMode] = useState<TestMode>('threshold');
@@ -113,7 +116,7 @@ export function Game({ ctx, finish }: GameProps) {
   );
   const w = work.current[eye];
   const remaining242 = grid242(eye).filter((p) => !w.results.has(pointKey(p))).length;
-  const enoughFor = (e: Eye) => work.current[e].results.size >= MIN_POINTS;
+  const enoughFor = (e: Eye) => counts[e] >= MIN_POINTS;
   const canInterpret = EYES.every(enoughFor);
 
   // ── engine tick (called by the bowl's RAF)
@@ -124,7 +127,7 @@ export function Game({ ctx, finish }: GameProps) {
     for (const ev of events) {
       if (ev.type === 'flash') {
         live.current.flash = { flash: ev.flash, at: ev.at, until: ev.until };
-        work.current[ev.eye].stimuli++;
+        work.current[ev.eye].stimuli += ev.n ?? 1;
         play('tick', { volume: 0.07, pitch: 1.8 });
         const lum = 1 - Math.min(MAX_DB, ev.flash.db) / MAX_DB;
         if (stimRef.current) stimRef.current.textContent = `${ev.flash.db} dB`;
@@ -145,11 +148,14 @@ export function Game({ ctx, finish }: GameProps) {
       } else if (ev.type === 'result') {
         work.current[ev.eye].results.set(pointKey(ev.result), ev.result);
         setFresh(pointKey(ev.result));
+        setCounts((c) => ({ ...c, [ev.eye]: work.current[ev.eye].results.size }));
         changed = true;
       } else if (ev.type === 'idle') {
         runner.speed = 1;
+        runner.fast = false;
         setSweeping(false);
         setBusy(false);
+        setCounts({ OD: work.current.OD.results.size, OS: work.current.OS.results.size });
       }
     }
     live.current.queued = runner.queued();
@@ -169,7 +175,8 @@ export function Game({ ctx, finish }: GameProps) {
     if (phase !== 'test' || runner.busy) return;
     const pts = grid242(eye).filter((p) => !w.results.has(pointKey(p)));
     if (!pts.length) return;
-    runner.speed = ctx.reducedMotion ? 3 : 2.4;
+    runner.fast = true;
+    runner.fastMs = ctx.reducedMotion ? 90 : FAST_POINT_MS;
     for (const p of pts) runner.enqueue(responders[eye], p, 'threshold', offset);
     live.current.queued = runner.queued();
     setSweeping(true);
@@ -180,9 +187,11 @@ export function Game({ ctx, finish }: GameProps) {
   const stop = () => {
     runner.cancel();
     runner.speed = 1;
+    runner.fast = false;
     live.current.queued = [];
     setSweeping(false);
     setBusy(false);
+    setCounts({ OD: work.current.OD.results.size, OS: work.current.OS.results.size });
     play('back', { volume: 0.5 });
   };
 
@@ -191,6 +200,7 @@ export function Game({ ctx, finish }: GameProps) {
     if (phase === 'test') {
       runner.cancel();
       runner.speed = 1;
+      runner.fast = false;
       live.current.queued = [];
       live.current.flash = null;
       setSweeping(false);
@@ -373,8 +383,18 @@ export function Game({ ctx, finish }: GameProps) {
         </div>
       </header>
 
+      <p class="vf__line" data-testid="vf-line">{instruction}</p>
+      {phase === 'test' && (
+        <div class="vf-tabs" role="tablist" aria-label="View">
+          {(['bowl', 'plot'] as const).map((t) => (
+            <button key={t} type="button" role="tab" aria-selected={tab === t} class={tab === t ? 'is-on' : ''} data-testid={`vf-tab-${t}`} onClick={() => { setTab(t); play('click'); }}>
+              {t === 'bowl' ? 'Bowl' : `Plot & controls · ${counts[eye]} pts`}
+            </button>
+          ))}
+        </div>
+      )}
       {phase === 'test' ? (
-        <div class="vf__body">
+        <div class={`vf__body is-tab-${tab}`}>
           <section class="vf__stage">
             <Bowl
               eye={eye}
@@ -461,7 +481,7 @@ export function Game({ ctx, finish }: GameProps) {
       <footer class="vf__foot">
         <div class="vf-progress">
           {EYES.map((e) => {
-            const n = work.current[e].results.size;
+            const n = counts[e];
             const done = phase === 'test' ? n >= MIN_POINTS : !!picks[e];
             return (
               <span key={e} class={`vf-progress__pip${done ? ' is-done' : ''}${eye === e ? ' is-cur' : ''}`}>

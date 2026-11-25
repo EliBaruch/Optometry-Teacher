@@ -129,7 +129,8 @@ export function Bowl(props: BowlProps) {
     const r = c.getBoundingClientRect();
     const f = frameFor(r.width, r.height);
     const d = toDeg(f, e.clientX - r.left, e.clientY - r.top);
-    return snapToGrid(d.x, d.y);
+    // generous radius for thumbs: any tap inside the field lands on the nearest location
+    return snapToGrid(d.x, d.y, e.pointerType === 'touch' ? 6.5 : 4.6);
   };
 
   const down = useRef<{ x: number; y: number } | null>(null);

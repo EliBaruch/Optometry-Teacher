@@ -33,6 +33,13 @@ type Phase = 'measure' | 'challenge' | 'debrief';
 
 const MIRE_LABEL: Record<MireGrade, string> = { regular: 'Regular', irregular: 'Irregular', distorted: 'Distorted' };
 
+/** Rule category from the steep-meridian axis (with-the-rule: steep near 90). */
+function ruleOf(steepAxis: number): string {
+  const a = ((steepAxis % 180) + 180) % 180;
+  const fromVert = Math.abs(a - 90);
+  return fromVert <= 20 ? 'with-the-rule' : fromVert >= 70 ? 'against-the-rule' : 'oblique';
+}
+
 export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
   const f = ctx.findings;
   const d = clamp(ctx.difficulty, 0, 1);
@@ -99,6 +106,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   // a soft click the moment a sign pair fuses (what the examiner sees: one crisp sign)
   useEffect(() => {
     const prev = fuseState.current;
+    // Fusion click is an easy-mode aid: on harder scenarios (d >= 0.5) the player must judge superimposition by eye alone.
     if (!busy && d < 0.5 && ((fh && !prev.h) || (fv && !prev.v))) ctx.audio.play('lens-click', { pitch: 1.35, volume: 0.35 });
     fuseState.current = { h: fh, v: fv };
   }, [fh, fv]);
@@ -292,6 +300,11 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
           />
           <span class="kr-scope__eye" aria-hidden="true">{eye}</span>
           <span class="kr-scope__legend" aria-hidden="true"><i class="is-h" />plus signs<i class="is-v" />minus signs</span>
+          <div class="kr-mini kr-num" aria-hidden="true">
+            <div><span>K1</span><b>{rd.k1.toFixed(2)}</b></div>
+            <div><span>K2</span><b>{rd.k2.toFixed(2)}</b></div>
+            <div class="is-cyl"><span>Cyl</span><b>{cylNow.toFixed(2)}</b></div>
+          </div>
           {locked && <span class="kr-scope__lock"><Icon name="lock" /> Locked</span>}
         </section>
 
@@ -327,6 +340,16 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             <em>0</em><em style={{ left: '16.7%' }}>1 D</em><em style={{ left: '50%' }}>3 D</em><em style={{ right: 0 }}>6 D</em>
           </div>
 
+          <div class="kr-note" aria-live="off">
+            <span class="kr-eyebrow">Reading the keratometer</span>
+            <p>
+              {cylNow < 0.25
+                ? 'Both meridians read almost the same: a nearly spherical cornea.'
+                : `${cylNow.toFixed(2)} D of corneal cylinder, ${ruleOf(rd.axisK1 + 90)}: the steeper meridian (K2) lies near ${String(wrapAxis(rd.axisK1 + 90)).padStart(3, '0')}°.`}
+            </p>
+            <p class="kr-note__sub">Corneal cylinder is K2 minus K1. Steep K above 47 D, or wavy mires, deserves a closer look.</p>
+          </div>
+
           <div class="kr-mires">
             <span class="kr-mires__k" id="kr-mires-k">Mires</span>
             <div class="kr-chips" role="radiogroup" aria-labelledby="kr-mires-k">
@@ -344,7 +367,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
               onClick={lock} disabled={busy || (!locked && !cur.mires)} sfx={false}
               title={!locked && !cur.mires ? 'Grade the mires first' : undefined}
             >
-              {locked ? `Re-measure ${eye}` : cur.mires ? `Lock ${eye} reading` : 'Grade the mires to lock'}
+              {locked ? `Re-measure ${eye}` : cur.mires ? <><span class="kr-lk-l">Lock {eye} reading</span><span class="kr-lk-s">Lock {eye}</span></> : <><span class="kr-lk-l">Grade the mires to lock</span><span class="kr-lk-s">Grade mires</span></>}
             </Button>
           </div>
         </section>

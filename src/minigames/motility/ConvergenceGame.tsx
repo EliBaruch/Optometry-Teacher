@@ -135,7 +135,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     if (tutorial || debrief) return;
     const d = c.current.d, st = sim.current.state;
     const h = handleRef.current?.getBoundingClientRect();
-    const burst = () => h && fx.burst(h.left + h.width / 2, h.top, { kind: 'sparks', count: 14, color: '#ffd27a' });
+    const burst = () => h && fx.burst(h.left + h.width / 2, h.top, { kind: 'sparks', count: 8, color: '#ffd27a' });
     setNudge('');
     if (phase === 'brk') {
       if (st !== 'broken') { setNudge('Both eyes are still fused. Keep advancing and watch for one eye to drift out.'); play('error', { volume: 0.5 }); return; }

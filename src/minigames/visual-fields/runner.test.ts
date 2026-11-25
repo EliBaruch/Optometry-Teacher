@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createRng } from '@core';
+import { grid242 } from './model';
 import { makeResponder } from './patient';
 import { Runner, type RunnerEvent } from './runner';
 
@@ -38,5 +39,23 @@ describe('perimeter runner', () => {
     runner.cancel();
     expect(runner.busy).toBe(false);
     expect(drain(runner, 3000).filter((e) => e.type === 'result')).toHaveLength(0);
+  });
+  it('fast (auto-sweep) mode finishes a whole grid in a few seconds with counted stimuli', () => {
+    const runner = new Runner(createRng(5));
+    runner.fast = true;
+    const resp = makeResponder('full', 'OD', 40, 0);
+    const pts = grid242('OD');
+    for (const p of pts) runner.enqueue(resp, p, 'threshold', 6);
+    let done = -1;
+    const results: RunnerEvent[] = [];
+    for (let t = 0; t < 60000; t += 16) {
+      const ev = runner.update(t);
+      results.push(...ev);
+      if (ev.some((e) => e.type === 'idle')) { done = t; break; }
+    }
+    expect(results.filter((e) => e.type === 'result')).toHaveLength(pts.length);
+    expect(done).toBeGreaterThan(0);
+    expect(done).toBeLessThan(20000);
+    expect(runner.stimuli('OD')).toBeGreaterThan(pts.length * 2);
   });
 });

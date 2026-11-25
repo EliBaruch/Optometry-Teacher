@@ -12,6 +12,8 @@ import { pointKey, type FieldPoint } from './model';
 export const FLASH_MS = 150;
 export const ISI_MS = 330;
 export const CATCH_EVERY = 14;
+/** Auto-sweep pacing: one visible flash per location, then the next. */
+export const FAST_POINT_MS = 240;
 
 export interface Job {
   eye: Eye;
@@ -22,7 +24,7 @@ export interface Job {
 }
 
 export type RunnerEvent =
-  | { type: 'flash'; eye: Eye; flash: Flash; at: number; until: number }
+  | { type: 'flash'; eye: Eye; flash: Flash; at: number; until: number; n?: number }
   | { type: 'buzz'; eye: Eye; flash: Flash; at: number }
   | { type: 'result'; eye: Eye; result: PointResult }
   | { type: 'catch'; eye: Eye; lost: boolean }
@@ -42,6 +44,9 @@ export class Runner {
   private sinceCatch = 0;
   private stimuliByEye: Record<Eye, number> = { OD: 0, OS: 0 };
   speed = 1;
+  /** Fast (auto-sweep) mode: each location is condensed into one visible flash. */
+  fast = false;
+  fastMs = FAST_POINT_MS;
 
   constructor(private readonly rng: Rng) {}
 
@@ -105,6 +110,17 @@ export class Runner {
       this.idx = 0;
     }
     const job = this.current;
+    if (this.fast && this.idx === 0 && job.flashes.length) {
+      // condensed presentation: one representative flash, the full staircase is still counted
+      const shown = job.flashes[job.flashes.length - 1]!;
+      this.idx = job.flashes.length;
+      this.stimuliByEye[job.eye] += job.flashes.length;
+      for (const f of job.flashes) if (f.catchTrial) out.push({ type: 'catch', eye: job.eye, lost: f.seen });
+      out.push({ type: 'flash', eye: job.eye, flash: shown, at: now, until: now + this.fastMs * 0.55, n: job.flashes.length });
+      if (shown.seen) this.pending.push({ at: now + this.fastMs * 0.3, ev: { type: 'buzz', eye: job.eye, flash: shown, at: now + this.fastMs * 0.3 } });
+      this.nextAt = now + this.fastMs;
+      return out;
+    }
     const isi = ISI_MS / this.speed;
     const flashMs = FLASH_MS / Math.min(this.speed, 1.6);
     if (this.idx < job.flashes.length) {
