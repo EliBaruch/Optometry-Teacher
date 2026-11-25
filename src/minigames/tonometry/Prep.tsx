@@ -25,6 +25,8 @@ export function Prep(p: PrepProps) {
   const live = useRef(p);
   live.current = p;
   const hold = useRef(false);
+  const timer = useRef(0);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   useEffect(() => {
     let raf = 0;
@@ -53,7 +55,7 @@ export function Prep(p: PrepProps) {
     if (p.numbed || drop) return;
     setDrop(true);
     p.play('pop');
-    setTimeout(() => { p.onNumb(); setDrop(false); p.play('sparkle'); }, p.reduced ? 100 : 900);
+    timer.current = window.setTimeout(() => { p.onNumb(); setDrop(false); p.play('sparkle'); }, p.reduced ? 100 : 900);
   };
   return (
     <div class="tn-prep">

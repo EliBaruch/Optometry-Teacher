@@ -102,6 +102,12 @@ export const STAIN_SHORT: Record<StainPattern, string> = {
   'vertical-linear-scratches': 'Vertical scratches', interpalpebral: 'Interpalpebral', focal: 'Focal (foreign body)',
 };
 
+/** Compact names for the picker cards. */
+export const STAIN_CARD: Record<StainPattern, string> = {
+  none: 'None', 'inferior-punctate': 'Inferior', 'diffuse-punctate': 'Diffuse', interpalpebral: 'Band',
+  'linear-abrasion': 'Abrasion', dendritic: 'Dendrite', 'round-ulcer': 'Ulcer', 'vertical-linear-scratches': 'Scratches', focal: 'Focal',
+};
+
 export const STAIN_MEANING: Record<StainPattern, string> = {
   none: 'An intact epithelium takes up no dye — the surface is healthy.',
   'inferior-punctate': 'Fine dots in the lower third: dry eye, exposure (lagophthalmos), blepharitis or drop toxicity.',

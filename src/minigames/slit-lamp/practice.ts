@@ -61,7 +61,7 @@ function gen(kind: Kind, rng: Rng, d: number): Gen {
       };
     case 'narrow-angle': {
       const age = rng.int(55, 80);
-      const vh = rng.pick(d > 0.5 ? [2, 2, 3] : [2]) as 2 | 3;
+      const vh = 2 as const;
       return { kind, age, patch: { anterior: both({ anteriorChamber: { vanHerick: vh, depth: 'shallow' }, lens: age > 60 ? ['nuclear-sclerosis'] : ['clear'] }) } };
     }
     case 'cataract': {

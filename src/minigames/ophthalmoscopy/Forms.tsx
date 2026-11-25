@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
+import type { Eye } from '@core';
+import { DiscPreview as DiscCanvas } from './DiscPreview';
 import { Button, Icon } from '@ui-kit';
 import {
   BUCKETS, BUCKET_LABEL, VITREOUS_CHOICES, VITREOUS_LABEL,
@@ -72,7 +74,7 @@ export function Sheet({ title, icon, onCancel, onSave, saveLabel, children, test
 
 const DISC_FILL: Record<DiscColor, string> = { 'pink': '#e9936e', 'pale': '#f1dcc4', 'hyperemic': '#e0524a', 'pale-sectoral': '#e4b79a' };
 
-function DiscPreview({ call }: { call: DiscCall }) {
+function DiscSketch({ call }: { call: DiscCall }) {
   const w = 60;
   const h = 64;
   const cupH = h * call.cdr;
@@ -98,7 +100,7 @@ function DiscPreview({ call }: { call: DiscCall }) {
   );
 }
 
-export function DiscForm({ initial, onSave, onCancel, onTick }: { initial: DiscCall | null; onSave: (c: DiscCall) => void; onCancel: () => void; onTick: (v: number) => void }) {
+export function DiscForm({ eye, initial, onSave, onCancel, onTick }: { eye: Eye; initial: DiscCall | null; onSave: (c: DiscCall) => void; onCancel: () => void; onTick: (v: number) => void }) {
   const [c, setC] = useState<DiscCall>(initial ?? { cdr: 0.4, color: 'pink', margins: 'sharp', rim: 'none' });
   const set = (p: Partial<DiscCall>) => setC((o) => ({ ...o, ...p }));
   const setCdr = (v: number) => {
@@ -112,8 +114,8 @@ export function DiscForm({ initial, onSave, onCancel, onTick }: { initial: DiscC
     <Sheet title="Optic disc" icon="target" onCancel={onCancel} onSave={() => onSave(c)} saveLabel="Save disc" testid="oph-discform">
       <div class="oph-disc">
         <div class="oph-disc__view" onWheel={(e) => { e.preventDefault(); setCdr(c.cdr + (e.deltaY < 0 ? 0.05 : -0.05)); }}>
-          <DiscPreview call={c} />
-          <span class="oph-disc__note">Reference sketch</span>
+          <DiscCanvas call={c} eye={eye} fallback={() => <DiscSketch call={c} />} />
+          <span class="oph-disc__note">Your estimate, drawn</span>
         </div>
         <div class="oph-disc__ctl">
           <label class="oph-cdr">

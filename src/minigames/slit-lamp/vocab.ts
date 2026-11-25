@@ -25,7 +25,7 @@ const grades = (ids: [string, string][]): Raw[] => ids.map(([id, label]) => n(id
 const RAW: Raw[] = [
   n('lids', 'Lids', [
     n('anterior-blepharitis', 'Anterior blepharitis'),
-    n('meibomian-dysfunction', 'Meibomian gland dysfunction'),
+    n('meibomian-dysfunction', 'Meibomian dysfunction'),
     n('chalazion', 'Chalazion'),
     n('hordeolum', 'Hordeolum (stye)'),
     n('ptosis', 'Ptosis'),

@@ -56,6 +56,8 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
   const [scores, setScores] = useState<Record<Eye, EyeScore> | null>(null);
   const [examTime, setExamTime] = useState(0);
   const [choice, setChoice] = useState<string | null>(null);
+  /** Margin labels on the grid: visual-field sides (nasal/temporal) for the eye under test. */
+  const sideLabels: 'field' | 'patient' = 'field';
   const lastTick = useRef(0);
   const bodyRef = useRef<HTMLDivElement>(null);
   /** CSS selector to focus after the next render (keeps keyboard users inside the game). */

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { Icon } from '@ui-kit';
 import { TAGS, TAG_GROUPS, type TagKind } from './model';
+import { clampCentre, layoutPetals, petalSpec } from './radialLayout';
 
 export type RadialChoice =
   | { type: 'disc' }
@@ -37,13 +38,6 @@ const TONES: Record<string, string> = {
 /** Two-level radial tag wheel anchored on the tapped spot. */
 export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, onGroup, onChoose, onRemoveNear, onClose }: RadialProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const narrow = stageW < 520;
-  const R = narrow ? 92 : 118;
-  const halfW = R + (narrow ? 52 : 64);
-  const halfH = R + 22;
-  const cx = stageW > halfW * 2 ? Math.max(halfW, Math.min(stageW - halfW, x)) : stageW / 2;
-  const cy = stageH > halfH * 2 ? Math.max(halfH, Math.min(stageH - halfH, y)) : stageH / 2;
-
   const root: Item[] = [
     { id: 'disc', label: 'Optic disc', hint: 'Cup-to-disc, colour, margins', tone: TONES.disc!, action: () => onChoose({ type: 'disc' }) },
     ...TAG_GROUPS.slice(0, 2).map((g) => ({ id: g.id, label: g.label, tone: TONES[g.id]!, action: () => onGroup(g.id) })),
@@ -57,6 +51,12 @@ export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, on
   const items: Item[] = g
     ? g.kinds.map((k) => ({ id: k, label: TAGS[k].label, hint: TAGS[k].hint, tone: TONES[g.id]!, action: () => onChoose({ type: 'tag', kind: k }) }))
     : root;
+
+  const spec = petalSpec(stageW);
+  const lay = layoutPetals(items.length, spec, stageH - 16);
+  const cx = clampCentre(x, lay.halfW, stageW);
+  const cy = clampCentre(y, lay.halfH, stageH);
+  const shifted = Math.hypot(cx - x, cy - y) > 16;
 
   useEffect(() => {
     ref.current?.querySelector<HTMLElement>('[data-radial-item]')?.focus({ preventScroll: true });
@@ -94,9 +94,17 @@ export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, on
         aria-label={g ? g.label : 'Tag what you found'}
         onKeyDown={onKeyDown}
       >
-        <span class="oph-radial__ring" aria-hidden="true" style={{ width: `${R * 2}px`, height: `${R * 2}px` }} />
+        <span class="oph-radial__halo" aria-hidden="true" style={{ width: `${lay.halfW * 2}px`, height: `${lay.halfH * 2 + 40}px` }} />
+        <svg class="oph-radial__spokes" aria-hidden="true" width="1" height="1" style={{ overflow: 'visible' }}>
+          {items.map((it, i) => {
+            const p = lay.pos[i]!;
+            return <line key={`${group}-${it.id}`} x1="0" y1="0" x2={p.x} y2={p.y} stroke={it.tone} stroke-opacity="0.38" stroke-width="1.2" stroke-dasharray="3 4" />;
+          })}
+          {shifted && <line x1="0" y1="0" x2={x - cx} y2={y - cy} stroke="#ffd27a" stroke-opacity="0.8" stroke-width="1.5" />}
+        </svg>
+        {shifted && <span class="oph-radial__tap" aria-hidden="true" style={{ left: `${x - cx}px`, top: `${y - cy}px` }} />}
         {items.map((it, i) => {
-          const a = (-90 + (360 / items.length) * i) * (Math.PI / 180);
+          const p = lay.pos[i]!;
           return (
             <button
               key={`${group}-${it.id}`}
@@ -105,7 +113,7 @@ export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, on
               data-radial-item
               data-testid={`oph-radial-${it.id}`}
               class="oph-radial__item"
-              style={{ transform: `translate(calc(-50% + ${Math.cos(a) * R}px), calc(-50% + ${Math.sin(a) * R}px))`, '--tone': it.tone, '--i': i } as never}
+              style={{ transform: `translate(calc(-50% + ${p.x.toFixed(1)}px), calc(-50% + ${p.y.toFixed(1)}px))`, width: `${spec.w}px`, height: `${spec.h}px`, '--tone': it.tone, '--i': i } as never}
               title={it.hint}
               onClick={it.action}
             >

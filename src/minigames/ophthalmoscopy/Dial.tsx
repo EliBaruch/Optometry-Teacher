@@ -6,6 +6,8 @@ export interface LensDialProps {
   min?: number;
   max?: number;
   disabled?: boolean;
+  /** pulse the wheel: the image is out of focus and the player has not found the dial yet */
+  cue?: boolean;
   /** 0..1, how sharp the image is (drives the focus lamp) */
   sharpness: number;
   onChange: (v: number) => void;
@@ -14,7 +16,7 @@ export interface LensDialProps {
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 /** Rekoss-style lens wheel: drag, mouse wheel, or arrow keys; one click per dioptre. */
-export function LensDial({ value, min = -10, max = 10, disabled, sharpness, onChange }: LensDialProps) {
+export function LensDial({ value, min = -10, max = 10, disabled, cue, sharpness, onChange }: LensDialProps) {
   const drag = useRef<{ y: number; x: number; v: number } | null>(null);
   const set = (v: number) => {
     const nv = clamp(Math.round(v), min, max);
@@ -22,7 +24,7 @@ export function LensDial({ value, min = -10, max = 10, disabled, sharpness, onCh
   };
   const label = `${value > 0 ? '+' : value < 0 ? '−' : ''}${Math.abs(value)}`;
   return (
-    <div class={`oph-dial${disabled ? ' is-off' : ''}${sharpness > 0.92 ? ' is-sharp' : ''}`}>
+    <div class={`oph-dial${disabled ? ' is-off' : ''}${sharpness > 0.92 ? ' is-sharp' : ''}${cue && !disabled ? ' is-cue' : ''}`}>
       <div
         class="oph-dial__knob"
         role="slider"
@@ -84,7 +86,7 @@ export function LensDial({ value, min = -10, max = 10, disabled, sharpness, onCh
       </div>
       <div class="oph-dial__cap">
         <span class="oph-dial__lamp" aria-hidden="true" />
-        <span>{disabled ? '20 D lens' : 'Lens wheel'}</span>
+        <span>{disabled ? '20 D lens' : cue ? 'Turn me' : 'Lens wheel'}</span>
       </div>
     </div>
   );

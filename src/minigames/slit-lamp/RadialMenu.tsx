@@ -16,7 +16,7 @@ export interface RadialMenuProps {
 const TINT: Record<string, string> = {
   lids: '#fbbf77', conj: '#f9a8c9', cornea: '#8fd3ff', chamber: '#c4b5fd', iris: '#5eead4', lens: '#ffd27a',
 };
-const W = 168; // petal width
+const W = 180; // petal width
 const H = 36;
 
 /**

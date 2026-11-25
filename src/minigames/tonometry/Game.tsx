@@ -43,7 +43,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const [numbed, setNumbed] = useState(false);
   const [measures, setMeasures] = useState<Partial<Record<Eye, EyeMeasure>>>({});
   const [shots, setShots] = useState<Record<Eye, IcareShot[]>>({ OD: [], OS: [] });
-  const [ui, setUi] = useState({ contact: 0, err: 1, ep: 'apart' as ReturnType<typeof endpointOf>, dye: 0, dial: DIAL_PRESET });
+  const [ui, setUi] = useState({ cx: 0, cy: 0, contact: 0, err: 1, ep: 'apart' as ReturnType<typeof endpointOf>, dye: 0, dial: DIAL_PRESET });
   const [dyeUi, setDyeUi] = useState(0);
   const [lastShot, setLastShot] = useState<IcareShot | null>(null);
 
@@ -108,7 +108,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
         s.hy = clamp(s.hy + vy * dt * 0.75, -1.6, 1.6);
         if (L.method === 'goldmann') {
           s.contact += dt;
-          s.dye = Math.max(0, s.dye - 0.0045 * dt);
+          s.dye = Math.max(0, s.dye - 0.0028 * dt);
         }
       }
       const st = s.start[L.eye];
@@ -137,7 +137,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
         uiAt = now;
         const err = centreError(cx, cy);
         const ep = endpointOf(apparentOffset(s.dial, T, dyeBias(s.dye), 0), 0.9);
-        setUi({ contact: s.contact, err, ep, dye: s.dye, dial: s.dial });
+        setUi({ cx, cy, contact: s.contact, err, ep, dye: s.dye, dial: s.dial });
       }
       raf = requestAnimationFrame(loop);
     };
@@ -163,7 +163,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       if (live.current.phase !== 'measure') return;
       const onBtn = (e.target as HTMLElement).tagName === 'BUTTON';
       if (e.key === 'l' || e.key === 'L' || (e.key === 'Enter' && !onBtn)) { e.preventDefault(); live.current.method === 'goldmann' ? lock() : shoot(); }
-      else if (e.key === ' ' && !onBtn && live.current.method === 'icare') { e.preventDefault(); shoot(); }
+      else if (e.key === ' ' && !(e.target as HTMLElement).closest('.tn-shoot, .tn-seg') && live.current.method === 'icare') { e.preventDefault(); shoot(); }
       else if (e.key === 'f' || e.key === 'F') addDye(0.12);
       else if (e.key === 'b' || e.key === 'B') addDye(-0.12);
     };
@@ -309,11 +309,10 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     : !centred ? 'Push the joystick to bring the ring into the gold target: the two arcs must be equal.'
     : ds !== 'good' ? (ds === 'thick' ? 'Mires too thick: they under-read. Blot a little dye.' : 'Mires too thin: they over-read. Add dye.')
     : 'Turn the drum until the inner edges of the arcs just touch, at mid-pulse. Then lock.';
-  const epWord = ui.ep === 'touch' ? 'Inner edges touching' : ui.ep === 'overlap' ? 'Arcs overlapping' : 'Arcs apart';
   const longContact = ui.contact > CONTACT_WARN_S;
 
   return (
-    <div class="tn-root" ref={rootRef} tabIndex={-1} data-phase={phase} data-centre-err={ui.err.toFixed(2)} data-endpoint={ui.ep}>
+    <div class="tn-root" ref={rootRef} tabIndex={-1} data-phase={phase} data-centre-err={ui.err.toFixed(2)} data-endpoint={ui.ep} data-cx={ui.cx.toFixed(2)} data-cy={ui.cy.toFixed(2)}>
       <header class="tn-head">
         <div class="tn-head__title"><Icon name="tonometry" /> Tonometry</div>
         <p class="tn-head__hint" key={hint} aria-live="polite">{hint}</p>
@@ -355,7 +354,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
                   <>
                     <span class="tn-lcd__big tn-num">{Math.round(ui.dial)}<small> mmHg</small></span>
                     <span class="tn-lcd__sub">{fmtGrams(ui.dial)} on the drum</span>
-                    <span class={`tn-ep is-${ui.ep}`}>{epWord}</span>
+                    <span class="tn-ep">Read at mid-pulse</span>
                   </>
                 ) : (
                   <>
@@ -376,6 +375,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
                 )}
               </div>
               {method === 'goldmann' && (
+                <div class="tn-actions">
                 <div class="tn-dye">
                   <span class="tn-dye__label">Dye</span>
                   <Button variant="ghost" size="sm" sfx={false} icon="minus" onClick={() => addDye(-0.12)} aria-label="Blot excess dye" />
@@ -385,11 +385,10 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
                   </div>
                   <Button variant="ghost" size="sm" sfx={false} icon="plus" onClick={() => addDye(0.12)} aria-label="Add fluorescein" />
                 </div>
-              )}
-              {method === 'goldmann' && (
                 <Button variant="glass" size="md" icon="lock" sfx={false} onClick={lock} class="tn-lock">
-                  {measures[eye] ? `Re-lock ${eye} (${measures[eye]!.reading})` : `Lock ${eye} reading`}
+                  {measures[eye] ? `Re-lock ${eye} (${measures[eye]!.reading})` : `Lock ${eye}`}
                 </Button>
+                </div>
               )}
               {method === 'icare' && measures[eye] && <p class="tn-note">{eye} measured: {measures[eye]!.reading} mmHg (mean of {ICARE_SHOTS}).</p>}
             </aside>

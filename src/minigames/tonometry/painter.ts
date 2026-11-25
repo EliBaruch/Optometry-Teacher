@@ -122,14 +122,14 @@ export class FieldPainter {
       ctx.clip();
       const sx = -half * P;
       // glow
-      ctx.shadowColor = 'rgba(120, 255, 90, 0.95)';
-      ctx.shadowBlur = S * 0.035;
+      ctx.shadowColor = 'rgba(90, 230, 70, 0.8)';
+      ctx.shadowBlur = S * 0.03;
       ctx.lineWidth = w * 1.5;
       ctx.strokeStyle = 'rgba(70, 230, 80, 0.13)';
       ctx.beginPath();
       ctx.arc(rx + sx, ry, r, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.shadowBlur = S * 0.012;
+      ctx.shadowBlur = S * 0.008;
       ctx.lineWidth = w;
       const g = ctx.createLinearGradient(rx + sx - r, ry, rx + sx + r, ry);
       g.addColorStop(0, '#4fc23a');

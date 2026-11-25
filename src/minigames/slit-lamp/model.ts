@@ -254,7 +254,7 @@ export function buildSites(f: PatientFindings, eye: Eye, seed: number): Site[] {
   }
   // chamber: Van Herick is always measured; the rest only when present
   const ac = a.anteriorChamber;
-  add('chamber/van-herick', 'chamber', { x: -nas * 5.0, y: 0.2, r: 1.9 }, String(ac.vanHerick), 1.4);
+  add('chamber/van-herick', 'chamber', { x: -nas * 5.0, y: 0.2, r: 2.4 }, String(ac.vanHerick), 1.4);
   if (ac.cells > 0) add('chamber/cells', 'chamber', { x: 0, y: 0, r: 5.4 }, String(ac.cells), 1.3);
   if (ac.flare > 0) add('chamber/flare', 'chamber', { x: 0, y: 0, r: 5.4 }, String(ac.flare), 1);
   if (ac.hypopyon) add('chamber/hypopyon', 'chamber', { x: 0, y: 4.2, r: 4.6 });
@@ -402,7 +402,10 @@ export interface SessionScore {
   perfect: boolean;
 }
 
-export function scoreSession(sites: Site[], tags: Tag[], cov: Record<Eye, Coverage>, hints: number): SessionScore {
+/** Time allowance: full marks inside 4 minutes, fading to none at 9. */
+export const timeFactor = (ms: number): number => clamp01(1 - (ms / 1000 - 240) / 300);
+
+export function scoreSession(sites: Site[], tags: Tag[], cov: Record<Eye, Coverage>, hints: number, timeMs = 0): SessionScore {
   const credit = new Map<string, number>();
   let wrong = 0;
   for (const t of tags) {
@@ -415,7 +418,8 @@ export function scoreSession(sites: Site[], tags: Tag[], cov: Record<Eye, Covera
   const found = sites.filter((st) => (credit.get(st.id) ?? 0) > 0).length;
   const cells = (['OD', 'OS'] as Eye[]).flatMap((e) => REGION_IDS.map((r) => clamp01(cov[e][r] / COVER_SECONDS[r])));
   const coverage = cells.reduce((a, b) => a + b, 0) / cells.length;
-  const accuracy = clamp01(recall * 0.62 + coverage * 0.26 + clamp01(1 - hints * 0.25) * 0.12 - Math.min(0.3, wrong * 0.05));
+  const effort = Math.min(1, recall + coverage);
+  const accuracy = clamp01(recall * 0.62 + coverage * 0.26 + (clamp01(1 - hints * 0.25) * 0.07 + timeFactor(timeMs) * 0.05) * effort - Math.min(0.3, wrong * 0.05));
   const perfect = recall >= 0.999 && coverage >= 0.999 && wrong === 0 && hints === 0;
   return { recall, coverage, wrong, found, total: sites.length, accuracy, perfect };
 }

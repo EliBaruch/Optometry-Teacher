@@ -4,7 +4,7 @@
  * magnified into a round ocular, then dressed with filters, retro-illumination,
  * the corneal overlays the eye renderer does not draw, pins and the mini-map.
  */
-import { drawEye, drawSlitSection, eyeGeometry, type EyeState } from '@render';
+import { drawEye, drawSlitSection, eyeGeometry, eyeState, type EyeState } from '@render';
 import { gateState, type PresentSigns } from './gate';
 import { beamWidth, clarity, conePos, RESOLVABLE, technique, windowMm, ZOOM, type LampSetting } from './model';
 import { clampPan, mmToScreen, type Pan } from './geo';
@@ -45,7 +45,7 @@ export function createPainter(canvas: HTMLCanvasElement): LampPainter {
   const wctx = world.getContext('2d')!;
   const vctx = canvas.getContext('2d')!;
   let worldKey = '';
-  const geo = eyeGeometry(WS, WS, { eye: 'OD' } as EyeState);
+  const geo = eyeGeometry(WS, WS, eyeState());
   const pxmm = geo.pxmm;
   const ix = geo.ix;
   const iy = geo.iy;
@@ -114,7 +114,7 @@ export function createPainter(canvas: HTMLCanvasElement): LampPainter {
     const side = WS / z;
     const cx = ix + pan.x * pxmm;
     const cy = tech === 'section' || tech === 'conical' ? iy : iy + pan.y * pxmm;
-    if (s.filter === 'redfree' && 'filter' in c) c.filter = 'contrast(1.25) saturate(0.55) brightness(1.05)';
+    if (s.filter === 'redfree' && 'filter' in c) c.filter = 'contrast(1.3) saturate(0.35) brightness(1.05)';
     c.imageSmoothingQuality = 'high';
     c.drawImage(world, cx - side / 2, cy - side / 2, side, side, 0, 0, d, d);
     if ('filter' in c) c.filter = 'none';
@@ -168,10 +168,10 @@ export function createPainter(canvas: HTMLCanvasElement): LampPainter {
     if (s.filter === 'redfree') {
       c.save();
       c.globalCompositeOperation = 'multiply';
-      c.fillStyle = 'rgb(118,255,150)';
+      c.fillStyle = 'rgb(150,240,176)';
       c.fillRect(0, 0, d, d);
       c.globalCompositeOperation = 'screen';
-      c.fillStyle = 'rgba(10,50,24,0.5)';
+      c.fillStyle = 'rgba(8,40,22,0.42)';
       c.fillRect(0, 0, d, d);
       c.restore();
     } else if (s.filter === 'cobalt' && (tech === 'section' || tech === 'conical')) {

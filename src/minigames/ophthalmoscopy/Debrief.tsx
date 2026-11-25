@@ -1,5 +1,5 @@
 import { EYES, type Eye } from '@core';
-import { Button, Icon } from '@ui-kit';
+import { Icon } from '@ui-kit';
 import type { Challenge } from './practice';
 import { TAGS, type EyeScore, type EyeTruth, type EyeWork, type ReflexChoice, type TagKind } from './model';
 
@@ -24,10 +24,9 @@ export interface DebriefProps {
   challenge: Challenge | null;
   choice: string | null;
   onJump: (eye: Eye, itemId: string) => void;
-  onFinish: () => void;
 }
 
-export function Debrief({ scores, truths, work, accuracy, perfect, challenge, choice, onJump, onFinish }: DebriefProps) {
+export function Debrief({ scores, truths, work, accuracy, perfect, challenge, choice, onJump }: DebriefProps) {
   const verdict = perfect ? 'Flawless sweep' : accuracy >= 0.85 ? 'Sharp eye' : accuracy >= 0.65 ? 'Solid exam' : accuracy >= 0.4 ? 'Keep practising' : 'Look again, slower';
   const chosenOk = challenge?.options.find((o) => o.id === choice)?.correct;
   return (
@@ -78,9 +77,6 @@ export function Debrief({ scores, truths, work, accuracy, perfect, challenge, ch
           <p>{challenge.explanation}</p>
         </section>
       )}
-      <div class="oph-debrief__go">
-        <Button variant="primary" size="lg" sfx={false} onClick={onFinish} data-testid="oph-finish">Finish exam</Button>
-      </div>
     </div>
   );
 }
