@@ -12,7 +12,7 @@ const tonometry: MiniGameModule = {
   icon: '◐',
   teaches: [
     'Goldmann applanation: 3.06 mm of cornea flattened; drum grams x10 = mmHg',
-    'Fluorescein amount matters: thick mires under-read, thin mires over-read',
+    'Fluorescein amount matters: thick mires over-read the pressure, thin mires under-read it',
     'Centre the mires first; the endpoint is the inner edges just touching, read at mid-pulse',
     'Normal IOP is 10-21 mmHg; above 21 is raised, 35 or more is an emergency',
     'A difference of 6 mmHg or more between the eyes is abnormal',

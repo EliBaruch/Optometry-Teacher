@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import { Button, Kbd } from '@ui-kit';
 
 const STEPS = [
-  { title: 'Numb, then stain', body: 'Instil one drop of anaesthetic, then touch a fluorescein strip to the lower lid. Aim for fine green mires about a tenth of the ring diameter wide. Too much dye reads low, too little reads high. (The iCare needs neither.)', keys: ['Hold F'] },
+  { title: 'Numb, then stain', body: 'Instil one drop of anaesthetic, then touch a fluorescein strip to the lower lid. Aim for fine green mires about a tenth of the ring diameter wide. Too much dye reads falsely high, too little reads low. (The iCare needs neither.)', keys: ['Hold F'] },
   { title: 'Centre the mires', body: 'Under cobalt blue light the dye glows green. Push the joystick until the ring sits in the gold target, so the two semicircles are equal. The patient drifts and blinks, so keep correcting.', keys: ['W', 'A', 'S', 'D'] },
   { title: 'Kiss the arcs', body: 'Turn the drum until the INNER edges of the semicircles just touch in an S. Apart means too little force, overlapping means too much. The mires pulse with the heartbeat: read at the middle of the swing, then lock the reading.', keys: ['←', '→', 'L'] },
 ];

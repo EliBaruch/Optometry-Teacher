@@ -17,7 +17,7 @@ export interface PrepProps {
   play: (id: 'pop' | 'sparkle' | 'tick') => void;
 }
 
-const WORD = { thin: 'Too thin: will over-read', good: 'Just right', thick: 'Too thick: will under-read' } as const;
+const WORD = { thin: 'Too thin: will under-read', good: 'Just right', thick: 'Too thick: will over-read' } as const;
 
 export function Prep(p: PrepProps) {
   const [drop, setDrop] = useState(false);

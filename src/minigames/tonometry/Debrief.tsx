@@ -19,8 +19,8 @@ function notes(m: EyeMeasure, err: number): string[] {
   out.push(a <= 1 ? 'Endpoint within 1 mmHg: textbook.' : `Endpoint was ${a} mmHg ${err > 0 ? 'high' : 'low'}${m.method === 'goldmann' ? (err > 0 ? ': you pressed past the touch point.' : ': the arcs were still apart.') : '.'}`);
   if (m.method === 'goldmann') {
     const s = dyeState(m.dye);
-    if (s === 'thick') out.push('Mires too thick: wide mires under-read the pressure.');
-    if (s === 'thin') out.push('Mires too thin: thin mires over-read the pressure.');
+    if (s === 'thick') out.push('Mires too thick: wide mires over-read the pressure (falsely high IOP).');
+    if (s === 'thin') out.push('Mires too thin: thin mires under-read the pressure (falsely low IOP).');
     if (m.centreErr > CENTRE_TOL) out.push('Mires were off-centre: unequal arcs make the endpoint unreliable.');
     if (m.contactS > CONTACT_WARN_S) out.push('Long contact dries the dye and risks an epithelial abrasion.');
   } else if (m.centreErr > 0.2) out.push('Shots off the corneal apex scatter: centre before each shot.');
@@ -54,7 +54,7 @@ export function Debrief({ assessment, measures, challenge, onFinish }: DebriefPr
             );
           })}
         </div>
-        <p class="tn-deb__tip">Good to know: thick mires under-read and thin mires over-read (textbooks differ on the wording, but the 0.25 mm-per-mire standard is what matters). Central corneal thickness also shifts Goldmann readings: a thick cornea over-reads, a thin one under-reads, so CCT is measured alongside IOP.</p>
+        <p class="tn-deb__tip">Good to know: thick mires over-read and thin mires under-read the pressure; aim for mires about a tenth of the ring diameter (≈0.25 mm). Central corneal thickness also shifts Goldmann readings: a thick cornea over-reads, a thin one under-reads, so CCT is measured alongside IOP.</p>
         {challenge && (
           <div class="tn-quiz">
             <h4>{challenge.question}</h4>

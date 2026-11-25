@@ -307,7 +307,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     : phase === 'prep' ? 'Instil anaesthetic, then touch a fluorescein strip to the lower lid.'
     : method === 'icare' ? (centred ? 'Centred. Press Shoot: six accepted shots are averaged.' : 'Centre the cornea in the dashed ring with the joystick, then shoot.')
     : !centred ? 'Push the joystick to bring the ring into the gold target: the two arcs must be equal.'
-    : ds !== 'good' ? (ds === 'thick' ? 'Mires too thick: they under-read. Blot a little dye.' : 'Mires too thin: they over-read. Add dye.')
+    : ds !== 'good' ? (ds === 'thick' ? 'Mires too thick: they over-read. Blot a little dye.' : 'Mires too thin: they under-read. Add dye.')
     : 'Turn the drum until the inner edges of the arcs just touch, at mid-pulse. Then lock.';
   const longContact = ui.contact > CONTACT_WARN_S;
 

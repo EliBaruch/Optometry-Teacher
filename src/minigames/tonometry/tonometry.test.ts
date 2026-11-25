@@ -11,10 +11,10 @@ describe('optics', () => {
     expect(endpointOf(apparentOffset(24, 18, 0, 0))).toBe('overlap');
     expect(endpointOf(apparentOffset(12, 18, 0, 0))).toBe('apart');
   });
-  it('dye bias: thick under-reads, thin over-reads, none in band', () => {
+  it('dye bias: thick mires over-read, thin mires under-read, none in band', () => {
     expect(dyeBias(0.5)).toBe(0);
-    expect(dyeBias(0.95)).toBeLessThan(-3);
-    expect(dyeBias(0.05)).toBeGreaterThan(3);
+    expect(dyeBias(0.95)).toBeGreaterThan(3);
+    expect(dyeBias(0.05)).toBeLessThan(-3);
   });
   it('pulse is bounded and amplitude scales sensibly', () => {
     for (let t = 0; t < 5; t += 0.05) expect(Math.abs(pulse(t, 2))).toBeLessThanOrEqual(2.01);

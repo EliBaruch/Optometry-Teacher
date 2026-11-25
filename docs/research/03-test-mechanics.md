@@ -293,7 +293,7 @@ Sins: Lust (the slit-lamp view is the most beautiful render in the game: glowing
   - False high: pressing on the globe, breath-holding, or squeezing.
   - False low: repeated applanations.
 - Source: Moran CORE protocol https://morancore.utah.edu/wp-content/uploads/2025/11/Goldmann-Tonometry.pdf
-- Too much fluorescein gives wide mires and a low reading. Too little gives thin mires and a high reading. Add dye if mire width is less than about 1/10 of the diameter.
+- Too much fluorescein gives wide mires and a falsely HIGH reading. Too little gives thin mires and a falsely LOW reading. Add dye if mire width is less than about 1/10 of the diameter. (Corrected 2026-11-25: an earlier version of this note had the direction reversed; see 00-RESEARCH-REPORT.md §7.)
 - Repeat until two readings fall within 2 mmHg. https://cdn.clinicaltrials.gov/large-docs/37/NCT00666237/Prot_SAP_ICF_000.pdf
 
 **What is seen (render spec).**

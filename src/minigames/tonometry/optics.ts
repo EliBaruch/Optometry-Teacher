@@ -28,13 +28,14 @@ export const grams = (mmHg: number) => mmHg / 10;
 export const fmtGrams = (mmHg: number) => `${grams(mmHg).toFixed(1)} g`;
 
 /**
- * Reading error caused by the dye. Too much fluorescein gives wide mires and an
- * UNDER-estimate (surface tension of the wide meniscus pulls the prism in);
- * too little gives thin mires and an OVER-estimate. Zero inside the ideal band.
+ * Reading error caused by the dye (standard Goldmann teaching, e.g. Kanski; EyeWiki
+ * "Goldmann applanation tonometry"): too much fluorescein gives wide mires and a falsely
+ * HIGH reading (the inner edges meet before the true applanation area is reached);
+ * too little gives thin mires and a falsely LOW reading. Zero inside the ideal band.
  */
 export function dyeBias(amount: number): number {
-  if (amount > DYE_BAND.hi) return -((amount - DYE_BAND.hi) / (1 - DYE_BAND.hi)) * 6;
-  if (amount < DYE_BAND.lo) return ((DYE_BAND.lo - amount) / DYE_BAND.lo) * 6;
+  if (amount > DYE_BAND.hi) return ((amount - DYE_BAND.hi) / (1 - DYE_BAND.hi)) * 6;
+  if (amount < DYE_BAND.lo) return -((DYE_BAND.lo - amount) / DYE_BAND.lo) * 6;
   return 0;
 }
 export const dyeInBand = (a: number) => a >= DYE_BAND.lo && a <= DYE_BAND.hi;
