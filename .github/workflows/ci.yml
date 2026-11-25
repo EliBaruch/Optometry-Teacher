@@ -1,7 +1,11 @@
 name: CI
+# Runs only for main and pull requests — not for the work-in-progress
+# checkpoint pushes on agent branches (those are expected to be mid-build).
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 jobs:
   verify:
     runs-on: ubuntu-latest
