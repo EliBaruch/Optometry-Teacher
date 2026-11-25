@@ -54,3 +54,11 @@ Running: wf_53290a05-580 [scene-exam, scene-hub] · wf_21465cf8-bb9 [scene-title
 wf_88e15d8e-075 [render-eye-fundus, render-fx-avatar] · wf_33ec223f-117 [ui-kit, mg-visual-acuity]
 Queued: systems ×7, scene-results, scene-meta, mg-phoropter/color-vision/amsler (review), mg-keratometry,
 mg-visual-fields (continue), mg-retinoscopy/pupils/cover-test/motility/tonometry/ophthalmoscopy (build).
+
+## Status 2026-11-25 — COMPLETE (v1 shipped)
+Every unit has passed review or had its remaining must-fixes resolved and verified by the lead:
+foundation (ui-kit, audio, render ×2, learning+modes), content (57 diagnoses, 46 cases), 7 systems,
+9 scenes, 12 instrument mini-games (16 test ids). Verified on clean HEAD: tsc 0 errors, 712 files
+boundary-clean, 1301 tests passing, production build OK; live end-to-end playthrough with zero console
+errors. Live: https://lumen-eye-clinic.netlify.app (deploy from a `git archive HEAD` export — the deploy
+uploader follows git worktrees back to the live working tree).
