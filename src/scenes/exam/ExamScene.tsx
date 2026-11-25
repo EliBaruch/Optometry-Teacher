@@ -225,7 +225,7 @@ export function ExamScene({ services, params }: SceneProps) {
       play('reveal', { volume: 0.7 });
       setPulse((n) => n + 1);
       services.fx.burst(x, y, { kind: 'sparks', count: 16, color: colorOf(worst) });
-      services.fx.floatText('Chart updated', x, y - 24, { color: '#ffd27a', size: 18 });
+      services.fx.floatText('Chart updated', x, Math.max(y + 70, 190), { color: '#ffd27a', size: 18 });
     };
     // Let the stage fade before the findings take flight.
     later(() => {

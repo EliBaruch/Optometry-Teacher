@@ -2,6 +2,9 @@ import { TEST_CATALOG, type MiniGameModule, type MiniGameResult, type TestId } f
 import { GlassPanel, Icon, IconOrText, isIconName, useSfx } from '@ui-kit';
 import { testName } from './logic';
 
+/** Offer a tidy hyphenation point in long clinical words so narrow cards never split them mid-syllable. */
+const softBreak = (name: string) => name.replace(/(Ophthalmo)(scopy)/i, '$1\u00AD$2');
+
 export function InstrumentTray(props: {
   instruments: MiniGameModule[];
   done: Partial<Record<TestId, MiniGameResult>>;
@@ -41,7 +44,7 @@ export function InstrumentTray(props: {
                     {isIconName(mg.id) ? <Icon name={mg.id} size={26} /> : <IconOrText icon={mg.icon} size={24} />}
                   </span>
                   <span class="exm-tool__text">
-                    <span class="exm-tool__name">{testName(mg.id, mg)}</span>
+                    <span class="exm-tool__name">{softBreak(testName(mg.id, mg))}</span>
                     <span class="exm-tool__sub lm-num">
                       {r ? (r.autoRun ? 'By the technician' : 'Charted') : `${info.minutes} min`}
                     </span>

@@ -18,7 +18,18 @@ export default defineConfig({
       '@learning': r('./src/learning'),
     },
   },
-  build: { target: 'es2022', sourcemap: false, chunkSizeWarningLimit: 1500 },
+  build: {
+    target: 'es2022',
+    sourcemap: false,
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        // Keep each mini-game in an assets/minigames/ chunk so runtime error guards can attribute crashes.
+        chunkFileNames: (chunk) =>
+          chunk.facadeModuleId?.includes('/src/minigames/') ? 'assets/minigames/[name]-[hash].js' : 'assets/[name]-[hash].js',
+      },
+    },
+  },
   test: {
     environment: 'happy-dom',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'tests/**/*.test.ts'],

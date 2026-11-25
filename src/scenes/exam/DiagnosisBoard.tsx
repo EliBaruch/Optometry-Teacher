@@ -195,23 +195,23 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
               })}
             </div>
           </fieldset>
-
-          <div class="exm-board__foot">
-            <p class="exm-board__sum" aria-live="polite">
-              {ready ? (
-                <>
-                  <b>{nameOf(dx!)}</b> · {URGENCY_INFO[urgency!].label} · {CONFIDENCE_INFO[conf!].label}
-                </>
-              ) : (
-                <span class="lm-muted">Choose a diagnosis, an urgency and your confidence to sign off.</span>
-              )}
-            </p>
-            {error && <p class="exm-board__err" role="alert">{error}</p>}
-            <Button type="submit" variant="primary" size="lg" icon="check" disabled={!ready || stamped} sfx={false}>
-              Sign off the diagnosis
-            </Button>
-          </div>
         </form>
+      </div>
+
+      <div class="exm-board__foot">
+        <p class="exm-board__sum" aria-live="polite">
+          {ready ? (
+            <>
+              <b>{nameOf(dx!)}</b> · {URGENCY_INFO[urgency!].label} · {CONFIDENCE_INFO[conf!].label}
+            </>
+          ) : (
+            <span class="lm-muted">Choose a diagnosis, an urgency and your confidence to sign off.</span>
+          )}
+        </p>
+        {error && <p class="exm-board__err" role="alert">{error}</p>}
+        <Button type="button" onClick={commit} variant="primary" size="lg" icon="check" disabled={!ready || stamped} sfx={false}>
+          Sign off the diagnosis
+        </Button>
       </div>
 
       {stamped && dx && (
