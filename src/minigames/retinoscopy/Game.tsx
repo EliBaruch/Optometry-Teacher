@@ -90,6 +90,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const lastSfx = useRef(0);
   const live = useRef({ e1: 0, e2: 0, axis: 180, phi: 180, quality: 'normal' as RetinoscopyReflex, lens: 0, busy: true });
   const geoRef = useRef<ReflexGeo | null>(null);
+  const wasNeutral = useRef(false);
   const sw = useRef({ s: 0, manual: 0, t: 0, drag: null as number | null, phi: 180, auto: !reduced, left: false, right: false });
   const eyesRef = useRef(eyes);
   eyesRef.current = eyes;
@@ -152,6 +153,8 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       const q = live.current.quality;
       const neutral = q !== 'absent' && g.q <= TOL[q];
       setUi((u) => (u.motion === g.motion && u.neutral === neutral ? u : { motion: g.motion, neutral }));
+      if (neutral && !wasNeutral.current && !live.current.busy && d < 0.6) ctx.audio.play('sparkle', { volume: 0.22 });
+      wasNeutral.current = neutral;
     }, 140);
     return () => clearInterval(id);
   }, []);
