@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { signal, type GameServices, type Signal } from '@core';
-import { Button, formatNumber, IconOrText, RARITY_COLOR, RARITY_LABEL, ServicesProvider, useReducedMotion, useSignal } from '@ui-kit';
+import { Button, formatNumber, IconOrText, overlayRoot, RARITY_COLOR, RARITY_LABEL, ServicesProvider, useReducedMotion, useSignal } from '@ui-kit';
 import type { Moment } from '../engine';
 import { Crest } from './Crest';
 import './moments.css';
@@ -26,7 +26,7 @@ export function createMomentStage(services: GameServices) {
     if (host || typeof document === 'undefined') return;
     host = document.createElement('div');
     host.className = 'rk-stage-host';
-    document.body.appendChild(host);
+    overlayRoot().appendChild(host);
     render(
       <ServicesProvider services={services}>
         <Stage services={services} queue={queue} />

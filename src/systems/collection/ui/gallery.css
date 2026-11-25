@@ -130,8 +130,6 @@
 
 /* ── inspector ─────────────────────────────────────────────────────────── */
 .gi-modal .lm-modal__title { font-family: var(--lm-font-display); }
-/* a definite cap (the kit's percentage cap is ignored while the grid sizes its row, which pushes tall panels off-centre) */
-.lm-modal.gi-modal .lm-modal__panel { max-height: min(88vh, calc(100dvh - 24px)); }
 .gi { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; min-height: 0; max-height: calc(88vh - 90px); }
 .gi-stage {
   position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--lm-sp-5);

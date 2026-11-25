@@ -17,4 +17,5 @@ export {
   type Rarity, type Tone,
 } from './lib/palette';
 export { VARIANTS as BACKDROP_VARIANTS } from './lib/backdrop-sim';
+export { overlayRoot } from './lib/overlay-root';
 export { isLiteRendering, setLiteRendering, onLiteRenderingChange, LITE_CLASS } from './lib/quality';

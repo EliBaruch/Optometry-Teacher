@@ -293,10 +293,6 @@
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: var(--lm-sp-2);
   font-family: var(--lm-font-display); font-style: italic; color: color-mix(in srgb, var(--acc) 65%, var(--lm-ivory-dim));
 }
-/* Tall pages: keep the dialog centred in the viewport (the grid row must not grow to the content's height). */
-.lm-modal.codex-modal { grid-template-rows: minmax(0, 1fr); }
-.lm-modal.codex-modal .lm-modal__panel { max-height: min(88vh, 100%); }
-
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
   .codex-hero { grid-template-columns: minmax(0, 1fr); gap: var(--lm-sp-4); padding-top: var(--lm-sp-4); }

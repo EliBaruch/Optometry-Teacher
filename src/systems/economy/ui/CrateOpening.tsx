@@ -2,7 +2,7 @@ import type { ComponentChild } from 'preact';
 import { createPortal } from 'preact/compat';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices, SfxId } from '@core';
-import { Button, CountUp, Icon, RARITY_COLOR, RARITY_LABEL, useFocusTrap, useReducedMotion, useSignal } from '@ui-kit';
+import { Button, CountUp, Icon, overlayRoot, RARITY_COLOR, RARITY_LABEL, useFocusTrap, useReducedMotion, useSignal } from '@ui-kit';
 import { CRATES, KIND_LABEL, PITY_LIMIT, itemById, type Rarity } from '../catalog';
 import { formatCoins, type CrateDrop } from '../logic';
 import type { Economy, StoredCrate } from '../store';
@@ -231,7 +231,7 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
         </div>
       </div>
     </div>,
-    document.body,
+    overlayRoot(),
   );
 }
 
