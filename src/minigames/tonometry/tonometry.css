@@ -179,7 +179,8 @@
   .tn-step { padding: 10px 12px; }
   .tn-step p { font-size: 0.78rem; margin-bottom: 6px; }
   .tn-step .lm-btn { min-height: 44px; }
-  .tn-prep__steps > .lm-btn--primary { position: sticky; bottom: 0; z-index: 3; min-height: 48px; box-shadow: 0 -14px 16px -4px #0a0618, 0 6px 18px rgba(0, 0, 0, 0.5); }
+  /* In flow (not sticky): a sticky CTA covered the dye controls on short phones (review fix). */
+  .tn-prep__steps > .lm-btn--primary { position: relative; margin: 4px 0 calc(12px + env(safe-area-inset-bottom, 0px)); min-height: 48px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
   .tn-foot { padding: 6px 10px; } .tn-prog__method { display: none; }
 }
 @media (max-height: 640px) and (max-width: 760px) { .tn-head__hint { display: none; } }

@@ -1,6 +1,7 @@
 import { h, render } from 'preact';
 import type { MiniGameModule } from '@core';
 import { Game } from './Game';
+import { onceDone } from './once';
 import { makeScenario } from './practice';
 import { report } from './report';
 import './tonometry.css';
@@ -19,15 +20,11 @@ const tonometry: MiniGameModule = {
     'iCare rebound needs no drop or dye: average six shots, centred on the apex',
   ],
   mount(host, ctx, done) {
-    let called = false;
-    const once: typeof done = (r) => {
-      if (called) return;
-      called = true;
-      done(r);
-    };
+    const once = onceDone(done);
     host.classList.add('tn-host');
-    render(h(Game, { ctx, done: once }), host);
+    render(h(Game, { ctx, done: once.done }), host);
     return () => {
+      once.cancel();
       render(null, host);
       host.classList.remove('tn-host');
     };
