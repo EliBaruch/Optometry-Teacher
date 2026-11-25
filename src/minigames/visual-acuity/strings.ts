@@ -10,6 +10,9 @@ import type { LowVision } from './notation';
 
 /** Hebrew count of chart lines: שורה אחת / שתי שורות / 3 שורות. */
 const linesHe = (n: number) => (n === 1 ? 'שורה אחת' : n === 2 ? 'שתי שורות' : `${n} שורות`);
+/** Count plus an agreeing feminine adjective: שורה אחת טובה / שתי שורות גרועות. */
+const linesAdjHe = (n: number, better: boolean) =>
+  `${linesHe(n)} ${n === 1 ? (better ? 'טובה' : 'גרועה') : better ? 'טובות' : 'גרועות'}`;
 
 export const S = defineStrings({
   en: {
@@ -198,7 +201,7 @@ export const S = defineStrings({
     hintOneCovered: (covered: string, reading: string) => `${covered} מכוסה · ${reading} קוראת`,
     startPinhole: 'המכסה על העין השנייה — ככה? אפשר להתחיל.',
     startAcuity: 'המשקפיים בצד. אפשר להתחיל!',
-    swapPaddle: 'מעבירים את המכסה לעין השנייה. אפשר.',
+    swapPaddle: 'עברתי לעין השנייה. אפשר.',
     otherEyePaddle: 'עכשיו העין השנייה? החלפתי את המכסה.',
     whichNext: 'סבבה — איזו עין עכשיו?',
     warnBinocular: 'חדות דו־עינית נבדקת כששתי העיניים פתוחות — קודם חושפים את המטופל.',
@@ -214,7 +217,7 @@ export const S = defineStrings({
     pinholeOut: 'עין פתוחה (בלי חריר)',
     flipOccluder: 'הפכו את המכסה',
     verdictAria: (slot: string) => `מסקנה לגבי החריר עבור ${slot}`,
-    verdicts: { improves: 'משתפרת', ni: 'אין שיפור', niSub: 'NI', notNeeded: 'לא נדרש', improvesSub: 'לפחות 2 שורות טוב יותר', notNeededSub: 'כבר ≤ 20/25' },
+    verdicts: { improves: 'יש שיפור', ni: 'אין שיפור', niSub: 'NI', notNeeded: 'לא נדרש', improvesSub: 'לפחות 2 שורות טוב יותר', notNeededSub: 'כבר ≤ 20/25' },
     ask: 'בקשו לקרוא',
     testOff: 'בדיקה',
     chartPh: (slot: string) => `רשמו PH ${slot}`,
@@ -249,7 +252,7 @@ export const S = defineStrings({
     steps: {
       acuity: [
         { title: 'עין אחת בכל פעם', body: 'לחצו על עין המטופל כדי לכסות אותה במכסה (או הקישו C). בודקים קודם את העין הימנית (OD) כשהשמאלית מכוסה, ואז מחליפים.' },
-        { title: 'מצביעים על שורה', body: 'סובבו את הכפתור המוזהב, גללו או השתמשו ב־↑ ↓ כדי לרדת בלוח המקרן, ואז בקשו מהמטופל לקרוא (רווח). וי ירוק מסמן אות שנקראה נכון.' },
+        { title: 'מצביעים על שורה', body: 'סובבו את כפתור הפליז, גללו או השתמשו ב־↑ ↓ כדי לרדת בלוח המקרן, ואז בקשו מהמטופל לקרוא (רווח). וי ירוק מסמן אות שנקראה נכון.' },
         { title: 'מוצאים את הסף', body: 'רשמו את השורה הקטנה ביותר שבה יותר ממחצית האותיות נקראו נכון (Enter) — והוכיחו אותה בכך שהשורה שמתחתיה נכשלת. אם גם האות העליונה לא נקראת: ספירת אצבעות, תנועת יד, אור.' },
       ],
       pinhole: [
@@ -267,23 +270,23 @@ export const S = defineStrings({
     vaScLabel: (slot: string) => `VA ללא תיקון ${slot}`,
     phLabel: (eye: string) => `חריר ${eye}`,
     trueWord: 'בפועל',
-    verdictWord: { improves: 'משתפרת', 'no-improvement': 'NI', 'not-needed': 'לא נדרש' },
+    verdictWord: { improves: 'יש שיפור', 'no-improvement': 'NI', 'not-needed': 'לא נדרש' },
     noteWrongCall: (eye: string, word: string) => `${eye}: ההכרעה הנכונה הייתה “${word}”.`,
     noteNoPinhole: (eye: string) => `${eye}: השורה הזאת נקראה בלי החריר.`,
     noteNotRead: (eye: string) => `${eye}: את השורה שנרשמה אף אחד לא קרא דרך החריר.`,
     noteOff: (eye: string, n: number) => `${eye}: שורת החריר רחוקה ${linesHe(n)} מהאמת.`,
     lowVision: { CF: 'ספירת אצבעות', HM: 'תנועת יד', LP: 'תפיסת אור', NLP: 'אין תפיסת אור' } as Record<LowVision, string>,
     lowVisionShort: { CF: 'ספירת אצבעות', HM: 'תנועת יד', LP: 'תפיסת אור', NLP: 'אין תפיסת אור' } as Record<LowVision, string>,
-    lvDist: { CF: 'ביד, במרחק מטר', HM: 'מנופפת במרחק מטר', LP: 'פנס כיס, החדר מוחשך', NLP: 'האור החזק ביותר, חדר חשוך' } as Record<LowVision, string>,
+    lvDist: { CF: 'אצבעות במרחק מטר', HM: 'מנופפת במרחק מטר', LP: 'פנס כיס, החדר מוחשך', NLP: 'האור החזק ביותר, חדר חשוך' } as Record<LowVision, string>,
     lineName: (label: string) => `שורת ${label}`,
     umPrefix: 'אממ… ',
     maybeSuffix: ' אולי?',
     cannot: [
       'אי אפשר לזהות את זה — רק כתמים אפורים.',
       'בכנות? אלה סתם כתמים מטושטשים.',
-      'לא. רואים שיש שם משהו, וזהו.',
+      'לא. יש שם משהו, זה כל מה שאפשר להגיד.',
     ],
-    cannotChild: ['לא יודעים… הכול מטושטש!', 'קטן מדי! אי אפשר לראות את זה.'],
+    cannotChild: ['לא ברור לי… הכול מטושטש!', 'קטן מדי! אני לא מצליח לראות את זה.'],
     spoken: { apple: 'תפוח', house: 'בית', circle: 'כדור', square: 'קופסה', right: '→', left: '←', up: '↑', down: '↓' } as Record<string, string>,
     bothCovered: 'אממ… אני לא רואה כלום. שתי העיניים מכוסות!',
     needsPictures: 'עוד לא למדתי את כל האותיות… אפשר עם התמונות?',
@@ -298,7 +301,7 @@ export const S = defineStrings({
     lpYes: ['כן — אני רואה את האור.', 'הנה! נדלק.'],
     lpNo: 'לא… כלום. חושך מוחלט.',
     noteExact: 'שורת הסף המדויקת.',
-    noteSteps: (n: number, better: boolean) => `${linesHe(n)} ${better ? 'טוב' : 'גרוע'} יותר מהסף האמיתי.`,
+    noteSteps: (n: number, better: boolean) => `${linesAdjHe(n, better)} יותר מהסף האמיתי.`,
     noteCovered: (tested: string) => `העין ${tested} הייתה מכוסה — הקריאה הזו שייכת לעין השנייה.`,
     noteBinocular: (fellow: string) => `העין ${fellow} לא הייתה מכוסה, אז הקריאה הייתה דו־עינית.`,
     noteNeverPassed: 'נרשמה שורה שהמטופל לא עבר בפועל.',
@@ -306,12 +309,12 @@ export const S = defineStrings({
     lblVa: 'VA ללא תיקון',
     lblPh: 'VA עם חריר',
     phNotNeeded: (sc: string) => `לא נדרש (ללא תיקון ${sc})`,
-    phImproves: (ph: string, metric: string, sc: string) => `${ph} (${metric}) · משתפרת מ־${sc}`,
+    phImproves: (ph: string, metric: string, sc: string) => `${ph} (${metric}) · שיפור מ־${sc}`,
     phNi: (ph: string, metric: string) => `NI · ${ph} (${metric})`,
     chLogmarPrompt: (eye: string, feet: number) => `בעין ${eye} נקראה חדות 20/${feet}. כמה זה ב־logMAR?`,
     chLogmarExplain: (feet: number, lm: string) => `logMAR = log₁₀(MAR) = log₁₀(${feet}/20) ≈ ${lm}. כל שורה היא 0.1 logMAR וכל אות ב־ETDRS היא 0.02 — 20/20 הוא 0.0 ו־20/200 הוא 1.0.`,
     chMetricPrompt: (eye: string, feet: number) => `בעין ${eye} נקראה חדות 20/${feet}. איך זה נכתב במטרים?`,
-    chMetricExplain: (feet: number, m: string) => `מרחק הבדיקה הוא 6 מטר, בערך 20 רגל, אז מכפילים את השבר: 20/${feet} = ${m}. אותה זווית, יחידות אחרות.`,
+    chMetricExplain: (feet: number, m: string) => `מרחק הבדיקה הוא 6 מטר, בערך 20 רגל, אז ממירים את השבר: 20/${feet} = ${m}. אותה זווית, יחידות אחרות.`,
     chDrivingPrompt: 'בלי משקפיים, האם המטופל עומד בתקן הנהיגה הנפוץ של 20/40?',
     chDrivingOptions: ['כן — העין הטובה רואה 20/40 או יותר', 'לא — העין הטובה גרועה מ־20/40'],
     chDrivingExplain: (feet: string, metric: string, meets: boolean) => `העין הטובה קוראת ${feet} (${metric}). ברוב המדינות נדרש 20/40 בעין הטובה — ${meets ? 'התקן מתקיים גם בלי תיקון.' : 'המטופל חייב לנהוג עם תיקון (ולכן שולחים אותו לרפרקציה).'} עיוורון חוקי הוא 20/200 או פחות בעין הטובה.`,
@@ -327,7 +330,7 @@ export const S = defineStrings({
     chPhExplainNi: 'החריר מבטל את חוסר המיקוד, אז טשטוש שנשאר בא ממשהו שהאופטיקה לא יכולה לתקן — קטרקט, מקולה או עצב הראייה. בודקים וממשיכים לברר.',
     answerVa: (od: string, os: string, story: string) => `VA ללא תיקון OD ${od}, OS ${os} — ${story}.`,
     answerPh: (od: string, os: string, story: string) => `${od}; ${os} — ${story}.`,
-    answerPhPart: (eye: string, sc: string, ph: string, improves: boolean) => `${eye} ${sc} ← חריר ${ph} (${improves ? 'משתפרת' : 'NI'})`,
+    answerPhPart: (eye: string, sc: string, ph: string, improves: boolean) => `${eye} ${sc} ← חריר ${ph} (${improves ? 'יש שיפור' : 'NI'})`,
   },
 });
 

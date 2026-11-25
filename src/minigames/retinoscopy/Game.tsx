@@ -449,14 +449,14 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
               <output class="rt-big rt-num rt-lens__v">{fmtGross(cur.lens)}</output>
             </div>
             <LensDrum value={cur.lens} min={LENS_MIN} max={LENS_MAX} onStep={onLens} disabled={busy || cur.step === 'done'} />
-            <div class="rt-rack" role="group" aria-label={t.lensRack}>
+            <div class="rt-rack" dir="ltr" role="group" aria-label={t.lensRack}>
               {[-1, -0.25, 0.25, 1].map((v) => (
                 <button key={v} type="button" class={`rt-jewel rt-jewel--${v < 0 ? 'minus' : 'plus'}`} onClick={() => onLens(v > 0 ? 1 : -1, Math.abs(v) === 1)} disabled={busy || cur.step === 'done'} aria-label={t.dioptres(fmtSigned(v))}>
                   {fmtSigned(v).replace('0.', '.').replace('1.00', '1')}
                 </button>
               ))}
               <button type="button" class="rt-jewel rt-jewel--zero" onClick={() => onLens(-cur.lens / 0.25, false)} disabled={busy || cur.step === 'done' || cur.lens === 0} aria-label={t.resetLens}>0</button>
-              <span class="rt-rack__spam" aria-hidden="true">{t.spam.map((x) => <span key={x.b}><b>{x.b}</b>{x.t}{x.sep}</span>)}</span>
+              <span class="rt-rack__spam" dir="auto" aria-hidden="true">{t.spam.map((x) => <span key={x.b}><b>{x.b}</b>{x.t}{x.sep}</span>)}</span>
             </div>
           </div>
 

@@ -302,7 +302,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       <header class="php-head">
         <div class="php-head__title"><Icon name="phoropter" /><span>{t.title}</span></div>
         <p class="php-head__hint" aria-live="polite">{note ?? hint(s, loc)}</p>
-        <div class="php-seg" role="group" aria-label={t.eyeUnderTest}>
+        <div class="php-seg" dir="ltr" role="group" aria-label={t.eyeUnderTest}>
           {(['OD', 'OS', 'OU'] as const).map((b) => (
             <button key={b} type="button" class={`php-seg__b${s.active === b ? ' is-on' : ''}`} aria-pressed={s.active === b} onClick={() => setBattery(b)} disabled={busy && s.active !== b}>
               {b}
@@ -331,10 +331,10 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
               prism={s.prism && s.active === 'OU'}
               badge={badge}
             />
-            <div class="php-readout" aria-hidden="true">
+            <div class="php-readout" dir="ltr" aria-hidden="true">
               {EYES.map((e) => (
                 <div key={e} class={`php-readout__eye${s.active === e || s.active === 'OU' ? ' is-on' : ''}`}>
-                  <span class="php-readout__k">{t.trialLens(e)}</span>
+                  <span class="php-readout__k" dir="auto">{t.trialLens(e)}</span>
                   <span class="php-readout__v php-num">{lensRx(s.lenses[e])}</span>
                   <span class="php-readout__va php-num">VA {snellen(perceivedVA(models[e], s.lenses[e]))}</span>
                 </div>

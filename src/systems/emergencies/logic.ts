@@ -241,7 +241,7 @@ export function teachingMessage(outcome: Exclude<Outcome, 'saved'>, c: TeachingC
 export function confirmLine(missedTests: readonly string[], locale: Locale = 'en'): string {
   const t = pickStrings(S, locale);
   if (!missedTests.length) return t.confirmNone;
-  const list = missedTests.length > 1 ? `${missedTests.slice(0, -1).join(', ')}${t.and}${missedTests[missedTests.length - 1]}` : missedTests[0];
+  const list = missedTests.length > 1 ? `${missedTests.slice(0, -1).join(', ')}${t.and(missedTests[missedTests.length - 1]!)}${missedTests[missedTests.length - 1]}` : missedTests[0];
   return t.confirmSome(list!);
 }
 

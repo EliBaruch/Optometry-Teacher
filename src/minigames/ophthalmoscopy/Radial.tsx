@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { Icon } from '@ui-kit';
-import { TAGS, TAG_GROUPS, type TagKind } from './model';
+import { TAG_GROUPS, type TagKind } from './model';
+import { useLocale, useT } from './locale';
 import { clampCentre, layoutPetals, petalSpec } from './radialLayout';
 
 export type RadialChoice =
@@ -37,19 +38,21 @@ const TONES: Record<string, string> = {
 
 /** Two-level radial tag wheel anchored on the tapped spot. */
 export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, onGroup, onChoose, onRemoveNear, onClose }: RadialProps) {
+  const t = useT();
+  const rtl = useLocale() === 'he';
   const ref = useRef<HTMLDivElement>(null);
   const root: Item[] = [
-    { id: 'disc', label: 'Optic disc', hint: 'Cup-to-disc, colour, margins', tone: TONES.disc!, action: () => onChoose({ type: 'disc' }) },
-    ...TAG_GROUPS.slice(0, 2).map((g) => ({ id: g.id, label: g.label, tone: TONES[g.id]!, action: () => onGroup(g.id) })),
-    { id: 'vascular', label: 'Vessel lesions', tone: TONES.vascular!, action: () => onGroup('vascular') },
-    { id: 'macular', label: 'Macula & pigment', tone: TONES.macular!, action: () => onGroup('macular') },
-    { id: 'periphery', label: 'Periphery', tone: TONES.periphery!, action: () => onGroup('periphery') },
-    { id: 'macula-ok', label: 'Macula healthy', hint: 'Flat, foveal reflex present', tone: TONES.macula!, action: () => onChoose({ type: 'tag', kind: 'macula-ok' }) },
-    { id: 'vessels', label: 'Vessels', hint: 'A:V ratio and signs', tone: TONES.vessels!, action: () => onChoose({ type: 'vessels' }) },
+    { id: 'disc', label: t.radialDisc, hint: t.radialDiscHint, tone: TONES.disc!, action: () => onChoose({ type: 'disc' }) },
+    ...TAG_GROUPS.slice(0, 2).map((g) => ({ id: g.id, label: t.groups[g.id] ?? g.label, tone: TONES[g.id]!, action: () => onGroup(g.id) })),
+    { id: 'vascular', label: t.groups.vascular!, tone: TONES.vascular!, action: () => onGroup('vascular') },
+    { id: 'macular', label: t.groups.macular!, tone: TONES.macular!, action: () => onGroup('macular') },
+    { id: 'periphery', label: t.groups.periphery!, tone: TONES.periphery!, action: () => onGroup('periphery') },
+    { id: 'macula-ok', label: t.radialMaculaOk, hint: t.radialMaculaOkHint, tone: TONES.macula!, action: () => onChoose({ type: 'tag', kind: 'macula-ok' }) },
+    { id: 'vessels', label: t.radialVessels, hint: t.radialVesselsHint, tone: TONES.vessels!, action: () => onChoose({ type: 'vessels' }) },
   ];
   const g = TAG_GROUPS.find((t) => t.id === group);
   const items: Item[] = g
-    ? g.kinds.map((k) => ({ id: k, label: TAGS[k].label, hint: TAGS[k].hint, tone: TONES[g.id]!, action: () => onChoose({ type: 'tag', kind: k }) }))
+    ? g.kinds.map((k) => ({ id: k, label: t.tags[k].label, hint: t.tags[k].hint, tone: TONES[g.id]!, action: () => onChoose({ type: 'tag', kind: k }) }))
     : root;
 
   const spec = petalSpec(stageW);
@@ -88,10 +91,11 @@ export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, on
     <div class="oph-radial-scrim" onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }} data-testid="oph-radial-scrim">
       <div
         ref={ref}
+        dir="ltr"
         class={`oph-radial${reducedMotion ? ' is-reduced' : ''}`}
         style={{ left: `${cx}px`, top: `${cy}px` }}
         role="menu"
-        aria-label={g ? g.label : 'Tag what you found'}
+        aria-label={g ? (t.groups[g.id] ?? g.label) : t.radialAria}
         onKeyDown={onKeyDown}
       >
         <span class="oph-radial__halo" aria-hidden="true" style={{ width: `${lay.halfW * 2}px`, height: `${lay.halfH * 2 + 40}px` }} />
@@ -113,6 +117,7 @@ export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, on
               data-radial-item
               data-testid={`oph-radial-${it.id}`}
               class="oph-radial__item"
+              dir={rtl ? 'rtl' : 'ltr'}
               style={{ transform: `translate(calc(-50% + ${p.x.toFixed(1)}px), calc(-50% + ${p.y.toFixed(1)}px))`, width: `${spec.w}px`, height: `${spec.h}px`, '--tone': it.tone, '--i': i } as never}
               title={it.hint}
               onClick={it.action}
@@ -125,12 +130,12 @@ export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, on
         <button
           type="button"
           class="oph-radial__hub"
-          aria-label={g ? 'Back' : nearTag ? 'Remove tag here' : 'Cancel'}
+          aria-label={g ? t.back : nearTag ? t.removeHere : t.cancel}
           data-testid="oph-radial-hub"
           onClick={() => (g ? onGroup(null) : nearTag ? onRemoveNear() : onClose())}
         >
           <Icon name={g ? 'chevron-left' : nearTag ? 'minus' : 'close'} size={16} />
-          {!g && nearTag && <small>Remove</small>}
+          {!g && nearTag && <small>{t.remove}</small>}
         </button>
       </div>
     </div>

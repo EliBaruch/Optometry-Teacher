@@ -40,7 +40,7 @@
 .cf-cal__n { font-size: var(--lm-fs-2xs); letter-spacing: 0.08em; opacity: 0.8; }
 .cf-cal__icon { color: #bae6fd; opacity: 0.75; line-height: 0; }
 .cf-cal__amt { font-size: var(--lm-fs-xs); color: var(--lm-ivory-dim); }
-.cf-cal__amt em { font-style: normal; color: var(--lm-gold); margin-left: 1px; }
+.cf-cal__amt em { font-style: normal; color: var(--lm-gold); margin-inline-start: 1px; }
 .cf-cal__day.is-done { background: rgba(94, 234, 212, 0.07); border-color: rgba(94, 234, 212, 0.25); }
 .cf-cal__day.is-done .cf-cal__icon { color: var(--lm-normal); opacity: 1; }
 .cf-cal__day.is-done .cf-cal__amt { opacity: 0.55; text-decoration: line-through; text-decoration-color: rgba(94, 234, 212, 0.5); }
@@ -130,8 +130,8 @@
 .cf-banner__cta-detail { font-size: var(--lm-fs-xs); color: var(--lm-muted); }
 
 .cf-banner__jar {
-  display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 10px; margin-right: var(--lm-sp-2);
-  border-radius: var(--lm-r-md); text-align: left; color: inherit;
+  display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 10px; margin-inline-end: var(--lm-sp-2);
+  border-radius: var(--lm-r-md); text-align: start; color: inherit;
   background: linear-gradient(180deg, rgba(255, 210, 122, 0.08), rgba(255, 210, 122, 0.02));
   border: 1px solid rgba(255, 210, 122, 0.16);
   transition: transform var(--lm-dur-ui) var(--lm-ease-spring), border-color var(--lm-dur-ui), background var(--lm-dur-ui);
@@ -215,7 +215,7 @@
   border: 1px solid rgba(244, 114, 182, 0.3); color: var(--lm-ivory-dim);
   animation: cf-pop var(--lm-dur-reveal) var(--lm-ease-spring) 0.6s both;
 }
-.cf-welcome__bonus strong { color: var(--lm-gold); font-family: var(--lm-font-num); font-size: var(--lm-fs-lg); margin-right: 4px; }
+.cf-welcome__bonus strong { color: var(--lm-gold); font-family: var(--lm-font-num); font-size: var(--lm-fs-lg); margin-inline-end: 4px; }
 .cf-welcome__flag {
   display: flex; align-items: center; justify-content: space-between; gap: var(--lm-sp-3); flex-wrap: wrap;
   padding: 10px 14px; border-radius: var(--lm-r-md); font-size: var(--lm-fs-sm); color: var(--lm-ivory-dim);
@@ -250,3 +250,7 @@ html.reduced-motion .cf-welcome__jar, html.reduced-motion .cf-welcome__bonus, ht
   font-size: var(--lm-fs-sm);
 }
 .cf-welcome__kept { margin: 2px 0 0; font-size: var(--lm-fs-xs); color: #fde68a; }
+
+/* Hebrew has no italic tradition: avoid the synthesized slant. */
+:lang(he) .cf-welcome__line, :lang(he) .cf-banner__goal { font-style: normal; }
+:lang(he) .cf-reveal__flavour, :lang(he) .cf-card__flavour { font-style: normal; }

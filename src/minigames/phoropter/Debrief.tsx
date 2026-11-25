@@ -63,7 +63,7 @@ export function Debrief(p: DebriefProps) {
             <div class="php-scroll">
             <header class="php-result__head">
               <RingMeter value={p.assessment.accuracy} size={96} accent={p.assessment.perfect ? 'var(--lm-gold)' : 'var(--lm-normal)'} ariaLabel={t.scoreAria}>
-                <span class="php-result__pct"><CountUp value={Math.round(p.assessment.accuracy * 100)} />%</span>
+                <span class="php-result__pct"><bdi dir="ltr"><CountUp value={Math.round(p.assessment.accuracy * 100)} />%</bdi></span>
               </RingMeter>
               <div>
                 <p class="php-eyebrow">{p.assessment.perfect ? t.flawless : t.recorded}</p>

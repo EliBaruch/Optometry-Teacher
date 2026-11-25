@@ -3,6 +3,7 @@ import type { MiniGameModule, MiniGameResult } from '@core';
 import { Game } from './Game';
 import { practiceScenario } from './practice';
 import { report } from './report';
+import { S } from './strings';
 import './ophthalmoscopy.css';
 
 const ophthalmoscopy: MiniGameModule = {
@@ -17,6 +18,7 @@ const ophthalmoscopy: MiniGameModule = {
     'Vessel signs: A:V ratio, AV nicking, copper wiring, venous dilation, boxcarring',
     'Telling dot-blot and flame haemorrhages, cotton-wool spots, exudates, drusen and new vessels apart',
   ],
+  text: { he: { title: S.he.title, instructions: S.he.instructions, teaches: S.he.teaches } },
   mount(host, ctx, done) {
     let called = false;
     const finish = (r: MiniGameResult) => {

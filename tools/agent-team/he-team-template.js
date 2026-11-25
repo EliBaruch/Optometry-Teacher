@@ -123,6 +123,12 @@ async function runUnit(u) {
     : await agent(writePrompt(u), { label: `write:${u.key}`, phase: 'Write', schema: BUILD_SCHEMA, ...M.write(u) })
   if (!report) return { key: u.key, status: 'write-failed' }
   let review = null
+  // Optional: hand a previous editor's verdict straight to the writer (saves a fresh review).
+  const prior = args && args.priorReview && args.priorReview[u.key]
+  if (prior) {
+    const fixed = await agent(rewritePrompt(u, report, prior, 0), { label: `rewrite:${u.key}#0`, phase: 'Rewrite', schema: BUILD_SCHEMA, ...M.write(u) })
+    if (fixed) report = fixed
+  }
   for (let round = 1; round <= MAX_FIX_ROUNDS + 1; round++) {
     const chk = await agent(checksPrompt(u), { label: `checks:${u.key}#${round}`, phase: 'Checks', schema: CHECK_SCHEMA, ...M.checks() })
     if (chk) chk.failures = (chk.failures || []).filter(f => !/not a failure|ignored|no player-visible|not opened|unconfirmed|\.test\.tsx?|test file|no failures|all passed|passed with no|\bpassed\b.*\bpassed\b/i.test(f))

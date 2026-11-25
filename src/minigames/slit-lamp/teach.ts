@@ -1,4 +1,6 @@
 /** Teaching text: per-sign pearls, per-presentation explanations. Player-facing. */
+import type { Locale } from '@core';
+import { KIND_HE, PEARL_HE } from './he';
 
 export const PEARL: Record<string, string> = {
   'lids/anterior-blepharitis': 'Collarettes (sleeves of debris) at the lash base — scrub, warm compresses, treat Demodex if persistent.',
@@ -36,7 +38,7 @@ export const PEARL: Record<string, string> = {
   'lens/cortical-cataract': 'White spokes from the periphery that cast dark wedges in retro-illumination.',
   'lens/posterior-subcapsular': 'A granular plaque at the back of the lens — glare in bright light; steroids and diabetes are classic causes.',
 };
-export const pearl = (sign: string): string | undefined => PEARL[sign];
+export const pearl = (sign: string, locale: Locale = 'en'): string | undefined => (locale === 'he' ? PEARL_HE[sign] ?? PEARL[sign] : PEARL[sign]);
 
 export type Kind =
   | 'normal' | 'uveitis' | 'angle-closure' | 'narrow-angle' | 'cataract' | 'bacterial' | 'viral' | 'allergic' | 'blepharitis'
@@ -61,3 +63,6 @@ export const KIND_INFO: Record<Kind, { label: string; why: string }> = {
   keratoconus: { label: 'Keratoconus', why: 'Conical thinning with a Fleischer ring and Vogt striae. Refer for corneal topography and consider cross-linking.' },
   hyphema: { label: 'Traumatic hyphaema', why: 'Layered blood in the chamber after a blow. Protect the eye, sit the patient up, check the IOP and angle.' },
 };
+
+/** Label and explanation of a presentation in the edition's language. */
+export const kindInfo = (k: Kind, locale: Locale = 'en'): { label: string; why: string } => (locale === 'he' ? KIND_HE[k] ?? KIND_INFO[k] : KIND_INFO[k]);

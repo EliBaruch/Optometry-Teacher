@@ -3,11 +3,12 @@
  * end-of-practice recognition challenge for the slit lamp. Pure.
  */
 import {
-  buildFindings, EYES, type AnteriorSegment, type DeepPartial, type Eye, type PatientFindings, type PracticeScenario, type Rng,
+  buildFindings, EYES, isolateLtrRuns, type AnteriorSegment, type DeepPartial, type Eye, type Locale, type PatientFindings, type PracticeScenario, type Rng,
 } from '@core';
 import { makePatient } from './people';
-import { KIND_INFO, type Kind } from './teach';
-import { describeSign } from './vocab';
+import { docLocale, slT } from './strings';
+import { KIND_INFO, kindInfo, type Kind } from './teach';
+import { conjPath, corneaPath, describeSign, irisPath, lensPath, lidPath, signLabel } from './vocab';
 
 export interface Question {
   prompt: string;
@@ -144,16 +145,23 @@ export function makeSlitScenario(rng: Rng, difficulty: number): PracticeScenario
   const kind = pickKind(rng, difficulty);
   const g = gen(kind, rng, difficulty);
   const findings = buildFindings(g.age, g.patch);
-  const patient = makePatient(rng, g.age);
-  return { patient, findings, answer: `${KIND_INFO[kind].label}. ${summaryLines(findings).join(' · ')}` };
+  const locale = docLocale();
+  const patient = makePatient(rng, g.age, locale);
+  const answer = `${kindInfo(kind, locale).label}. ${summaryLines(findings, locale).join(' · ')}`;
+  return { patient, findings, answer: locale === 'he' ? isolateLtrRuns(answer) : answer };
 }
 
 /** One-line description of each eye's signs for the answer key. */
-export function summaryLines(f: PatientFindings): string[] {
+export function summaryLines(f: PatientFindings, locale: Locale = 'en'): string[] {
+  const word = (x: string): string => {
+    if (locale !== 'he') return x.replace(/-/g, ' ');
+    const path = lidPath(x as never) ?? conjPath(x as never) ?? corneaPath(x as never) ?? irisPath(x as never) ?? lensPath(x as never);
+    return path ? signLabel(path, locale) : x.replace(/-/g, ' ');
+  };
   return EYES.map((e) => {
     const a = f.anterior[e];
     const bits: string[] = [];
-    const push = (xs: string[], skip: string[]) => xs.filter((x) => !skip.includes(x)).forEach((x) => bits.push(x.replace(/-/g, ' ')));
+    const push = (xs: string[], skip: string[]) => xs.filter((x) => !skip.includes(x)).forEach((x) => bits.push(word(x)));
     push(a.lids, ['normal']);
     push(a.conjunctiva, ['normal', 'preauricular-node']);
     push(a.cornea, ['clear', 'reduced-tbut']);
@@ -161,8 +169,8 @@ export function summaryLines(f: PatientFindings): string[] {
     push(a.lens, ['clear']);
     const ac = a.anteriorChamber;
     bits.push(`VH ${ac.vanHerick}`);
-    if (ac.cells > 0) bits.push(describeSign('chamber/cells', String(ac.cells)));
-    if (ac.flare > 0) bits.push(describeSign('chamber/flare', String(ac.flare)));
+    if (ac.cells > 0) bits.push(describeSign('chamber/cells', String(ac.cells), locale));
+    if (ac.flare > 0) bits.push(describeSign('chamber/flare', String(ac.flare), locale));
     return `${e}: ${bits.join(', ')}`;
   });
 }
@@ -194,13 +202,12 @@ export function classify(f: PatientFindings): Kind {
   return 'normal';
 }
 
-const GRADE_VH = ['Grade 1 (< ¼ CT, closure likely)', 'Grade 2 (¼ CT, narrow)', 'Grade 3 (¼–½ CT)', 'Grade 4 (≥ CT, wide open)'];
-const GRADE_CELLS = ['0.5+ (1–5 cells)', '1+ (6–15)', '2+ (16–25)', '3+ (26–50)', '4+ (> 50)'];
 const CELL_IDS = [0.5, 1, 2, 3, 4];
 
-export function makeSlitChallenge(f: PatientFindings, rng: Rng): Question[] {
+export function makeSlitChallenge(f: PatientFindings, rng: Rng, locale: Locale = 'en'): Question[] {
+  const t = slT(locale).q;
   const kind = classify(f);
-  const truth = KIND_INFO[kind];
+  const truth = kindInfo(kind, locale);
   const pool = (Object.keys(KIND_INFO) as Kind[]).filter((k) => k !== kind);
   const near: Partial<Record<Kind, Kind[]>> = {
     uveitis: ['angle-closure', 'keratitis', 'viral'], 'angle-closure': ['uveitis', 'keratitis', 'narrow-angle'], bacterial: ['viral', 'allergic', 'blepharitis'],
@@ -209,8 +216,8 @@ export function makeSlitChallenge(f: PatientFindings, rng: Rng): Question[] {
   const distract = [...(near[kind] ?? []), ...rng.shuffle(pool)].filter((k, i, a) => a.indexOf(k) === i && k !== kind).slice(0, 3);
   const opts = rng.shuffle([kind, ...distract]);
   const q1: Question = {
-    prompt: 'Which best describes this anterior segment?',
-    options: opts.map((k) => KIND_INFO[k].label),
+    prompt: t.describe,
+    options: opts.map((k) => kindInfo(k, locale).label),
     correct: opts.indexOf(kind),
     explain: `${truth.label}. ${truth.why}`,
   };
@@ -222,25 +229,32 @@ export function makeSlitChallenge(f: PatientFindings, rng: Rng): Question[] {
   const cellEye = EYES.find((e) => f.anterior[e].anteriorChamber.cells > 0);
   if (vh <= 2 || (!cellEye && kind === 'normal')) {
     qs.push({
-      prompt: `What is the Van Herick grade in the ${worstVh === 'OD' ? 'right' : 'left'} eye (${worstVh})?`,
-      options: GRADE_VH, correct: vh - 1,
-      explain: `The peripheral gap is ${vh === 4 ? 'at least a full' : vh === 3 ? '¼ to ½ of the' : vh === 2 ? '¼ of the' : 'less than ¼ of the'} corneal thickness: grade ${vh}. ${vh <= 2 ? 'Narrow angles need gonioscopy before dilating.' : 'The angle is open.'}`,
+      prompt: t.vhPrompt(worstVh),
+      options: t.vhOptions, correct: vh - 1,
+      explain: t.vhExplain(vh),
     });
   } else if (cellEye) {
     const c = f.anterior[cellEye].anteriorChamber.cells;
     qs.push({
-      prompt: `Grade the AC cells in ${cellEye} (SUN scale, 1 × 1 mm field).`,
-      options: GRADE_CELLS, correct: CELL_IDS.indexOf(c),
-      explain: `${GRADE_CELLS[CELL_IDS.indexOf(c)]}: count only white cells in the 1 mm cone, in a dark room, at 25×.`,
+      prompt: t.cellsPrompt(cellEye),
+      options: t.cellsOptions, correct: CELL_IDS.indexOf(c),
+      explain: t.cellsExplain(t.cellsOptions[CELL_IDS.indexOf(c)]!),
     });
   } else {
     const lensEye = EYES.find((e) => f.anterior[e].lens.some((l) => l !== 'clear'));
     if (lensEye) {
       const l = f.anterior[lensEye].lens.find((x) => x !== 'clear')!;
-      const names: Record<string, string> = { 'nuclear-sclerosis': 'Nuclear sclerosis', 'cortical-cataract': 'Cortical cataract', 'posterior-subcapsular': 'Posterior subcapsular cataract', iol: 'Pseudophakia (IOL)', phacodonesis: 'Phacodonesis' };
-      const opts2 = rng.shuffle(['Nuclear sclerosis', 'Cortical cataract', 'Posterior subcapsular cataract', 'Pseudophakia (IOL)']);
-      const right = names[l] ?? 'Nuclear sclerosis';
-      if (opts2.includes(right)) qs.push({ prompt: `Which lens change does ${lensEye} show?`, options: opts2, correct: opts2.indexOf(right), explain: `${right}. Optic section and retro-illumination separate the three age-related types.` });
+      const names = t.lensNames;
+      const opts2 = rng.shuffle([names['nuclear-sclerosis']!, names['cortical-cataract']!, names['posterior-subcapsular']!, names.iol!]);
+      const right = names[l] ?? names['nuclear-sclerosis']!;
+      if (opts2.includes(right)) qs.push({ prompt: t.lensPrompt(lensEye), options: opts2, correct: opts2.indexOf(right), explain: t.lensExplain(right) });
+    }
+  }
+  if (locale === 'he') {
+    for (const q of qs) {
+      q.prompt = isolateLtrRuns(q.prompt);
+      q.options = q.options.map(isolateLtrRuns);
+      q.explain = isolateLtrRuns(q.explain);
     }
   }
   return qs;

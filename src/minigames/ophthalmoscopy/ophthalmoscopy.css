@@ -112,7 +112,7 @@
 .oph-tool:hover { color: var(--lm-ivory); }
 .oph-tool.is-on { color: #c9ffe9; box-shadow: 0 0 0 1px rgba(110, 255, 190, 0.6), 0 0 18px -4px rgba(110, 255, 190, 0.6); background: rgba(10, 60, 40, 0.5); }
 .oph-tool__swatch { width: 12px; height: 12px; border-radius: 50%; background: conic-gradient(#e2502a 0 50%, #4be39b 50% 100%); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4); }
-.oph-tool .lm-kbd { margin-left: 2px; }
+.oph-tool .lm-kbd { margin-inline-start: 2px; }
 .oph-zoom { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(10, 6, 20, 0.78); box-shadow: 0 0 0 1px rgba(255, 236, 210, 0.14); }
 .oph-zoom button { width: 32px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 999px; background: transparent; cursor: pointer; color: var(--lm-muted); }
 .oph-zoom button:hover { color: var(--lm-gold); background: rgba(255, 210, 122, 0.1); }
@@ -145,7 +145,7 @@
 .oph-check li { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: var(--lm-fs-xs); color: var(--lm-muted); }
 .oph-check li + li { border-top: 1px solid rgba(255, 236, 210, 0.06); }
 .oph-check li > span { flex: 1; min-width: 0; }
-.oph-check li b { color: var(--lm-ivory-dim); font-weight: 600; margin-right: 4px; }
+.oph-check li b { color: var(--lm-ivory-dim); font-weight: 600; margin-inline-end: 4px; }
 .oph-check li.is-done { color: var(--lm-ivory); }
 .oph-check li.is-done > svg { color: var(--lm-normal, #5eead4); }
 .oph-link { border: 0; background: transparent; cursor: pointer; font-size: 11px; color: var(--lm-gold); text-decoration: underline; text-underline-offset: 3px; padding: 2px 4px; }
@@ -161,7 +161,7 @@
 
 /* ── chips / segmented / toggles ────────────────────────────────────────── */
 .oph-chip {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: left;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: start;
   background: rgba(8, 4, 16, 0.5); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1);
   transition: transform 160ms var(--lm-ease-out), box-shadow 220ms var(--lm-ease-out), background 220ms var(--lm-ease-out);
 }
@@ -177,7 +177,7 @@
 .oph-seg__opts { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .oph-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-.oph-toggle { display: flex; align-items: flex-start; gap: 9px; padding: 9px 10px; border: 0; border-radius: 12px; cursor: pointer; text-align: left; background: rgba(8, 4, 16, 0.5); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); transition: all 200ms var(--lm-ease-out); }
+.oph-toggle { display: flex; align-items: flex-start; gap: 9px; padding: 9px 10px; border: 0; border-radius: 12px; cursor: pointer; text-align: start; background: rgba(8, 4, 16, 0.5); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); transition: all 200ms var(--lm-ease-out); }
 .oph-toggle strong { display: block; font-size: var(--lm-fs-sm); font-weight: 600; }
 .oph-toggle small { display: block; font-size: 11px; color: var(--lm-muted); line-height: 1.35; }
 .oph-toggle__box { width: 20px; height: 20px; flex: none; margin-top: 1px; border-radius: 6px; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px rgba(255, 236, 210, 0.3); color: #2a1a05; }
@@ -216,7 +216,7 @@
 .oph-radial__spokes { position: absolute; left: 0; top: 0; pointer-events: none; }
 .oph-radial__tap { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid #ffd27a; box-shadow: 0 0 14px rgba(255, 210, 122, 0.8); pointer-events: none; animation: oph-pop 300ms var(--lm-ease-out) both; }
 .oph-radial__item {
-  position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 11px; border: 0; border-radius: 16px; cursor: pointer; box-sizing: border-box; text-align: left; line-height: 1.15;
+  position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 11px; border: 0; border-radius: 16px; cursor: pointer; box-sizing: border-box; text-align: start; line-height: 1.15;
   font-size: 12.5px; font-weight: 600; color: var(--lm-ivory); background: rgba(22, 13, 40, 0.97);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--tone) 60%, transparent), 0 10px 24px -8px rgba(0, 0, 0, 0.9);
   animation: oph-wheel-in 320ms calc(var(--i) * 28ms) var(--lm-ease-spring-soft, ease-out) both;
@@ -239,7 +239,7 @@
 .oph-reflex__eyes { display: flex; gap: clamp(8px, 3vw, 28px); justify-content: center; width: 100%; }
 .oph-reflex__eye { margin: 0; flex: 1 1 0; max-width: 340px; text-align: center; }
 .oph-reflex__eye figcaption { margin-top: 6px; font-size: var(--lm-fs-xs); color: var(--lm-muted); }
-.oph-reflex__eye figcaption b { color: var(--lm-gold); font-family: var(--lm-font-num); margin-right: 4px; }
+.oph-reflex__eye figcaption b { color: var(--lm-gold); font-family: var(--lm-font-num); margin-inline-end: 4px; }
 .oph-pupil { display: block; width: 100%; height: auto; filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.7)); }
 .oph-pupil__pulse { animation: oph-glow 2.8s ease-in-out infinite; transform-origin: center; }
 .oph-reflex__lightbtn { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(6, 3, 13, 0.55); border-radius: 24px; backdrop-filter: blur(1px); }
@@ -284,7 +284,7 @@
 .oph-quiz__eyebrow { margin: 0; font-size: var(--lm-fs-2xs); letter-spacing: 0.16em; text-transform: uppercase; color: var(--lm-muted); }
 .oph-quiz h3 { margin: 4px 0 12px; font-family: var(--lm-font-display); font-weight: 560; font-size: 1.1rem; }
 .oph-quiz__opts { display: flex; flex-direction: column; gap: 7px; }
-.oph-quiz__opt { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: left; font-size: var(--lm-fs-sm); background: rgba(8, 4, 16, 0.5); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); transition: all 180ms var(--lm-ease-out); }
+.oph-quiz__opt { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: start; font-size: var(--lm-fs-sm); background: rgba(8, 4, 16, 0.5); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); transition: all 180ms var(--lm-ease-out); }
 .oph-quiz__opt:hover { background: rgba(255, 210, 122, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.6); transform: translateX(2px); }
 .oph-quiz__opt kbd { font-family: var(--lm-font-num); font-size: 11px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 6px; background: rgba(255, 255, 255, 0.08); color: var(--lm-gold); flex: none; }
 
@@ -308,7 +308,7 @@
 .oph__other i.is-on { color: #0f5b4f; background: var(--lm-normal, #5eead4); box-shadow: 0 0 12px rgba(94, 234, 212, 0.5); }
 .oph .lm-btn--primary { color: #2a1a05; text-shadow: 0 1px 0 rgba(255, 240, 200, 0.5); }
 .oph .lm-btn--primary:disabled { filter: none; opacity: 1; cursor: not-allowed; color: #f3e5c3; text-shadow: none; background: linear-gradient(180deg, #54422a, #3a2c15); box-shadow: inset 0 0 0 1px rgba(255, 214, 140, 0.5), 0 6px 14px -8px rgba(0, 0, 0, 0.8); }
-.oph__need { font-size: var(--lm-fs-xs); color: var(--lm-ivory-dim, #d9cde8); text-align: right; max-width: 230px; line-height: 1.3; }
+.oph__need { font-size: var(--lm-fs-xs); color: var(--lm-ivory-dim, #d9cde8); text-align: end; max-width: 230px; line-height: 1.3; }
 .oph__foot .lm-btn--primary:not(:disabled) { box-shadow: 0 0 0 1px rgba(255, 214, 140, 0.75), 0 0 30px rgba(255, 210, 122, 0.3); }
 
 /* ── animation ──────────────────────────────────────────────────────────── */
@@ -382,3 +382,9 @@
 @media (prefers-reduced-motion: reduce) {
   .oph *, .oph *::before, .oph *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; transition-duration: 1ms !important; }
 }
+
+/* Hebrew edition: no tracking or capitals on Hebrew labels; Latin codes inside the scope stay as they are. */
+:lang(he) .oph__title h2, :lang(he) .oph-dial__cap, :lang(he) .oph-tags h3, :lang(he) .oph-seg__label, :lang(he) .oph-disc__note,
+:lang(he) .oph-debrief__eye h4, :lang(he) .oph-missed > span, :lang(he) .oph-quiz__eyebrow, :lang(he) .oph-tutorial__step,
+:lang(he) .oph-marker b, :lang(he) .oph-radial__item span { letter-spacing: 0; text-transform: none; }
+.oph-markers b { unicode-bidi: plaintext; }

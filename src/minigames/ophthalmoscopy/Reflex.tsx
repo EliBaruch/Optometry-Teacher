@@ -1,13 +1,8 @@
 import { EYES, type Eye, type PatientFindings, type PatientProfile } from '@core';
 import { Button, Icon } from '@ui-kit';
 import { REFLEX_CHOICES, reflexTruth, type ReflexChoice } from './model';
-
-const LABEL: Record<ReflexChoice, { title: string; sub: string }> = {
-  normal: { title: 'Bright & even', sub: 'Clear media' },
-  dull: { title: 'Dull / dim', sub: 'Partial opacity' },
-  absent: { title: 'Absent', sub: 'No glow' },
-  leukocoria: { title: 'White', sub: 'Leukocoria' },
-};
+import { useLocale, useT } from './locale';
+import { fix } from './strings';
 
 const GLOW: Record<ReflexChoice, { a: string; b: string; c: string; op: number }> = {
   normal: { a: '#ffb067', b: '#e2502a', c: '#8e1810', op: 1 },
@@ -17,10 +12,11 @@ const GLOW: Record<ReflexChoice, { a: string; b: string; c: string; op: number }
 };
 
 function Pupil({ eye, truth, iris, reduced, lit }: { eye: Eye; truth: ReflexChoice; iris: string; reduced: boolean; lit: boolean }) {
+  const t = useT();
   const g = GLOW[lit ? truth : 'absent'];
   const id = `oph-rr-${eye}`;
   return (
-    <svg viewBox="-100 -100 200 200" class="oph-pupil" role="img" aria-label={`${eye === 'OD' ? 'Right' : 'Left'} pupil under the ophthalmoscope light`}>
+    <svg viewBox="-100 -100 200 200" class="oph-pupil" role="img" aria-label={t.pupilAria(t.eyeSide[eye])}>
       <defs>
         <radialGradient id={`${id}-iris`} r="1">
           <stop offset="0.3" stop-color="#05030a" />
@@ -68,30 +64,32 @@ export interface ReflexStepProps {
 
 /** Step one: compare the two red reflexes from arm's length. */
 export function ReflexStep({ findings, patient, calls, onCall, onContinue, reducedMotion, lit, onLight }: ReflexStepProps) {
+  const t = useT();
+  const loc = useLocale();
   const ready = EYES.every((e) => calls[e]);
   return (
     <div class="oph-reflex">
       <div class="oph-reflex__scope">
-        <div class="oph-reflex__eyes">
+        <div class="oph-reflex__eyes" dir="ltr">
           {EYES.map((e) => (
             <figure key={e} class="oph-reflex__eye">
               <Pupil eye={e} truth={reflexTruth(findings.redReflex[e])} iris={patient.avatar.irisColor} reduced={reducedMotion} lit={lit} />
-              <figcaption><b>{e}</b> {e === 'OD' ? 'right eye' : 'left eye'}</figcaption>
+              <figcaption><b>{e}</b> {t.pupilCaption[e]}</figcaption>
             </figure>
           ))}
         </div>
         {!lit && (
           <div class="oph-reflex__lightbtn">
-            <Button variant="primary" size="lg" icon="ophthalmoscopy" sfx={false} onClick={onLight} data-testid="oph-light">Shine the light</Button>
-            <span>From about 50 cm, light on both pupils together</span>
+            <Button variant="primary" size="lg" icon="ophthalmoscopy" sfx={false} onClick={onLight} data-testid="oph-light">{t.shineLight}</Button>
+            <span>{fix(loc, t.shineHint)}</span>
           </div>
         )}
       </div>
       <div class={`oph-reflex__panel${lit ? ' is-on' : ''}`}>
-        <h3>What do you see in each pupil?</h3>
-        <p>Compare the two eyes. A reflex that is dimmer, absent or white means something is in the way of the light: lens, vitreous or retina.</p>
+        <h3>{t.reflexQ}</h3>
+        <p>{t.reflexBody}</p>
         {EYES.map((e) => (
-          <div class="oph-reflex__row" key={e} role="radiogroup" aria-label={`${e} red reflex`}>
+          <div class="oph-reflex__row" key={e} role="radiogroup" aria-label={t.reflexRowAria(e)}>
             <span class="oph-reflex__eyecode">{e}</span>
             {REFLEX_CHOICES.map((c) => (
               <button
@@ -104,15 +102,15 @@ export function ReflexStep({ findings, patient, calls, onCall, onContinue, reduc
                 onClick={() => onCall(e, c)}
                 data-testid={`oph-reflex-${e}-${c}`}
               >
-                <strong>{LABEL[c].title}</strong>
-                <small>{LABEL[c].sub}</small>
+                <strong>{t.reflexChoice[c].title}</strong>
+                <small>{t.reflexChoice[c].sub}</small>
               </button>
             ))}
           </div>
         ))}
         <div class="oph-reflex__go">
-          <Button variant="primary" size="lg" trailingIcon="arrow-right" disabled={!ready} sfx={false} onClick={onContinue} data-testid="oph-reflex-continue">Look at the fundus</Button>
-          {!ready && lit && <span><Icon name="info" size={13} /> Choose a reflex for each eye</span>}
+          <Button variant="primary" size="lg" trailingIcon="arrow-right" disabled={!ready} sfx={false} onClick={onContinue} data-testid="oph-reflex-continue">{t.lookFundus}</Button>
+          {!ready && lit && <span><Icon name="info" size={13} /> {t.pickReflex}</span>}
         </div>
       </div>
     </div>

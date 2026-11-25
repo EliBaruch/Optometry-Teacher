@@ -1,4 +1,5 @@
 import { useRef } from 'preact/hooks';
+import { useT } from './locale';
 
 export interface LensDialProps {
   /** lens wheel setting in dioptres */
@@ -17,6 +18,7 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 /** Rekoss-style lens wheel: drag, mouse wheel, or arrow keys; one click per dioptre. */
 export function LensDial({ value, min = -10, max = 10, disabled, cue, sharpness, onChange }: LensDialProps) {
+  const t = useT();
   const drag = useRef<{ y: number; x: number; v: number } | null>(null);
   const set = (v: number) => {
     const nv = clamp(Math.round(v), min, max);
@@ -24,16 +26,16 @@ export function LensDial({ value, min = -10, max = 10, disabled, cue, sharpness,
   };
   const label = `${value > 0 ? '+' : value < 0 ? '−' : ''}${Math.abs(value)}`;
   return (
-    <div class={`oph-dial${disabled ? ' is-off' : ''}${sharpness > 0.92 ? ' is-sharp' : ''}${cue && !disabled ? ' is-cue' : ''}`}>
+    <div dir="ltr" class={`oph-dial${disabled ? ' is-off' : ''}${sharpness > 0.92 ? ' is-sharp' : ''}${cue && !disabled ? ' is-cue' : ''}`}>
       <div
         class="oph-dial__knob"
         role="slider"
         tabIndex={disabled ? -1 : 0}
-        aria-label="Lens wheel, dioptres"
+        aria-label={t.dialAria}
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
-        aria-valuetext={`${label} dioptres`}
+        aria-valuetext={t.dialValue(label)}
         aria-disabled={disabled}
         data-testid="oph-dial"
         onKeyDown={(e) => {
@@ -86,7 +88,7 @@ export function LensDial({ value, min = -10, max = 10, disabled, cue, sharpness,
       </div>
       <div class="oph-dial__cap">
         <span class="oph-dial__lamp" aria-hidden="true" />
-        <span>{disabled ? '20 D lens' : cue ? 'Turn me' : 'Lens wheel'}</span>
+        <span>{disabled ? t.dialScope : cue ? t.dialCue : t.dialLabel}</span>
       </div>
     </div>
   );

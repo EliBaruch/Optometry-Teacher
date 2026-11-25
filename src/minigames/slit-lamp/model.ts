@@ -7,7 +7,8 @@
  * Coordinates are millimetres from the corneal centre, image axes
  * (+x = examiner's right, +y = down). OD temporal is on the examiner's left.
  */
-import { createRng, type Eye, type PatientFindings } from '@core';
+import { createRng, type Eye, type Locale, type PatientFindings } from '@core';
+import { HINT_HE, TECHNIQUE_HE } from './he';
 import { eyeGeometry, stainGeometry, type EyeState } from '@render';
 import {
   conjPath, corneaPath, irisPath, lensPath, lidPath, parseSelection, REGION_IDS, regionOf, type RegionId,
@@ -40,6 +41,9 @@ export const TECHNIQUES: Technique[] = ['diffuse', 'broad', 'section', 'conical'
 export const TECHNIQUE_LABEL: Record<Technique, string> = {
   diffuse: 'Diffuse', broad: 'Broad', section: 'Section', conical: 'Cone', retro: 'Retro',
 };
+
+/** Technique name in the edition's language. */
+export const techniqueLabel = (t: Technique, locale: Locale = 'en'): string => (locale === 'he' ? TECHNIQUE_HE[t] : TECHNIQUE_LABEL[t]);
 
 export function technique(s: LampSetting): Technique {
   if (s.retro) return 'retro';
@@ -159,19 +163,20 @@ export function clarity(sign: string, s: LampSetting, grade = 0): number {
 export const RESOLVABLE = 0.5;
 
 /** One-line instruction on how to bring a sign into view (the Hint button). */
-export function techniqueHint(sign: string): string {
+export function techniqueHint(sign: string, locale: Locale = 'en'): string {
+  const he = locale === 'he';
   const r = regionOf(sign);
-  if (sign === 'chamber/van-herick') return 'Thin section (~0.15 mm), arm at 45–60°, aimed at the temporal limbus.';
-  if (sign === 'chamber/cells' || sign === 'chamber/flare') return 'Room lights off, 1 mm cone, 25×, arm 45–60°, aimed through the pupil.';
-  if (sign === 'chamber/hypopyon' || sign === 'chamber/hyphema') return 'Broad or diffuse light — gravity pools the level in the lower chamber.';
-  if (sign === 'cornea/deposits/fleischer-ring') return 'Cobalt blue filter highlights the iron line round the cone base.';
-  if (sign === 'cornea/stroma/vogt-striae' || sign === 'cornea/stroma/cone-thinning') return 'Optic section through the cone; Vogt striae sit deep in the stroma.';
-  if (sign.startsWith('cornea/')) return 'Parallelepiped or optic section at 16× or more, scanning the cornea.';
-  if (sign === 'iris/transillumination') return 'Retro-illumination: bounce light off the fundus and look for light through the iris.';
-  if (sign.startsWith('iris/')) return 'Broad beam or diffuse light, 16×, across the iris surface.';
-  if (sign.startsWith('lens/')) return 'Optic section through the pupil, or retro-illumination against the red reflex, 16×+.';
-  if (r === 'lids' || r === 'conj') return 'Diffuse light at low power — then 16× for fine detail such as follicles.';
-  return 'Change the beam, magnification or filter and look again.';
+  if (sign === 'chamber/van-herick') return he ? HINT_HE.vanHerick : 'Thin section (~0.15 mm), arm at 45–60°, aimed at the temporal limbus.';
+  if (sign === 'chamber/cells' || sign === 'chamber/flare') return he ? HINT_HE.cellsFlare : 'Room lights off, 1 mm cone, 25×, arm 45–60°, aimed through the pupil.';
+  if (sign === 'chamber/hypopyon' || sign === 'chamber/hyphema') return he ? HINT_HE.hypopyonHyphema : 'Broad or diffuse light — gravity pools the level in the lower chamber.';
+  if (sign === 'cornea/deposits/fleischer-ring') return he ? HINT_HE.fleischer : 'Cobalt blue filter highlights the iron line round the cone base.';
+  if (sign === 'cornea/stroma/vogt-striae' || sign === 'cornea/stroma/cone-thinning') return he ? HINT_HE.vogtCone : 'Optic section through the cone; Vogt striae sit deep in the stroma.';
+  if (sign.startsWith('cornea/')) return he ? HINT_HE.cornea : 'Parallelepiped or optic section at 16× or more, scanning the cornea.';
+  if (sign === 'iris/transillumination') return he ? HINT_HE.transillum : 'Retro-illumination: bounce light off the fundus and look for light through the iris.';
+  if (sign.startsWith('iris/')) return he ? HINT_HE.iris : 'Broad beam or diffuse light, 16×, across the iris surface.';
+  if (sign.startsWith('lens/')) return he ? HINT_HE.lens : 'Optic section through the pupil, or retro-illumination against the red reflex, 16×+.';
+  if (r === 'lids' || r === 'conj') return he ? HINT_HE.lidsConj : 'Diffuse light at low power — then 16× for fine detail such as follicles.';
+  return he ? HINT_HE.fallback : 'Change the beam, magnification or filter and look again.';
 }
 
 // ───────────────────────── sites: where the true signs are
