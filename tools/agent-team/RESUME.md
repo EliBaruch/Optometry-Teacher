@@ -34,3 +34,12 @@ wf_f5a7b76d-d74 (mg-visual-acuity, mg-phoropter, mg-keratometry) · wf_7ae52ba3-
 
 Before resuming: start the dev server (`npx vite --port 5173 --strictPort --host 127.0.0.1`) — builders and
 critics screenshot through it with `scripts/shot.cjs`.
+
+## Update 2026-11-25 08:30 UTC (after second usage-limit stop at 06:50 UTC)
+Built (reviews pending, cut off by the limit): all 7 systems, scene-results, scene-meta, mg-visual-acuity,
+mg-phoropter, mg-color-vision, mg-amsler; partial: mg-keratometry, mg-visual-fields.
+Now running: render revise (wf_e24dfd0e-8db), ui-kit revise (wf_fa54d3a9-c32),
+[scene-exam, scene-hub] (wf_ea539bf2-c0d), [scene-title, mg-slit-lamp] (wf_84fa85db-8b9).
+Still to resume later: wf_a09adb36-637, wf_d78e444f-f28, wf_9ef352fc-414 (system reviews),
+wf_8a034212-fc7 (results/meta reviews), wf_f5a7b76d-d74, wf_7ae52ba3-802 (mini-game reviews/builds);
+then new: mg-retinoscopy, mg-pupils, mg-cover-test, mg-motility, mg-tonometry, mg-ophthalmoscopy.
