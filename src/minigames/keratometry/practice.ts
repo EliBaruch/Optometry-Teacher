@@ -3,7 +3,7 @@
  * recognition challenge. Pure: rng in, data out.
  */
 import {
-  buildFindings, EYES, isolateLtrRuns, pickStrings, type DeepPartial, type Eye, type Keratometry, type PatientFindings, type PatientProfile,
+  buildFindings, EYES, isolateLtr, isolateLtrRuns, pickStrings, type DeepPartial, type Eye, type Keratometry, type PatientFindings, type PatientProfile,
   type Locale, type PerEye, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
@@ -16,7 +16,7 @@ const NAMES_F = ['Amara Okafor', 'Lena Fischer', 'Priya Raman', 'Sofia Marquez',
 const NAMES_M = ['Theo Laurent', 'Kwame Mensah', 'Arjun Mehta', 'Mateo Rossi', 'Yusuf Demir', 'Owen Gallagher', 'Kenji Mori', 'Samir Aziz'];
 const NAMES_F_HE = ['אמרה אוקפור', 'לנה פישר', 'פריה רמן', 'סופיה מרקס', 'הנה סאטו', 'נור חדאד', 'שלומית אזולאי', 'אינס דוארטה'];
 const NAMES_M_HE = ['תיאו לורן', 'קוואמה מנסה', 'ארג׳ון מהטה', 'מתאו רוסי', 'יוסף דמיר', 'אוון גלאגר', 'קנג׳י מורי', 'סמיר עזיז'];
-const JOBS_HE = ['מרכיב עדשות מגע', 'מעצבת גרפית', 'נהג אוטובוס', 'כנר', 'בריסטה', 'סטודנט להנדסה', 'טייס', 'ספרנית', 'גיימר', 'אחות'];
+const JOBS_HE: [string, string][] = [['מרכיבת עדשות מגע', 'מרכיב עדשות מגע'], ['מעצבת גרפית', 'מעצב גרפי'], ['נהגת אוטובוס', 'נהג אוטובוס'], ['כנרית', 'כנר'], ['בריסטה', 'בריסטה'], ['סטודנטית להנדסה', 'סטודנט להנדסה'], ['טייסת', 'טייס'], ['ספרנית', 'ספרן'], ['גיימרית', 'גיימר'], ['אחות', 'אח']];
 const PERSONALITY_HE: [string, string][] = [
   ['קובעת מבט יציב ומשתפת פעולה.', 'קובע מבט יציב ומשתף פעולה.'],
   ['מצמצת הרבה מול האור.', 'מצמץ הרבה מול האור.'],
@@ -153,13 +153,13 @@ export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
     name: rng.pick(sex === 'F' ? (he ? NAMES_F_HE : NAMES_F) : (he ? NAMES_M_HE : NAMES_M)),
     age: g.age,
     sex,
-    occupation: rng.pick(he ? JOBS_HE : JOBS),
+    occupation: he ? rng.pick(JOBS_HE)[sex === 'F' ? 0 : 1]! : rng.pick(JOBS),
     personality: he
       ? rng.pick(PERSONALITY_HE)[sex === 'F' ? 0 : 1]
       : rng.pick(['Steady fixation, very cooperative.', 'Blinks a lot under the light.', 'Curious about the glowing rings.', 'A little nervous, chin keeps drifting.']),
     avatar: { ...generateAvatar(rng, { age: g.age, sex }), glasses: 'none' },
   };
-  const line = (e: Eye) => `${e} ${fmtReading(normalizeK(g.k[e]))} (${describeKind(g.k[e], locale).toLowerCase()})`;
+  const line = (e: Eye) => `${e} ${locale === 'he' ? isolateLtr(fmtReading(normalizeK(g.k[e]))) : fmtReading(normalizeK(g.k[e]))} (${describeKind(g.k[e], locale).toLowerCase()})`;
   return { patient, findings, answer: fix(locale, `${line('OD')} · ${line('OS')}`) };
 }
 

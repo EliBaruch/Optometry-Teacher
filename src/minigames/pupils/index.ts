@@ -1,5 +1,5 @@
 import { h, render } from 'preact';
-import type { MiniGameModule } from '@core';
+import { isolateLtrRuns, type MiniGameModule } from '@core';
 import { Game } from './Game';
 import { makeScenario } from './practice';
 import { report } from './report';
@@ -19,7 +19,7 @@ const pupils: MiniGameModule = {
     'Anisocoria greater in the light points to the large pupil (tonic, third nerve or drug-blocked)',
     'Light-near dissociation: poor reaction to light, brisk constriction to near',
   ],
-  text: { he: { title: S.he.title, instructions: S.he.instructions, teaches: S.he.teaches } },
+  text: { he: { title: S.he.title, instructions: S.he.instructions, teaches: S.he.teaches.map(isolateLtrRuns) } },
   mount(host, ctx, done) {
     let called = false;
     const once: typeof done = (r) => {

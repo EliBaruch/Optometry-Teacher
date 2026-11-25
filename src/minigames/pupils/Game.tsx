@@ -337,7 +337,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
                 </div>
               ))}
             </div>
-            <div class={`pu-nearpin${near ? ' is-on' : ''}`} aria-hidden="true"><b>{t.near}</b><i>33 cm</i></div>
+            <div class={`pu-nearpin${near ? ' is-on' : ''}`} aria-hidden="true"><b>{t.near}</b><i>{ctx.locale === 'he' ? '33 ס״מ' : '33 cm'}</i></div>
             <div class="pu-spot" ref={(el) => { dom.current.spot = el; }} style={{ ['--r' as never]: `${Math.round(eyeW * 0.2)}px` }} aria-hidden="true" />
             <svg class="pu-ring" ref={(el) => { dom.current.ringBox = el; }} width="84" height="84" viewBox="-42 -42 84 84" aria-hidden="true">
               <circle r="36" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="3" />
@@ -394,16 +394,16 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
           <section class="pu-panel pu-panel--call" aria-label={t.yourCall}>
             <div class="pu-panel__h"><span class="pu-eyebrow">{t.yourCall}</span></div>
             <p class="pu-note">{t.callQ}</p>
-            <div class="pu-seg pu-seg--wide" role="radiogroup" aria-label={t.rapdSide}>
+            <div class="pu-seg pu-seg--wide" role="radiogroup" dir="ltr" aria-label={t.rapdSide}>
               {([['none', t.noRapd], ['OD', 'OD'], ['OS', 'OS']] as const).map(([v, label]) => (
                 <button key={v} type="button" role="radio" aria-checked={calledSide === v} class={`pu-seg__b${calledSide === v ? ' is-on' : ''}`}
                   onClick={() => { play('lens-click', { volume: 0.5 }); setCall({ side: v, grade: v === 'none' ? null : call.grade }); }}>{label}</button>
               ))}
             </div>
-            <div class={`pu-grades${calledSide === 'OD' || calledSide === 'OS' ? '' : ' is-off'}`} role="radiogroup" aria-label={t.rapdGrade}>
+            <div class={`pu-grades${calledSide === 'OD' || calledSide === 'OS' ? '' : ' is-off'}`} role="radiogroup" dir="ltr" aria-label={t.rapdGrade}>
               {([1, 2, 3, 4] as const).map((g) => (
                 <button key={g} type="button" role="radio" aria-checked={call.grade === g} disabled={calledSide !== 'OD' && calledSide !== 'OS'} class={`pu-seg__b${call.grade === g ? ' is-on' : ''}`}
-                  onClick={() => { play('tick', { pitch: 0.8 + g * 0.1 }); setCall({ ...call, grade: g }); }}>{g}+</button>
+                  onClick={() => { play('tick', { pitch: 0.8 + g * 0.1 }); setCall({ ...call, grade: g }); }}><bdi dir="ltr">{g}+</bdi></button>
               ))}
             </div>
             <p class="pu-note pu-note--dim">{fixL(t.gradeNote)}</p>

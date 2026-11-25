@@ -5,14 +5,14 @@
  * afferent pupillary defect is always significant (critical); a fixed dilated
  * pupil beside a brisk fellow is an emergency pattern until proven otherwise.
  */
-import { EYES, pickStrings, type Eye, type Locale, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
+import { EYES, isolateLtrRuns, pickStrings, type Eye, type Locale, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
 import { anisocoria, lagEye, ptosisEyes } from './model';
 import { S } from './strings';
 
 export const LIGHT_RANGE: [number, number] = [2, 4.5];
 export const DARK_RANGE: [number, number] = [3.5, 8];
 
-const fmt = (v: number) => `${v.toFixed(1)} mm`;
+const fmt = (v: number, he = false) => (he ? `${v.toFixed(1)} מ״מ` : `${v.toFixed(1)} mm`);
 /** Chart lines in the edition's language. `report()` is the English form used by tests and auto-run. */
 export function reportFor(f: PatientFindings, locale: Locale): RevealedFinding[] {
   const t = pickStrings(S, locale);
@@ -21,11 +21,11 @@ export function reportFor(f: PatientFindings, locale: Locale): RevealedFinding[]
   const an = anisocoria(f);
   for (const eye of EYES) {
     const v = p.sizeLightMm[eye];
-    out.push({ label: t.pupilLight, value: fmt(v), eye, flag: v < LIGHT_RANGE[0] || v > LIGHT_RANGE[1] ? 'abnormal' : 'normal' });
+    out.push({ label: t.pupilLight, value: fmt(v, locale === 'he'), eye, flag: v < LIGHT_RANGE[0] || v > LIGHT_RANGE[1] ? 'abnormal' : 'normal' });
   }
   for (const eye of EYES) {
     const v = p.sizeDarkMm[eye];
-    out.push({ label: t.pupilDark, value: fmt(v), eye, flag: v < DARK_RANGE[0] || v > DARK_RANGE[1] ? 'abnormal' : 'normal' });
+    out.push({ label: t.pupilDark, value: fmt(v, locale === 'he'), eye, flag: v < DARK_RANGE[0] || v > DARK_RANGE[1] ? 'abnormal' : 'normal' });
   }
   if (an.pattern !== 'none') {
     const where = t.anisoWhere[an.pattern];
@@ -62,7 +62,7 @@ export function reportFor(f: PatientFindings, locale: Locale): RevealedFinding[]
     const s = p.shape?.[eye];
     if (s && s !== 'round') out.push({ label: t.pupilShape, value: t.shape[s] ?? t.shape.irregular!, eye: eye as Eye, flag: 'abnormal' });
   }
-  return out;
+  return locale === 'he' ? out.map((o) => ({ ...o, value: isolateLtrRuns(o.value) })) : out;
 }
 
 export const report = (f: PatientFindings, _patient?: PatientProfile): RevealedFinding[] => reportFor(f, 'en');
