@@ -1,6 +1,5 @@
-import { createRng, pickCase, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
+import { createRng, pickStrings, pickCase, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
 import { casesCompleted, ensureTracking } from './experience';
-import { pickStrings } from '@core';
 import { S } from './strings';
 
 export const CODE_RED_LENGTH = 4;
@@ -80,7 +79,7 @@ const codeRed: ModeModule = {
   id: 'code-red',
   title: 'Code Red',
   tagline: 'Sight on the line. Spot the red flags and make the call before the clock runs out.',
-  text: { he: { title: 'קוד אדום', tagline: 'הראייה על הכף. זהו את דגלי האזהרה וקבלו החלטה לפני שהשעון נגמר.' } },
+  text: { he: { title: 'קוד אדום', tagline: 'הראייה על הכף. זהו את הדגלים האדומים וקבלו החלטה לפני שהשעון נגמר.' } },
   icon: '🚨',
   accent: '#ef4444',
   order: 40,

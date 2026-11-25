@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { defineStrings, pickStrings } from '@core';
 import type { ClinicalCase, GameServices, LearningPort, MiniGameResult, TestId } from '@core';
 import { asComponent, Button, GlassPanel, HudSlot, Screen, ToastHost, useSignal } from '@ui-kit';
 import ranks from '../../../systems/ranks';
@@ -15,6 +16,25 @@ import type { SandboxPage } from '../Sandbox';
  *   ?sandbox=page/sys-ranks&demo=1&view=career[&tab=trophies|ladder]
  * Cases are played through the real CaseSession so the score is the core's.
  */
+
+const T = defineStrings({
+  en: {
+    career: 'Career', eyebrow: 'System sandbox', simulate: 'Simulate', real: 'Real case sessions',
+    perfect: 'Perfect S case', good: 'Good case', miss: 'Missed diagnosis', emergency: 'Emergency triaged',
+    review: 'Second Opinion case', practice: 'Flawless practice', tier: 'Tier level-up', promo: 'Promotion',
+    seed: 'Seed demo career', reset: 'Reset', open: 'Open Career scene', daily: 'Daily gift',
+    promoReason: 'Promotion review', mentor: 'Mentor feedback',
+    meta: (xp: number, cases: number, tr: number, total: number, loaded: number) => `XP ${xp} · cases ${cases} · trophies ${tr}/${total} · ${loaded} cases loaded`,
+  },
+  he: {
+    career: 'קריירה', eyebrow: 'ארגז חול למערכת', simulate: 'סימולציה', real: 'סבבי מקרים אמיתיים',
+    perfect: 'מקרה S מושלם', good: 'מקרה טוב', miss: 'אבחנה שפוספסה', emergency: 'מקרה דחוף שהופנה נכון',
+    review: 'מקרה של חוות דעת שנייה', practice: 'אימון ללא רבב', tier: 'עלייה בשלב', promo: 'קידום',
+    seed: 'מילוי קריירה לדוגמה', reset: 'איפוס', open: 'פתיחת מסך הקריירה', daily: 'מתנה יומית',
+    promoReason: 'ועדת קידום', mentor: 'משוב מהמנטור',
+    meta: (xp: number, cases: number, tr: number, total: number, loaded: number) => `XP ${xp} · מקרים ${cases} · גביעים ${tr}/${total} · ${loaded} מקרים נטענו`,
+  },
+});
 
 type Quality = 'perfect' | 'good' | 'miss';
 
@@ -69,15 +89,17 @@ function seedDemo(services: GameServices): Map<string, number> {
 
 /** Park XP just short of the next tier / rank, then grant the rest so the real engine stages the moment. */
 function bumpTo(services: GameServices, what: 'tier' | 'rank') {
+  const t = pickStrings(T, services.locale);
   const slot = ranksSlot(services);
   const i = levelInfo(slot.get().xp);
   const target = what === 'rank' && i.nextRank ? i.xp + i.toNextRank : i.levelEndXp;
   slot.update((s) => ({ ...s, xp: Math.max(s.xp, target - 40) }));
-  services.bus.emit('xp:grant', { amount: 60, reason: what === 'rank' ? 'Promotion review' : 'Mentor feedback' });
+  services.bus.emit('xp:grant', { amount: 60, reason: what === 'rank' ? t.promoReason : t.mentor });
 }
 
 function SysRanksPage({ services }: { services: GameServices }) {
   const q = new URLSearchParams(location.search);
+  const t = pickStrings(T, services.locale);
   const route = useSignal(services.router.current);
   const st = useSignal(ranksSlot(services));
   const [log, setLog] = useState<string[]>([]);
@@ -139,25 +161,25 @@ function SysRanksPage({ services }: { services: GameServices }) {
   }
 
   return (
-    <Screen title="Career" eyebrow="System sandbox" backdrop="results" class="sb-ranks">
+    <Screen title={t.career} eyebrow={t.eyebrow} backdrop="results" class="sb-ranks">
       <style>{CSS}</style>
       <div class="sb-ranks__grid">
-        <GlassPanel title="Simulate" eyebrow="Real case sessions" icon="play" class="sb-ranks__ctl">
+        <GlassPanel title={t.simulate} eyebrow={t.real} icon="play" class="sb-ranks__ctl">
           <div class="sb-ranks__btns">
-            <Button variant="primary" icon="star" onClick={() => run('perfect')} data-sb="perfect">Perfect S case</Button>
-            <Button icon="check" onClick={() => run('good')} data-sb="good">Good case</Button>
-            <Button icon="x" onClick={() => run('miss')} data-sb="miss">Missed diagnosis</Button>
-            <Button icon="lightning" onClick={() => run('perfect', (c) => !!c.emergency || c.urgency === 'emergency')} data-sb="emergency">Emergency triaged</Button>
-            <Button icon="refresh" onClick={() => run('perfect', () => true, 'review')} data-sb="review">Second Opinion case</Button>
-            <Button icon="target" onClick={() => services.bus.emit('practice:completed', { testId: 'tonometry', result: { testId: 'tonometry', accuracy: 1, timeMs: 9000, findings: [], perfect: true } })} data-sb="practice">Flawless practice</Button>
-            <Button icon="plus" onClick={() => services.bus.emit('xp:grant', { amount: 250, reason: 'Daily gift' })} data-sb="grant">xp:grant +250</Button>
-            <Button icon="trophy" onClick={() => bumpTo(services, 'tier')} data-sb="tierup">Tier level-up</Button>
-            <Button icon="crown" onClick={() => bumpTo(services, 'rank')} data-sb="rankup">Promotion</Button>
-            <Button icon="sparkle" onClick={() => setDemo(seedDemo(services))} data-sb="demo">Seed demo career</Button>
-            <Button variant="ghost" icon="refresh" onClick={() => { ranksSlot(services).set(initialState()); setDemo(null); }} data-sb="reset">Reset</Button>
-            <Button variant="glass" trailingIcon="arrow-right" onClick={() => services.router.go('career')} data-sb="open">Open Career scene</Button>
+            <Button variant="primary" icon="star" onClick={() => run('perfect')} data-sb="perfect">{t.perfect}</Button>
+            <Button icon="check" onClick={() => run('good')} data-sb="good">{t.good}</Button>
+            <Button icon="x" onClick={() => run('miss')} data-sb="miss">{t.miss}</Button>
+            <Button icon="lightning" onClick={() => run('perfect', (c) => !!c.emergency || c.urgency === 'emergency')} data-sb="emergency">{t.emergency}</Button>
+            <Button icon="refresh" onClick={() => run('perfect', () => true, 'review')} data-sb="review">{t.review}</Button>
+            <Button icon="target" onClick={() => services.bus.emit('practice:completed', { testId: 'tonometry', result: { testId: 'tonometry', accuracy: 1, timeMs: 9000, findings: [], perfect: true } })} data-sb="practice">{t.practice}</Button>
+            <Button icon="plus" onClick={() => services.bus.emit('xp:grant', { amount: 250, reason: t.daily })} data-sb="grant">xp:grant +250</Button>
+            <Button icon="trophy" onClick={() => bumpTo(services, 'tier')} data-sb="tierup">{t.tier}</Button>
+            <Button icon="crown" onClick={() => bumpTo(services, 'rank')} data-sb="rankup">{t.promo}</Button>
+            <Button icon="sparkle" onClick={() => setDemo(seedDemo(services))} data-sb="demo">{t.seed}</Button>
+            <Button variant="ghost" icon="refresh" onClick={() => { ranksSlot(services).set(initialState()); setDemo(null); }} data-sb="reset">{t.reset}</Button>
+            <Button variant="glass" trailingIcon="arrow-right" onClick={() => services.router.go('career')} data-sb="open">{t.open}</Button>
           </div>
-          <div class="sb-ranks__meta lm-num">XP {st.xp} · cases {st.cases} · trophies {Object.keys(st.achievements).length}/{ACHIEVEMENTS.length} · {cases.length} cases loaded</div>
+          <div class="sb-ranks__meta lm-num" dir="auto">{t.meta(st.xp, st.cases, Object.keys(st.achievements).length, ACHIEVEMENTS.length, cases.length)}</div>
           <ol class="sb-ranks__log">{log.map((l, i) => <li key={i}>{l}</li>)}</ol>
         </GlassPanel>
         <div class="sb-ranks__col">
@@ -178,7 +200,7 @@ const CSS = `
 .sb-ranks__col, .sb-ranks__col .hud-slot { display: flex; flex-direction: column; gap: 16px; }
 .sb-ranks__btns { display: flex; flex-wrap: wrap; gap: 8px; }
 .sb-ranks__meta { margin-top: 12px; font-size: 12px; color: var(--lm-muted); }
-.sb-ranks__log { margin: 10px 0 0; padding-left: 18px; font-size: 11px; color: var(--lm-muted); max-height: 220px; overflow: auto; }
+.sb-ranks__log { margin: 10px 0 0; padding-inline-start: 18px; font-size: 11px; color: var(--lm-muted); max-height: 220px; overflow: auto; }
 @media (max-width: 1100px) { .sb-ranks__grid { grid-template-columns: 1fr; } }
 `;
 

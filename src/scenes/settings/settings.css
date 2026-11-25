@@ -251,3 +251,5 @@
   background: radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.3), transparent 45%), radial-gradient(circle, #2a1846, #0b0716 80%);
   box-shadow: 0 0 0 3px #c9962f, 0 0 40px -4px rgba(255, 210, 122, 0.7); animation: lm-pulse 1.2s ease-in-out infinite;
 }
+
+:lang(he) .settings-lede, :lang(he) [class*="settings-"] { font-style: normal; }

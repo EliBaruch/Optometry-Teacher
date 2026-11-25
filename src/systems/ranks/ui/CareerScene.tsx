@@ -38,7 +38,7 @@ export function CareerScene({ services, params }: SceneProps) {
           </div>
           <div class="rk-hero__main">
             <div class="lm-eyebrow rk-hero__eyebrow">
-              {t.levelLine('')}<span class="lm-num">{info.number}</span> · {services.settings.get().playerName}
+              {t.levelLine('')}<span class="lm-num">{info.number}</span> · {services.settings.get().playerName === 'Doctor' ? t.defaultName : services.settings.get().playerName}
             </div>
             <h2 class="rk-hero__title">{info.title}</h2>
             <p class="rk-hero__motto">{info.rank.motto}</p>
@@ -52,7 +52,7 @@ export function CareerScene({ services, params }: SceneProps) {
                   <Icon name={st.icon} size={14} /> {st.label}
                 </dt>
                 <dd>
-                  <CountUp value={st.value} suffix={st.suffix} delay={250 + i * 60} />
+                  <bdi dir="ltr"><CountUp value={st.value} suffix={st.suffix} delay={250 + i * 60} /></bdi>
                 </dd>
               </div>
             ))}

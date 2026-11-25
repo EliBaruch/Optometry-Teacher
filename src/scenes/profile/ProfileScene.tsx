@@ -19,6 +19,8 @@ export function ProfileScene({ services }: SceneProps) {
     return { ...m, label: t.cat[c] ?? m.label };
   };
   const settings = useSignal(services.settings);
+  /** The stored default is the English "Doctor"; show this edition's word for it. */
+  const shownName = settings.playerName === 'Doctor' ? t.fallbackName : settings.playerName;
   const reduced = useReducedMotion();
   const narrow = useNarrow();
   // Phones: give the top bar to the title — the same HUD widgets appear below in "Clinic record".
@@ -49,11 +51,11 @@ export function ProfileScene({ services }: SceneProps) {
 
   /* inline name editing */
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(settings.playerName);
+  const [draft, setDraft] = useState(shownName);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (editing) {
-      setDraft(services.settings.get().playerName);
+      setDraft(shownName);
       requestAnimationFrame(() => inputRef.current?.select());
     }
   }, [editing]);
@@ -81,7 +83,7 @@ export function ProfileScene({ services }: SceneProps) {
     <Screen title={t.title} eyebrow={t.eyebrow} onBack={() => services.router.back()} escToBack={!editing} hud={!compactBar} backdrop="hub" class="profile-scene" contentClass="profile-content">
       <section class="profile-hero" ref={heroRef}>
         <div class="profile-hero__crest">
-          <Crest seed={seed} palette={palette} rarity={tier.rarity} size={narrow ? 124 : 176} initials={initials(settings.playerName, t.fallbackInitials)} />
+          <Crest seed={seed} palette={palette} rarity={tier.rarity} size={narrow ? 124 : 176} initials={initials(shownName, t.fallbackInitials)} />
         </div>
         <div class="profile-hero__id lm-enter" style={d(0)}>
           <div class="lm-eyebrow">{t.greeting(hour)}</div>
@@ -102,7 +104,7 @@ export function ProfileScene({ services }: SceneProps) {
             </form>
           ) : (
             <h2 class="profile-name">
-              <span class="profile-name__text">{settings.playerName}</span>
+              <span class="profile-name__text">{shownName}</span>
               <Button size="sm" variant="glass" class="profile-name__edit" onClick={() => setEditing(true)} aria-label={t.rename}>{t.rename}</Button>
             </h2>
           )}

@@ -13,7 +13,6 @@ interface CodexPrefs {
 
 export function CodexScene({ services, params }: SceneProps) {
   const t = useStrings(S);
-  const rtl = services.locale === 'he';
   const reduced = useReducedMotion();
   const all = useRegistry(services.registries.diagnoses);
   const prefsSlot = useMemo(() => services.save.slot<CodexPrefs>('scene:codex', { study: false }), []);
@@ -56,7 +55,7 @@ export function CodexScene({ services, params }: SceneProps) {
         e.preventDefault();
         searchRef.current?.focus();
       } else if (openId && !typing && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
-        const next = neighbour(flatOpenIds, openId, e.key === 'ArrowRight' ? 1 : -1);
+        const next = neighbour(flatOpenIds, openId, (e.key === 'ArrowRight') === (services.locale !== 'he') ? 1 : -1);
         if (next) {
           e.preventDefault();
           services.audio.play('whoosh', { volume: 0.4 });
@@ -108,7 +107,7 @@ export function CodexScene({ services, params }: SceneProps) {
         <div class="codex-hero__text lm-enter">
           <p class="codex-hero__lede">{t.lede}</p>
           <div class="codex-hero__progress">
-            <ProgressBar value={discovered} max={Math.max(1, all.length)} label={t.discovered} valueText={<><b>{discovered}</b> / {all.length}</>} shimmer={ratio > 0 && ratio < 1} />
+            <ProgressBar value={discovered} max={Math.max(1, all.length)} label={t.discovered} valueText={<bdi dir="ltr"><b>{discovered}</b> / {all.length}</bdi>} shimmer={ratio > 0 && ratio < 1} />
             <span class="codex-hero__mastered"><Icon name="star" /> <b class="lm-num">{mastered}</b> {t.masteredN}</span>
           </div>
           {discovered === 0 && all.length > 0 && !study && (
@@ -205,9 +204,9 @@ export function CodexScene({ services, params }: SceneProps) {
       <Modal open={!!current} onClose={() => setOpenId(null)} size="lg" ariaLabel={current?.name ?? t.entryFallback} accent={current ? cm(current.category).accent : undefined} class="codex-modal"
         footer={flatOpenIds.length > 1 && openId ? (
           <div class="codex-pager">
-            <Button variant="ghost" size="sm" icon={rtl ? 'chevron-right' : 'chevron-left'} onClick={() => { const n = neighbour(flatOpenIds, openId, -1); if (n) setOpenId(n); }} sfx="whoosh">{t.previous}</Button>
+            <Button variant="ghost" size="sm" icon="chevron-left" onClick={() => { const n = neighbour(flatOpenIds, openId, -1); if (n) setOpenId(n); }} sfx="whoosh">{t.previous}</Button>
             <span class="codex-pager__hint"><Kbd>←</Kbd><Kbd>→</Kbd></span>
-            <Button variant="ghost" size="sm" trailingIcon={rtl ? 'chevron-left' : 'chevron-right'} onClick={() => { const n = neighbour(flatOpenIds, openId, 1); if (n) setOpenId(n); }} sfx="whoosh">{t.next}</Button>
+            <Button variant="ghost" size="sm" trailingIcon="chevron-right" onClick={() => { const n = neighbour(flatOpenIds, openId, 1); if (n) setOpenId(n); }} sfx="whoosh">{t.next}</Button>
           </div>
         ) : undefined}>
         {current && <EntryDetail key={current.id} services={services} cm={cm} d={current} isUnlocked={isUnlocked} onNavigate={open} />}

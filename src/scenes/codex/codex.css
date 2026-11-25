@@ -23,7 +23,7 @@
   font-family: var(--lm-font-display); font-size: clamp(1.15rem, 0.9rem + 0.9vw, 1.6rem); line-height: 1.3; color: var(--lm-ivory);
   margin-bottom: var(--lm-sp-4); text-wrap: balance; max-width: 34ch;
 }
-.codex-hero__lede::first-letter {
+.codex-hero__lede:not(:lang(he))::first-letter {
   float: inline-start; font-size: 3.1em; line-height: 0.82; padding: 0.06em 0 0 0; padding-inline-end: 0.1em; font-weight: 600;
   background: linear-gradient(180deg, #fff6df, var(--lm-gold) 45%, var(--lm-gold-600)); -webkit-background-clip: text; background-clip: text; color: transparent;
   text-shadow: none; filter: drop-shadow(0 0 12px rgba(255, 210, 122, 0.45));
@@ -225,7 +225,7 @@
 .codex-page__pct small { font-size: 0.55em; color: var(--lm-muted); }
 .codex-page__tier { font-size: var(--lm-fs-2xs); font-weight: 700; letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: var(--acc); }
 .codex-page__summary { font-size: var(--lm-fs-md); line-height: 1.7; color: var(--lm-ivory-dim); }
-.codex-page__summary::first-letter {
+.codex-page__summary:not(:lang(he))::first-letter {
   float: inline-start; font-family: var(--lm-font-display); font-size: 3.6em; line-height: 0.85; padding: 0.04em 0 0 0; padding-inline-end: 0.1em; font-weight: 600; font-style: italic;
   color: var(--acc); text-shadow: 0 0 18px color-mix(in srgb, var(--acc) 50%, transparent);
 }
@@ -343,3 +343,7 @@
   .codex-pager__hint { display: none; }
   .codex-triage { align-items: flex-start; }
 }
+
+/* Hebrew has no true italics; slanted Hebrew letters look synthetic. */
+:lang(he) .codex-hero__line, :lang(he) .codex-hero, :lang(he) .codex-group__blurb, :lang(he) .codex-page__aka,
+:lang(he) [class*="codex-"] { font-style: normal; }

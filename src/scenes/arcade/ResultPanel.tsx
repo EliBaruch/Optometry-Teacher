@@ -26,7 +26,7 @@ export function ResultPanel(props: {
   onExit: () => void;
 }) {
   const t = useStrings(S);
-  const dl = t.diffLabel[props.diff.id];
+  const dl = t.diffLevel[props.diff.id];
   const { result, scenario, score, isBest, firstPlay, previousBest, bestAccuracy } = props.outcome;
   const acc = Math.max(0, Math.min(1, result.accuracy || 0));
   const medal = medalFor(bestAccuracy);
@@ -89,7 +89,7 @@ export function ResultPanel(props: {
         <div class="arcade-result__actions" ref={againRef}>
           <Button variant="primary" icon="refresh" onClick={props.onAgain} sfx="select" aria-keyshortcuts="R">{t.again}</Button>
           {props.harder && acc >= 0.7 && (
-            <Button variant="glass" icon="lightning" onClick={props.onHarder} style={{ '--h': props.harder.accent }}>{t.tryHarder(t.diffLabel[props.harder.id])}</Button>
+            <Button variant="glass" icon="lightning" onClick={props.onHarder} style={{ '--h': props.harder.accent }}>{t.tryHarder(t.diffLevel[props.harder.id])}</Button>
           )}
           <Button variant="ghost" icon="chevron-left" onClick={props.onExit} sfx="back">{t.allInstruments}</Button>
         </div>

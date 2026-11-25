@@ -185,7 +185,9 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               <strong>{best ? best.dxName || best.name : '—'}</strong>
               {best?.grade && (
                 <span class="sm-stat__sub">
-                  {t.bestSub(best.grade, best.total.toLocaleString('en-US'))}
+                  {t.bestGradePrefix}
+                  <b style={{ color: GRADE_COLOR[best.grade] }}>{best.grade}</b>
+                  {t.bestSub(best.total.toLocaleString('en-US'))}
                 </span>
               )}
             </div>
@@ -214,7 +216,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               <span class="sm-row__grade" style={{ '--g': r.grade ? GRADE_COLOR[r.grade] : '#54486b' }}>
                 {r.grade ?? '–'}
               </span>
-              <span class="sm-row__pts lm-num">{r.points ? `+${r.points.toLocaleString('en-US')}` : '—'}</span>
+              <span class="sm-row__pts lm-num">{r.points ? <bdi dir="ltr">{`+${r.points.toLocaleString('en-US')}`}</bdi> : '—'}</span>
               {best === r && (
                 <span class="sm-row__crown" aria-label={t.bestCase}>
                   <Icon name="crown" />

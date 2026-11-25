@@ -21,6 +21,7 @@ export function greetingFor(hour: number, locale: Locale = 'en'): string {
   const t = pickStrings(S, locale);
   if (hour < 5) return t.greetNight;
   if (hour < 12) return t.greetMorning;
+  if (locale === 'he' && hour >= 16 && hour < 18) return t.greetLateAfternoon;
   if (hour < 18) return t.greetAfternoon;
   return t.greetEvening;
 }
@@ -69,7 +70,7 @@ export function buildWings(
   locale: Locale = 'en',
 ): WingView[] {
   const t = pickStrings(S, locale);
-  const names: Record<string, readonly [string, string]> = { arcade: t.arcade, codex: t.codex, profile: t.profile };
+  const names: Record<string, readonly string[]> = { arcade: t.arcade, codex: t.codex, profile: t.profile };
   const taken = new Set(entries.map((e) => e.sceneId));
   const wings: WingView[] = byOrder(entries)
     .filter((e) => hasScene(e.sceneId))

@@ -24,9 +24,9 @@ export const S = defineStrings({
     showWholeLine: 'הציגו את כל המשפט',
     stars: (n: number, max: number) => `${n} מתוך ${max} כוכבים`,
     grade: (g: string, word: string) => `ציון ${g}: ${word}`,
-    remove: (what: string) => `הסרת ${what}`.trim(),
-    rarity: { common: 'נפוץ', rare: 'נדיר', epic: 'אפי', legendary: 'אגדי' } as Record<Rarity, string>,
-    gradeWord: { S: 'למופת', A: 'מצוין', B: 'יציב', C: 'מספיק', D: 'כדאי לחזור', F: 'פוספס' } as Record<Grade, string>,
+    remove: (what: string) => (what.trim() ? `הסרת ${what.trim()}` : 'הסרה'),
+    rarity: { common: 'נפוץ', rare: 'נדיר', epic: 'יוצא דופן', legendary: 'אגדי' } as Record<Rarity, string>,
+    gradeWord: { S: 'למופת', A: 'מצוין', B: 'טוב', C: 'מספיק', D: 'דורש חיזוק', F: 'הוחמץ' } as Record<Grade, string>,
   },
 });
 

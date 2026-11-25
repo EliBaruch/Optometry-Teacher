@@ -69,7 +69,7 @@ export function XpProgress({ from, to, delay = 0, duration, size = 'md', onLevel
     <div class={`rk-xp rk-xp--${size}`} style={{ '--rk-c': info.rank.color, '--rk-c2': info.rank.color2 }}>
       <div class="rk-xp__row">
         <span class="rk-xp__title">{info.title}</span>
-        <span class="rk-xp__val lm-num">
+        <span class="rk-xp__val lm-num" dir="ltr">
           {formatNumber(info.into)} / {formatNumber(info.span)} XP
         </span>
       </div>

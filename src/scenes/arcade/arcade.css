@@ -205,3 +205,6 @@
   .arcade-card--pending .arcade-card__blurb { display: none; }
   .arcade-card--pending .arcade-card__foot { flex-basis: auto; border: 0; padding: 0; }
 }
+
+:lang(he) [class*="arcade-"] { font-style: normal; }
+.arcade-diff__blurb bdi { white-space: nowrap; }

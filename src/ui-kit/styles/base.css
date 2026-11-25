@@ -103,9 +103,16 @@ html.reduced-motion *, html.reduced-motion *::before, html.reduced-motion *::aft
 [dir='rtl'] .lm-icon[data-icon='chevron-left'],
 [dir='rtl'] .lm-icon[data-icon='chevron-right'],
 [dir='rtl'] .lm-icon[data-icon='arrow-left'],
-[dir='rtl'] .lm-icon[data-icon='arrow-right'] { scale: -1 1; }
+[dir='rtl'] .lm-icon[data-icon='arrow-right']:not(.codex-ref__arrow) { scale: -1 1; }
+/* scenes that already mirror their own arrow (hub mode card, codex reference link) must not be flipped twice */
+[dir='rtl'] .hub-mode__go .lm-icon[data-icon='arrow-right'] { scale: none; }
 /* a trailing icon nudges toward the reading direction */
 [dir='rtl'] .lm-btn:hover:not(:disabled) .lm-btn__icon--trail { transform: translateX(-3px); }
 /* Latin/number runs keep their own direction */
 bdi, .lm-ltr { unicode-bidi: isolate; }
 .lm-ltr { direction: ltr; }
+
+/* Hebrew has no capitals and must never be tracked or uppercased. */
+:root:lang(he) { --lm-tracking-caps: 0; }
+:lang(he) .lm-eyebrow, :lang(he) .lm-badge, :lang(he) .lm-reward__rarity, :lang(he) .lm-speech__speaker { letter-spacing: 0; text-transform: none; }
+:lang(he) .lm-reward__rarity { font-size: 11px; }

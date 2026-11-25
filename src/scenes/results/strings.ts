@@ -58,7 +58,7 @@ interface Table {
   caseScore: string;
   par: string;
   keyQuestions: (a: number, b: number) => string;
-  toRun: (n: number) => string;
+  toRunSuffix: string;
   // teaching
   confWrongTitle: string;
   confWrongBefore: string;
@@ -117,7 +117,8 @@ interface Table {
   comboSome: string;
   comboNone: string;
   bestCase: string;
-  bestSub: (g: string, total: string) => string;
+  bestGradePrefix: string;
+  bestSub: (total: string) => string;
   patients: string;
   rowCorrect: string;
   rowTimeout: string;
@@ -206,7 +207,7 @@ export const S = defineStrings<Table>({
     caseScore: 'Case score',
     par: 'par',
     keyQuestions: (a, b) => `${a}/${b} key questions`,
-    toRun: (n) => `+${n} to the run`,
+    toRunSuffix: 'to the run',
     confWrongTitle: 'Confidently wrong: this one will come back for review.',
     confWrongBefore: "That's the best kind of mistake to make here. Errors you felt sure about are the ones the brain corrects most durably. Read why it was ",
     confWrongAfter: " below; you'll meet it again soon.",
@@ -263,7 +264,8 @@ export const S = defineStrings<Table>({
     comboSome: 'In a row',
     comboNone: 'Keep at it',
     bestCase: 'Best case',
-    bestSub: (g, t) => `Grade ${g} · case score ${t}`,
+    bestGradePrefix: 'Grade ',
+    bestSub: (t) => ` · case score ${t}`,
     patients: 'Patients',
     rowCorrect: 'Correct diagnosis',
     rowTimeout: 'Out of time',
@@ -287,7 +289,7 @@ export const S = defineStrings<Table>({
     perfect: 'מקרה מושלם.',
     timeoutHeadline: 'השעון ניצח הפעם.',
     closedHeadline: 'התיק נסגר באמצע.',
-    gradeWord: { S: 'למופת', A: 'מצוין', B: 'מוצק', C: 'סביר', D: 'דורש חזרה', F: 'פספוס' },
+    gradeWord: { S: 'למופת', A: 'מצוין', B: 'טוב', C: 'סביר', D: 'דורש חזרה', F: 'פספוס' },
     verdictTitle: { correct: 'אבחנה נכונה', wrong: 'לא הפעם', timeout: 'נגמר הזמן', abandoned: 'התיק נסגר' },
     category: {
       refractive: 'שבירה', binocular: 'ראייה דו-עינית', anterior: 'עפעפיים ולחמית', cornea: 'קרנית',
@@ -303,27 +305,27 @@ export const S = defineStrings<Table>({
     confidence: { guessing: 'ניחוש', 'fairly-sure': 'די בטוחים', certain: 'בטוחים לגמרי' },
     adviceNoChoice: (label) => `רמת הדחיפות הנכונה כאן: ${label}.`,
     adviceExact: 'בול: המטופל הנכון, בזמן הנכון.',
-    adviceUnderFar: 'דירגתם הרבה פחות מדי דחוף. זה הכיוון המסוכן: כשיש ספק, מעלים דרגה.',
-    adviceUnder: 'דרגה אחת רגוע מדי. טעות לכיוון הזה היא המסוכנת: כשיש ספק, מעלים דרגה.',
-    adviceOverFar: 'דירגתם הרבה יותר מדי דחוף. למטופל זה לא מזיק, אבל זה תופס תור חירום שמישהו אחר אולי צריך.',
-    adviceOver: 'דרגה אחת זהיר מדי. עדיף על ההפך, אבל הפניות מיותרות סותמות את השירותים הדחופים.',
+    adviceUnderFar: 'העריכתם את הדחיפות נמוך בהרבה מדי. זה הכיוון המסוכן: כשיש ספק, מעלים דרגה.',
+    adviceUnder: 'דרגה אחת נמוך מדי. טעות לכיוון הזה היא המסוכנת: כשיש ספק, מעלים דרגה.',
+    adviceOverFar: 'העריכתם את הדחיפות גבוה בהרבה מדי. למטופל זה לא מזיק, אבל זה תופס תור חירום שמישהו אחר אולי צריך.',
+    adviceOver: 'זהירות יתר של דרגה אחת. עדיף על ההפך, אבל הפניות מיותרות סותמות את השירותים הדחופים.',
     partLabel: {
       diagnosis: 'אבחנה', urgency: 'דחיפות הטריאז׳', workup: 'בירור חיוני', efficiency: 'יעילות',
       history: 'לקיחת אנמנזה', skill: 'טכניקת בדיקה', speed: 'מהירות',
     },
     historyCat: {
-      onset: 'התחלה', symptoms: 'תסמינים', 'ocular-history': 'היסטוריה עינית', medical: 'רקע רפואי', medications: 'תרופות', family: 'היסטוריה משפחתית', social: 'אורח חיים',
+      onset: 'הופעה', symptoms: 'תסמינים', 'ocular-history': 'היסטוריה עינית', medical: 'רקע רפואי', medications: 'תרופות', family: 'היסטוריה משפחתית', social: 'אורח חיים',
     },
     noCaseScreen: 'סקירת מקרה',
     noCaseTitle: 'אין מקרה לסקירה',
-    noCaseBody: 'כרגע אין בתיק מטופל שהבדיקה שלו הסתיימה.',
+    noCaseBody: 'אין כרגע מטופל שסיימתם לבדוק.',
     backToClinic: 'חזרה למרפאה',
     caseReview: 'סקירת מקרה',
     perfectFloat: 'מקרה מושלם',
     outOfTime: 'נגמר הזמן',
     closed: 'נסגר',
     sealLabel: 'נגמר הזמן',
-    gradeEyebrow: (g) => `דירוג ${g}`,
+    gradeEyebrow: (g) => `ציון ${g}`,
     noScore: 'בלי ניקוד',
     noScoreBody: 'התשובה הנכונה וההסבר המלא מחכים למטה. האבחנה הזו תחזור אליכם לתרגול חוזר.',
     lesson: 'הלקח',
@@ -331,7 +333,7 @@ export const S = defineStrings<Table>({
     skip: 'דלגו',
     patientOf: (s, n) => `מטופל ${s} מתוך ${n}`,
     patientEndless: (s) => `מטופל ${s}`,
-    livesLeft: (n) => `נשארו ${n} חיים`,
+    livesLeft: (n) => (n === 1 ? 'נשארו חיים אחד' : `נשארו ${n} חיים`),
     codexEntry: 'הערך בקודקס',
     seeSummary: 'לסיכום המשמרת',
     nextPatient: 'המטופל הבא',
@@ -342,31 +344,31 @@ export const S = defineStrings<Table>({
     closedEarly: 'התיק נסגר באמצע',
     diagnosisFallback: 'אבחנה',
     answerWas: 'התשובה הייתה',
-    also: 'ידוע גם כ:',
+    also: 'כינויים נוספים:',
     youSaid: 'אמרתם',
     triage: 'טריאז׳',
-    confidenceTitle: 'כמה בטוחים אמרתם שאתם',
+    confidenceTitle: 'עד כמה הייתם בטוחים',
     patientFallback: 'מטופל',
     caseScore: 'ניקוד המקרה',
     par: 'יעד',
     keyQuestions: (a, b) => `${a}/${b} שאלות מפתח`,
-    toRun: (n) => `+${n} למשמרת`,
+    toRunSuffix: 'למשמרת',
     confWrongTitle: 'בטוחים וטועים: המקרה הזה יחזור אליכם.',
-    confWrongBefore: 'זו הטעות הכי שווה שאפשר לעשות כאן. דווקא טעויות שהיינו בטוחים בהן המוח מתקן הכי עמוק. קראו למטה למה זו הייתה ',
+    confWrongBefore: 'זו הטעות הכי מועילה שאפשר לעשות כאן. דווקא טעויות שהייתם בטוחים בהן המוח מתקן הכי עמוק. קראו למטה למה זו הייתה ',
     confWrongAfter: ', ובקרוב תפגשו אותה שוב.',
-    luckyTitle: 'פגעתם בניחוש? תקבעו את זה.',
+    luckyTitle: 'ניחשתם נכון? עכשיו קבעו את זה בראש.',
     luckyBody: 'צדקתם בלי להיות בטוחים. חצי דקה עם ממצאי המפתח הופכת מזל לידע.',
-    luckyBtn: 'ממצאי מפתח',
+    luckyBtn: 'הממצאים המרכזיים',
     calibrated: 'בטוחים וצדקתם: כיול מדויק.',
     fromCodex: 'מהקודקס',
-    keyFindings: 'ממצאי מפתח',
+    keyFindings: 'הממצאים המרכזיים',
     pearls: 'פנינים קליניות',
     furtherReading: 'להמשך קריאה',
     noCodex: 'הערך בקודקס לאבחנה הזו עדיין לא מוכן.',
     caseOf: (n) => `המקרה של ${n}`,
     teachesTitle: 'מה המקרה הזה מלמד',
     redFlags: 'דגלים אדומים',
-    management: 'המשך טיפול',
+    management: 'ניהול הטיפול',
     triageEyebrow: 'טריאז׳',
     correctUrgencyAria: (c, chosen) => `הדחיפות הנכונה: ${c}${chosen ? `, בחרתם: ${chosen}` : ''}`,
     tagYou: 'אתם',
@@ -386,7 +388,7 @@ export const S = defineStrings<Table>({
     essentialTests: 'בדיקות חיוניות',
     keyQs: 'שאלות מפתח',
     clockStopped: 'איפה השעון נעצר',
-    onTheClock: (c) => `${c} על השעון`,
+    onTheClock: (c) => `הוקצבו ${c} דקות`,
     timeRanOut: 'הזמן נגמר',
     essentialsInOrder: 'החיוניות, לפי סדר הבדיקה',
     shiftReport: 'דוח משמרת',
@@ -397,7 +399,7 @@ export const S = defineStrings<Table>({
     totalScore: 'ניקוד כולל',
     firstRecord: 'השיא הראשון נקבע',
     newBest: 'שיא אישי חדש',
-    previous: (n) => `קודם ${n}`,
+    previous: (n) => `הקודם: ${n}`,
     personalBest: (n) => `השיא האישי: ${n}`,
     runStats: 'נתוני המשמרת',
     accuracy: 'דיוק',
@@ -407,7 +409,8 @@ export const S = defineStrings<Table>({
     comboSome: 'ברצף',
     comboNone: 'בפעם הבאה',
     bestCase: 'המקרה הכי טוב',
-    bestSub: (g, t) => `דירוג ${g} · ניקוד המקרה ${t}`,
+    bestGradePrefix: 'ציון ',
+    bestSub: (t) => ` · ניקוד המקרה ${t}`,
     patients: 'מטופלים',
     rowCorrect: 'אבחנה נכונה',
     rowTimeout: 'נגמר הזמן',

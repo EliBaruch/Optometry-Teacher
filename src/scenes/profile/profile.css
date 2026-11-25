@@ -140,3 +140,5 @@
   .profile-cats__list { grid-template-columns: minmax(0, 1fr); }
   .profile-record { margin-top: var(--lm-sp-5); }
 }
+
+:lang(he) [class*="profile-"] { font-style: normal; }

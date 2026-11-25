@@ -26,6 +26,8 @@ function pickCase(services: GameServices, caseId: unknown): ClinicalCase | undef
   return all.find((c) => c.id === 'ant-microbial-keratitis-dj') ?? all.find((c) => c.difficulty >= 3) ?? all[0];
 }
 
+const SAMPLE_REWARDS_HE: Record<string, string> = { Lumens: 'לומנים', 'Career XP': 'ניסיון קריירה', 'Iris card': 'כרטיס קשתית', NEW: 'חדש' };
+
 const SAMPLE_REWARDS: RewardGrant[] = [
   { source: 'core', label: 'Lumens', value: '+140', icon: 'coin', color: '#f5b942', rarity: 'common' },
   { source: 'core', label: 'Career XP', value: '+260', icon: 'star', color: '#a78bfa', rarity: 'common' },
@@ -72,8 +74,9 @@ export function prepareDemo(services: GameServices, params: Record<string, unkno
   services.session.submit(dx, urgency, confidence);
   if (quiet) {
     // No engagement systems installed: show what the reward cascade looks like.
-    for (const r of SAMPLE_REWARDS.slice(0, wrong ? 1 : 2)) services.bus.emit('reward:granted', r);
-    if (!wrong) setTimeout(() => services.bus.emit('reward:granted', SAMPLE_REWARDS[2]!), 5200);
+    const loc = (r: RewardGrant): RewardGrant => (services.locale === 'he' ? { ...r, label: SAMPLE_REWARDS_HE[r.label] ?? r.label, value: SAMPLE_REWARDS_HE[r.value ?? ''] ?? r.value } : r);
+    for (const r of SAMPLE_REWARDS.slice(0, wrong ? 1 : 2)) services.bus.emit('reward:granted', loc(r));
+    if (!wrong) setTimeout(() => services.bus.emit('reward:granted', loc(SAMPLE_REWARDS[2]!)), 5200);
   }
   return kase.id;
 }

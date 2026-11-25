@@ -1,6 +1,5 @@
-import { createRng, dayKey, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
+import { createRng, pickStrings, dayKey, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
 import { dailyRecord, ensureDailyTracking } from './attempts';
-import { pickStrings } from '@core';
 import { S } from './strings';
 
 export { dailyRecord, DAILY_SLOT, type DailyRecord } from './attempts';
@@ -67,7 +66,7 @@ const daily: ModeModule = {
   id: 'daily',
   title: 'Daily Rounds',
   tagline: 'Three patients, the same for every clinician today. Make your chart the cleanest.',
-  text: { he: { title: 'סבב יומי', tagline: 'שלושה מטופלים, אותם שלושה לכל האופטומטריסטים היום. נסו להגיש את התיק הנקי ביותר.' } },
+  text: { he: { title: 'סבב יומי', tagline: 'שלושה מטופלים, אותם שלושה לכולם היום. נסו להגיש את התיק הנקי ביותר.' } },
   icon: '🗓️',
   accent: '#4ade80',
   order: 20,

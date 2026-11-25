@@ -334,12 +334,12 @@ export function ExamScene({ services, params }: SceneProps) {
         <span>{t.min}</span>
       </span>
       {urgentClock ? (
-        <span class={`exm-clock lm-num${pressure > 0.5 ? ' is-late' : ''}`} role="timer" aria-label={t.timeLeft} dir="ltr">
+        <span class={`exm-clock lm-num${pressure > 0.5 ? ' is-late' : ''}`} role="timer" aria-label={t.timeLeft}>
           <Icon name="alert" size={15} />
           {fmtClock(remaining!)}
         </span>
       ) : (
-        <span class="exm-chip exm-chip--time lm-num" role="timer" aria-label={t.timeElapsed} dir="ltr">{fmtClock(elapsed)}</span>
+        <span class="exm-chip exm-chip--time lm-num" role="timer" aria-label={t.timeElapsed}>{fmtClock(elapsed)}</span>
       )}
       {hintsOk && (
         <IconButton

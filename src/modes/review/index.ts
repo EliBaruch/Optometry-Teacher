@@ -1,5 +1,4 @@
-import { createRng, pickCase, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
-import { pickStrings } from '@core';
+import { createRng, pickStrings, pickCase, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
 import { S } from './strings';
 
 export const REVIEW_LENGTH = 4;

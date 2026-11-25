@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { modeText, abandonRun, advanceRun, type CaseSession, type ClinicalCase, type GameServices, type Grade, type SceneProps } from '@core';
+import { modeText, abandonRun, advanceRun, type CaseSession, type ClinicalCase, type GameServices, type SceneProps } from '@core';
 import {
   Button, Divider, GlassPanel, GradeStamp, Icon, Kbd, Screen, cx, palette, useLocale, useReducedMotion, useSignal, useStrings,
 } from '@ui-kit';

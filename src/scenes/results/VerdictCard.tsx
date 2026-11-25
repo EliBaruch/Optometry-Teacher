@@ -1,6 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { AvatarBust, EyeCanvas, eyeStateFromFindings } from '@render';
-import { Badge, Icon, cx, useStrings } from '@ui-kit';
+import { Badge, Icon, cx, useLocale, useStrings } from '@ui-kit';
 import { Safe } from './Safe';
 import { affectedEye, type ReviewModel } from './model';
 import { S } from './strings';
@@ -39,6 +39,7 @@ export interface VerdictCardProps {
 /** The diagnosis card: face-down with the player's call, flips to the verdict. */
 export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef }: VerdictCardProps) {
   const t = useStrings(S);
+  const he = useLocale() !== 'en';
   const { verdict, kase, correctDx, urgency } = review;
   const p = kase.patient;
   const isWrong = verdict === 'wrong';
@@ -118,7 +119,7 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
               {t.triage}{' '}
               {urgency.chosen && urgency.delta !== 0 ? (
                 <>
-                  <s>{t.urgency[urgency.chosen]}</s> → <b>{t.urgency[urgency.correct]}</b>
+                  <s>{t.urgency[urgency.chosen]}</s> {he ? '←' : '→'} <b>{t.urgency[urgency.correct]}</b>
                 </>
               ) : (
                 <b>{t.urgency[urgency.correct]}</b>

@@ -2,7 +2,7 @@
    Career moments: trophy plaques & the promotion ceremony.
    ========================================================================== */
 .rk-plaques {
-  position: fixed; z-index: var(--lm-z-toast); top: calc(var(--lm-topbar-h) + var(--lm-safe-top) + 10px); right: var(--lm-gutter);
+  position: fixed; z-index: var(--lm-z-toast); top: calc(var(--lm-topbar-h) + var(--lm-safe-top) + 10px); inset-inline-end: var(--lm-gutter);
   display: flex; flex-direction: column; gap: var(--lm-sp-2); width: min(360px, calc(100vw - 32px)); pointer-events: none;
 }
 @media (max-width: 640px) { .rk-plaques { left: 50%; right: auto; transform: translateX(-50%); } }
@@ -11,7 +11,7 @@
   --rk-r: var(--lm-rarity-rare);
   position: relative; overflow: hidden; pointer-events: auto; cursor: pointer;
   display: flex; align-items: center; gap: var(--lm-sp-3); width: 100%; padding: 12px 16px 12px 12px; border: 0; border-radius: var(--lm-r-lg);
-  font: inherit; text-align: left; color: var(--lm-ivory);
+  font: inherit; text-align: start; color: var(--lm-ivory);
   background: linear-gradient(120deg, color-mix(in srgb, var(--rk-r) 22%, #1a0f2e), rgba(20, 12, 38, 0.95) 55%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rk-r) 55%, transparent), 0 0 34px -8px var(--rk-r), var(--lm-shadow-3);
   backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
@@ -112,7 +112,7 @@ html.reduced-motion .rk-ceremony__ring { opacity: 0; }
   position: fixed; z-index: var(--lm-z-toast); left: 50%; top: calc(var(--lm-topbar-h) + var(--lm-safe-top) + 12px);
   width: min(420px, calc(100vw - 32px)); transform: translateX(-50%);
   display: flex; align-items: center; gap: var(--lm-sp-4); padding: 12px 22px 12px 14px; overflow: hidden;
-  border: 0; border-radius: var(--lm-r-xl); cursor: pointer; font: inherit; text-align: left; color: var(--lm-ivory);
+  border: 0; border-radius: var(--lm-r-xl); cursor: pointer; font: inherit; text-align: start; color: var(--lm-ivory);
   background:
     radial-gradient(120% 140% at 12% 50%, color-mix(in srgb, var(--rk-c) 32%, transparent), transparent 60%),
     linear-gradient(180deg, rgba(36, 22, 66, 0.94), rgba(14, 8, 28, 0.96));
@@ -150,3 +150,5 @@ html.reduced-motion .rk-ceremony__ring { opacity: 0; }
 }
 html.reduced-motion .rk-banner, html.reduced-motion .rk-banner__crest, html.reduced-motion .rk-banner__title,
 html.reduced-motion .rk-banner__next, html.reduced-motion .rk-banner__shine { animation: none; }
+
+:lang(he) .rk-ceremony__motto { font-style: normal; }

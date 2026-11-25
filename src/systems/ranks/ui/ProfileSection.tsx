@@ -52,7 +52,7 @@ function ProfileInner({ services }: { services: GameServices }) {
               <Icon name={st.icon} size={14} /> {st.label}
             </dt>
             <dd>
-              <CountUp value={st.value} suffix={st.suffix} />
+              <bdi dir="ltr"><CountUp value={st.value} suffix={st.suffix} /></bdi>
             </dd>
           </div>
         ))}
@@ -116,7 +116,7 @@ function NextTrophyInner({ services }: { services: GameServices }) {
         </div>
       </div>
       <p class="rk-next__desc">{txt.description}</p>
-      {next.max > 1 && <ProgressBar value={next.cur} max={next.max} size="sm" accent={CAREER_COLOR} valueText={`${next.cur} / ${next.max}`} />}
+      {next.max > 1 && <ProgressBar value={next.cur} max={next.max} size="sm" accent={CAREER_COLOR} valueText={`\u2066${next.cur} / ${next.max}\u2069`} />}
     </GlassPanel>
   );
 }

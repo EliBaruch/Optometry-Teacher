@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks';
+import { useStrings } from '@ui-kit';
+import { S } from './strings';
 import { drawEye, eyeState, type EyeState } from '@render';
 import { beamIllumination, blinkAperture, damp, gazeFromPointer, pupilForLight, sweepPhase } from './logic';
 
@@ -18,6 +20,7 @@ const BASE: EyeState = eyeState({
 
 /** A single enormous eye: follows the pointer, blinks, pupil answers a sweeping light. */
 export function LivingEye({ width, height, reduced, focusCentre, onSweep }: LivingEyeProps) {
+  const t = useStrings(S);
   const ref = useRef<HTMLCanvasElement>(null);
   const live = useRef({ focusCentre, reduced, onSweep, width, height });
   live.current = { focusCentre, reduced, onSweep, width, height };
@@ -130,7 +133,7 @@ export function LivingEye({ width, height, reduced, focusCentre, onSweep }: Livi
       ref={ref}
       class="ttl-eye__canvas"
       role="img"
-      aria-label="A large human eye that follows your cursor, blinks, and narrows its pupil when a light sweeps across it"
+      aria-label={t.eyeLabel}
       style={{ width: `${width}px`, height: `${height}px` }}
     />
   );

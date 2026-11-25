@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { defineStrings, pickStrings } from '@core';
 import type { GameServices, Grade, RewardGrant, ScoreBreakdown } from '@core';
 import { Button, GlassPanel, RewardChip, Screen, ToastHost, asComponent, useSignal } from '@ui-kit';
 import economy, { economyFor } from '../../../systems/economy';
@@ -23,6 +24,27 @@ const CSS = `
 @media (max-width: 860px) { .sbe { grid-template-columns: 1fr; } }
 `;
 
+const T = defineStrings({
+  en: {
+    title: 'Economy lab', eyebrow: 'Sandbox · Boutique & coins', fire: 'Fire events', synth: 'Synthetic bus traffic',
+    completed: 'Case completed', flawless: 'S · flawless', wrong: 'Wrong diagnosis', other: 'Other systems', gift: 'Gift +250',
+    giftReason: 'Daily gift', promo: 'Promotion', practice: 'Practice', note: '+1 consult note', hint: 'Use hint',
+    nav: 'Navigate', boutique: 'Open the Boutique', resetW: 'Reset wallet', state: 'State', chips: 'Reward chips',
+    chipsEye: 'As the results screen shows them', empty: 'Complete a case to see rewards cascade.',
+    ranks: ['Intern', 'Resident', 'Associate', 'Senior', 'Clinic Director', 'Living Legend'],
+    stateLine: (b: number, c: number, n: number, p: number, d: number) => `${b} lumens · ${c} crates · ${n} notes · pity ${p} · today ${d}`,
+  },
+  he: {
+    title: 'מעבדת כלכלה', eyebrow: 'ארגז חול · הבוטיק והניצוצות', fire: 'הפעלת אירועים', synth: 'תעבורת אירועים מדומה',
+    completed: 'סיום מקרה', flawless: 'S · ללא רבב', wrong: 'אבחנה שגויה', other: 'מערכות אחרות', gift: 'מתנה +250',
+    giftReason: 'מתנה יומית', promo: 'קידום', practice: 'אימון', note: '+1 פתק ייעוץ', hint: 'שימוש ברמז',
+    nav: 'ניווט', boutique: 'פתיחת הבוטיק', resetW: 'איפוס הארנק', state: 'מצב', chips: 'פרסים',
+    chipsEye: 'כפי שהם מופיעים במסך התוצאות', empty: 'סיימו מקרה כדי לראות את הפרסים נופלים.',
+    ranks: ['סטאז׳ר', 'מתמחה', 'מומחה', 'בכיר', 'מנהל מרפאה', 'אגדה חיה'],
+    stateLine: (b: number, c: number, n: number, p: number, d: number) => `${b} ניצוצות · ${c} ארגזים · ${n} פתקים · רשת ביטחון ${p} · היום ${d}`,
+  },
+});
+
 const TOTALS: Record<Grade, number> = { S: 1250, A: 1080, B: 900, C: 720, D: 420, F: 160 };
 let caseSeq = 0;
 
@@ -41,6 +63,7 @@ function fakeScore(grade: Grade, perfect = false): ScoreBreakdown {
 }
 
 function Lab({ services }: { services: GameServices }) {
+  const t = pickStrings(T, services.locale);
   const store = economyFor(services);
   const state = useSignal(store.state);
   const [chips, setChips] = useState<RewardGrant[]>([]);
@@ -59,40 +82,40 @@ function Lab({ services }: { services: GameServices }) {
   };
 
   return (
-    <Screen title="Economy lab" eyebrow="Sandbox · Boutique & coins" backdrop="hub">
+    <Screen title={t.title} eyebrow={t.eyebrow} backdrop="hub">
       <div class="sbe">
-        <GlassPanel title="Fire events" eyebrow="Synthetic bus traffic" icon="lightning">
-          <p class="sbe-sub">Case completed</p>
+        <GlassPanel title={t.fire} eyebrow={t.synth} icon="lightning">
+          <p class="sbe-sub">{t.completed}</p>
           <div class="sbe-row">
-            <Button size="sm" variant="primary" onClick={() => complete('S', true)} data-testid="eco-s">S · flawless</Button>
+            <Button size="sm" variant="primary" onClick={() => complete('S', true)} data-testid="eco-s">{t.flawless}</Button>
             <Button size="sm" onClick={() => complete('S')}>S</Button>
             <Button size="sm" variant="glass" onClick={() => complete('A')}>A</Button>
             <Button size="sm" variant="glass" onClick={() => complete('B')}>B</Button>
             <Button size="sm" variant="glass" onClick={() => complete('C')}>C</Button>
-            <Button size="sm" variant="ghost" onClick={() => complete('F')}>Wrong diagnosis</Button>
+            <Button size="sm" variant="ghost" onClick={() => complete('F')}>{t.wrong}</Button>
           </div>
-          <p class="sbe-sub">Other systems</p>
+          <p class="sbe-sub">{t.other}</p>
           <div class="sbe-row">
-            <Button size="sm" variant="glass" icon="gift" onClick={() => services.bus.emit('currency:grant', { amount: 250, reason: 'Daily gift' })} data-testid="eco-gift">Gift +250</Button>
-            <Button size="sm" variant="glass" icon="crown" onClick={() => { const n = rank + 1; setRank(n); services.bus.emit('rank:changed', { level: n, title: ['Intern', 'Resident', 'Associate', 'Senior', 'Clinic Director', 'Living Legend'][Math.min(5, n - 2)]! }); }} data-testid="eco-rank">Promotion</Button>
-            <Button size="sm" variant="glass" icon="target" onClick={() => services.bus.emit('practice:completed', { testId: 'tonometry', result: { testId: 'tonometry', accuracy: 0.92, timeMs: 9000, findings: [] } })}>Practice</Button>
-            <Button size="sm" variant="glass" icon="book" onClick={() => store.state.update((s) => ({ ...s, hintTokens: s.hintTokens + 1 }))}>+1 consult note</Button>
-            <Button size="sm" variant="glass" icon="info" onClick={() => services.bus.emit('hint:used', { caseId: 'next' })}>Use hint</Button>
+            <Button size="sm" variant="glass" icon="gift" onClick={() => services.bus.emit('currency:grant', { amount: 250, reason: t.giftReason })} data-testid="eco-gift">{t.gift}</Button>
+            <Button size="sm" variant="glass" icon="crown" onClick={() => { const n = rank + 1; setRank(n); services.bus.emit('rank:changed', { level: n, title: t.ranks[Math.min(5, n - 2)]! }); }} data-testid="eco-rank">{t.promo}</Button>
+            <Button size="sm" variant="glass" icon="target" onClick={() => services.bus.emit('practice:completed', { testId: 'tonometry', result: { testId: 'tonometry', accuracy: 0.92, timeMs: 9000, findings: [] } })}>{t.practice}</Button>
+            <Button size="sm" variant="glass" icon="book" onClick={() => store.state.update((s) => ({ ...s, hintTokens: s.hintTokens + 1 }))}>{t.note}</Button>
+            <Button size="sm" variant="glass" icon="info" onClick={() => services.bus.emit('hint:used', { caseId: 'next' })}>{t.hint}</Button>
           </div>
-          <p class="sbe-sub">Navigate</p>
+          <p class="sbe-sub">{t.nav}</p>
           <div class="sbe-row">
-            <Button size="sm" variant="primary" icon="gem" onClick={() => services.router.go('boutique')} data-testid="eco-boutique">Open the Boutique</Button>
-            <Button size="sm" variant="danger" onClick={() => { store.state.set({ ...store.state.get(), balance: 0, crates: [], owned: ['candlelight', 'clinic-classic', 'ivory-card'], equipped: { theme: 'candlelight', frame: 'clinic-classic', nameplate: 'ivory-card' }, drops: [], pity: 0 }); setChips([]); }}>Reset wallet</Button>
+            <Button size="sm" variant="primary" icon="gem" onClick={() => services.router.go('boutique')} data-testid="eco-boutique">{t.boutique}</Button>
+            <Button size="sm" variant="danger" onClick={() => { store.state.set({ ...store.state.get(), balance: 0, crates: [], owned: ['candlelight', 'clinic-classic', 'ivory-card'], equipped: { theme: 'candlelight', frame: 'clinic-classic', nameplate: 'ivory-card' }, drops: [], pity: 0 }); setChips([]); }}>{t.resetW}</Button>
           </div>
-          <p class="sbe-sub">State</p>
-          <p class="sbe-empty">{state.balance} lumens · {state.crates.length} crates · {state.hintTokens} notes · pity {state.pity} · today {state.day.caseCoins}</p>
+          <p class="sbe-sub">{t.state}</p>
+          <p class="sbe-empty" dir="auto">{t.stateLine(state.balance, state.crates.length, state.hintTokens, state.pity, state.day.caseCoins)}</p>
         </GlassPanel>
 
         <div class="sbe-chips">
           <Results services={services} />
-          <GlassPanel title="Reward chips" eyebrow="As the results screen shows them" padding="sm">
+          <GlassPanel title={t.chips} eyebrow={t.chipsEye} padding="sm">
             <div class="sbe-chips">
-              {chips.length ? chips.map((g, i) => <RewardChip key={`${chips.length}-${i}`} grant={g} index={i} sfx={false} />) : <p class="sbe-empty">Complete a case to see rewards cascade.</p>}
+              {chips.length ? chips.map((g, i) => <RewardChip key={`${chips.length}-${i}`} grant={g} index={i} sfx={false} />) : <p class="sbe-empty">{t.empty}</p>}
             </div>
           </GlassPanel>
         </div>

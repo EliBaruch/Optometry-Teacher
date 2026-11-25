@@ -104,7 +104,7 @@ export function ArcadeScene({ services, params }: SceneProps) {
         <div class="arcade-diff lm-enter" style={{ '--lm-delay': '100ms', '--d': diff.accent }}>
           <div class="lm-eyebrow">{t.difficulty}</div>
           <Tabs id="arcade-diff" label={t.difficulty} items={DIFFICULTIES.map((d) => ({ id: d.id, label: t.diffLabel[d.id] }))} value={diff.id} onChange={setDifficulty} accent={diff.accent} block />
-          <p class="arcade-diff__blurb" key={diff.id}>{t.diffBlurb[diff.id]} <bdi class="lm-num">×{diff.mult}</bdi> {t.points}.</p>
+          <p class="arcade-diff__blurb" key={diff.id}>{t.diffBlurb[diff.id]} <bdi class="lm-num">{t.multiplier(diff.mult)}</bdi>.</p>
         </div>
       </section>
 
@@ -126,7 +126,7 @@ export function ArcadeScene({ services, params }: SceneProps) {
       </div>
 
       <Modal open={!!mg} onClose={exit} size="stage" flush class="arcade-modal"
-        eyebrow={mg ? t.practiceEyebrow(t.diffLabel[diff.id]) : undefined} title={mg ? miniGameText(mg, locale).title : undefined}
+        eyebrow={mg ? t.practiceEyebrow(t.diffLevel[diff.id]) : undefined} title={mg ? miniGameText(mg, locale).title : undefined}
         icon={mg && isIconName(mg.id) ? mg.id : undefined} accent={diff.accent}>
         {mg && (
           <div class="arcade-stage">

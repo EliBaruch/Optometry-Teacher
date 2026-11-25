@@ -107,7 +107,7 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
             <div class="lm-eyebrow">{t.boardEyebrow}</div>
             <h1 id="exm-board-title" class="lm-display">{t.boardTitle(first, kase.patient.sex)}</h1>
           </div>
-          {clock && <span class="exm-clock exm-clock--red lm-num" aria-label={t.timeLeft} dir="ltr">{clock}</span>}
+          {clock && <span class="exm-clock exm-clock--red lm-num" aria-label={t.timeLeft}>{clock}</span>}
         </header>
         <Ornament class="exm-board__orn" width={170} />
 

@@ -1,4 +1,5 @@
-import type { Eye, PosteriorSegment } from '@core';
+import { pickStrings, type Eye, type PosteriorSegment } from '@core';
+import { RS, renderLocale } from '../strings';
 import type { JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { makeCanvas } from '../eye/color';
@@ -319,7 +320,7 @@ export function FundusView(props: FundusViewProps) {
       ref={ref}
       tabIndex={0}
       role="img"
-      aria-label={props.label ?? (document.documentElement.lang === 'he' ? `קרקעית העין ה${props.eye === 'OD' ? 'ימנית' : 'שמאלית'}. גררו או השתמשו בחצים כדי להסתובב, ובפלוס ומינוס כדי לקרב ולהרחיק.` : `Fundus of the ${props.eye === 'OD' ? 'right' : 'left'} eye. Drag or use arrow keys to look around; plus and minus to zoom.`)}
+      aria-label={props.label ?? pickStrings(RS, renderLocale()).fundus(props.eye)}
       class={props.class}
       style={{ width: `${props.width}px`, height: `${props.height}px`, display: 'block', touchAction: 'none', cursor: 'grab', ...(props.style ?? {}) }}
     />

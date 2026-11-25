@@ -35,7 +35,7 @@
 }
 @keyframes eco-coin-flip { from { transform: rotateY(0) scale(1.2); } to { transform: rotateY(720deg) scale(1); } }
 .eco-wallet__delta {
-  position: absolute; left: 100%; top: 50%; margin-left: 8px; white-space: nowrap; pointer-events: none;
+  position: absolute; inset-inline-start: 100%; top: 50%; margin-inline-start: 8px; white-space: nowrap; pointer-events: none;
   font-weight: 700; font-size: 13px; color: var(--lm-gold-200); text-shadow: var(--lm-text-glow);
   animation: eco-delta 1100ms var(--lm-ease-out) both;
 }
@@ -58,7 +58,7 @@
   100% { opacity: 0; transform: rotate(calc(var(--a) + 90deg)) translateX(0) scale(1); }
 }
 .eco-wallet__crates {
-  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  position: absolute; top: -4px; inset-inline-end: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
   display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #2a1505;
   background: linear-gradient(180deg, #ffe2a6, #f59e0b); box-shadow: 0 0 0 2px var(--lm-ink-900), 0 0 12px rgba(251, 146, 60, 0.8);
   animation: eco-badge-pulse 2.4s var(--lm-ease-in-out) infinite;
@@ -103,8 +103,8 @@
 .eco-receipt__crate-text span { font-size: var(--lm-fs-xs); color: var(--lm-muted); }
 .eco-receipt__opened { font-size: var(--lm-fs-xs); color: var(--lm-normal); letter-spacing: 0.08em; text-transform: uppercase; }
 .eco-receipt__later { font-size: var(--lm-fs-xs); color: var(--lm-muted-2); text-align: center; }
-.eco-receipt__wallet { font-size: var(--lm-fs-xs); color: var(--lm-muted); text-align: right; letter-spacing: 0.06em; text-transform: uppercase; }
-.eco-receipt__wallet b { color: var(--lm-gold); margin-left: 6px; letter-spacing: 0.02em; }
+.eco-receipt__wallet { font-size: var(--lm-fs-xs); color: var(--lm-muted); text-align: end; letter-spacing: 0.06em; text-transform: uppercase; }
+.eco-receipt__wallet b { color: var(--lm-gold); margin-inline-start: 6px; letter-spacing: 0.02em; }
 
 /* ── Profile wardrobe ──────────────────────────────────────────────────── */
 .eco-wardrobe__grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--lm-sp-4); align-items: center; }
@@ -224,7 +224,7 @@
 .eco-swatch__shimmer { position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.22) 48%, rgba(180, 139, 255, 0.12) 54%, transparent 62%);
   transform: translateX(-120%); animation: eco-shine 4.2s var(--lm-ease-in-out) 1.2s infinite; }
-.eco-swatch__dots { position: absolute; top: 8px; left: 10px; display: flex; gap: 3px; }
+.eco-swatch__dots { position: absolute; top: 8px; inset-inline-start: 10px; display: flex; gap: 3px; }
 .eco-swatch__dots i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
 
 /* ── Frames ────────────────────────────────────────────────────────────── */
@@ -241,3 +241,6 @@ html.reduced-motion .eco-swatch__star, html.reduced-motion .eco-swatch__ribbon, 
 html.reduced-motion .eco-swatch__meteor, html.reduced-motion .eco-swatch__sun, html.reduced-motion .eco-swatch__beam, html.reduced-motion .eco-swatch__curtain,
 html.reduced-motion .eco-swatch--aurora::after { animation: none !important; }
 html.reduced-motion .eco-swatch__shimmer { display: none; }
+
+:lang(he) .eco-np--ivory-card .eco-np__name, :lang(he) .eco-np--star-chart .eco-np__name { font-style: normal; }
+:lang(he) .eco-wallet__crates { inset-inline-end: auto; inset-inline-start: -4px; }

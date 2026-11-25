@@ -1,5 +1,7 @@
 import type { JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
+import { pickStrings } from '@core';
+import { RS, renderLocale } from '../strings';
 import { drawEye, drawSlitSection } from './draw';
 import type { SlitBeam } from './slit';
 import type { EyeState } from './types';
@@ -112,7 +114,7 @@ export function EyeCanvas(props: EyeCanvasProps) {
       ref={ref}
       class={props.class}
       role="img"
-      aria-label={props.label ?? (document.documentElement.lang === 'he' ? `תקריב של העין ה${props.state.eye === 'OD' ? 'ימנית' : 'שמאלית'}` : `Close-up of the ${props.state.eye === 'OD' ? 'right' : 'left'} eye`)}
+      aria-label={props.label ?? pickStrings(RS, renderLocale()).eyeCloseup(props.state.eye)}
       style={{ width: `${props.width}px`, height: `${props.height}px`, display: 'block', ...(props.style ?? {}) }}
     />
   );

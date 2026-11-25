@@ -34,13 +34,14 @@ export function SettingsScene({ services }: SceneProps) {
   };
 
   /* ── identity ──────────────────────────────────────────────────────── */
-  const [draft, setDraft] = useState(settings.playerName);
+  const shown = (n: string) => (n === 'Doctor' ? t.defaultName : n);
+  const [draft, setDraft] = useState(shown(settings.playerName));
   const [savedTick, setSavedTick] = useState(0);
-  useEffect(() => setDraft(settings.playerName), [settings.playerName]);
+  useEffect(() => setDraft(shown(settings.playerName)), [settings.playerName]);
   const commitName = () => {
     const next = sanitizeName(draft, t.defaultName);
     setDraft(next);
-    if (next !== services.settings.get().playerName) {
+    if (next !== shown(services.settings.get().playerName)) {
       patch({ playerName: next });
       services.audio.play('success', { volume: 0.6 });
       setSavedTick((n) => n + 1);

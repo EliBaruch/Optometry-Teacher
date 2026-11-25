@@ -99,7 +99,7 @@ export function ScoreLedger({ score, started, totalShown, step, instant, runPoin
         </span>
         {runPoints !== undefined && runPoints !== score.total && (
           <span class="rs-ledger__run">
-            <Icon name="lightning" /> {t.toRun(runPoints)}
+            <Icon name="lightning" /> <bdi dir="ltr">+{runPoints}</bdi> {t.toRunSuffix}
           </span>
         )}
       </div>

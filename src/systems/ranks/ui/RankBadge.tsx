@@ -72,7 +72,7 @@ function RankBadgeInner({ services }: { services: GameServices }) {
       </span>
       <span class="rk-badge__text" aria-hidden="true">
         <span class="rk-badge__title">{info.title}</span>
-        <span class="rk-badge__xp lm-num">
+        <span class="rk-badge__xp lm-num" dir="ltr">
           {formatNumber(info.into)}
           <span class="rk-badge__sep">/</span>
           {formatNumber(info.span)} XP

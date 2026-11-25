@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices, SceneProps } from '@core';
 import {
-  Badge, Button, Icon, Modal, RARITY_COLOR, RARITY_LABEL, Screen, TabPanel, Tabs, useReducedMotion, useSignal,
+  Badge, Button, Icon, Modal, RARITY_COLOR, Screen, TabPanel, Tabs, useLocale, useReducedMotion, useSignal, useStrings,
 } from '@ui-kit';
+import { pickStrings } from '@core';
+import { S } from '../strings';
+import { crateText, itemText, kindLabel } from '../text';
 import {
-  CATALOG, COIN, CONTENT_ODDS, CRATES, DAILY_FULL_RATE, DAILY_PRACTICE_CAP, KIND_LABEL, PITY_LIMIT, itemById,
+  CATALOG, COIN, CONTENT_ODDS, CRATES, DAILY_FULL_RATE, DAILY_PRACTICE_CAP, PITY_LIMIT, itemById,
   type CatalogItem, type CrateKind, type ItemKind,
 } from '../catalog';
 import { formatCoins, publishedOdds } from '../logic';
@@ -16,26 +19,30 @@ import { ItemArt } from './ItemArt';
 import { useEconomy } from './hooks';
 
 type Tab = ItemKind | 'ledger';
-const TABS: { id: Tab; label: string; icon: 'sparkle' | 'eye' | 'user' | 'book' }[] = [
-  { id: 'theme', label: 'Clinic themes', icon: 'sparkle' },
-  { id: 'frame', label: 'Eyewear', icon: 'eye' },
-  { id: 'nameplate', label: 'Nameplates', icon: 'user' },
-  { id: 'ledger', label: 'Ledger', icon: 'book' },
+const TABS: { id: Tab; icon: 'sparkle' | 'eye' | 'user' | 'book' }[] = [
+  { id: 'theme', icon: 'sparkle' },
+  { id: 'frame', icon: 'eye' },
+  { id: 'nameplate', icon: 'user' },
+  { id: 'ledger', icon: 'book' },
 ];
 
 /** Scene 'boutique': velvet, brass and glass cases — cosmetics for lumens only. */
 export function BoutiqueScene({ services }: SceneProps) {
   const store = useEconomy(services);
   const back = () => services.router.back();
+  const t = useStrings(S);
   return (
-    <Screen title="The Boutique" eyebrow="Lumen · after hours" onBack={back} escToBack backdrop="hub" class="eco-boutique-screen" contentClass="eco-shop-scroll">
-      {store ? <Shop services={services} store={store} /> : <p class="eco-shop__closed">The Boutique is closed tonight.</p>}
+    <Screen title={t.sceneTitle} eyebrow={t.sceneEyebrow} onBack={back} escToBack backdrop="hub" class="eco-boutique-screen" contentClass="eco-shop-scroll">
+      {store ? <Shop services={services} store={store} /> : <p class="eco-shop__closed">{t.closed}</p>}
     </Screen>
   );
 }
 
 function Shop({ services, store }: { services: GameServices; store: Economy }) {
   const state = useSignal(store.state);
+  const t = useStrings(S);
+  const locale = useLocale();
+  const tabLabel: Record<Tab, string> = { theme: t.tabThemes, frame: t.tabEyewear, nameplate: t.tabNameplates, ledger: t.tabLedger };
   const settings = useSignal(services.settings);
   const [tab, setTab] = useState<Tab>('theme');
   const [opening, setOpening] = useState<string | null>(null);
@@ -81,16 +88,16 @@ function Shop({ services, store }: { services: GameServices; store: Economy }) {
       <header class="eco-shop__hero">
         <div class="eco-shop__curtain" aria-hidden="true" />
         <div class="eco-shop__intro">
-          <p class="lm-eyebrow">Cosmetics for the discerning clinician</p>
-          <h2>Boutique</h2>
-          <p>Every lumen here was earned at the slit lamp. Nothing is for sale but style — and nothing costs real money.</p>
+          <p class="lm-eyebrow">{t.heroEyebrow}</p>
+          <h2>{t.heroTitle}</h2>
+          <p>{t.heroText}</p>
         </div>
-        <div class="eco-shop__purse" aria-label={`Wallet: ${formatCoins(state.balance)} lumens, ${state.hintTokens} consult notes`}>
+        <div class="eco-shop__purse" aria-label={t.purseLabel(formatCoins(state.balance), state.hintTokens)}>
           <CoinGlyph size={52} spin />
           <div>
-            <span class="eco-shop__balance lm-num" aria-hidden="true">{formatCoins(state.balance)}<small> {COIN}</small></span>
+            <span class="eco-shop__balance lm-num" dir="ltr" aria-hidden="true">{formatCoins(state.balance)}<small> {COIN}</small></span>
             <span class="eco-shop__notes" aria-hidden="true">
-              <Icon name="book" size={14} /> {state.hintTokens} consult note{state.hintTokens === 1 ? '' : 's'}
+              <Icon name="book" size={14} /> {t.notes(state.hintTokens)}
             </span>
           </div>
         </div>
@@ -98,8 +105,8 @@ function Shop({ services, store }: { services: GameServices; store: Economy }) {
 
       <section class="eco-shelf" aria-labelledby="eco-shelf-h">
         <div class="eco-shelf__head" ref={oddsRef}>
-          <h3 id="eco-shelf-h">Supply crates</h3>
-          <Button variant="ghost" size="sm" icon="info" onClick={() => setOdds(true)}>Drop odds</Button>
+          <h3 id="eco-shelf-h">{t.shelfTitle}</h3>
+          <Button variant="ghost" size="sm" icon="info" onClick={() => setOdds(true)}>{t.dropOdds}</Button>
         </div>
         {state.crates.length ? (
           <ul class="eco-shelf__row" role="list" ref={shelfRef}>
@@ -107,36 +114,36 @@ function Shop({ services, store }: { services: GameServices; store: Economy }) {
               <li key={c.id} class="eco-shelf__slot" style={{ '--i': i, '--trim': CRATES[c.kind].trim }}>
                 <button
                   type="button" class="eco-shelf__crate"
-                  aria-label={`Open ${CRATES[c.kind].name}: ${c.reason}`}
+                  aria-label={t.openCrateLabel(crateText(c.kind, locale).name, c.reason)}
                   onClick={() => {
                     services.audio.play('whoosh', { volume: 0.5 });
                     setOpening(c.id);
                   }}
                 >
                   <CrateArt kind={c.kind} size={96} class="eco-crate--idle" />
-                  <span class="eco-shelf__name">{CRATES[c.kind].name}</span>
+                  <span class="eco-shelf__name">{crateText(c.kind, locale).name}</span>
                 </button>
               </li>
             ))}
             {state.crates.length > 8 && (
-              <li class="eco-shelf__more lm-num" aria-label={`${state.crates.length - 8} more crates waiting`}>+{state.crates.length - 8}</li>
+              <li class="eco-shelf__more lm-num" aria-label={t.moreCrates(state.crates.length - 8)}>+{state.crates.length - 8}</li>
             )}
           </ul>
         ) : (
           <p class="eco-shelf__empty">
-            <Icon name="crate" size={22} /> No crates waiting. Earn them with exemplary (S) cases, runs of correct diagnoses and promotions.
+            <Icon name="crate" size={22} /> {t.shelfEmpty}
           </p>
         )}
         <div class="eco-shelf__brass" aria-hidden="true" />
       </section>
 
       <Tabs
-        id="eco-tabs" label="Boutique departments" value={tab} onChange={(t) => setTab(t as Tab)} accent="var(--lm-gold-500)" class="eco-shop__tabs"
-        items={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, badge: t.id === 'ledger' ? undefined : count(t.id as ItemKind) }))}
+        id="eco-tabs" label={t.deptLabel} value={tab} onChange={(v) => setTab(v as Tab)} accent="var(--lm-gold-500)" class="eco-shop__tabs"
+        items={TABS.map((x) => ({ id: x.id, label: tabLabel[x.id], icon: x.icon, badge: x.id === 'ledger' ? undefined : count(x.id as ItemKind) }))}
       />
-      {TABS.map((t) => (
-        <TabPanel key={t.id} tabsId="eco-tabs" id={t.id} value={tab} class="eco-shop__panel">
-          {t.id === 'ledger' ? (
+      {TABS.map((x) => (
+        <TabPanel key={x.id} tabsId="eco-tabs" id={x.id} value={tab} class="eco-shop__panel">
+          {x.id === 'ledger' ? (
             <Ledger state={state} />
           ) : (
             <div class={`eco-cases eco-cases--n${items.length}`}>
@@ -152,7 +159,7 @@ function Shop({ services, store }: { services: GameServices; store: Economy }) {
       ))}
 
       {opening && <CrateOpening services={services} store={store} crateId={opening} onClose={closeOpening} />}
-      <Modal open={odds} onClose={() => setOdds(false)} title="Supply crate odds" eyebrow="Published in full" icon="info" size="md" accent="#f5b942">
+      <Modal open={odds} onClose={() => setOdds(false)} title={t.oddsTitle} eyebrow={t.oddsEyebrow} icon="info" size="md" accent="#f5b942">
         <OddsTable pity={state.pity} />
       </Modal>
     </div>
@@ -164,6 +171,10 @@ function ItemCase(props: {
 }) {
   const { item, services, store } = props;
   const state = useSignal(store.state);
+  const t = useStrings(S);
+  const locale = useLocale();
+  const txt = itemText(item, locale);
+  const rarityName = pickStrings(S, locale).rarity[item.rarity]!;
   const reduced = useReducedMotion();
   const [confirm, setConfirm] = useState(false);
   const [fresh, setFresh] = useState(false);
@@ -210,7 +221,7 @@ function ItemCase(props: {
     <article
       class={`eco-case eco-case--${item.rarity}${owned ? ' is-owned' : ''}${equipped ? ' is-equipped' : ''}${fresh ? ' is-fresh' : ''}${props.previewing ? ' is-previewing' : ''}`}
       style={{ '--rc': color, '--i': props.index }}
-      aria-label={`${item.name}, ${RARITY_LABEL[item.rarity]} ${KIND_LABEL[item.kind].toLowerCase()}`}
+      aria-label={t.itemLabel(txt.name, rarityName, kindLabel(item.kind, locale))}
     >
       <div class="eco-case__vitrine">
         <div class="eco-case__spot" aria-hidden="true" />
@@ -218,35 +229,35 @@ function ItemCase(props: {
           <ItemArt item={item} playerName={props.playerName} compact />
         </div>
         <div class="eco-case__glass" aria-hidden="true" />
-        <span class="eco-case__gem" title={RARITY_LABEL[item.rarity]}>{RARITY_LABEL[item.rarity]}</span>
+        <span class="eco-case__gem" title={rarityName}>{rarityName}</span>
         {item.kind === 'theme' && !equipped && (
           <button
             type="button" class="eco-case__preview" aria-pressed={props.previewing} onClick={props.onPreview}
-            aria-label={props.previewing ? `Stop previewing ${item.name}` : `Preview ${item.name} across the clinic`}
+            aria-label={props.previewing ? t.stopPreview(txt.name) : t.previewAcross(txt.name)}
           >
-            <Icon name="eye" size={14} /> {props.previewing ? 'Previewing' : 'Preview'}
+            <Icon name="eye" size={14} /> {props.previewing ? t.previewing : t.preview}
           </button>
         )}
       </div>
       <div class="eco-case__plaque">
-        <h4>{item.name}</h4>
-        <p>{item.blurb}</p>
+        <h4>{txt.name}</h4>
+        <p>{txt.blurb}</p>
       </div>
       <div class="eco-case__actions">
         {equipped ? (
-          <Badge tone="good" icon="check">Equipped</Badge>
+          <Badge tone="good" icon="check">{t.equipped}</Badge>
         ) : owned ? (
-          <Button variant="glass" size="sm" icon="sparkle" onClick={equip} sfx={false}>Equip</Button>
+          <Button variant="glass" size="sm" icon="sparkle" onClick={equip} sfx={false}>{t.equip}</Button>
         ) : short > 0 ? (
           <>
             <Button variant="glass" size="sm" disabled class="eco-price">
               {COIN} {formatCoins(item.price)}
             </Button>
-            <span class="eco-case__short lm-num">{formatCoins(short)} more</span>
+            <span class="eco-case__short lm-num">{t.more(formatCoins(short))}</span>
           </>
         ) : (
           <Button variant={confirm ? 'primary' : 'glass'} size="sm" class={`eco-price${confirm ? ' is-confirm' : ''}`} onClick={buy} sfx={false}>
-            {confirm ? `Confirm ${COIN} ${formatCoins(item.price)}` : `${COIN} ${formatCoins(item.price)}`}
+            {confirm ? t.confirm(`${COIN} ${formatCoins(item.price)}`) : `${COIN} ${formatCoins(item.price)}`}
           </Button>
         )}
       </div>
@@ -255,42 +266,45 @@ function ItemCase(props: {
 }
 
 function Ledger({ state }: { state: EconomyState }) {
+  const t = useStrings(S);
+  const locale = useLocale();
+  const T = pickStrings(S, locale);
   return (
     <div class="eco-ledger">
       <section class="eco-ledger__col">
-        <h4>Recent finds</h4>
+        <h4>{t.recent}</h4>
         {state.drops.length ? (
           <ul role="list" class="eco-ledger__drops">
             {state.drops.map((d, i) => {
               const c = d.content;
               const text =
-                c.type === 'coins' ? `${formatCoins(c.amount)} ${COIN}` : c.type === 'hints' ? `${c.amount} consult note${c.amount > 1 ? 's' : ''}` : itemById(c.itemId)?.name ?? c.itemId;
+                c.type === 'coins' ? `${formatCoins(c.amount)} ${COIN}` : c.type === 'hints' ? t.notes(c.amount) : (() => { const it = itemById(c.itemId); return it ? itemText(it, locale).name : c.itemId; })();
               return (
                 <li key={i} style={{ '--rc': RARITY_COLOR[d.rarity] }}>
                   <i aria-hidden="true" />
                   <span>{text}</span>
-                  <small>{RARITY_LABEL[d.rarity]} · {CRATES[d.kind].name}</small>
+                  <small>{T.rarity[d.rarity]} · {crateText(d.kind, locale).name}</small>
                 </li>
               );
             })}
           </ul>
         ) : (
-          <p class="eco-ledger__empty">Nothing yet — your first crate is waiting at the end of an exemplary case.</p>
+          <p class="eco-ledger__empty">{t.noFinds}</p>
         )}
       </section>
       <section class="eco-ledger__col">
-        <h4>How lumens are earned</h4>
+        <h4>{t.howEarned}</h4>
         <ul role="list" class="eco-ledger__rules">
-          <li><b>Consultation fee</b> — scales steeply with your case score and its difficulty. Accuracy pays; time spent does not.</li>
-          <li><b>Grade bonus</b> — S cases pay +50%, A cases +20%.</li>
-          <li><b>Momentum</b> — +5% per correct diagnosis in a row (up to +50%).</li>
-          <li><b>Flawless work-up</b> — +25 for a perfect case: right call, right urgency, no missed or wasted tests.</li>
-          <li><b>Practice room</b> — a little for technique, up to {DAILY_PRACTICE_CAP} {COIN} a day.</li>
-          <li><b>Pacing</b> — after {formatCoins(DAILY_FULL_RATE)} {COIN} of fees in a day, fees are halved until tomorrow. Spaced practice beats cramming.</li>
-          <li><b>Consult notes</b> — each one waives the fee cost of a hint. You hold <span class="lm-num">{state.hintTokens}</span>.</li>
+          <li><b>{t.ruleFee}</b>{t.ruleFeeText}</li>
+          <li><b>{t.ruleGrade}</b>{t.ruleGradeText}</li>
+          <li><b>{t.ruleMomentum}</b>{t.ruleMomentumText}</li>
+          <li><b>{t.rulePerfect}</b>{t.rulePerfectText}</li>
+          <li><b>{t.rulePractice}</b>{t.rulePracticeText(DAILY_PRACTICE_CAP)}</li>
+          <li><b>{t.rulePacing}</b>{t.rulePacingText(formatCoins(DAILY_FULL_RATE))}</li>
+          <li><b>{t.ruleNotes}</b>{t.ruleNotesText}<span class="lm-num">{state.hintTokens}</span>.</li>
         </ul>
         <p class="eco-ledger__totals lm-num">
-          Lifetime: {formatCoins(state.lifetimeEarned)} {COIN} earned · {formatCoins(state.lifetimeSpent)} {COIN} spent · {state.cratesOpened} crates opened
+          {t.lifetime(formatCoins(state.lifetimeEarned), formatCoins(state.lifetimeSpent), state.cratesOpened)}
         </p>
       </section>
     </div>
@@ -298,35 +312,37 @@ function Ledger({ state }: { state: EconomyState }) {
 }
 
 function OddsTable({ pity }: { pity: number }) {
+  const t = useStrings(S);
+  const locale = useLocale();
+  const T = pickStrings(S, locale);
   const kinds = Object.keys(CRATES) as CrateKind[];
   return (
     <div class="eco-odds">
-      <p>Rarity is rolled first, then what’s inside. Owned cosmetics are never repeated — they’re paid out in lumens instead.</p>
+      <p>{t.oddsIntro}</p>
       <table>
         <thead>
           <tr>
-            <th scope="col">Crate</th>
-            {publishedOdds('case').map((o) => <th key={o.rarity} scope="col" style={{ color: RARITY_COLOR[o.rarity] }}>{RARITY_LABEL[o.rarity]}</th>)}
+            <th scope="col">{t.crateCol}</th>
+            {publishedOdds('case').map((o) => <th key={o.rarity} scope="col" style={{ color: RARITY_COLOR[o.rarity] }}>{T.rarity[o.rarity]}</th>)}
           </tr>
         </thead>
         <tbody>
           {kinds.map((k) => (
             <tr key={k}>
               <th scope="row">
-                {CRATES[k].name}
-                <small>{CRATES[k].earn}</small>
+                {crateText(k, locale).name}
+                <small>{crateText(k, locale).earn}</small>
               </th>
               {publishedOdds(k).map((o) => <td key={o.rarity} class="lm-num">{o.pct}%</td>)}
             </tr>
           ))}
         </tbody>
       </table>
-      <p class="lm-num">Contents: {CONTENT_ODDS.coins}% lumens · {CONTENT_ODDS.cosmetic}% cosmetic · {CONTENT_ODDS.hints}% consult notes</p>
+      <p class="lm-num">{t.contents(CONTENT_ODDS.coins, CONTENT_ODDS.cosmetic, CONTENT_ODDS.hints)}</p>
       <p>
-        Guarantee: after {PITY_LIMIT - 1} crates in a row without an epic or better, crate {PITY_LIMIT} is always epic or better. Your next
-        guaranteed epic is within <b class="lm-num">{Math.max(1, PITY_LIMIT - pity)}</b> crate{Math.max(1, PITY_LIMIT - pity) === 1 ? '' : 's'}.
+        {t.guarantee(PITY_LIMIT - 1, PITY_LIMIT)}{Math.max(1, PITY_LIMIT - pity) === 1 && t.crateOne ? <b>{t.crateOne}</b> : <><b class="lm-num">{Math.max(1, PITY_LIMIT - pity)}</b> {t.crates(Math.max(1, PITY_LIMIT - pity))}</>}.
       </p>
-      <p class="eco-odds__foot">Crates are earned in play only. There is no real-money purchase anywhere in Lumen.</p>
+      <p class="eco-odds__foot">{t.oddsFoot}</p>
     </div>
   );
 }

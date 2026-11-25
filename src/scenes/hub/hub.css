@@ -12,6 +12,7 @@
   margin: 4px 0 2px; font-family: var(--lm-font-display); font-weight: 500; line-height: 1.04; letter-spacing: -0.02em;
   font-size: var(--lm-fs-4xl); color: var(--lm-ivory);
 }
+.hub-hero__title em:lang(he), :lang(he) .hub-hero__title em { font-style: normal; }
 .hub-hero__title em {
   font-style: italic; background: linear-gradient(180deg, #fff4da, #ffd27a 60%, #d9962a); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 22px rgba(255, 210, 122, 0.3));

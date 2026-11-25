@@ -1,5 +1,7 @@
 import type { JSX } from 'preact';
 import { useId } from 'preact/hooks';
+import { useStrings } from '@ui-kit';
+import { S } from '../strings';
 import { itemById, type CatalogItem, type ThemePalette } from '../catalog';
 
 /* ── Eyewear frames (SVG, 200×80) ─────────────────────────────────────── */
@@ -124,12 +126,14 @@ export function FrameArt(props: { id: string; width?: number | string; class?: s
 /* ── Nameplates (styled HTML) ─────────────────────────────────────────── */
 
 export function Nameplate(props: { id: string; name: string; title?: string; size?: 'sm' | 'md' | 'lg'; class?: string }) {
+  const t = useStrings(S);
+  const name = props.name === 'Doctor' ? t.defaultName : props.name;
   return (
     <div class={`eco-np eco-np--${props.id} eco-np--${props.size ?? 'md'}${props.class ? ' ' + props.class : ''}`}>
       {props.id === 'gilded-marquee' && <span class="eco-np__bulbs" aria-hidden="true" />}
       {props.id === 'star-chart' && <span class="eco-np__stars" aria-hidden="true" />}
-      <span class="eco-np__name">{props.name}</span>
-      <span class="eco-np__title">{props.title ?? 'Optometrist · Lumen'}</span>
+      <span class="eco-np__name">{name}</span>
+      <span class="eco-np__title">{props.title ?? t.nameplateTitle}</span>
     </div>
   );
 }

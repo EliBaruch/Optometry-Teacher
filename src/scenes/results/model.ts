@@ -122,6 +122,7 @@ export function pickClinchers(
   session: Pick<CaseSession, 'chart' | 'testsDone'> | null,
   dx: Diagnosis | undefined,
   n = 2,
+  locale: Locale = 'en',
 ): KeyFinding[] {
   const vocab = words([...(dx?.keyFindings ?? []), ...kase.teachingPoints, dx?.name ?? ''].join(' '));
   const key = (f: Pick<RevealedFinding, 'label' | 'eye'>) => `${f.label}|${f.eye ?? ''}`;
@@ -137,7 +138,11 @@ export function pickClinchers(
   for (const [t, r] of Object.entries(session?.testsDone ?? {}) as [TestId, { findings: RevealedFinding[] } | undefined][]) {
     for (const f of r?.findings ?? []) (relevant.has(t) ? fromRelevant : fromOffTarget).add(key(f));
   }
+  // Chart labels come from the exam engine; where they have no Hebrew yet, the localized codex
+  // key findings carry the reflection instead of a stray English line.
+  const readable = (f: Pick<RevealedFinding, 'label' | 'value'>) => locale === 'en' || /[\u0590-\u05FF]/.test(`${f.label}${f.value}`);
   const scored = (session?.chart ?? [])
+    .filter((f) => readable(f))
     .filter((f) => !(fromOffTarget.has(key(f)) && !fromRelevant.has(key(f))))
     .map((f, i) => {
       let s = FLAG_WEIGHT[f.flag];
@@ -214,7 +219,7 @@ export function buildReview({ kase, session, diagnosis, timeout, locale = 'en' }
     missedTests,
     unnecessaryTests,
     unaskedKey,
-    clinchers: pickClinchers(kase, sess, correctDx),
+    clinchers: pickClinchers(kase, sess, correctDx, 2, locale),
     cleanWorkup: !missedTests.length && !unnecessaryTests.length && !unaskedKey.length,
   };
 }

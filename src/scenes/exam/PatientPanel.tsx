@@ -22,7 +22,7 @@ export function PatientPanel(props: { kase: ClinicalCase; expression: AvatarExpr
       <div class="exm-patient__top">
         <div class="exm-portrait">
           <div class="exm-portrait__glow" aria-hidden="true" />
-          <div class="exm-portrait__who">
+          <div class="exm-portrait__who" dir="ltr">
             <PatientAvatar
               spec={p.avatar}
               age={p.age}
