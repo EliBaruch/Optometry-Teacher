@@ -493,8 +493,7 @@ function paintDetachment(ctx: Ctx, L: FundusLayout, S: number): void {
   // vessels ride on the billowing retina: darker, displaced
   ctx.save();
   ctx.translate(0.004, 0.005);
-  paintVessels(ctx, L, S, 'vein', 'rgba(60,12,22,0.9)');
-  paintVessels(ctx, L, S, 'artery', 'rgba(116,30,32,0.85)');
+  paintVessels(ctx, L, S, { tint: { vein: 'rgba(60,12,22,0.9)', artery: 'rgba(116,30,32,0.85)' }, reflex: false });
   ctx.restore();
   if (!serous) {
     // undulating folds: soft shadow troughs + bright crests, roughly parallel to the border
