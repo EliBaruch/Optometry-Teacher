@@ -3,6 +3,7 @@ import type { MiniGameModule, MiniGameResult } from '@core';
 import { Game } from './Game';
 import { practiceScenario } from './practice';
 import { report } from './report';
+import { VF_TEXT } from './strings';
 import './vf.css';
 
 const visualFields: MiniGameModule = {
@@ -17,6 +18,7 @@ const visualFields: MiniGameModule = {
     'Hemianopias respect the vertical meridian: bitemporal = chiasm, homonymous = behind the chiasm, opposite side',
     'Superior homonymous quadrantanopia = temporal lobe; inferior = parietal',
   ],
+  text: { he: VF_TEXT },
   mount(host, ctx, done) {
     let called = false;
     const finish = (r: MiniGameResult) => {

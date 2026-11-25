@@ -1,4 +1,5 @@
-import { LOCALISATIONS, LOCALISATION_LABEL, LOCALISATION_SUB, type Localisation } from './interpret';
+import { LOCALISATIONS, type Localisation } from './interpret';
+import { useVf } from './useVf';
 
 export interface PathwayProps {
   value: Localisation | null;
@@ -13,6 +14,7 @@ export interface PathwayProps {
  * LGN → radiations → occipital cortex. Segments light up for the chosen site.
  */
 export function Pathway({ value, truth, onChange, disabled }: PathwayProps) {
+  const t = useVf();
   const state = (seg: Localisation) => {
     if (truth) {
       if (seg === truth) return 'is-truth';
@@ -24,15 +26,15 @@ export function Pathway({ value, truth, onChange, disabled }: PathwayProps) {
   const click = (l: Localisation) => () => !disabled && onChange?.(l);
   return (
     <div class="vf-path">
-      <svg viewBox="0 0 220 150" class="vf-path__svg" aria-hidden="true">
+      <svg viewBox="0 0 220 150" class="vf-path__svg" aria-hidden="true" dir="ltr">
         <defs>
           <radialGradient id="vf-path-eye" cx="40%" cy="35%" r="70%">
             <stop offset="0" stop-color="#f6efe4" />
             <stop offset="1" stop-color="#a99bbd" />
           </radialGradient>
         </defs>
-        <text x="16" y="12" class="vf-path__lr">L</text>
-        <text x="198" y="12" class="vf-path__lr">R</text>
+        <text x="16" y="12" class="vf-path__lr">{t.pathL}</text>
+        <text x="198" y="12" class="vf-path__lr">{t.pathR}</text>
         <g class={`vf-path__seg ${state('prechiasmal')}`} onClick={click('prechiasmal')}>
           <path d="M78 26 C82 40 92 52 104 62 M142 26 C138 40 128 52 116 62" />
           <circle cx="74" cy="18" r="11" class="vf-path__eye" />
@@ -57,7 +59,7 @@ export function Pathway({ value, truth, onChange, disabled }: PathwayProps) {
           <path d="M150 140 Q132 148 116 140" class="vf-path__cortex" />
         </g>
       </svg>
-      <div class="vf-path__opts" role="radiogroup" aria-label="Where is the lesion?">
+      <div class="vf-path__opts" role="radiogroup" aria-label={t.whereLesion}>
         {LOCALISATIONS.map((l) => (
           <button
             key={l}
@@ -69,8 +71,8 @@ export function Pathway({ value, truth, onChange, disabled }: PathwayProps) {
             onClick={click(l)}
             data-testid={`vf-loc-${l}`}
           >
-            <strong>{LOCALISATION_LABEL[l]}</strong>
-            <small>{LOCALISATION_SUB[l]}</small>
+            <strong>{t.locLabel[l]}</strong>
+            <small>{t.locSub[l]}</small>
           </button>
         ))}
       </div>

@@ -21,7 +21,7 @@ export const S = defineStrings({
     back: 'חזרה',
     close: 'סגירה',
     dismiss: (msg: string) => `${msg} (לחצו כדי לסגור)`,
-    showWholeLine: 'הציגו את כל המשפט',
+    showWholeLine: 'הציגו את המשפט במלואו',
     stars: (n: number, max: number) => `${n} מתוך ${max} כוכבים`,
     grade: (g: string, word: string) => `ציון ${g}: ${word}`,
     remove: (what: string) => (what.trim() ? `הסרת ${what.trim()}` : 'הסרה'),

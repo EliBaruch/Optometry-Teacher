@@ -40,15 +40,22 @@ export function Tabs({ items, value, onChange, id, label, variant = 'pill', acce
       const el = list.querySelector<HTMLElement>(`[data-tab="${CSS.escape(value)}"]`);
       if (el) setInd({ x: el.offsetLeft, w: el.offsetWidth });
       const max = list.scrollWidth - list.clientWidth;
-      setEdges({ start: list.scrollLeft > 2, end: max > 2 && list.scrollLeft < max - 2 });
+      // scrollLeft is <= 0 in RTL; |scrollLeft| is the distance scrolled from the logical start.
+      const off = Math.abs(list.scrollLeft);
+      setEdges({ start: off > 2, end: max > 2 && off < max - 2 });
     };
     // Keep the active tab in view on narrow screens (without scrolling the page).
     const el = list.querySelector<HTMLElement>(`[data-tab="${CSS.escape(value)}"]`);
     if (el && list.scrollWidth > list.clientWidth) {
-      const left = el.offsetLeft - 24;
-      const right = el.offsetLeft + el.offsetWidth + 24 - list.clientWidth;
-      if (list.scrollLeft > left) list.scrollLeft = Math.max(0, left);
-      else if (list.scrollLeft < right) list.scrollLeft = right;
+      const rtl = getComputedStyle(list).direction === 'rtl';
+      const sign = rtl ? -1 : 1;
+      // Work in logical offsets from the inline start, then convert back to scrollLeft.
+      const startEdge = rtl ? list.scrollWidth - (el.offsetLeft + el.offsetWidth) : el.offsetLeft;
+      const lo = startEdge - 24;
+      const hi = startEdge + el.offsetWidth + 24 - list.clientWidth;
+      const cur = Math.abs(list.scrollLeft);
+      if (cur > lo) list.scrollLeft = sign * Math.max(0, lo);
+      else if (cur < hi) list.scrollLeft = sign * hi;
     }
     measure();
     list.addEventListener('scroll', measure, { passive: true });
@@ -71,8 +78,11 @@ export function Tabs({ items, value, onChange, id, label, variant = 'pill', acce
   const onKey = (e: KeyboardEvent) => {
     const i = enabled.findIndex((t) => t.id === value);
     let next = -1;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % enabled.length;
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + enabled.length) % enabled.length;
+    const rtl = !!listRef.current && getComputedStyle(listRef.current).direction === 'rtl';
+    const fwd = rtl ? 'ArrowLeft' : 'ArrowRight';
+    const back = rtl ? 'ArrowRight' : 'ArrowLeft';
+    if (e.key === fwd || e.key === 'ArrowDown') next = (i + 1) % enabled.length;
+    else if (e.key === back || e.key === 'ArrowUp') next = (i - 1 + enabled.length) % enabled.length;
     else if (e.key === 'Home') next = 0;
     else if (e.key === 'End') next = enabled.length - 1;
     if (next >= 0) {

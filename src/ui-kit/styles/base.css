@@ -65,7 +65,9 @@ code, kbd, samp { font-family: var(--lm-font-num); }
   overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
 }
 .lm-display { font-family: var(--lm-font-display); font-optical-sizing: auto; letter-spacing: -0.01em; }
-.lm-num { font-family: var(--lm-font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.lm-num { font-family: var(--lm-font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; unicode-bidi: isolate; }
+.lm-num:not([dir=auto]) { direction: ltr; }
+.lm-countup { font-family: var(--lm-font-num); font-variant-numeric: tabular-nums; }
 .lm-eyebrow {
   font-family: var(--lm-font-ui); font-size: var(--lm-fs-2xs); font-weight: 650;
   letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: var(--lm-gold);

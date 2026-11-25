@@ -54,7 +54,7 @@ export function RewardChip({ grant, index = 0, stagger = 140, animate = true, sf
         <IconOrText icon={grant.icon ?? 'sparkle'} />
       </span>
       <span class="lm-reward__text" aria-hidden="true">
-        <span class="lm-reward__value lm-num">{grant.value}</span>
+        <span class="lm-reward__value lm-num" dir={/[\u0590-\u05FF]/.test(String(grant.value)) ? 'auto' : 'ltr'}>{grant.value}</span>
         <span class="lm-reward__label">{grant.label}</span>
       </span>
       {rarity !== 'common' && (

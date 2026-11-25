@@ -68,11 +68,19 @@ export function CountUp({ value, from = 0, duration, delay = 0, decimals = 0, pr
     };
   }, [value, reduced]);
 
+  // A Hebrew suffix ('+20 מטבעות') stays outside the LTR number run so the sign lands on the correct side.
+  const heSuffix = /[\u0590-\u05FF]/.test(suffix);
   const fmt = (n: number) => prefix + (format ? format(n) : formatNumber(n, decimals)) + suffix;
+  const num = (n: number) => (
+    <>
+      <span class="lm-num">{prefix + (format ? format(n) : formatNumber(n, decimals)) + (heSuffix ? '' : suffix)}</span>
+      {heSuffix && suffix}
+    </>
+  );
   return (
-    <span class={cx('lm-num lm-countup', klass)}>
+    <span class={cx('lm-countup', klass)}>
       <span class="lm-sr-only">{fmt(value)}</span>
-      <span aria-hidden="true">{fmt(shown)}</span>
+      <span aria-hidden="true">{num(shown)}</span>
     </span>
   );
 }

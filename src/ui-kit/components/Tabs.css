@@ -4,6 +4,7 @@
   overflow-x: auto; scrollbar-width: none;
 }
 .lm-tabs::-webkit-scrollbar { display: none; }
+[dir=rtl] .lm-tabs.fade-start, [dir=rtl] .lm-tabs.fade-end { -webkit-mask-image: linear-gradient(270deg, transparent 0, #000 var(--fade-a), #000 calc(100% - var(--fade-b)), transparent 100%); mask-image: linear-gradient(270deg, transparent 0, #000 var(--fade-a), #000 calc(100% - var(--fade-b)), transparent 100%); }
 /* edge fades tell the player there are more tabs off-screen */
 .lm-tabs.fade-start, .lm-tabs.fade-end {
   --fade-a: 0px; --fade-b: 0px;
