@@ -295,6 +295,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             scene={scene}
             theta={cur.ins.theta}
             axisLabel={axis}
+            axisValueText={t.axisValueText(axis)}
             axisWord={t.axisWord}
             rotationLabel={t.rotationLabel}
             onRotate={(n) => onRotate(n)}
@@ -385,7 +386,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             return (
               <span key={e} class={`kr-progress__e${l ? ' is-done' : ''}${e === eye ? ' is-cur' : ''}`}>
                 <b>{e}</b>
-                <span class={`kr-num${l ? '' : ' kr-progress__nm'}`}>{l ? <>{readingOf(l.ins).k1.toFixed(2)} / {readingOf(l.ins).k2.toFixed(2)}<small class="kr-ax"> @ {String(readingOf(l.ins).axisK1).padStart(3, '0')}</small></> : t.notMeasured}</span>
+                <span class={`kr-num${l ? '' : ' kr-progress__nm'}`} dir={l ? 'ltr' : undefined}>{l ? <>{readingOf(l.ins).k1.toFixed(2)} / {readingOf(l.ins).k2.toFixed(2)}<small class="kr-ax"> @ {String(readingOf(l.ins).axisK1).padStart(3, '0')}</small></> : t.notMeasured}</span>
               </span>
             );
           })}

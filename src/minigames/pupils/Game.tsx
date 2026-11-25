@@ -376,7 +376,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             </table>
           </section>
 
-          <section class="pu-panel pu-panel--trace" aria-label={t.pupillometer}>
+          <section class="pu-panel pu-panel--trace" aria-label={t.pupillometerAria}>
             <div class="pu-panel__h"><span class="pu-eyebrow">{t.pupillometer}</span>
               <span class="pu-legend" dir="ltr"><i style={{ background: EYE_COLOR.OD }} />OD <i style={{ background: EYE_COLOR.OS }} />OS</span></div>
             <canvas ref={(el) => { dom.current.trace = el; }} class="pu-trace" width={360} height={96} role="img" aria-label={t.traceLabel} />

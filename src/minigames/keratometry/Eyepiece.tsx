@@ -13,6 +13,8 @@ export interface EyepieceProps {
   /** Unwrapped instrument rotation for the pointer (degrees, CCW). */
   theta: number;
   axisLabel: string;
+  /** Screen-reader value text for the axis, e.g. "045 degrees". */
+  axisValueText?: string;
   axisWord?: string;
   rotationLabel?: string;
   onRotate: (deltaDeg: number, fine: boolean) => void;
@@ -219,7 +221,7 @@ export function Eyepiece(p: EyepieceProps) {
           aria-valuemin={1}
           aria-valuemax={180}
           aria-valuenow={Number(p.axisLabel)}
-          aria-valuetext={`${p.axisLabel}°`}
+          aria-valuetext={p.axisValueText ?? `${p.axisLabel}°`}
           onKeyDown={onKey}
         />
       </svg>

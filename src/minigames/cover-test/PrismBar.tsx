@@ -64,7 +64,7 @@ export function PrismBar({ prism, onChange, sound }: PrismBarProps) {
       </div>
       <div class="cvt-prism__row cvt-prism__row--bases" role="radiogroup" aria-label={t.baseGroup}>
         {BASES.map((b) => (
-          <button key={b.id} type="button" role="radio" aria-checked={prism.base === b.id} class={`cvt-chip${prism.base === b.id ? ' is-on' : ''}`} onClick={() => setBase(b.id)} title={t.bases[b.id]}>
+          <button key={b.id} type="button" role="radio" aria-checked={prism.base === b.id} class={`cvt-chip${prism.base === b.id ? ' is-on' : ''}`} onClick={() => setBase(b.id)} title={t.baseTitles[b.id]}>
             <span class="cvt-chip__arrow" aria-hidden="true">{b.arrow}</span>{t.bases[b.id]}
           </button>
         ))}
