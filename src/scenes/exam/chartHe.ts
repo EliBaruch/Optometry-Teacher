@@ -308,8 +308,18 @@ export function chartValueHe(value: string): string {
   return he(value, RULES);
 }
 
+/**
+ * Numbers, optotypes and Latin abbreviations inside a Hebrew sentence are wrapped in left-to-right isolates,
+ * so "20/32 (6/9.5)" or "+2.75 −0.50 × 090" keep their order instead of being reshuffled by the bidi algorithm.
+ */
+const LTR_TOKEN = String.raw`(?:[+−]?\d[\d.,/:@×Δ°%]*|[A-Za-z][A-Za-z0-9:/\-]*)`;
+const LTR_RUN = new RegExp(`${LTR_TOKEN}(?:[ ]?(?:\\([\\d/.]+\\)|[+−×@/]|${LTR_TOKEN}))*`, 'g');
+export function isolateLtr(text: string): string {
+  return /[\u0590-\u05FF]/.test(text) ? text.replace(LTR_RUN, '\u2066$&\u2069') : text;
+}
+
 /** Row text in the player's language. English passes through untouched. */
 export function localizeFinding(f: Pick<RevealedFinding, 'label' | 'value'>, locale: Locale): { label: string; value: string } {
   if (locale !== 'he') return { label: f.label, value: f.value };
-  return { label: chartLabelHe(f.label), value: chartValueHe(f.value) };
+  return { label: chartLabelHe(f.label), value: isolateLtr(chartValueHe(f.value)) };
 }

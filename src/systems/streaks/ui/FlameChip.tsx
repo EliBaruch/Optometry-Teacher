@@ -1,19 +1,21 @@
 /** Top-bar chip: the daily flame with its day count. Opens the streak details. */
 import { useState } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { cx, useSfx } from '@ui-kit';
+import { cx, useSfx, useStrings } from '@ui-kit';
+import { S } from '../strings';
 import { DetailsModal } from './DetailsModal';
 import { Flame, FreezeGlyph } from './Flame';
-import { dailyIntensity, days, flameVariant, statusLine } from './copy';
+import { dailyIntensity, flameVariant, statusLine } from './copy';
 import { useStreaks } from './hooks';
 
 export function FlameChip({ services }: { services: GameServices }) {
   const { ctl, state } = useStreaks(services);
+  const t = useStrings(S);
   const play = useSfx();
   const [open, setOpen] = useState(false);
   if (!ctl) return null;
   const view = ctl.view();
-  const hint = `Daily streak: ${days(view.streak)}. ${statusLine(view, state.daily.best)}${state.daily.freezes ? ` ${state.daily.freezes} freeze${state.daily.freezes > 1 ? 's' : ''} banked.` : ''}`;
+  const hint = t.chipHint(view.streak, statusLine(view, state.daily.best, t), state.daily.freezes);
   return (
     <>
       <button

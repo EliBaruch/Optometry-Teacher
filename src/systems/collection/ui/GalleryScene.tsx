@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import type { DiagnosisCategory, GameServices } from '@core';
-import { Button, Chip, CountUp, Icon, RingMeter, Screen, cx, useRegistry, useSfx, useSignal } from '@ui-kit';
+import { Button, Chip, CountUp, Icon, RingMeter, Screen, cx, useRegistry, useSfx, useSignal, useStrings } from '@ui-kit';
 import { orderedDiagnoses, setProgress } from '../catalog';
 import { CARD_RARITIES, frameFor, setReward, type CardRarity } from '../model';
-import { GALLERY_COLOR, RARITY_HEX, RARITY_NAME, type CollectionStore } from '../store';
+import { GALLERY_COLOR, RARITY_HEX, type CollectionStore } from '../store';
+import { S, wingText } from '../strings';
 import { CardInspect } from './CardInspect';
 import { GhostCard, IrisCard, type CardView } from './IrisCard';
 import { OddsModal } from './OddsModal';
@@ -14,6 +15,7 @@ type WingFilter = 'all' | DiagnosisCategory;
 type RarityFilter = 'all' | CardRarity;
 
 export function GalleryScene({ store, services }: { store: CollectionStore; services: GameServices }) {
+  const t = useStrings(S);
   const state = useSignal(store.state);
   const active = useSignal(store.active);
   const diagnoses = useRegistry(services.registries.diagnoses);
@@ -53,8 +55,8 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
 
   return (
     <Screen
-      title="The Gallery"
-      eyebrow="Iris collection"
+      title={t.sceneTitle}
+      eyebrow={t.sceneEyebrow}
       backdrop="calm"
       onBack={() => services.router.back()}
       escToBack={!inspect && !odds}
@@ -66,41 +68,38 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
       </div>
 
       <section class="gs-hero">
-        <RingMeter value={total ? owned / total : 0} size={128} thickness={7} accent={GALLERY_COLOR} accent2="#ffd27a" ariaLabel={`${owned} of ${total} cards collected`}>
+        <RingMeter value={total ? owned / total : 0} size={128} thickness={7} accent={GALLERY_COLOR} accent2="#ffd27a" ariaLabel={t.ringLabel(owned, total)}>
           <div class="gs-ring">
             <CountUp value={owned} class="gs-ring__n" />
-            <span class="gs-ring__of">of {total}</span>
+            <span class="gs-ring__of">{t.ringOf(total)}</span>
           </div>
         </RingMeter>
         <div class="gs-hero__text">
-          <h2 class="gs-hero__title">Every iris tells a story</h2>
-          <p class="gs-hero__sub">
-            Each patient you diagnose correctly leaves their iris behind as a card. Sharper work-ups paint rarer cards; diagnosing a condition again polishes its frame.
-            Flip any card to study its teaching pearl.
-          </p>
+          <h2 class="gs-hero__title">{t.heroTitle}</h2>
+          <p class="gs-hero__sub">{t.heroSub}</p>
           <div class="gs-hero__actions">
-            <Button size="sm" variant="ghost" icon="info" onClick={() => setOdds(true)}>How cards are earned</Button>
+            <Button size="sm" variant="ghost" icon="info" onClick={() => setOdds(true)}>{t.oddsBtn}</Button>
           </div>
         </div>
-        <ul class="gs-tally" aria-label="Collection by rarity">
+        <ul class="gs-tally" aria-label={t.tallyLabel}>
           {tally.slice().reverse().map(({ r, n }) => (
             <li key={r} style={{ '--c': RARITY_HEX[r] }}>
               <i class="gs-tally__gem" />
               <span class="gs-tally__n lm-num">{n}</span>
-              <span class="gs-tally__l">{RARITY_NAME[r]}</span>
+              <span class="gs-tally__l">{t.rarity[r]}</span>
             </li>
           ))}
           <li style={{ '--c': '#dfe6f2' }}>
             <Icon name="sparkle" class="gs-tally__icon" />
             <span class="gs-tally__n lm-num">{polished}</span>
-            <span class="gs-tally__l">Polished</span>
+            <span class="gs-tally__l">{t.polished}</span>
           </li>
         </ul>
       </section>
 
-      <nav class="gs-wings" aria-label="Gallery wings">
+      <nav class="gs-wings" aria-label={t.wingsNav}>
         <button type="button" class={cx('gs-wing', wing === 'all' && 'is-on')} aria-pressed={wing === 'all'} onClick={() => { play('select'); setWing('all'); }}>
-          <span class="gs-wing__name">All wings</span>
+          <span class="gs-wing__name">{t.allWings}</span>
           <span class="gs-wing__count lm-num">{owned}/{total}</span>
           <span class="gs-wing__bar"><i style={{ width: `${total ? (owned / total) * 100 : 0}%` }} /></span>
         </button>
@@ -113,7 +112,7 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
             aria-pressed={wing === s.category}
             onClick={() => { play('select'); setWing(s.category); }}
           >
-            <span class="gs-wing__name">{s.complete && <Icon name="check" class="gs-wing__check" />}{s.info.label}</span>
+            <span class="gs-wing__name">{s.complete && <Icon name="check" class="gs-wing__check" />}{wingText(t, s.category).label}</span>
             <span class="gs-wing__count lm-num">{s.owned}/{s.total}</span>
             <span class="gs-wing__bar"><i style={{ width: `${(s.owned / s.total) * 100}%` }} /></span>
           </button>
@@ -121,15 +120,15 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
       </nav>
 
       <div class="gs-tools">
-        <div class="gs-tools__group" role="group" aria-label="Filter by rarity">
-          <Chip size="sm" selected={rarity === 'all'} onClick={() => setRarity('all')}>Any rarity</Chip>
+        <div class="gs-tools__group" role="group" aria-label={t.filterRarity}>
+          <Chip size="sm" selected={rarity === 'all'} onClick={() => setRarity('all')}>{t.anyRarity}</Chip>
           {CARD_RARITIES.map((r) => (
-            <Chip key={r} size="sm" accent={RARITY_HEX[r]} selected={rarity === r} onClick={() => setRarity(rarity === r ? 'all' : r)}>{RARITY_NAME[r]}</Chip>
+            <Chip key={r} size="sm" accent={RARITY_HEX[r]} selected={rarity === r} onClick={() => setRarity(rarity === r ? 'all' : r)}>{t.rarity[r]}</Chip>
           ))}
         </div>
         <div class="gs-tools__group">
-          <Chip size="sm" icon="eye" selected={ownedOnly} onClick={() => setOwnedOnly(!ownedOnly)}>Collected only</Chip>
-          <Chip size="sm" icon="book" accent="#ffd27a" selected={study} onClick={() => setStudy(!study)}>Flash-card mode</Chip>
+          <Chip size="sm" icon="eye" selected={ownedOnly} onClick={() => setOwnedOnly(!ownedOnly)}>{t.collectedOnly}</Chip>
+          <Chip size="sm" icon="book" accent="#ffd27a" selected={study} onClick={() => setStudy(!study)}>{t.flashMode}</Chip>
         </div>
       </div>
 
@@ -137,7 +136,7 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
         <div class="gs-empty">
           <Icon name="gem" />
           <div>
-            <strong>Your first card awaits.</strong> Diagnose a patient correctly and their iris joins the Gallery — an S grade gives the best odds of a rare painting.
+            <strong>{t.emptyStrong}</strong>{t.emptyRest}
           </div>
         </div>
       )}
@@ -147,12 +146,12 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
         if (!members.length) return null;
         const reward = setReward(s.total);
         return (
-          <section key={s.category} class={cx('gs-room', s.complete && 'is-complete')} style={{ '--c': s.info.color }} aria-label={s.info.wing}>
+          <section key={s.category} class={cx('gs-room', s.complete && 'is-complete')} style={{ '--c': s.info.color }} aria-label={wingText(t, s.category).wing}>
             <header class="gs-room__head">
-              <h3 class="gs-room__title">{s.info.wing}</h3>
+              <h3 class="gs-room__title">{wingText(t, s.category).wing}</h3>
               <span class="gs-room__count lm-num">{s.owned} / {s.total}</span>
-              <span class="gs-room__seal" title={s.complete ? 'Set complete' : `Complete the set: +${reward.xp} XP, +${reward.coins} coins`}>
-                {s.complete ? <><Icon name="trophy" /> Complete</> : <>Set reward · {reward.xp} XP</>}
+              <span class="gs-room__seal" title={s.complete ? t.setComplete : t.completeSetTitle(reward.xp, reward.coins)}>
+                {s.complete ? <><Icon name="trophy" /> {t.complete}</> : <>{t.setReward(reward.xp)}</>}
               </span>
             </header>
             <div class="gs-wall">
@@ -167,7 +166,7 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
                         view={view}
                         size="sm"
                         study={study}
-                        ribbon={fresh.has(d.id) ? 'NEW' : undefined}
+                        ribbon={fresh.has(d.id) ? t.newRibbon : undefined}
                         onActivate={() => {
                           play('reveal', { volume: 0.6 });
                           setInspect(d.id);

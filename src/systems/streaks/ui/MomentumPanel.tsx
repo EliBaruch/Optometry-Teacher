@@ -3,22 +3,24 @@
  * Display only — it never navigates (the results scene owns "Next patient").
  */
 import type { GameServices, RunSnapshot } from '@core';
-import { GlassPanel, Icon, cx, useSignal } from '@ui-kit';
+import { GlassPanel, Icon, cx, useSignal, useStrings } from '@ui-kit';
 import { TIERS, formatMult, tierFor, tierIndex, type ComboStep } from '../combo';
 import { nudges, type Nudge } from '../nudges';
+import { S, tierName } from '../strings';
 import { bestFor } from '../state';
 import type { RunEcho, StreaksController } from '../controller';
 import { Flame, FreezeGlyph } from './Flame';
-import { dailyIntensity, days, flameVariant } from './copy';
+import { dailyIntensity, flameVariant } from './copy';
 import { useStreaks } from './hooks';
 
 export function MomentumPanel({ services }: { services: GameServices }) {
   const { ctl, combo, echo, runEcho } = useStreaks(services);
+  const t = useStrings(S);
   const session = useSignal(services.session.state);
   const run = useSignal(services.run.state);
   const route = useSignal(services.router.current);
   if (!ctl) return null;
-  if (route.id === 'run-summary' && runEcho) return <RunMomentum ctl={ctl} run={runEcho} />;
+  if (route.id === 'run-summary' && runEcho) return <RunMomentum ctl={ctl} run={runEcho} services={services} />;
   if (!echo || (session && session.caseId !== echo.caseId)) return null;
 
   const runActive = !!run && run.modeId === echo.modeId && moreToCome(services, run);
@@ -29,14 +31,14 @@ export function MomentumPanel({ services }: { services: GameServices }) {
     runTotal: run && run.modeId === echo.modeId ? run.totalScore : 0,
     runBest: bestFor(state, echo.modeId).run,
     modeTitle: ctl.modeTitle(echo.modeId),
-    caseScore: echo.caseScore, prevCaseBest: echo.prevCaseBest, daily: state.daily, view,
+    caseScore: echo.caseScore, prevCaseBest: echo.prevCaseBest, daily: state.daily, view, locale: services.locale,
   });
   const tier = echo.step.tier;
 
   return (
     <GlassPanel
       as="section" class={cx('sk-mo', `is-${tier.key}`)} accent={tier.mult > 1 ? tier.color : '#fb923c'} glow={echo.step.tierUp} strong
-      icon="flame" eyebrow="Streaks" title={runActive ? 'Next patient' : 'Momentum'}
+      icon="flame" eyebrow={t.eyebrow} title={runActive ? t.nextPatient : t.momentum}
       actions={<DayChip ctl={ctl} />}
       style={{ '--sk-tier': tier.color }}
     >
@@ -47,10 +49,10 @@ export function MomentumPanel({ services }: { services: GameServices }) {
         <div class="sk-mo__main">
           <div class="sk-mo__mult">
             <span class="sk-mo__x lm-num" key={tier.key}>{formatMult(tier.mult)}</span>
-            <span class="sk-mo__word">{tier.mult > 1 ? `${tier.name} combo` : 'combo'}</span>
+            <span class="sk-mo__word">{tier.mult > 1 ? t.tierCombo(tierName(tier.key, tier.name, services.locale)) : t.comboWord}</span>
             {echo.step.bonusXp > 0 && <span class="sk-mo__xp lm-num">+{echo.step.bonusXp} XP</span>}
           </div>
-          <p class="sk-mo__line">{outcomeLine(echo.step)}</p>
+          <p class="sk-mo__line">{outcomeLine(echo.step, t)}</p>
         </div>
       </div>
       <Ladder count={echo.step.combo.count} />
@@ -59,17 +61,18 @@ export function MomentumPanel({ services }: { services: GameServices }) {
   );
 }
 
-function RunMomentum({ ctl, run }: { ctl: StreaksController; run: RunEcho }) {
+function RunMomentum({ ctl, run, services }: { ctl: StreaksController; run: RunEcho; services: GameServices }) {
+  const t = useStrings(S);
   const state = ctl.state.get();
   const view = ctl.view();
   const title = ctl.modeTitle(run.modeId);
   const tier = tierFor(run.bestCombo);
   const list = nudges({
     combo: { modeId: run.modeId, count: 0, best: run.bestCombo, graceUsed: false, cases: run.cases }, outcome: null, prevCount: 0,
-    runActive: false, runTotal: run.total, runBest: run.prevBest, modeTitle: title, caseScore: null, prevCaseBest: 0, daily: state.daily, view,
+    runActive: false, runTotal: run.total, runBest: run.prevBest, modeTitle: title, caseScore: null, prevCaseBest: 0, daily: state.daily, view, locale: services.locale,
   }).filter((n) => n.id !== 'pace'); // the headline already compares the run with your best
   return (
-    <GlassPanel as="section" class={cx('sk-mo sk-mo--run', `is-${tier.key}`)} style={{ '--sk-tier': tier.color }} accent={run.isNewBest ? '#ffd27a' : '#fb923c'} glow={run.isNewBest} strong icon="flame" eyebrow="Streaks" title="Run momentum"
+    <GlassPanel as="section" class={cx('sk-mo sk-mo--run', `is-${tier.key}`)} style={{ '--sk-tier': tier.color }} accent={run.isNewBest ? '#ffd27a' : '#fb923c'} glow={run.isNewBest} strong icon="flame" eyebrow={t.eyebrow} title={t.runMomentum}
       actions={<DayChip ctl={ctl} />}
     >
       <div class="sk-mo__hero">
@@ -79,16 +82,16 @@ function RunMomentum({ ctl, run }: { ctl: StreaksController; run: RunEcho }) {
         <div class="sk-mo__main">
           <div class="sk-mo__mult">
             <span class="sk-mo__x lm-num">{formatMult(tier.mult)}</span>
-            <span class="sk-mo__word">{run.bestCombo > 0 ? `peak combo · ${run.bestCombo} in a row` : 'peak combo'}</span>
+            <span class="sk-mo__word">{run.bestCombo > 0 ? t.peakComboN(run.bestCombo) : t.peakCombo}</span>
           </div>
           <p class="sk-mo__line">
             {run.isNewBest
               ? run.prevBest > 0
-                ? `New personal best in ${title} — ${run.total - run.prevBest} points past your old mark.`
-                : `Your first ${title} on the books: ${run.total} points.`
+                ? t.runNewBestOver(title, run.total - run.prevBest)
+                : t.runFirst(title, run.total)
               : run.prevBest > 0
-                ? `Your best ${title} stands at ${run.prevBest}.`
-                : `${run.total} points this run.`}
+                ? t.runBestStands(title, run.prevBest)
+                : t.runPoints(run.total)}
           </p>
         </div>
       </div>
@@ -97,27 +100,28 @@ function RunMomentum({ ctl, run }: { ctl: StreaksController; run: RunEcho }) {
   );
 }
 
-function outcomeLine(step: ComboStep): string {
+function outcomeLine(step: ComboStep, t: typeof S.en): string {
   const n = step.combo.count;
   switch (step.outcome) {
     case 'built':
-      if (step.tierUp) return `Climbed to ${formatMult(step.tier.mult)} — ${n} correct diagnoses in a row.`;
-      return n === 1 ? 'First correct call — one more lights the combo.' : `${n} correct diagnoses in a row.`;
+      if (step.tierUp) return t.outClimbed(formatMult(step.tier.mult), n);
+      return n === 1 ? t.outFirst : t.outBuilt(n);
     case 'saved':
-      return 'Combo saved: your essential work-up was complete and triage was right. The safety net is spent for this run.';
+      return t.outSaved;
     case 'reset':
-      return step.prevCount >= 2 ? `Combo banked at ${step.prevCount} in a row — every correct call relights it.` : 'A fresh start — the next correct call builds your combo.';
+      return step.prevCount >= 2 ? t.outBanked(step.prevCount) : t.outFresh;
   }
 }
 
 function Ladder({ count }: { count: number }) {
+  const t = useStrings(S);
   const cur = tierIndex(count);
   return (
-    <ol class="sk-ladder" aria-label="Combo tiers">
-      {TIERS.map((t, i) => (
-        <li key={t.key} class={cx('sk-ladder__step', i < cur && 'is-past', i === cur && 'is-now')} style={{ '--sk-c': t.color, '--sk-i': i }}>
-          <span class="sk-ladder__mult lm-num">{formatMult(t.mult)}</span>
-          <span class="sk-ladder__need">{t.min === 0 ? 'start' : `${t.min} in a row`}</span>
+    <ol class="sk-ladder" aria-label={t.ladderAria}>
+      {TIERS.map((tr, i) => (
+        <li key={tr.key} class={cx('sk-ladder__step', i < cur && 'is-past', i === cur && 'is-now')} style={{ '--sk-c': tr.color, '--sk-i': i }}>
+          <span class="sk-ladder__mult lm-num">{formatMult(tr.mult)}</span>
+          <span class="sk-ladder__need">{tr.min === 0 ? t.ladderStart : t.ladderNeed(tr.min)}</span>
         </li>
       ))}
     </ol>
@@ -141,12 +145,13 @@ function NudgeList({ items }: { items: Nudge[] }) {
 }
 
 function DayChip({ ctl }: { ctl: StreaksController }) {
+  const t = useStrings(S);
   const view = ctl.view();
   const d = ctl.state.get().daily;
   return (
-    <span class={`sk-daychip is-${view.status}`} title={`Daily streak: ${days(view.streak)}`}>
+    <span class={`sk-daychip is-${view.status}`} title={t.dayChipTitle(view.streak)}>
       <Flame size={14} intensity={dailyIntensity(view.streak)} variant={flameVariant(view.status)} embers={false} />
-      <span class="lm-num">Day {view.streak}</span>
+      <span class="lm-num">{t.dayChip(view.streak)}</span>
       {d.freezes > 0 && <FreezeGlyph size={11} />}
     </span>
   );

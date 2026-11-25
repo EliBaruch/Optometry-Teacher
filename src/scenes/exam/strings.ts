@@ -185,10 +185,10 @@ export const S = defineStrings({
     hintNone: 'נגמרו הרמזים',
     progress: (i: number, total: number | null) => `מטופל ${i}${total ? ` מתוך ${total}` : ''}`,
 
-    dockAsked: (n: number) => `${n} שאלות`,
-    dockTests: (n: number) => `${n} בדיקות`,
-    dockFindings: (n: number) => `${n} ממצאים`,
-    dockSuspects: (n: number, max: number) => `${n}/${max} חשודים`,
+    dockAsked: (n: number) => (n === 1 ? 'שאלה אחת' : `${n} שאלות`),
+    dockTests: (n: number) => (n === 1 ? 'בדיקה אחת' : `${n} בדיקות`),
+    dockFindings: (n: number) => (n === 1 ? 'ממצא אחד' : `${n} ממצאים`),
+    dockSuspects: (n: number, max: number) => `${n}/${max} חשודות`,
     diagnose: 'לאבחנה',
 
     leaveTitle: 'לצאת מחדר הבדיקה?',
@@ -226,7 +226,7 @@ export const S = defineStrings({
     trayEyebrow: 'בדיקת המטופל',
     trayCount: (n: number, total: number) => `בוצעו ${n} מתוך ${total} בדיקות`,
     trayEmpty: 'עגלת המכשירים ריקה כרגע. תצטרכו להסתדר עם שאלות ושיקול דעת קליני.',
-    toolAria: (name: string, minutes: number, done: boolean) => `${done ? 'חזרה על' : 'התחלת'} ${name}, ${minutes} דקות${done ? ', כבר בוצעה' : ''}`,
+    toolAria: (name: string, minutes: number, done: boolean) => `${done ? 'חזרה על' : 'התחלת'} ${name}, ${minutes === 1 ? 'דקה אחת' : `${minutes} דקות`}${done ? ', כבר בוצעה' : ''}`,
     toolByTech: 'בוצעה בידי הטכנאי',
     toolCharted: 'נרשמה בתיק',
     toolMin: (n: number) => `${n} דק׳`,
@@ -251,20 +251,20 @@ export const S = defineStrings({
     flagAbnormal: 'חריג',
     flagCritical: 'קריטי',
 
-    suspectsTitle: 'חשודים',
+    suspectsTitle: 'אבחנות חשודות',
     suspectsEyebrow: 'האבחנה המבדלת שלכם',
-    suspectsEmpty: 'הצמידו עד ארבעה מצבים שאתם חושדים בהם. אלה הרשימות שלכם: שום דבר כאן לא מסומן כנכון או כשגוי עד שתאבחנו.',
+    suspectsEmpty: 'הצמידו עד ארבע אבחנות שאתם חושדים בהן. זו רשימה פרטית שלכם: שום דבר בה לא נחשב נכון או שגוי עד שתאבחנו.',
     moveUp: (name: string) => `העלאת ${name} ברשימה`,
     moveDown: (name: string) => `הורדת ${name} ברשימה`,
     unpin: (name: string) => `הסרת ${name} מהרשימה`,
     pinFull: 'הרשימה מלאה',
-    pinAdd: 'הצמדת חשוד',
-    pickEyebrow: 'חיפוש בכל המצבים',
+    pinAdd: 'הצמדת אבחנה',
+    pickEyebrow: 'חיפוש בכל האבחנות',
     searchPlaceholder: 'חיפוש לפי שם, למשל ״גלאוקומה״',
-    searchAria: 'חיפוש מצבים',
-    conditionsAria: 'מצבים',
+    searchAria: 'חיפוש אבחנות',
+    conditionsAria: 'אבחנות',
     pinned: 'הוצמד',
-    noMatch: 'שום מצב לא מתאים לזה. נסו מילה קצרה יותר.',
+    noMatch: 'לא נמצאה אבחנה כזו. נסו מילה קצרה יותר.',
 
     boardBack: 'חזרה לחדר הבדיקה',
     boardEyebrow: 'רגע ההכרעה',
@@ -275,9 +275,9 @@ export const S = defineStrings({
     dxAria: 'אבחנה',
     urgencyAria: 'דחיפות',
     confAria: 'רמת ביטחון',
-    condition: 'מצב',
-    suspectN: (n: number) => `חשוד ${n}`,
-    suspectTitle: 'אחד מהחשודים שלכם',
+    condition: 'אבחנה',
+    suspectN: (n: number) => `אפשרות ${n}`,
+    suspectTitle: 'אחת מהאבחנות החשודות שלכם',
     boardHint: 'בחרו אבחנה, דחיפות ורמת ביטחון כדי לחתום.',
     boardError: 'התיק לא נסגר. נסו שוב.',
     signOff: 'חתימה על האבחנה',
@@ -286,7 +286,7 @@ export const S = defineStrings({
     stampAria: (name: string) => `האבחנה נחתמה: ${name}`,
 
     category: {
-      refractive: 'שבירה',
+      refractive: 'ליקויי שבירה',
       binocular: 'ראייה דו־עינית',
       anterior: 'קטע קדמי',
       cornea: 'קרנית',
@@ -298,7 +298,7 @@ export const S = defineStrings({
       normal: 'תקין',
     } as Record<DiagnosisCategory, string>,
     urgency: {
-      routine: { label: 'שגרתי', blurb: 'תור רגיל', detail: 'אין סכנה לראייה. תור רגיל בשבועות או בחודשים הקרובים מספיק.' },
+      routine: { label: 'שגרתי', blurb: 'תור רגיל', detail: 'אין סכנה לראייה. אפשר לקבוע בשבועות או בחודשים הקרובים.' },
       soon: { label: 'בקרוב', blurb: 'תוך כמה ימים', detail: 'צריך טיפול, אבל המתנה קצרה בטוחה. זימון חוזר או הפניה בתוך ימים.' },
       urgent: { label: 'דחוף', blurb: 'היום', detail: 'המתנה עלולה לסכן את הראייה. טיפול או הפניה עוד היום, תוך 24 שעות.' },
       emergency: { label: 'חירום', blurb: 'מיידי', detail: 'מסכן ראייה או חיים. שלחו למיון או לרופא תורן עכשיו, בלי לחכות.' },
@@ -309,7 +309,7 @@ export const S = defineStrings({
       certain: { label: 'בטוחים לגמרי', blurb: 'הרישיון שלי על הכף' },
     } as Record<Confidence, ConfidenceText>,
 
-    nudgeTest: (name: string) => `מה כדאי שיהיה בתיק לפני שמחליטים? ${name}.`,
+    nudgeTest: (name: string) => `לפני שמחליטים, כדאי שיהיה בתיק: ${name}.`,
     nudgeAsk: (cat: HistoryCategory, _label: string) =>
       `יש משהו ששווה לשמוע ${
         ({
@@ -322,7 +322,7 @@ export const S = defineStrings({
           social: 'על אורח החיים והעבודה',
         } as Record<HistoryCategory, string>)[cat]
       }. כבר שאלתם?`,
-    nudgeHelp: (name: string) => `מה יעזור להבדיל בין מצבים דומים? ${name}.`,
-    nudgeFinal: 'כיסיתם את העיקר. שקלו את החשודים, והחליטו.',
+    nudgeHelp: (name: string) => `כדי להבדיל בין אבחנות דומות, כדאי לבדוק: ${name}.`,
+    nudgeFinal: 'כיסיתם את העיקר. שקלו את האבחנות החשודות, והחליטו.',
   },
 });

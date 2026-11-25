@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { Icon, useAnimationFrame, useReducedMotion, useSignal } from '@ui-kit';
-import { clockColor, clockPhase, formatClock, heartbeatIntervalMs, remainingSec, type ClockPhase } from '../logic';
+import { pickStrings, type Locale } from '@core';
+import { Icon, useAnimationFrame, useReducedMotion, useSignal, useStrings } from '@ui-kit';
+import { clockColor, clockPhase, formatClock, heartbeatIntervalMs, remainingSec } from '../logic';
+import { S } from '../strings';
 import './widgets.css';
-
-const SUB: Record<ClockPhase, string> = {
-  calm: 'Sight at risk',
-  tense: 'Prioritise the red flags',
-  critical: 'Time to decide',
-  final: 'Make the call',
-};
 
 const R = 42;
 const C = 2 * Math.PI * R;
@@ -22,19 +17,20 @@ export function CountdownWidget({ services }: { services: GameServices }) {
 }
 
 /** "2 minutes", "1 minute 30 seconds", "45 seconds". */
-export function spokenDuration(sec: number): string {
+export function spokenDuration(sec: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   const whole = Math.max(0, Math.ceil(sec));
   const m = Math.floor(whole / 60);
   const s = whole % 60;
-  const mm = m > 0 ? `${m} minute${m > 1 ? 's' : ''}` : '';
-  const ss = s > 0 || !m ? `${s} second${s === 1 ? '' : 's'}` : '';
+  const mm = m > 0 ? t.minutes(m) : '';
+  const ss = s > 0 || !m ? t.seconds(s) : '';
   return [mm, ss].filter(Boolean).join(' ');
 }
 
-const THRESHOLDS: [number, string][] = [
-  [60, 'One minute left'],
-  [30, '30 seconds left'],
-  [10, '10 seconds left'],
+const THRESHOLDS: [number, 'oneMinute' | 'thirty' | 'ten'][] = [
+  [60, 'oneMinute'],
+  [30, 'thirty'],
+  [10, 'ten'],
 ];
 
 /**
@@ -42,16 +38,19 @@ const THRESHOLDS: [number, string][] = [
  * Thresholds at or above the starting limit are never announced (a 30 s clock
  * does not open with "30 seconds left").
  */
-export function announcement(rem: number, limit: number, started: boolean): string {
-  if (rem <= 0) return 'Time is up';
+export function announcement(rem: number, limit: number, started: boolean, locale: Locale = 'en'): string {
+  const tx = pickStrings(S, locale);
+  if (rem <= 0) return tx.timeUp;
   let msg = '';
-  for (const [t, text] of THRESHOLDS) if (t < limit && rem <= t) msg = text;
+  for (const [t, key] of THRESHOLDS) if (t < limit && rem <= t) msg = tx[key];
   if (msg) return msg;
-  return started ? `Emergency clock started: ${spokenDuration(limit)} to decide` : '';
+  return started ? tx.clockStarted(spokenDuration(limit, locale)) : '';
 }
 
 export function Countdown(props: { services: GameServices; startedAt: number; limit: number }) {
   const { services, startedAt, limit } = props;
+  const tx = useStrings(S);
+  const loc = services.locale;
   const reduced = useReducedMotion();
   const read = () => remainingSec(startedAt, limit, services.clock.now());
   const [rem, setRem] = useState(read);
@@ -71,7 +70,7 @@ export function Countdown(props: { services: GameServices; startedAt: number; li
   const color = clockColor(rem, limit);
   const frac = limit > 0 ? rem / limit : 0;
   const beat = heartbeatIntervalMs(rem, limit);
-  const announce = announcement(rem, limit, started);
+  const announce = announcement(rem, limit, started, loc);
   // In the final seconds, each whole second lands as a beat (digit punch + ring glint).
   const sec = Math.ceil(rem);
   const ticks = Array.from({ length: 48 }, (_, i) => {
@@ -97,7 +96,7 @@ export function Countdown(props: { services: GameServices; startedAt: number; li
       class={`cr-clock cr-clock--${phase}${reduced ? ' is-still' : ''}`}
       style={{ '--cr-c': color, '--cr-beat': `${beat}ms` }}
       role="timer"
-      aria-label={`Emergency clock, ${spokenDuration(rem)} left`}
+      aria-label={tx.clockAria(spokenDuration(rem, loc))}
     >
       <div class="cr-clock__ring" aria-hidden="true">
         <svg viewBox="0 0 100 100">
@@ -115,12 +114,12 @@ export function Countdown(props: { services: GameServices; startedAt: number; li
       <div class="cr-clock__text">
         <span class="cr-clock__eyebrow">
           <span class="cr-clock__dot" />
-          Code Red
+          {tx.codeRed}
         </span>
         <span class="cr-clock__digits lm-num" aria-hidden="true">
           {phase === 'final' && !reduced ? <span key={sec} class="cr-clock__punch">{formatClock(rem)}</span> : formatClock(rem)}
         </span>
-        <span class="cr-clock__sub">{rem > 0 ? SUB[phase] : 'Time'}</span>
+        <span class="cr-clock__sub">{rem > 0 ? tx.sub[phase] : tx.timeWord}</span>
       </div>
       <span class="lm-sr-only" aria-live="polite">{announce}</span>
     </div>

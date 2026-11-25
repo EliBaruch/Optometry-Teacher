@@ -8,6 +8,7 @@ import {
 } from '@ui-kit';
 import { ChartPanel } from './ChartPanel';
 import { DiagnosisBoard } from './DiagnosisBoard';
+import { localizeFinding } from './chartHe';
 import { findChartTarget, flyChips } from './fly';
 import { HistoryPanel, type LogEntry } from './HistoryPanel';
 import { useMedia, useTick } from './hooks';
@@ -241,7 +242,10 @@ export function ExamScene({ services, params }: SceneProps) {
       held.cancel = flyChips(
         from,
         findChartTarget(),
-        rows.slice(0, 5).map((r) => ({ text: `${r.label} ${r.value}`, color: colorOf(r.flag) })),
+        rows.slice(0, 5).map((r) => {
+          const l = localizeFinding(r, locale);
+          return { text: locale === 'he' ? `${l.label} \u2066${l.value}\u2069` : `${l.label} ${l.value}`, color: colorOf(r.flag) };
+        }),
         (x, y) => {
           if (held.cancel) cancels.current.delete(held.cancel);
           arrive(x, y);

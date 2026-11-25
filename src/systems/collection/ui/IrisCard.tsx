@@ -1,11 +1,11 @@
 import type { JSX } from 'preact';
 import { useMemo, useRef } from 'preact/hooks';
 import type { Diagnosis, Urgency } from '@core';
-import { GRADE_COLOR, cx, useReducedMotion } from '@ui-kit';
+import { GRADE_COLOR, cx, useReducedMotion, useStrings } from '@ui-kit';
 import { formatCardDate, wingOf } from '../catalog';
-import { FRAME_LABEL, FRAME_TIERS, frameFor, pickPearl, type OwnedCard } from '../model';
+import { FRAME_TIERS, frameFor, pickPearl, type OwnedCard } from '../model';
 import { cardPalette } from '../palette';
-import { RARITY_NAME } from '../store';
+import { S, wingText } from '../strings';
 import { useIrisArt } from './art';
 import { useHolo } from './holo';
 import './card.css';
@@ -19,16 +19,11 @@ export interface CardView {
 }
 
 const ART_PX = { xs: 192, sm: 256, md: 384, lg: 560 } as const;
-const URGENCY: Record<Urgency, { label: string; color: string }> = {
-  routine: { label: 'Routine', color: '#5eead4' },
-  soon: { label: 'Soon', color: '#38bdf8' },
-  urgent: { label: 'Urgent', color: '#fbbf24' },
-  emergency: { label: 'Emergency', color: '#f43f5e' },
-};
+const URGENCY: Record<Urgency, string> = { routine: '#5eead4', soon: '#38bdf8', urgent: '#fbbf24', emergency: '#f43f5e' };
 
-export function cardLabel(v: CardView): string {
+export function cardLabel(v: CardView, t: typeof S.en = S.en): string {
   const name = v.dx?.name ?? v.dxId;
-  return `${name} — ${RARITY_NAME[v.card.rarity]} iris card, ${FRAME_LABEL[frameFor(v.card.shine)]} frame`;
+  return t.cardLabel(name, t.rarity[v.card.rarity], t.frame[frameFor(v.card.shine)]);
 }
 
 export interface IrisCardProps {
@@ -50,12 +45,13 @@ const num = (n: number) => String(n).padStart(2, '0');
 
 /** A collected iris card: painted art, holographic foil, frame, flip side with a teaching pearl. */
 export function IrisCard({ view, size = 'md', flipped, study, tilt = true, device, sway, ribbon, onActivate, class: klass, style }: IrisCardProps) {
+  const t = useStrings(S);
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   useHolo(ref, { maxTilt: reduced || !tilt ? 0 : size === 'lg' ? 16 : 12, device: device && !reduced });
 
   const { card, dx } = view;
-  const wing = wingOf(dx?.category);
+  const wing = { ...wingOf(dx?.category), ...wingText(t, dx?.category) };
   const frame = frameFor(card.shine);
   const tierIdx = FRAME_TIERS.indexOf(frame);
   const f = card.featured;
@@ -63,8 +59,8 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
   const art = useIrisArt({ seed: f.seed, rarity: card.rarity, palette, accent: wing.color }, ART_PX[size], size === 'md' || size === 'lg');
   const name = dx?.name ?? view.dxId;
   const pearl = pickPearl(dx?.pearls ?? [], f.seed);
-  const urgency = dx ? URGENCY[dx.typicalUrgency] : undefined;
-  const no = view.number ? `№ ${num(view.number)}` : '№ —';
+  const urgency = dx ? { label: t.urgency[dx.typicalUrgency], color: URGENCY[dx.typicalUrgency] } : undefined;
+  const no = view.number ? `${t.noMark} ${num(view.number)}` : `${t.noMark} —`;
 
   const onKey = (e: KeyboardEvent) => {
     if (!onActivate) return;
@@ -81,7 +77,7 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
       style={{ '--wing': wing.color, ...(style as object) }}
       role={onActivate ? 'button' : 'img'}
       tabIndex={onActivate ? 0 : undefined}
-      aria-label={study && !flipped ? `Unidentified iris card ${no} — flip to reveal` : cardLabel(view)}
+      aria-label={study && !flipped ? t.unidentifiedLabel(no) : cardLabel(view, t)}
       onClick={onActivate}
       onKeyDown={onKey}
     >
@@ -91,7 +87,7 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
             <div class="gc-front">
               <div class="gc-head">
                 <span>{no}<span style={{ opacity: 0.5 }}> / {num(view.total)}</span></span>
-                <span class="gc-head__rar"><i class="gc-gem" />{RARITY_NAME[card.rarity]}</span>
+                <span class="gc-head__rar"><i class="gc-gem" />{t.rarity[card.rarity]}</span>
               </div>
               <div class="gc-art" style={{ '--gc-iris': palette[1], '--gc-acc': wing.color }}>
                 {art ? <img key={art} src={art} alt="" draggable={false} /> : null}
@@ -101,8 +97,8 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
               <span class="gc-pill"><i />{wing.label}</span>
               {study ? (
                 <>
-                  <h3 class="gc-name gc-name--quiz">Which diagnosis?</h3>
-                  <p class="gc-clue">{dx?.keyFindings[0] ?? 'Flip the card to reveal.'}</p>
+                  <h3 class="gc-name gc-name--quiz">{t.whichDx}</h3>
+                  <p class="gc-clue">{dx?.keyFindings[0] ?? t.flipClue}</p>
                 </>
               ) : (
                 <>
@@ -111,11 +107,11 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
                 </>
               )}
               <div class="gc-foot">
-                <span class="gc-pips" title={`${FRAME_LABEL[frame]} frame`}>
+                <span class="gc-pips" title={t.frameWord(t.frame[frame])}>
                   {FRAME_TIERS.map((t, i) => <i key={t} class={i <= tierIdx ? 'is-on' : ''} />)}
-                  <span class="gc-frame-name">{FRAME_LABEL[frame]}</span>
+                  <span class="gc-frame-name">{t.frame[frame]}</span>
                 </span>
-                <span class="gc-date">{formatCardDate(f.at)}</span>
+                <span class="gc-date">{formatCardDate(f.at, t.months)}</span>
                 <span class="gc-grade" style={{ '--gc-grade': GRADE_COLOR[card.bestGrade] }}>{card.bestGrade}</span>
               </div>
             </div>
@@ -131,13 +127,13 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
               <div class="gc-back__body">
                 {pearl && (
                   <>
-                    <h4>Teaching pearl</h4>
+                    <h4>{t.teachingPearl}</h4>
                     <p class="gc-pearl">{pearl}</p>
                   </>
                 )}
                 {!!dx?.keyFindings.length && (
                   <>
-                    <h4>Key findings</h4>
+                    <h4>{t.keyFindings}</h4>
                     <ul class="gc-findings">
                       {dx.keyFindings.slice(0, 3).map((k) => <li key={k}>{k}</li>)}
                     </ul>
@@ -145,7 +141,7 @@ export function IrisCard({ view, size = 'md', flipped, study, tilt = true, devic
                 )}
               </div>
               <div class="gc-back__foot">
-                {urgency ? <span class="gc-triage" style={{ '--tri': urgency.color }}>Typical triage · {urgency.label}</span> : <span />}
+                {urgency ? <span class="gc-triage" style={{ '--tri': urgency.color }}>{t.typicalTriage(urgency.label)}</span> : <span />}
                 <span>×{card.copies}</span>
               </div>
             </div>
@@ -184,28 +180,29 @@ export interface GhostCardProps {
 
 /** An uncollected slot: a silhouette, optionally named if the player has met it. */
 export function GhostCard({ number, total, category, glimpsedName, class: klass }: GhostCardProps) {
-  const wing = wingOf(category);
+  const t = useStrings(S);
+  const wing = wingText(t, category);
   return (
     <div
       class={cx('gc-card', 'gc-card--ghost', glimpsedName && 'gc-card--glimpsed', klass)}
-      style={{ '--wing': wing.color }}
+      style={{ '--wing': wingOf(category).color }}
       role="img"
-      aria-label={glimpsedName ? `${glimpsedName} — not yet collected` : `Undiscovered ${wing.label} card`}
+      aria-label={glimpsedName ? t.ghostLabelNamed(glimpsedName) : t.ghostLabel(wing.label)}
     >
       <div class="gc-tilt">
         <div class="gc-flip">
           <div class="gc-face" aria-hidden="true">
             <div class="gc-ghost">
-              <span class="gc-ghost__no">№ {num(number)} / {num(total)}</span>
+              <span class="gc-ghost__no">{t.noMark} {num(number)} / {num(total)}</span>
               <EyeGlyph />
               {glimpsedName ? (
                 <>
                   <p class="gc-ghost__name">{glimpsedName}</p>
-                  <p class="gc-ghost__hint">Diagnose it correctly to collect this iris.</p>
+                  <p class="gc-ghost__hint">{t.ghostHint}</p>
                 </>
               ) : (
                 <>
-                  <p class="gc-ghost__name">Undiscovered</p>
+                  <p class="gc-ghost__name">{t.undiscovered}</p>
                   <p class="gc-ghost__hint">{wing.label}</p>
                 </>
               )}

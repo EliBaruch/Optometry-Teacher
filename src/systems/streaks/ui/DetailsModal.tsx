@@ -1,7 +1,8 @@
 import type { ComponentChildren } from 'preact';
 import { createPortal } from 'preact/compat';
 import type { GameServices } from '@core';
-import { Modal } from '@ui-kit';
+import { Modal, useStrings } from '@ui-kit';
+import { S } from '../strings';
 import { ACCENT } from '../state';
 import { StreaksDetails } from './Details';
 
@@ -12,9 +13,10 @@ function Portal(props: { children: ComponentChildren }) {
 }
 
 export function DetailsModal({ services, open, onClose }: { services: GameServices; open: boolean; onClose: () => void }) {
+  const t = useStrings(S);
   return (
     <Portal>
-      <Modal open={open} onClose={onClose} title="Streaks" eyebrow="Your clinic flame" icon="flame" size="lg" accent={ACCENT} class="sk-modal">
+      <Modal open={open} onClose={onClose} title={t.modalTitle} eyebrow={t.modalEyebrow} icon="flame" size="lg" accent={ACCENT} class="sk-modal">
         <StreaksDetails services={services} />
       </Modal>
     </Portal>

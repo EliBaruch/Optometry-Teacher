@@ -1,9 +1,14 @@
 import { TEST_CATALOG, type MiniGameResult, type RevealedFinding, type TestId } from '@core';
 import { Badge, GlassPanel, Icon, isIconName, useLocale, useStrings, type IconName } from '@ui-kit';
 import { S } from './strings';
+import { localizeFinding } from './chartHe';
 import { chartKey, chartSummary, groupChart, testName } from './logic';
 
 const FLAG_ICON: Record<RevealedFinding['flag'], IconName> = { normal: 'check', abnormal: 'warning', critical: 'alert' };
+
+/** Hebrew sentences read right to left even when they open with a number or a Greek symbol; pure Latin/number values stay LTR. */
+const valueDir = (v: string, locale: string): 'ltr' | 'rtl' | 'auto' =>
+  locale === 'he' ? (/[\u0590-\u05FF]/.test(v) ? 'rtl' : 'ltr') : 'auto';
 
 export function ChartPanel(props: {
   chart: readonly RevealedFinding[];
@@ -48,16 +53,19 @@ export function ChartPanel(props: {
                 {g.result.autoRun && <span class="exm-cg__tag">{t.technicianTag}</span>}
               </h3>
               <ul class="exm-rows">
-                {g.rows.map((r) => (
-                  <li key={chartKey(r)} class={`exm-row exm-row--${r.flag}${fresh.has(chartKey(r)) ? ' is-fresh' : ''}`}>
-                    <span class="exm-row__flag" role="img" aria-label={flagWord[r.flag]}>
-                      <Icon name={FLAG_ICON[r.flag]} size={14} strokeWidth={2.2} />
-                    </span>
-                    <span class="exm-row__label" dir="auto">{r.label}</span>
-                    <span class="exm-row__value lm-num" dir="auto">{r.value}</span>
-                    {r.eye && <span class={`exm-eye exm-eye--${r.eye}`} dir="ltr">{r.eye}</span>}
-                  </li>
-                ))}
+                {g.rows.map((r) => {
+                  const txt = localizeFinding(r, locale);
+                  return (
+                    <li key={chartKey(r)} class={`exm-row exm-row--${r.flag}${fresh.has(chartKey(r)) ? ' is-fresh' : ''}`}>
+                      <span class="exm-row__flag" role="img" aria-label={flagWord[r.flag]}>
+                        <Icon name={FLAG_ICON[r.flag]} size={14} strokeWidth={2.2} />
+                      </span>
+                      <span class="exm-row__label" dir="auto">{txt.label}</span>
+                      <span class="exm-row__value lm-num" dir={valueDir(txt.value, locale)}>{txt.value}</span>
+                      {r.eye && <span class={`exm-eye exm-eye--${r.eye}`} dir="ltr">{r.eye}</span>}
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ))}

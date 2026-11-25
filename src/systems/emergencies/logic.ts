@@ -5,7 +5,8 @@
  *  - the deterministic weekly Grand Rounds pick,
  *  - persisted stats reducer.
  */
-import { URGENCIES, createRng, type ClinicalCase, type ScoreBreakdown, type ScorePart, type Urgency } from '@core';
+import { URGENCIES, createRng, pickStrings, type Locale, type ClinicalCase, type ScoreBreakdown, type ScorePart, type Urgency } from '@core';
+import { S } from './strings';
 
 // ── Clock ────────────────────────────────────────────────────────────────
 
@@ -31,10 +32,11 @@ export function formatMSS(sec: number): string {
 }
 
 /** Short human duration for stats: "48s", "1m 52s". */
-export function formatDuration(sec: number): string {
+export function formatDuration(sec: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   const s = Math.max(0, Math.round(sec));
-  if (s < 60) return `${s}s`;
-  return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`;
+  if (s < 60) return t.durSec(s);
+  return t.durMinSec(Math.floor(s / 60), String(s % 60).padStart(2, '0'));
 }
 
 /** 0 = calm, 1 = clock exhausted. */
@@ -183,21 +185,6 @@ export function grandRoundsBonus(mastery: number): { coins: number; xp: number }
   return { coins: Math.round(150 * k), xp: Math.round(250 * k) };
 }
 
-const URGENCY_LINE: Record<Urgency, string> = {
-  emergency: 'it needs a same-hour emergency referral',
-  urgent: 'it needs to be seen the same day',
-  soon: 'it needs review within days',
-  routine: 'routine follow-up is enough',
-};
-
-/** "…is enough" phrasing for gentle over-triage feedback. */
-const ENOUGH_LINE: Record<Urgency, string> = {
-  emergency: 'a same-hour referral was right',
-  urgent: 'same-day review is enough',
-  soon: 'review within days is enough',
-  routine: 'routine follow-up is enough',
-};
-
 export const URGENCY_LABEL: Record<Urgency, string> = {
   emergency: 'Emergency',
   urgent: 'Urgent',
@@ -231,29 +218,31 @@ export interface TeachingContext {
 }
 
 /** Sober teaching line after any emergency that was not a clean save. */
-export function teachingMessage(outcome: Exclude<Outcome, 'saved'>, c: TeachingContext): string {
+export function teachingMessage(outcome: Exclude<Outcome, 'saved'>, c: TeachingContext, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   const { dxName, urgency, flag, chosenDxName } = c;
-  const tail = flag ? ` Red flag to remember: ${clip(flag)}` : '';
-  const not = chosenDxName && chosenDxName !== dxName ? `, not ${chosenDxName}` : '';
+  const tail = flag ? t.tail(clip(flag)) : '';
+  const not = chosenDxName && chosenDxName !== dxName ? t.notDx(chosenDxName) : '';
   switch (outcome) {
     case 'over-triaged':
-      return `Safe and correct on ${dxName}, if over-cautious — ${ENOUGH_LINE[urgency]}.`;
+      return t.msgOver(dxName, t.enoughLine[urgency]);
     case 'under-triaged':
-      return `Right call on ${dxName} — but ${URGENCY_LINE[urgency]}.${tail}`;
+      return t.msgUnder(dxName, t.urgencyLine[urgency], tail);
     case 'referred':
-      return `You sent them on in time — but this was ${dxName}${not}.${tail}`;
+      return t.msgReferred(dxName, not, tail);
     case 'timeout':
-      return `The clock ran out on this ${dxName} case — ${URGENCY_LINE[urgency]}.${tail}`;
+      return t.msgTimeout(dxName, t.urgencyLine[urgency], tail);
     case 'missed':
-      return `This was ${dxName}${not}, and ${URGENCY_LINE[urgency]}.${tail}`;
+      return t.msgMissed(dxName, not, t.urgencyLine[urgency], tail);
   }
 }
 
 /** A short nudge after a thin save: name the essential tests that would have proven it. */
-export function confirmLine(missedTests: readonly string[]): string {
-  if (!missedTests.length) return 'Right call — next time, prove it with the key history and tests.';
-  const list = missedTests.length > 1 ? `${missedTests.slice(0, -1).join(', ')} and ${missedTests[missedTests.length - 1]}` : missedTests[0];
-  return `Right call — next time confirm it with ${list}.`;
+export function confirmLine(missedTests: readonly string[], locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
+  if (!missedTests.length) return t.confirmNone;
+  const list = missedTests.length > 1 ? `${missedTests.slice(0, -1).join(', ')}${t.and}${missedTests[missedTests.length - 1]}` : missedTests[0];
+  return t.confirmSome(list!);
 }
 
 // ── Weeks & Grand Rounds ─────────────────────────────────────────────────
@@ -288,11 +277,12 @@ export function msUntilNextWeek(ms: number): number {
   return Math.max(0, weekStart(ms) + WEEK - ms);
 }
 
-export function formatRotation(ms: number): string {
+export function formatRotation(ms: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   const h = Math.floor(ms / 3600000);
-  if (h >= 24) return `${Math.floor(h / 24)}d ${h % 24}h`;
-  if (h >= 1) return `${h}h ${Math.floor((ms % 3600000) / 60000)}m`;
-  return `${Math.max(1, Math.ceil(ms / 60000))}m`;
+  if (h >= 24) return t.rotDH(Math.floor(h / 24), h % 24);
+  if (h >= 1) return t.rotHM(h, Math.floor((ms % 3600000) / 60000));
+  return t.rotM(Math.max(1, Math.ceil(ms / 60000)));
 }
 
 /** Cases eligible for Grand Rounds: true emergencies that carry their own clock. */
@@ -480,6 +470,7 @@ const MILESTONES: MilestoneRule[] = [
 ];
 
 /** Milestones newly earned by `s` that are not yet in `s.achievements`. */
-export function newMilestones(s: EmergencyStats, ctx: { reward?: RescueReward; score?: ScoreBreakdown } = {}): Milestone[] {
-  return MILESTONES.filter((m) => !s.achievements.includes(m.id) && m.test(s, ctx)).map(({ id, title, description, icon }) => ({ id, title, description, icon }));
+export function newMilestones(s: EmergencyStats, ctx: { reward?: RescueReward; score?: ScoreBreakdown } = {}, locale: Locale = 'en'): Milestone[] {
+  const tx = pickStrings(S, locale).milestones;
+  return MILESTONES.filter((m) => !s.achievements.includes(m.id) && m.test(s, ctx)).map(({ id, title, description, icon }) => ({ id, title: tx[id]?.title ?? title, description: tx[id]?.description ?? description, icon }));
 }

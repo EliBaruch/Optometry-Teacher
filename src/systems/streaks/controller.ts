@@ -2,9 +2,10 @@
  * Streaks controller: owns the persisted slice and the live combo, listens to the bus,
  * pays rewards through events (never by calling other systems) and adds juice.
  */
-import { dayKey, signal, type GameEvents, type GameServices, type ScoreBreakdown, type Signal } from '@core';
+import { dayKey, modeText, signal, type GameEvents, type GameServices, type ScoreBreakdown, type Signal } from '@core';
 import { applyCase, applyFailure, formatMult, freshCombo, tierIndex, EMPTY_COMBO, type ComboState, type ComboStep } from './combo';
 import { earnFreeze, isSolid, progressMend, touchDay, viewDaily, MEND_NEED, type DailyView, type DayOutcome, type Milestone } from './daily';
+import { achievementText, milestoneTitle, text } from './strings';
 import { ACCENT, INITIAL, SLOT, SLOT_VERSION, SYSTEM_ID, bestFor, sanitize, withBest, type StreaksState } from './state';
 
 export const ICE = '#7dd3fc';
@@ -65,8 +66,10 @@ export function createController(services: GameServices): StreaksController {
     today,
     view: () => viewDaily(state.get().daily, today()),
     modeTitle(modeId) {
-      if (modeId === 'single') return 'single patient';
-      return services.registries.modes.get(modeId)?.title ?? 'clinic';
+      const t = text(services.locale);
+      if (modeId === 'single') return t.modeSingle;
+      const mode = services.registries.modes.get(modeId);
+      return mode ? modeText(mode, services.locale).title : t.modeFallback;
     },
   };
 }
@@ -131,7 +134,7 @@ export function onModeEnded(ctl: StreaksController, ev: GameEvents['mode:ended']
   ctl.combo.set(freshCombo(null)); // the run is over; its peak lives on in runEcho
   if (isNewBest && prevBest > 0) {
     safe(() => ctl.services.audio.play('rare', { volume: 0.6 }));
-    ctl.services.bus.emit('toast', { message: `New personal best in ${ctl.modeTitle(ev.modeId)}: ${ev.totalScore} points`, icon: 'trophy', tone: 'epic' });
+    ctl.services.bus.emit('toast', { message: text(ctl.services.locale).toastBest(ctl.modeTitle(ev.modeId), ev.totalScore), icon: 'trophy', tone: 'epic' });
   }
   return run;
 }
@@ -141,14 +144,15 @@ export function onModeEnded(ctl: StreaksController, ev: GameEvents['mode:ended']
 function announce(ctl: StreaksController, e: CaseEcho, score: ScoreBreakdown) {
   const { bus, audio } = ctl.services;
   const { step } = e;
+  const t = text(ctl.services.locale);
   const mult = step.tier.mult;
   const idx = tierIndex(step.combo.count);
 
   if (step.outcome === 'built' && mult > 1) {
-    if (step.bonusXp > 0) bus.emit('xp:grant', { amount: step.bonusXp, reason: `Combo ${formatMult(mult)}` });
+    if (step.bonusXp > 0) bus.emit('xp:grant', { amount: step.bonusXp, reason: t.xpReason(formatMult(mult)) });
     bus.emit('reward:granted', {
       source: SYSTEM_ID,
-      label: `Combo ${formatMult(mult)} · ${step.combo.count} in a row`,
+      label: t.rewardCombo(formatMult(mult), step.combo.count),
       value: step.bonusXp > 0 ? `+${step.bonusXp} XP` : formatMult(mult),
       icon: 'flame',
       color: step.tier.color,
@@ -156,25 +160,25 @@ function announce(ctl: StreaksController, e: CaseEcho, score: ScoreBreakdown) {
     });
   } else if (step.outcome === 'saved') {
     bus.emit('reward:granted', {
-      source: SYSTEM_ID, label: 'Combo saved · thorough work-up, safe triage', value: formatMult(mult), icon: 'heart', color: ACCENT, rarity: 'common',
+      source: SYSTEM_ID, label: t.rewardSaved, value: formatMult(mult), icon: 'heart', color: ACCENT, rarity: 'common',
     });
   }
   if (e.newCaseBest) {
     bus.emit('reward:granted', {
-      source: SYSTEM_ID, label: `Personal best · ${ctl.modeTitle(e.modeId)} patient`, value: String(score.total), icon: 'trophy', color: '#ffd27a', rarity: 'rare',
+      source: SYSTEM_ID, label: t.rewardBest(ctl.modeTitle(e.modeId)), value: String(score.total), icon: 'trophy', color: '#ffd27a', rarity: 'rare',
     });
   }
   if (e.freezeEarned) {
-    bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Streak freeze banked', value: '+1', icon: 'sparkle', color: ICE, rarity: 'rare' });
+    bus.emit('reward:granted', { source: SYSTEM_ID, label: t.rewardFreeze, value: '+1', icon: 'sparkle', color: ICE, rarity: 'rare' });
   }
   const daily = ctl.state.get().daily;
   if (e.mended) {
-    bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Flame rekindled', value: `${daily.current} days`, icon: 'flame', color: ACCENT, rarity: 'epic' });
+    bus.emit('reward:granted', { source: SYSTEM_ID, label: t.rewardRekindled, value: t.rewardDays(daily.current), icon: 'flame', color: ACCENT, rarity: 'epic' });
   }
   for (const m of e.milestones) {
-    bus.emit('currency:grant', { amount: m.coins, reason: `Streak milestone · ${m.days} days` });
-    bus.emit('reward:granted', { source: SYSTEM_ID, label: `${m.days}-day streak · ${m.title}`, value: `+${m.coins}`, icon: 'flame', color: ACCENT, rarity: m.rarity });
-    if (m.achievement) bus.emit('achievement:unlocked', { ...m.achievement, icon: 'flame', system: SYSTEM_ID });
+    bus.emit('currency:grant', { amount: m.coins, reason: t.milestoneReason(m.days) });
+    bus.emit('reward:granted', { source: SYSTEM_ID, label: t.rewardMilestone(m.days, milestoneTitle(m.days, m.title, ctl.services.locale)), value: `+${m.coins}`, icon: 'flame', color: ACCENT, rarity: m.rarity });
+    if (m.achievement) bus.emit('achievement:unlocked', { ...achievementText(m.achievement, ctl.services.locale), icon: 'flame', system: SYSTEM_ID });
   }
   dayToast(ctl, e);
 
@@ -190,38 +194,39 @@ function announce(ctl: StreaksController, e: CaseEcho, score: ScoreBreakdown) {
     const { x, y } = flameAnchor();
     safe(() => {
       ctl.services.fx.burst(x, y, { kind: 'embers', count: 14 + 10 * idx, color: step.tier.color });
-      if (step.tierUp) ctl.services.fx.floatText(`${formatMult(mult)} combo`, x - 40, y + 30, { color: step.tier.color, size: 22 + 4 * idx });
+      if (step.tierUp) ctl.services.fx.floatText(t.floatCombo(formatMult(mult)), x - 40, y + 30, { color: step.tier.color, size: 22 + 4 * idx });
     });
   }
 }
 
 function dayToast(ctl: StreaksController, e: CaseEcho) {
   const { bus } = ctl.services;
+  const t = text(ctl.services.locale);
   const d = ctl.state.get().daily;
   const msg = (message: string, tone: 'info' | 'good' | 'epic' = 'good') => bus.emit('toast', { message, icon: 'flame', tone });
   switch (e.day) {
     case 'started':
-      msg(d.totalDays <= 1 ? 'Your clinic flame is lit — see a patient tomorrow to keep it glowing.' : 'A fresh flame is lit — day 1.');
+      msg(d.totalDays <= 1 ? t.toastFirstFlame : t.toastFreshFlame);
       break;
     case 'continued':
-      if (!e.milestones.length) msg(`Day ${d.current} — flame lit for today.`);
+      if (!e.milestones.length) msg(t.toastDayLit(d.current));
       break;
     case 'frozen':
-      msg(`A streak freeze covered the quiet ${e.usedFreezes === 1 ? 'day' : 'days'} — day ${d.current}.`, 'info');
+      msg(t.toastFrozen(e.usedFreezes, d.current), 'info');
       break;
     case 'broken':
       if (e.mended) break;
       msg(
         d.mend
-          ? `A fresh flame — day 1. ${MEND_NEED} correct diagnoses by tomorrow rekindle your ${d.mend.lost}-day streak.`
-          : 'A fresh flame is lit — day 1.',
+          ? t.toastBrokenMend(MEND_NEED, d.mend.lost)
+          : t.toastFreshFlame,
         'info',
       );
       break;
     default:
       break;
   }
-  if (e.mended) msg(`Flame rekindled — ${d.current} days and counting.`, 'epic');
+  if (e.mended) msg(t.toastRekindled(d.current), 'epic');
 }
 
 function reduced(services: GameServices): boolean {

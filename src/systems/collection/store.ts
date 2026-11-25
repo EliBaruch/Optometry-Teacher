@@ -3,12 +3,13 @@
  * fully testable with createServices().
  */
 import {
-  createRng, hashString, signal,
+  createRng, hashString, pickStrings, signal,
   type Diagnosis, type GameEvents, type GameServices, type Signal,
 } from '@core';
 import { newlyCompletedSets, orderedDiagnoses, wingOf } from './catalog';
+import { S, wingText } from './strings';
 import {
-  FRAME_LABEL, FRAME_TIERS, FRAME_XP, INITIAL_STATE, acquire, setReward, glimpse, markAllSeen, markSeen, newMilestones, oddsFor, rollRarity,
+  FRAME_TIERS, FRAME_XP, INITIAL_STATE, acquire, setReward, glimpse, markAllSeen, markSeen, newMilestones, oddsFor, rollRarity,
   type CollectionState, type Pull,
 } from './model';
 
@@ -55,6 +56,7 @@ const defaultRoll = (caseId: string, at: number) => createRng(hashString(`collec
 export function onCaseCompleted(store: CollectionStore, ev: GameEvents['case:completed'], opts: StoreOptions = {}): Pull | null {
   const { services } = store;
   const { bus, registries, clock } = services;
+  const t = pickStrings(S, services.locale);
   const { score, caseId } = ev;
   const dxId = score.correctDiagnosisId;
   const at = clock.now();
@@ -70,7 +72,7 @@ export function onCaseCompleted(store: CollectionStore, ev: GameEvents['case:com
   const seed = hashString(`${caseId}|${irisColor}`);
   const prev = store.state.get();
   const { state: afterPull, pull } = acquire(prev, dxId, {
-    caseId, patient: kase?.patient.name ?? 'A visiting patient', irisColor, grade: score.grade, rarity, at, seed,
+    caseId, patient: kase?.patient.name ?? t.visitingPatient, irisColor, grade: score.grade, rarity, at, seed,
   });
   let next = afterPull;
 
@@ -78,8 +80,8 @@ export function onCaseCompleted(store: CollectionStore, ev: GameEvents['case:com
   const frameUp = pull.frameAfter !== pull.frameBefore;
   bus.emit('reward:granted', {
     source: SYSTEM_ID,
-    label: `Iris card · ${name}`,
-    value: pull.isNew ? 'NEW!' : frameUp ? `${FRAME_LABEL[pull.frameAfter]} frame` : pull.rarityUp ? `${RARITY_NAME[rarity]}!` : `+${pull.shineGained} shine`,
+    label: t.rewardLabel(name),
+    value: pull.isNew ? t.rewardNew : frameUp ? t.rewardFrame(t.frame[pull.frameAfter]) : pull.rarityUp ? t.rewardRarityUp(t.rarity[rarity]) : t.rewardShine(pull.shineGained),
     icon: 'gem',
     color: RARITY_HEX[rarity],
     rarity,
@@ -89,32 +91,33 @@ export function onCaseCompleted(store: CollectionStore, ev: GameEvents['case:com
     const from = FRAME_TIERS.indexOf(pull.frameBefore);
     const to = FRAME_TIERS.indexOf(pull.frameAfter);
     const xp = FRAME_TIERS.slice(from + 1, to + 1).reduce((s, t) => s + FRAME_XP[t], 0);
-    if (xp > 0) bus.emit('xp:grant', { amount: xp, reason: `Gallery: ${name} polished to ${FRAME_LABEL[pull.frameAfter]}` });
+    if (xp > 0) bus.emit('xp:grant', { amount: xp, reason: t.xpPolished(name, t.frame[pull.frameAfter]) });
   }
 
   const all = registries.diagnoses.all();
   for (const set of newlyCompletedSets(next, all)) {
     const { xp, coins } = setReward(set.total);
+    const w = wingText(t, set.category);
     next = { ...next, completedSets: [...next.completedSets, set.category] };
     pull.setCompleted = set.category;
-    bus.emit('xp:grant', { amount: xp, reason: `Gallery set complete: ${set.info.wing}` });
-    bus.emit('currency:grant', { amount: coins, reason: `Gallery set complete: ${set.info.wing}` });
+    bus.emit('xp:grant', { amount: xp, reason: t.xpSet(w.wing) });
+    bus.emit('currency:grant', { amount: coins, reason: t.xpSet(w.wing) });
     bus.emit('reward:granted', {
-      source: SYSTEM_ID, label: `Set complete · ${set.info.wing}`, value: `+${xp} XP`, icon: 'trophy', color: set.info.color, rarity: 'epic',
+      source: SYSTEM_ID, label: t.setRewardLabel(w.wing), value: `+${xp} XP`, icon: 'trophy', color: set.info.color, rarity: 'epic',
     });
     bus.emit('achievement:unlocked', {
       id: `collection:set:${set.category}`,
-      title: `${set.info.wing} complete`,
-      description: `Collected every ${set.info.label.toLowerCase()} iris card (${set.total}).`,
+      title: t.setAchTitle(w.wing),
+      description: t.setAchDesc(w.label, set.total),
       icon: 'trophy',
       system: SYSTEM_ID,
     });
-    bus.emit('toast', { message: `Gallery set complete: ${set.info.wing}!`, icon: 'trophy', tone: 'epic' });
+    bus.emit('toast', { message: t.setToast(w.wing), icon: 'trophy', tone: 'epic' });
   }
 
   for (const m of newMilestones(next, all.length)) {
     next = { ...next, achievements: [...next.achievements, m.id] };
-    bus.emit('achievement:unlocked', { id: `collection:${m.id}`, title: m.title, description: m.description, icon: m.icon, system: SYSTEM_ID });
+    bus.emit('achievement:unlocked', { id: `collection:${m.id}`, title: t.milestones[m.id]?.title ?? m.title, description: t.milestones[m.id]?.description ?? m.description, icon: m.icon, system: SYSTEM_ID });
   }
 
   next = { ...next, lastPull: { ...pull } };

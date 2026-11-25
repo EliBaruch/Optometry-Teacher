@@ -116,7 +116,7 @@ export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTec
       class="exm-stage-modal"
     >
       <div class="exm-stage-host-wrap">
-        <div ref={setEl} class="exm-stage-host" data-testid="exm-stage-host" />
+        <div ref={setEl} class="exm-stage-host" dir="ltr" data-testid="exm-stage-host" />
         {failed && mg && (
           <div class="exm-stage-failed" role="alert">
             <Icon name="warning" size={34} />

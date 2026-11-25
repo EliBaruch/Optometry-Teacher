@@ -5,7 +5,7 @@
  *
  * It only DISPLAYS time — the exam scene enforces the timeout.
  */
-import { TEST_CATALOG, type ClinicalCase, type GameServices, type ScoreBreakdown, type Urgency } from '@core';
+import { pickStrings, testText, type Locale, type ClinicalCase, type GameServices, type ScoreBreakdown, type Urgency } from '@core';
 import { prefersReducedMotion } from '@ui-kit';
 import {
   classify, clockPhase, confirmLine, grandRoundsCase, grandRoundsClaimed, heartbeatIntervalMs, intensity, keyRedFlag,
@@ -13,6 +13,7 @@ import {
   type Outcome, type RescueReward,
 } from './logic';
 import { ACCENT, SYSTEM_ID, statsSlot } from './state';
+import { S } from './strings';
 
 /** What the stage (DOM overlays) needs; injectable so the engine is testable without a DOM. */
 export interface Stage {
@@ -24,6 +25,7 @@ export interface Stage {
 }
 
 export interface ArrivalInfo {
+  locale?: Locale;
   kase?: ClinicalCase;
   limitSec: number;
   grandRounds: boolean;
@@ -31,6 +33,7 @@ export interface ArrivalInfo {
 }
 
 export interface SavedInfo {
+  locale?: Locale;
   kase?: ClinicalCase;
   dxName: string;
   sec: number;
@@ -59,6 +62,7 @@ export interface EngineOptions {
 
 export function startEngine(services: GameServices, opts: EngineOptions = {}): () => void {
   const { bus, audio, fx, clock, session, registries } = services;
+  const tx = pickStrings(S, services.locale);
   const stats = statsSlot(services);
   const stage = opts.stage;
   const reduced = () => {
@@ -151,7 +155,7 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     finalBeats = 0;
     safe(() => audio.play('alarm', { volume: 0.8 }));
     safe(() => fx.vignette(ACCENT, reduced() ? 900 : 1500));
-    safe(() => stage?.arrival({ kase: caseOf(p.caseId), limitSec: p.timeLimitSec!, grandRounds: isGrand, reduced: reduced() }));
+    safe(() => stage?.arrival({ locale: services.locale, kase: caseOf(p.caseId), limitSec: p.timeLimitSec!, grandRounds: isGrand, reduced: reduced() }));
     // First heartbeat lands just after the klaxon.
     beatTimer = later(beat, 1100);
   });
@@ -175,7 +179,7 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
       caseId: a.caseId, diagnosisId, outcome, sec, at: clock.now(),
       grandRoundsWeek: outcome === 'saved' ? a.grandWeek : undefined,
     });
-    const earned = newMilestones(next, extra);
+    const earned = newMilestones(next, extra, services.locale);
     stats.set(earned.length ? { ...next, achievements: [...next.achievements, ...earned.map((m) => m.id)] } : next);
     for (const m of earned) bus.emit('achievement:unlocked', { ...m, system: SYSTEM_ID });
   };
@@ -189,7 +193,7 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
         // Over-triage was safe: no red-flag lecture, just the calibration.
         flag: outcome === 'over-triaged' ? undefined : keyRedFlag(kase),
         chosenDxName: chosenDx ? dxName(chosenDx) : undefined,
-      }),
+      }, services.locale),
       icon: outcome === 'over-triaged' || outcome === 'referred' ? 'info' : 'alert',
       tone: 'info',
     });
@@ -199,23 +203,23 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     const repeats = priorSavesThisWeek(stats.get(), a.caseId, weekKey(clock.now()));
     const reward = rescueReward(score, sec, a.limitSec, !!a.grandWeek, repeats);
     const note = reward.thin
-      ? confirmLine(score.essentialMissed.map((t) => TEST_CATALOG[t]?.name ?? t))
+      ? confirmLine(score.essentialMissed.map((id) => testText(id, services.locale)?.name ?? id), services.locale)
       : repeats > 0
-        ? 'Repeat case this week · reduced bonus'
+        ? tx.thinNoteRepeat
         : undefined;
     // Rewards are emitted synchronously so the case session collects them for the results screen.
-    bus.emit('currency:grant', { amount: reward.coins, reason: 'Code Red: sight saved' });
-    bus.emit('xp:grant', { amount: reward.xp, reason: 'Code Red: sight saved' });
-    bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Sight saved', value: `+${reward.coins} ✦`, icon: 'heart', color: ACCENT, rarity: reward.rarity });
+    bus.emit('currency:grant', { amount: reward.coins, reason: tx.xpReasonSaved });
+    bus.emit('xp:grant', { amount: reward.xp, reason: tx.xpReasonSaved });
+    bus.emit('reward:granted', { source: SYSTEM_ID, label: tx.rewardSaved, value: `+${reward.coins} ✦`, icon: 'heart', color: ACCENT, rarity: reward.rarity });
     bus.emit('reward:granted', {
-      source: SYSTEM_ID, label: 'Emergency XP', value: `+${reward.xp} XP`, icon: 'lightning', color: '#fb923c',
+      source: SYSTEM_ID, label: tx.rewardXp, value: `+${reward.xp} XP`, icon: 'lightning', color: '#fb923c',
       rarity: reward.thin ? 'common' : 'rare',
     });
     if (a.grandWeek) {
-      bus.emit('currency:grant', { amount: reward.grandCoins, reason: 'Grand Rounds' });
-      bus.emit('xp:grant', { amount: reward.grandXp, reason: 'Grand Rounds' });
+      bus.emit('currency:grant', { amount: reward.grandCoins, reason: tx.grandRounds });
+      bus.emit('xp:grant', { amount: reward.grandXp, reason: tx.grandRounds });
       bus.emit('reward:granted', {
-        source: SYSTEM_ID, label: 'Grand Rounds', value: `+${reward.grandCoins} ✦ · +${reward.grandXp} XP`,
+        source: SYSTEM_ID, label: tx.grandRounds, value: `+${reward.grandCoins} ✦ · +${reward.grandXp} XP`,
         icon: 'crown', color: '#ffd27a', rarity: 'legendary',
       });
     }
@@ -235,7 +239,7 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
         safe(() => fx.burst(x, y, { kind: 'sparks', count: Math.round(90 * k), color: '#ffd27a' }));
         if (big) later(() => safe(() => fx.burst(x, y, { kind: 'stars', count: Math.round(28 * k), color: '#fff1c2' })), 140);
       }
-      safe(() => stage?.saved({ kase, dxName: dxName(score.correctDiagnosisId), sec, reward, note, reduced: r }));
+      safe(() => stage?.saved({ locale: services.locale, kase, dxName: dxName(score.correctDiagnosisId), sec, reward, note, reduced: r }));
     }, r ? 0 : 150);
     return reward;
   };

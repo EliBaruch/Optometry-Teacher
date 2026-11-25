@@ -1,53 +1,43 @@
 import type { GameServices, Urgency } from '@core';
-import { Badge, Icon, useReducedMotion, useSignal, type IconName } from '@ui-kit';
-import { URGENCY_LABEL, classify, formatMSS, type Outcome } from '../logic';
+import { isRtl, pickStrings, type Locale } from '@core';
+import { Badge, Icon, useReducedMotion, useSignal, useStrings, type IconName } from '@ui-kit';
+import { classify, formatMSS, type Outcome } from '../logic';
+import { S } from '../strings';
 import './widgets.css';
-
-const TRIAGE: Record<Urgency, string> = {
-  emergency: 'Emergency — refer within the hour',
-  urgent: 'Urgent — seen the same day',
-  soon: 'Soon — within days',
-  routine: 'Routine',
-};
-
-const ENOUGH: Record<Urgency, string> = {
-  emergency: 'a same-hour referral was right',
-  urgent: 'a same-day review was enough',
-  soon: 'a review within days was enough',
-  routine: 'routine follow-up was enough',
-};
 
 type Tone = 'good' | 'warn' | 'critical' | 'neutral' | 'info';
 
-export const DEBRIEF_COPY: Record<Outcome, { title: string; icon: IconName; tone: Tone; badge: string }> = {
-  saved: { title: 'Sight saved', icon: 'heart', tone: 'good', badge: 'Right call, right clock' },
-  'over-triaged': { title: 'Safe, if over-cautious', icon: 'target', tone: 'info', badge: 'Calibrate the clock' },
-  'under-triaged': { title: 'Right diagnosis, wrong clock', icon: 'clock', tone: 'warn', badge: 'Triage to review' },
-  referred: { title: 'Sent on in time', icon: 'eye', tone: 'warn', badge: 'Diagnosis to review' },
-  missed: { title: 'This emergency slipped past', icon: 'eye', tone: 'critical', badge: 'Red flags to review' },
-  timeout: { title: 'The clock ran out', icon: 'clock', tone: 'neutral', badge: 'Decide sooner' },
+const OUTCOME_LOOK: Record<Outcome, { icon: IconName; tone: Tone }> = {
+  saved: { icon: 'heart', tone: 'good' },
+  'over-triaged': { icon: 'target', tone: 'info' },
+  'under-triaged': { icon: 'clock', tone: 'warn' },
+  referred: { icon: 'eye', tone: 'warn' },
+  missed: { icon: 'eye', tone: 'critical' },
+  timeout: { icon: 'clock', tone: 'neutral' },
 };
 
 /** The one-line lead under the title (exported for tests). */
-export function debriefLead(outcome: Outcome, required: Urgency | undefined, spareSec: number, dxName: string): string {
+export function debriefLead(outcome: Outcome, required: Urgency | undefined, spareSec: number, dxName: string, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   switch (outcome) {
     case 'saved':
-      return `Called with ${formatMSS(spareSec)} to spare.`;
+      return t.leadSaved(formatMSS(spareSec));
     case 'over-triaged':
-      return required ? `Patient safe — but ${ENOUGH[required]} here. Keep emergency slots for true emergencies.` : 'Patient safe, but faster than needed.';
+      return required ? t.leadOver(t.enoughShort[required]) : t.leadOverGeneric;
     case 'under-triaged':
-      return required ? `Correct triage: ${TRIAGE[required]}.` : 'The referral was slower than this condition allows.';
+      return required ? t.leadUnder(t.triage[required]) : t.leadUnderGeneric;
     case 'referred':
-      return `The referral was fast enough, but this was ${dxName}. These are the features that point to it.`;
+      return t.leadReferred(dxName);
     case 'timeout':
-      return 'Go straight for the test that confirms the red flag — then commit.';
+      return t.leadTimeout;
     case 'missed':
-      return `This was ${dxName}. These are the features that make it an emergency.`;
+      return t.leadMissed(dxName);
   }
 }
 
 /** results-extra: what the clock looked like and the red flags to carry forward. */
 export function DebriefWidget({ services }: { services: GameServices }) {
+  const tx = useStrings(S);
   const s = useSignal(services.session.state);
   const reduced = useReducedMotion();
   if (!s || !s.timeLimitSec) return null;
@@ -63,8 +53,8 @@ export function DebriefWidget({ services }: { services: GameServices }) {
   const used = Math.min(limit, s.submitted ? s.submitted.score.elapsedSec : limit);
   const par = s.submitted?.score.parSec;
   const flags = kase?.redFlags?.length ? kase.redFlags : (kase?.teachingPoints ?? []).slice(0, 2);
-  const c = DEBRIEF_COPY[outcome];
-  const lead = debriefLead(outcome, kase?.urgency, limit - used, dx(kase?.diagnosis ?? s.submitted?.score.correctDiagnosisId ?? ''));
+  const c = { ...OUTCOME_LOOK[outcome], ...tx.outcomes[outcome] };
+  const lead = debriefLead(outcome, kase?.urgency, limit - used, dx(kase?.diagnosis ?? s.submitted?.score.correctDiagnosisId ?? ''), services.locale);
   const pct = (used / limit) * 100;
   // The decision label hangs off the end of the fill, flipping inward near either edge.
   const anchor = pct < 18 ? -8 : pct > 82 ? -92 : -50;
@@ -77,7 +67,7 @@ export function DebriefWidget({ services }: { services: GameServices }) {
       <header class="cr-debrief__head">
         <span class="cr-debrief__icon"><Icon name={c.icon} size={20} /></span>
         <div class="cr-debrief__titles">
-          <span class="cr-debrief__eyebrow">Code Red debrief</span>
+          <span class="cr-debrief__eyebrow">{tx.debriefEyebrow}</span>
           <h3 class="cr-debrief__title" id="cr-debrief-title">{c.title}</h3>
         </div>
         <span class="cr-debrief__badge"><Badge tone={c.tone} size="sm">{c.badge}</Badge></span>
@@ -87,13 +77,13 @@ export function DebriefWidget({ services }: { services: GameServices }) {
       {chosen && needed && (
         <dl class="cr-debrief__triage">
           <div class={`cr-debrief__tri${chosen === needed ? ' is-match' : ''}`}>
-            <dt>You triaged</dt>
-            <dd>{URGENCY_LABEL[chosen]}</dd>
+            <dt>{tx.youTriaged}</dt>
+            <dd>{tx.urgencyLabel[chosen]}</dd>
           </div>
-          <span class="cr-debrief__arrow" aria-hidden="true"><Icon name={chosen === needed ? 'check' : 'chevron-right'} size={14} /></span>
+          <span class="cr-debrief__arrow" aria-hidden="true"><Icon name={chosen === needed ? 'check' : isRtl(services.locale) ? 'chevron-left' : 'chevron-right'} size={14} /></span>
           <div class="cr-debrief__tri is-needed">
-            <dt>Needed</dt>
-            <dd>{URGENCY_LABEL[needed]}</dd>
+            <dt>{tx.needed}</dt>
+            <dd>{tx.urgencyLabel[needed]}</dd>
           </div>
         </dl>
       )}
@@ -101,27 +91,27 @@ export function DebriefWidget({ services }: { services: GameServices }) {
       <div class="cr-debrief__timeline">
         <div class="cr-debrief__marks lm-num" aria-hidden="true">
           <span class="cr-debrief__decision" style={{ left: `${pct}%`, translate: `${anchor}% 0` }}>
-            {outcome === 'timeout' ? 'No decision' : `Decision ${formatMSS(used)}`}
+            {outcome === 'timeout' ? tx.noDecision : tx.decisionAt(formatMSS(used))}
           </span>
         </div>
         <div
           class="cr-debrief__track"
           role="img"
-          aria-label={`${outcome === 'timeout' ? 'No decision' : `Decision at ${formatMSS(used)}`} of a ${formatMSS(limit)} clock${showPar ? `, par ${formatMSS(par!)}` : ''}`}
+          aria-label={tx.trackAria(outcome === 'timeout', formatMSS(used), formatMSS(limit), showPar ? formatMSS(par!) : undefined)}
         >
           <div class="cr-debrief__fill" style={{ '--w': `${pct}%` }} />
           {showPar && <div class="cr-debrief__par" style={{ left: `${(par! / limit) * 100}%` }} />}
         </div>
         <div class="cr-debrief__scale lm-num" aria-hidden="true">
           <span>0:00</span>
-          {showPar && <span class="cr-debrief__parcap" style={{ left: `${(par! / limit) * 100}%` }}>par {formatMSS(par!)}</span>}
+          {showPar && <span class="cr-debrief__parcap" style={{ left: `${(par! / limit) * 100}%` }}>{tx.par(formatMSS(par!))}</span>}
           <span>{formatMSS(limit)}</span>
         </div>
       </div>
 
       {flags.length > 0 && (
         <>
-          <h4 class="cr-debrief__sub">Red flags to carry forward</h4>
+          <h4 class="cr-debrief__sub">{tx.flagsTitle}</h4>
           <ul class="cr-debrief__flags">
             {flags.map((f, i) => (
               <li key={i} style={{ '--i': i }}>{f}</li>

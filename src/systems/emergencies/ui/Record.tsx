@@ -1,18 +1,10 @@
 import type { ComponentChildren } from 'preact';
 import type { GameServices } from '@core';
-import { CountUp, Icon, useRegistry, useSignal, type IconName } from '@ui-kit';
-import { averageSaveSec, formatDuration, type Outcome } from '../logic';
+import { CountUp, Icon, useRegistry, useSignal, useStrings, type IconName } from '@ui-kit';
+import { averageSaveSec, formatDuration } from '../logic';
 import { statsSlot } from '../state';
+import { S } from '../strings';
 import './widgets.css';
-
-const OUTCOME_LABEL: Record<Outcome, string> = {
-  saved: 'Saved',
-  'over-triaged': 'Safe, over-cautious triage',
-  'under-triaged': 'Referred too slowly',
-  referred: 'Sent on in time, diagnosis missed',
-  missed: 'Diagnosis and triage missed',
-  timeout: 'Out of time',
-};
 
 function Tile(props: { icon: IconName; label: string; children: ComponentChildren; i: number }) {
   return (
@@ -26,6 +18,8 @@ function Tile(props: { icon: IconName; label: string; children: ComponentChildre
 
 /** profile: the player's emergency record. */
 export function RecordWidget({ services }: { services: GameServices }) {
+  const tx = useStrings(S);
+  const loc = services.locale;
   const s = useSignal(statsSlot(services));
   const dx = useRegistry(services.registries.diagnoses);
   const name = (id: string) => dx.find((d) => d.id === id)?.name ?? id.replace(/-/g, ' ');
@@ -38,34 +32,34 @@ export function RecordWidget({ services }: { services: GameServices }) {
       <header class="cr-record__head">
         <span class="cr-record__badge"><Icon name="heart" size={20} /></span>
         <div>
-          <span class="cr-record__eyebrow">Code Red</span>
-          <h3 class="cr-record__title" id="cr-record-title">Emergency record</h3>
+          <span class="cr-record__eyebrow">{tx.codeRed}</span>
+          <h3 class="cr-record__title" id="cr-record-title">{tx.recordTitle}</h3>
         </div>
       </header>
       {s.attempts === 0 ? (
-        <p class="cr-record__empty">No emergencies on your chart yet. When a Code Red patient arrives, every sight you save is logged here.</p>
+        <p class="cr-record__empty">{tx.recordEmpty}</p>
       ) : (
         <>
           <div class="cr-record__grid">
-            <Tile icon="heart" label="Sights saved" i={0}><CountUp value={s.saved} /></Tile>
-            <Tile icon="target" label="Save rate" i={1}><CountUp value={rate} suffix="%" /></Tile>
-            <Tile icon="clock" label="Avg. time to call" i={2}>{avg === null ? '—' : formatDuration(avg)}</Tile>
-            <Tile icon="lightning" label="Fastest save" i={3}>{s.fastestSaveSec === null ? '—' : formatDuration(s.fastestSaveSec)}</Tile>
-            <Tile icon="flame" label="Best run" i={4}><CountUp value={s.bestRun} /></Tile>
-            <Tile icon="crown" label="Grand Rounds" i={5}><CountUp value={s.grandRoundsTotal} /></Tile>
+            <Tile icon="heart" label={tx.sightsSaved} i={0}><CountUp value={s.saved} /></Tile>
+            <Tile icon="target" label={tx.saveRate} i={1}><CountUp value={rate} suffix="%" /></Tile>
+            <Tile icon="clock" label={tx.avgTime} i={2}>{avg === null ? '—' : formatDuration(avg, loc)}</Tile>
+            <Tile icon="lightning" label={tx.fastest} i={3}>{s.fastestSaveSec === null ? '—' : formatDuration(s.fastestSaveSec, loc)}</Tile>
+            <Tile icon="flame" label={tx.bestRun} i={4}><CountUp value={s.bestRun} /></Tile>
+            <Tile icon="crown" label={tx.grandRounds} i={5}><CountUp value={s.grandRoundsTotal} /></Tile>
           </div>
           {s.recent.length > 0 && (
-            <div class="cr-record__recent" aria-label="Recent emergencies">
-              <span class="cr-record__mini">Recent</span>
+            <div class="cr-record__recent" aria-label={tx.recent}>
+              <span class="cr-record__mini">{tx.recentShort}</span>
               {s.recent.map((r, i) => (
-                <span key={`${r.at}-${i}`} class={`cr-record__dot cr-record__dot--${r.outcome}`} title={`${OUTCOME_LABEL[r.outcome]} · ${formatDuration(r.sec)}`}>
-                  <span class="lm-sr-only">{OUTCOME_LABEL[r.outcome]}</span>
+                <span key={`${r.at}-${i}`} class={`cr-record__dot cr-record__dot--${r.outcome}`} title={`${tx.outcomeLabel[r.outcome]} · ${formatDuration(r.sec, loc)}`}>
+                  <span class="lm-sr-only">{tx.outcomeLabel[r.outcome]}</span>
                 </span>
               ))}
             </div>
           )}
           {saves.length > 0 && (
-            <ul class="cr-record__saves" aria-label="Emergencies saved">
+            <ul class="cr-record__saves" aria-label={tx.savedList}>
               {saves.map(([id, n]) => (
                 <li key={id}>
                   {name(id)}
