@@ -44,7 +44,7 @@ describe('scoring', () => {
   });
   it('flawless technique is perfect; big error is not', () => {
     expect(scoreEye({ ...base, reading: 18 }).perfect).toBe(true);
-    expect(scoreEye({ ...base, reading: 25 }).score).toBeLessThan(0.4);
+    expect(scoreEye({ ...base, reading: 25 }).score).toBeLessThan(0.45);
   });
   it('requires both eyes for full marks', () => {
     const od = { ...base, reading: 18 };

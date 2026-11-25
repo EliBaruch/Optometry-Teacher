@@ -8,6 +8,8 @@
  */
 export type Method = 'goldmann' | 'icare';
 
+export const METHOD_LABEL: Record<Method, string> = { goldmann: 'Goldmann applanation', icare: 'iCare rebound' };
+
 export const DIAL_MIN = 0;
 export const DIAL_MAX = 80;
 export const DIAL_PRESET = 15; // procedure: preset between 1 and 2 g

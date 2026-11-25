@@ -22,7 +22,8 @@ export interface TestStageProps {
  * never takes the scene down — the player can skip or ask the technician.
  */
 export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTech, onClose }: TestStageProps) {
-  const host = useRef<HTMLDivElement>(null);
+  // The modal mounts its body a beat after `open` flips, so track the host element in state.
+  const [el, setEl] = useState<HTMLDivElement | null>(null);
   const [failed, setFailed] = useState(false);
   const latest = useRef({ onResult });
   latest.current = { onResult };
@@ -32,9 +33,7 @@ export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTec
   const shown = mg ?? last.current;
 
   useEffect(() => {
-    if (!mg) return;
-    const el = host.current;
-    if (!el) return;
+    if (!mg || !el) return;
     setFailed(false);
     let alive = true;
     let finished = false;
@@ -73,7 +72,7 @@ export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTec
       }
       el.replaceChildren();
     };
-  }, [mg]);
+  }, [mg, el]);
 
   const info = shown ? TEST_CATALOG[shown.id] : undefined;
   return (
@@ -89,7 +88,7 @@ export function TestStage({ services, kase, mg, reduced, techOk, onResult, onTec
       class="exm-stage-modal"
     >
       <div class="exm-stage-host-wrap">
-        <div ref={host} class="exm-stage-host" data-testid="exm-stage-host" />
+        <div ref={setEl} class="exm-stage-host" data-testid="exm-stage-host" />
         {failed && mg && (
           <div class="exm-stage-failed" role="alert">
             <Icon name="warning" size={34} />

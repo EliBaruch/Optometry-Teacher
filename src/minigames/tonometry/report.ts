@@ -5,9 +5,7 @@
  * abnormal (asymmetry is a glaucoma risk sign); 4-5 is noted as normal.
  */
 import { EYES, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
-import { flagFor, type Method } from './optics';
-
-export const METHOD_NAME: Record<Method, string> = { goldmann: 'Goldmann applanation', icare: 'iCare rebound' };
+import { flagFor, METHOD_LABEL as METHOD_NAME, type Method } from './optics';
 export const ASYMMETRY_NOTE = 4;
 export const ASYMMETRY_ABNORMAL = 6;
 

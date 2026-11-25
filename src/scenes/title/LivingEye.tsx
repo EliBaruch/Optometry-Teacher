@@ -13,7 +13,7 @@ export interface LivingEyeProps {
 }
 
 const BASE: EyeState = eyeState({
-  eye: 'OD', irisColor: '#3f8f9c', irisSeed: 11, pupilMm: 5, lighting: 'dim', redness: 0.04, skinTone: '#caa086',
+  eye: 'OD', irisColor: '#3f8f9c', irisSeed: 11, pupilMm: 5, lighting: 'penlight', redness: 0.04, skinTone: '#caa086',
 });
 
 /** A single enormous eye: follows the pointer, blinks, pupil answers a sweeping light. */

@@ -30,3 +30,16 @@ describe('hub logic', () => {
     expect(w[0]!.badge).toBe('NEW');
   });
 });
+
+import { pickSitters, splitModes } from './logic';
+describe('hub logic 2', () => {
+  it('splits locked from playable modes', () => {
+    const r = splitModes([{ id: 'b', order: 2 }, { id: 'a', order: 1 }], (m) => (m.id === 'b' ? 'later' : undefined));
+    expect(r.playable.map((m) => m.id)).toEqual(['a']);
+    expect(r.soon[0]).toMatchObject({ reason: 'later' });
+  });
+  it('picks distinct sitters', () => {
+    const s = pickSitters(12345, 3);
+    expect(new Set(s.map((x) => x.seed)).size).toBe(3);
+  });
+});

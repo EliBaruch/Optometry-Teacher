@@ -21,8 +21,15 @@ export function RainGlass({ reduced }: { reduced: boolean }) {
     let drops: Drop[] = [];
     let streaks: Streak[] = [];
 
-    const mk = (): Drop => ({ x: rnd(0, w), y: rnd(0, h), r: rnd(2, 6.5), vy: 0, wait: rnd(0.5, 6), trail: [], mass: 0 });
-    const mkStreak = (): Streak => ({ x: rnd(-40, w + 40), y: rnd(-h, h), len: rnd(30, 110), v: rnd(700, 1250), a: rnd(0.05, 0.22) });
+    const clusters = () => Array.from({ length: 5 }, () => ({ x: rnd(0, w), y: rnd(0, h), s: rnd(90, 240) }));
+    let cl = clusters();
+    const mk = (): Drop => {
+      const c = cl[Math.floor(Math.random() * cl.length)]!;
+      const scatter = Math.random() < 0.25;
+      const big = Math.random() ** 3; // mostly small, occasionally large
+      return { x: scatter ? rnd(0, w) : Math.min(w, Math.max(0, c.x + (Math.random() - 0.5) * c.s * 2)), y: scatter ? rnd(0, h) : Math.min(h, Math.max(0, c.y + (Math.random() - 0.5) * c.s * 1.6)), r: 1.4 + big * 8.5, vy: 0, wait: rnd(0.5, 6), trail: [], mass: 0 };
+    };
+    const mkStreak = (): Streak => ({ x: rnd(-40, w + 40), y: rnd(-h, h), len: rnd(30, 110), v: rnd(700, 1250), a: rnd(0.12, 0.38) });
 
     const resize = () => {
       const cw = canvas.clientWidth || window.innerWidth;
@@ -33,8 +40,9 @@ export function RainGlass({ reduced }: { reduced: boolean }) {
       canvas.height = Math.round(ch * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const area = (cw * ch) / (1440 * 900);
-      drops = Array.from({ length: Math.round(Math.max(22, 46 * area)) }, mk);
-      streaks = reduced ? [] : Array.from({ length: Math.round(Math.max(26, 70 * area)) }, mkStreak);
+      cl = clusters();
+      drops = Array.from({ length: Math.round(Math.max(16, 62 * area)) }, mk);
+      streaks = reduced ? [] : Array.from({ length: Math.round(Math.max(26, 110 * area)) }, mkStreak);
     };
 
     const bead = (d: Drop) => {
@@ -55,7 +63,7 @@ export function RainGlass({ reduced }: { reduced: boolean }) {
       ctx.translate(x, y);
       ctx.scale(1, sy / r);
       const g = ctx.createRadialGradient(0, r * 0.35, r * 0.1, 0, 0, r);
-      g.addColorStop(0, 'rgba(255,214,150,0.5)'); // refracted lamp light, inverted
+      g.addColorStop(0, 'rgba(255,214,150,0.7)'); // refracted lamp light, inverted
       g.addColorStop(0.55, 'rgba(120,130,200,0.12)');
       g.addColorStop(1, 'rgba(8,6,20,0.55)');
       ctx.fillStyle = g;
@@ -63,7 +71,7 @@ export function RainGlass({ reduced }: { reduced: boolean }) {
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
       ctx.lineWidth = 0.8;
-      ctx.strokeStyle = 'rgba(210,220,255,0.28)';
+      ctx.strokeStyle = 'rgba(225,232,255,0.5)';
       ctx.stroke();
       ctx.restore();
       ctx.fillStyle = 'rgba(255,255,255,0.75)';
@@ -87,7 +95,7 @@ export function RainGlass({ reduced }: { reduced: boolean }) {
         g.addColorStop(0, 'rgba(200,210,255,0)');
         g.addColorStop(1, `rgba(214,222,255,${s.a})`);
         ctx.strokeStyle = g;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(s.x, s.y - s.len);
         ctx.lineTo(s.x - s.len * 0.12, s.y);
@@ -106,7 +114,7 @@ export function RainGlass({ reduced }: { reduced: boolean }) {
             if (d.vy < 6) d.vy = 0, d.wait = rnd(1, 5);
             d.trail.push(d.y);
             if (d.trail.length > 28) d.trail.shift();
-            if (d.y > h + 20) Object.assign(d, mk(), { y: -10 });
+            if (d.y > h + 20) Object.assign(d, mk(), { y: -10, x: d.x });
           }
         }
         bead(d);

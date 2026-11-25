@@ -3,6 +3,7 @@ import type { SceneProps } from '@core';
 import { Backdrop, Button, Icon, Modal, useReducedMotion, useSignal } from '@ui-kit';
 import { Intro } from './Intro';
 import { Flare, updateFlare } from './Flare';
+import { Lattice } from './Lattice';
 import { LivingEye } from './LivingEye';
 import { RainGlass } from './RainGlass';
 import './title.css';
@@ -38,7 +39,7 @@ export function TitleScene({ services }: SceneProps) {
   const eyeW = Math.round(
     landscape
       ? Math.min(vp.w * 0.46, vp.h * 1.1)
-      : Math.min(vp.w * (narrow ? 1.32 : 0.8), 980, vp.h * (narrow ? 0.98 : 1.2)),
+      : Math.min(vp.w * (narrow ? 1.0 : 0.8), 980, vp.h * (narrow ? 0.98 : 1.2)),
   );
   const eyeH = Math.round(eyeW * 0.5);
   dims.current = { w: eyeW, h: eyeH, reduced };
@@ -74,6 +75,7 @@ export function TitleScene({ services }: SceneProps) {
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const zoomAndGo = () => {
+    phaseRef.current = 'zoom';
     setPhase('zoom');
     services.audio.play('reveal');
     services.fx.flash('#ffd27a', 500);
@@ -84,7 +86,7 @@ export function TitleScene({ services }: SceneProps) {
     if (phaseRef.current !== 'idle') return;
     services.audio.unlock();
     services.audio.play('door');
-    if (!services.settings.get().onboarded) setPhase('intro');
+    if (!services.settings.get().onboarded) { phaseRef.current = 'intro'; setPhase('intro'); }
     else zoomAndGo();
   };
 
@@ -125,8 +127,8 @@ export function TitleScene({ services }: SceneProps) {
           </g>
         </svg>
       </div>
-      <div class="ttl__layer ttl__lattice ttl__lattice--far" aria-hidden="true" style={{ '--depth': 8 } as never} />
-      <div class="ttl__layer ttl__lattice ttl__lattice--mid" aria-hidden="true" style={{ '--depth': 16 } as never} />
+      <div class="ttl__layer ttl__lattice ttl__lattice--far" aria-hidden="true" style={{ '--depth': 8 } as never}><Lattice cols={11} rows={9} seed={7} strong={false} /></div>
+      <div class="ttl__layer ttl__lattice ttl__lattice--mid" aria-hidden="true" style={{ '--depth': 16 } as never}><Lattice cols={5} rows={4} seed={23} strong /></div>
       <div class="ttl__layer ttl__stars" aria-hidden="true" style={{ '--depth': 14 } as never} />
       <div class="ttl__layer ttl__halo" aria-hidden="true" style={{ '--depth': 22 } as never} />
 
@@ -173,6 +175,7 @@ export function TitleScene({ services }: SceneProps) {
         </button>
       </nav>
       </div>
+      <div class="ttl__vignette" aria-hidden="true" />
       <div class="ttl__layer ttl__pillars" aria-hidden="true" style={{ '--depth': 46 } as never} />
       <RainGlass reduced={reduced} />
 

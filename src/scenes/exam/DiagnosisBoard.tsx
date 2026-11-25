@@ -60,7 +60,7 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
   const step3 = useRef<HTMLFieldSetElement>(null);
   const reveal = (el: HTMLElement | null) => {
     if (!el) return;
-    timers.current.push(setTimeout(() => el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }), 120));
+    timers.current.push(setTimeout(() => el.scrollIntoView?.({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }), 120));
   };
 
   const ready = !!(dx && urgency && conf);

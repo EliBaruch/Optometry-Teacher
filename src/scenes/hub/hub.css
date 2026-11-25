@@ -143,10 +143,10 @@
 .hub-room__lightning { position: absolute; inset: 0; background: #cfe3ff; opacity: 0; animation: hub-flash 14s infinite 4s; mix-blend-mode: screen; }
 @keyframes hub-flash { 0%, 100% { opacity: 0; } 0.6% { opacity: 0.55; } 1.4% { opacity: 0.1; } 2% { opacity: 0.4; } 3.5% { opacity: 0; } }
 .hub-room__chart {
-  position: absolute; right: 9%; top: 31%; width: 20%; aspect-ratio: 3 / 4; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly;
+  position: absolute; right: 9%; top: 27%; width: 15%; aspect-ratio: 3 / 4; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly;
   background: #f3e7cf; border: 3px solid #a86d17; border-radius: 3px; color: #1a0f2e; font-family: var(--lm-font-display); font-weight: 700; box-shadow: 0 6px 14px rgba(0,0,0,.5); opacity: 0.92;
 }
-.hub-room__chart .c1 { font-size: 15cqw; } .hub-room__chart .c2 { font-size: 9cqw; } .hub-room__chart .c3 { font-size: 6.5cqw; } .hub-room__chart .c4 { font-size: 4.5cqw; }
+.hub-room__chart .c1 { font-size: 11cqw; } .hub-room__chart .c2 { font-size: 6.5cqw; } .hub-room__chart .c3 { font-size: 4.5cqw; } .hub-room__chart .c4 { font-size: 3.2cqw; }
 .hub-room { container-type: inline-size; }
 .hub-room__clock { position: absolute; right: 9%; top: 9%; width: 20%; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); }
 .hub-room__hand { transform-origin: 0 0; transition: transform 300ms var(--lm-ease-out); }

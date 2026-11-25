@@ -3,7 +3,7 @@
  * challenge. Pure: rng in, data out.
  */
 import {
-  buildFindings, EYES, type DeepPartial, type Eye, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
+  buildFindings, type DeepPartial, type Eye, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { classify, type Method } from './optics';
@@ -146,4 +146,3 @@ export function makeChallenge(findings: PatientFindings, rng: Rng, _method: Meth
   const options = rng.shuffle(keys.map((k) => CLASS_TEXT[k]));
   return { question: 'How would you classify these pressures?', options, correct: options.indexOf(CLASS_TEXT[worstKey]), explain: text };
 }
-export { EYES };

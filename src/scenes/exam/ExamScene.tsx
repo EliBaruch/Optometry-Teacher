@@ -234,16 +234,17 @@ export function ExamScene({ services, params }: SceneProps) {
         arrive(t ? t.left + t.width / 2 : from.x, t ? t.top + 40 : from.y);
         return;
       }
-      const cancel = flyChips(
+      const held: { cancel?: () => void } = {};
+      held.cancel = flyChips(
         from,
         findChartTarget(),
         rows.slice(0, 5).map((r) => ({ text: `${r.label} ${r.value}`, color: colorOf(r.flag) })),
         (x, y) => {
-          cancels.current.delete(cancel);
+          if (held.cancel) cancels.current.delete(held.cancel);
           arrive(x, y);
         },
       );
-      cancels.current.add(cancel);
+      cancels.current.add(held.cancel);
     }, reduced ? 0 : 220);
   };
 
@@ -363,6 +364,7 @@ export function ExamScene({ services, params }: SceneProps) {
     <Screen
       class={`exm${reduced ? ' is-reduced' : ''}${timed ? ' is-timed' : ''}`}
       fill
+      hud={!narrow}
       backdrop="exam"
       eyebrow={mode?.title ?? 'Single case'}
       title="Exam room"

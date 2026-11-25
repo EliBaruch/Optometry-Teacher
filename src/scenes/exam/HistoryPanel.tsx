@@ -18,7 +18,7 @@ export function HistoryPanel(props: {
   const logRef = useRef<HTMLOListElement>(null);
   useEffect(() => {
     const el = logRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: reduced ? 'auto' : 'smooth' });
+    el?.scrollTo?.({ top: el.scrollHeight, behavior: reduced ? 'auto' : 'smooth' });
   }, [log.length]);
   const first = patientName.split(' ')[0];
 
@@ -31,6 +31,7 @@ export function HistoryPanel(props: {
       padding="md"
       actions={<span class="exm-count lm-num" aria-label={`${asked.length} of ${total} questions asked`}>{asked.length}/{total}</span>}
     >
+      <div class="exm-history__body">
       <div class="exm-history__groups">
         {groups.map((g) => (
           <div class="exm-qgroup" key={g.category} role="group" aria-label={g.label}>
@@ -78,6 +79,7 @@ export function HistoryPanel(props: {
             )}
           </ol>
         )}
+      </div>
       </div>
     </GlassPanel>
   );

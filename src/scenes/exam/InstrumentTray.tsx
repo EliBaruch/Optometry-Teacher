@@ -61,7 +61,8 @@ export function InstrumentTray(props: {
                     aria-label={`Ask the technician to do the ${testName(mg.id, mg)}`}
                   >
                     <Icon name="user" size={13} />
-                    <span>Ask the technician</span>
+                    <span class="exm-tool__tech-full">Ask the technician</span>
+                    <span class="exm-tool__tech-short" aria-hidden="true">Technician</span>
                   </button>
                 )}
               </li>

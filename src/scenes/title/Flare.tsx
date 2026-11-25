@@ -27,7 +27,7 @@ export function updateFlare(el: HTMLElement | null, phase: number, w: number, h:
   const live = phase >= 0 && !reduced;
   const sx = live ? (-0.25 + phase * 1.5) * w : w * 0.78;
   const sy = h * 0.2;
-  const k = reduced ? 0.35 : 0.2 + 0.8 * beamIllumination(phase);
+  const k = reduced ? 0.35 : 0.38 + 0.62 * beamIllumination(phase);
   const cx = w / 2, cy = h / 2;
   el.style.opacity = String(Math.min(1, k));
   const kids = el.children;
