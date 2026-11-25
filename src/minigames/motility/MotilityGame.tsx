@@ -68,6 +68,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const [mine, setMine] = useState<Grid>(emptyGrid);
   const [sel, setSel] = useState<GradeSel>(null);
   const [visited, setVisited] = useState<string[]>([]);
+  const [touched, setTouched] = useState<string[]>([]);
   const [say, setSay] = useState<{ id: number; text: string } | null>(null);
   const [debrief, setDebrief] = useState<{ grading: number; technique: number } | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
@@ -207,6 +208,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
     if (!sel) { setNudge('Tap a cell on the OD or OS chart first, then choose its grade.'); play('error', { volume: 0.4 }); return; }
     const nv = Math.max(-4, Math.min(4, v));
     setMine((m) => ({ ...m, [sel.eye]: { ...m[sel.eye], [sel.gaze]: nv } }));
+    setTouched((t) => (t.includes(`${sel.eye}:${sel.gaze}`) ? t : [...t, `${sel.eye}:${sel.gaze}`]));
     play('dial', { pitch: 0.9 + (nv + 4) * 0.04 });
   };
   const onRootKey = (e: KeyboardEvent) => {
@@ -241,9 +243,10 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   };
 
   const gradedCount = EYES.reduce((n, e) => n + GAZE_IDS.filter((g) => mine[e][g] !== 0).length, 0);
-  const canRecord = visited.length >= 5;
+  const canRecord = visited.length >= 9 && touched.length >= 16;
+  const gateHint = visited.length < 9 ? `Examine all nine positions first (${visited.length}/9).` : `Grade every cell of both charts (${touched.length}/16). Enter 0 for normal movement.`;
   const record = () => {
-    if (!canRecord) { setNudge('Examine at least five positions of gaze first.'); play('error', { volume: 0.5 }); return; }
+    if (!canRecord) { setNudge(gateHint); play('error', { volume: 0.5 }); return; }
     const grading = gradingScore(mine, truth);
     const technique = motilityAccuracy({ grading, visited: visited.length, seconds: (performance.now() - startAt.current) / 1000 });
     play('stamp');
@@ -283,10 +286,11 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
           <button type="button" role="tab" aria-selected={tab === 'grade'} class={tab === 'grade' ? 'is-on' : ''} onClick={() => setTab('grade')}>2 · Grade <small>{gradedCount}</small></button>
         </div>
         <div class="mot-wrap">
+          <div class="mot-sayrow" aria-live="polite">{say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}</div>
           <div ref={stageRef} class="mot-stage" tabIndex={0} role="application" aria-label="Fixation wand. Arrow keys step it between positions of gaze, hold to sweep; number keys 1 to 9 jump to a position."
             style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}
             onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
-            <Face />
+            <Face dy={22} />
             <div class="mot-kbd" aria-hidden="true"><kbd>← ↑ → ↓</kbd> step · hold to sweep · <kbd>1–9</kbd> jump</div>
             <svg class="mot-h" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <path d="M10 12H90M10 50H90M10 88H90M50 12V88" />
@@ -299,7 +303,6 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
             <EyePair frame={frame} />
             <div ref={ghostEl} class="mot-ghost" aria-hidden="true" />
             <div ref={wandEl} class="mot-wand" aria-hidden="true"><span class="mot-wand__halo" /><span class="mot-wand__core" /></div>
-            {say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}
           </div>
         </div>
         <aside class="mot-panel" aria-label="Motility chart">
@@ -343,8 +346,9 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
       </div>
       {nudge ? <div class="mot-toast" role="status" key={nudge}>{nudge}</div> : null}
       <footer class="mot-foot">
-        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{visited.length}/9 positions<em> · {gradedCount} graded</em></span><ProgressBar value={visited.length} max={9} ariaLabel="Positions of gaze examined" accent="#ffd27a" size="sm" /></div>
-        <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief}>Record findings</Button>
+        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{visited.length}/9 positions<em> · {touched.length}/16 graded</em></span><ProgressBar value={visited.length} max={9} ariaLabel="Positions of gaze examined" accent="#ffd27a" size="sm" /></div>
+        {!canRecord && !tutorial ? <span class="mot-foot__note" id="mot-gate">{gateHint}</span> : null}
+        <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief || !canRecord} aria-describedby={canRecord ? undefined : 'mot-gate'}>Record findings</Button>
       </footer>
       {tutorial ? <Tutorial eyebrow="Extraocular motility" steps={STEPS} onStep={(i) => setTab(i === 2 ? 'grade' : 'sweep')} onClose={() => { setTutorial(false); setTab('sweep'); timers.current.push(window.setTimeout(() => stageRef.current?.focus({ preventScroll: true }), 0)); }} /> : null}
       {debrief ? (

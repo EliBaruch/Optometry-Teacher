@@ -31,16 +31,16 @@ export function PlanView({ bind }: { bind: (draw: (s: PlanState) => void) => voi
       if (!g || !W) return;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, W, H);
-      const cx = W / 2, ey = H - 30, L = ey - 14, half = Math.min(W * 0.17, 40);
+      const cx = W / 2, ey = H - 34, L = ey - 14, half = Math.min(W * 0.17, 40);
       const ty = ey - dist(s.d, L);
       // depth scale with labelled ticks
-      g.font = '600 9px system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.font = '700 11px system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
       for (const cm of [3, 6, 10, 15, 25, 40]) {
         const y = ey - dist(cm, L);
         g.strokeStyle = cm === 6 ? 'rgba(94, 234, 212, 0.45)' : 'rgba(255, 236, 210, 0.12)';
         g.setLineDash(cm === 6 ? [] : [2, 4]); g.beginPath(); g.moveTo(10, y); g.lineTo(W - 10, y); g.stroke(); g.setLineDash([]);
-        g.fillStyle = cm === 6 ? 'rgba(94, 234, 212, 0.85)' : 'rgba(255, 236, 210, 0.4)';
-        g.fillText(`${cm}`, 12, y - 6);
+        g.fillStyle = cm === 6 ? 'rgba(120, 245, 224, 1)' : 'rgba(255, 244, 226, 0.88)';
+        g.fillText(`${cm} cm`, 12, y - 7);
       }
       // normal zone wash
       const y6 = ey - dist(6, L);
@@ -51,8 +51,8 @@ export function PlanView({ bind }: { bind: (draw: (s: PlanState) => void) => voi
       for (const [v, col, lab] of [[s.pins.brk, '255, 210, 122', 'B'], [s.pins.rec, '94, 234, 212', 'R']] as const) {
         if (v == null) continue;
         const y = ey - dist(v, L);
-        g.fillStyle = `rgba(${col}, 0.9)`; g.beginPath(); g.arc(W - 22, y, 7, 0, 7); g.fill();
-        g.fillStyle = '#1a0f05'; g.textAlign = 'center'; g.font = '800 9px system-ui, sans-serif'; g.fillText(lab, W - 22, y + 0.5); g.textAlign = 'left';
+        g.fillStyle = `rgba(${col}, 0.9)`; g.beginPath(); g.arc(W - 22, y, 9, 0, 7); g.fill();
+        g.fillStyle = '#1a0f05'; g.textAlign = 'center'; g.font = '800 11px system-ui, sans-serif'; g.fillText(lab, W - 22, y + 0.5); g.textAlign = 'left';
       }
       // trail along the midline (glows brighter the closer the target is)
       const prox = Math.max(0, Math.min(1, 1 - s.d / 40));
@@ -82,7 +82,7 @@ export function PlanView({ bind }: { bind: (draw: (s: PlanState) => void) => voi
         g.fillStyle = '#6b5d3a'; g.beginPath(); g.arc(0, -14, 6.2, 0, 7); g.fill();
         g.fillStyle = '#0a0610'; g.beginPath(); g.arc(0, -15.4, 3, 0, 7); g.fill();
         g.restore();
-        g.fillStyle = 'rgba(255, 236, 210, 0.7)'; g.textAlign = 'center'; g.font = '700 9px system-ui, sans-serif'; g.fillText(e, ex, ey + 25); g.textAlign = 'left';
+        g.fillStyle = 'rgba(255, 244, 226, 0.92)'; g.textAlign = 'center'; g.font = '700 11px system-ui, sans-serif'; g.fillText(e, ex, ey + 25); g.textAlign = 'left';
       }
       // nose bridge between the eyes
       g.fillStyle = 'rgba(255, 236, 210, 0.12)'; g.beginPath(); g.moveTo(cx, ey + 4); g.lineTo(cx - 7, ey + 18); g.lineTo(cx + 7, ey + 18); g.closePath(); g.fill();
@@ -93,7 +93,7 @@ export function PlanView({ bind }: { bind: (draw: (s: PlanState) => void) => voi
       g.fillStyle = halo; g.beginPath(); g.arc(cx, ty, rad * 4, 0, 7); g.fill();
       g.fillStyle = '#fffbe9'; g.beginPath(); g.arc(cx, ty, rad, 0, 7); g.fill();
       // convergence readout
-      g.fillStyle = broken ? 'rgba(244, 114, 182, 0.95)' : 'rgba(255, 236, 210, 0.75)'; g.textAlign = 'right'; g.font = '700 10px system-ui, sans-serif';
+      g.fillStyle = broken ? 'rgba(244, 114, 182, 0.95)' : 'rgba(255, 236, 210, 0.75)'; g.textAlign = 'right'; g.font = '700 12px system-ui, sans-serif';
       g.fillText(broken ? 'eye drifting out' : `${(Math.atan(PD_MM / 2 / (s.d * 10)) * 360 / Math.PI).toFixed(0)}° convergence`, W - 10, 12);
     });
     return () => { ro?.disconnect(); bind(() => {}); };

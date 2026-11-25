@@ -115,7 +115,12 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     // DOM: ruler handle, front-view card, readouts
     const pct = (k.d / L.max) * 100;
     if (handleRef.current) handleRef.current.style.left = `${pct}%`;
-    if (cardRef.current) cardRef.current.style.transform = `translate(-50%, 0) scale(${(0.5 + 11 / (k.d + 5)).toFixed(3)})`;
+    if (cardRef.current) {
+      // perspective: the card swells, tips toward the examiner and throws a longer shadow as it nears the face
+      const sc = 0.46 + 14 / (k.d + 6), tilt = 26 * prox * prox;
+      cardRef.current.style.transform = `translate(-50%, ${(-prox * 10).toFixed(1)}px) perspective(380px) rotateX(${tilt.toFixed(1)}deg) scale(${sc.toFixed(3)})`;
+      cardRef.current.style.setProperty('--p', prox.toFixed(3));
+    }
     if (beamRef.current) { beamRef.current.style.opacity = String((0.25 + 0.75 * prox).toFixed(2)); beamRef.current.style.transform = `translateX(-50%) scaleX(${(0.6 + 1.2 * prox).toFixed(2)})`; }
     if (chipRef.current) chipRef.current.textContent = `${fmt(k.d)} cm`;
     if (liveRead.current) liveRead.current.textContent = `${fmt(k.d)} cm`;
@@ -209,9 +214,10 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const amp = (e: Eye) => marks.amp[e];
   const ampErr = (e: Eye) => (amp(e) == null ? null : amp(e)! - expectedPushupD(amps[e]));
   const stepsDone = (marks.brk != null ? 1 : 0) + (marks.rec != null ? 1 : 0) + (amp('OD') != null ? 1 : 0) + (amp('OS') != null ? 1 : 0);
-  const canRecord = marks.brk != null && marks.rec != null;
+  const canRecord = marks.brk != null && marks.rec != null && amp('OD') != null && amp('OS') != null;
+  const gateHint = marks.brk == null ? 'Mark the break point first.' : marks.rec == null ? 'Now mark the recovery point.' : 'Measure the push-up amplitude for both eyes.';
   const record = () => {
-    if (!canRecord) { setNudge('Mark the break and the recovery first.'); play('error', { volume: 0.5 }); return; }
+    if (!canRecord) { setNudge(gateHint); play('error', { volume: 0.5 }); return; }
     const k = c.current;
     const accuracy = convergenceAccuracy({
       breakErr: marks.brk! - truth.breakCm, recoveryErr: marks.rec! - truth.recoveryCm, breakCm: truth.breakCm, recoveryCm: truth.recoveryCm,
@@ -230,8 +236,8 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const pick = (i: number) => { setPicked(i); if (challenge) { play(i === challenge.correct ? 'success' : 'fail'); if (i !== challenge.correct) fx.shake(0.4, 200); } };
 
   const hint = tutorial ? 'Watch the tutorial, or skip it.'
-    : phase === 'brk' ? 'Advance the target slowly toward the nose. Press Break the instant one eye drifts out.'
-    : phase === 'rec' ? 'Now retreat slowly until both eyes straighten, then press Recovered.'
+    : phase === 'brk' ? 'Hold ← to bring the target toward the nose. Press Break (B) the instant one eye drifts out.'
+    : phase === 'rec' ? 'Hold → to retreat slowly until both eyes straighten, then press Recovered (B).'
     : `Push-up with the ${OTHER(ampEye)} covered: bring the letters in until they stay blurred, then press Blurry.`;
   const label = phase === 'brk' ? 'Break!' : phase === 'rec' ? 'Recovered' : 'Blurry';
   const ticks = Array.from({ length: max + 1 }, (_, i) => i);
@@ -254,12 +260,12 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
       </header>
       <div class="mot-main mot-main--conv">
         <div class="mot-wrap">
+          <div class="mot-sayrow" aria-live="polite">{say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}</div>
           <div class="mot-stage mot-stage--conv" style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}>
             <Face dy={-8} />
             <EyePair frame={frame} flag={phase === 'amp' || ctx.mode !== 'practice' ? null : flag} covered={phase === 'amp' ? OTHER(ampEye) : null} />
             <div ref={beamRef} class="mot-beam" aria-hidden="true" />
-            <div ref={cardRef} class="mot-tcard" aria-hidden="true"><div ref={lettersRef} class="mot-tcard__l">E F P T</div><span ref={chipRef} class="mot-tcard__cm mot-num">40.0 cm</span></div>
-            {say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}
+            <div ref={cardRef} class="mot-tcard" aria-hidden="true"><span class="mot-tcard__wand" /><span class="mot-tcard__grip" /><div ref={lettersRef} class="mot-tcard__l">E F P T</div><span ref={chipRef} class="mot-tcard__cm mot-num">40.0 cm</span></div>
           </div>
           <div class="mot-ruler" aria-label="Ruler">
             <div class="mot-ruler__eye" aria-hidden="true"><Icon name="eye" size={20} /><small>{phase === 'amp' ? 'eye' : 'nose'}</small><span ref={readRef} class="mot-ruler__read mot-num">40.0 cm</span></div>
@@ -280,9 +286,9 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
             </div>
           </div>
           <div class="mot-ctl">
-            <button type="button" class="mot-hold" {...hold(-1)} aria-label="Hold to bring the target toward the nose"><Icon name="chevron-left" size={18} /> Approach</button>
+            <button type="button" class="mot-hold" {...hold(-1)} aria-label="Hold to bring the target toward the nose (left arrow)"><Icon name="chevron-left" size={18} /> Approach <kbd>←</kbd></button>
             <div class="mot-pace" aria-hidden="true"><span class="mot-pace__bar"><i class="mot-pace__ok" /><i ref={paceRef} /></span><span ref={paceTxt} class="mot-pace__t">still</span></div>
-            <button type="button" class="mot-hold" {...hold(1)} aria-label="Hold to move the target away">Retreat <Icon name="chevron-right" size={18} /></button>
+            <button type="button" class="mot-hold" {...hold(1)} aria-label="Hold to move the target away (right arrow)"><kbd>→</kbd> Retreat <Icon name="chevron-right" size={18} /></button>
             <Button variant="primary" onClick={mark} icon="target" disabled={tutorial || !!debrief}>{label}</Button>
             {phase !== 'amp' ? <Button variant="ghost" size="sm" icon="refresh" onClick={retry} disabled={tutorial || !!debrief}>Repeat</Button> : null}
           </div>
@@ -307,13 +313,14 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
               {marks.brk != null ? <span class="mot-gauge__pin" style={{ left: `${Math.min(100, (marks.brk / 20) * 100)}%` }}>B</span> : null}</div>
             <p><span>0</span><span>6 cm normal</span><span>10 receded</span><span>20</span></p>
           </div>
-          <p class="mot-norms">Expected amplitude for {age}: about {fmt(Math.max(h.avg, 0.5))} D ({h.min >= 0.5 ? `minimum ${fmt(h.min)} D` : 'no minimum expected at this age'}). Keys: <b>← / →</b> move (Shift = slower), <b>B</b> or <b>Space</b> marks, <b>R</b> repeats.</p>
+          <p class="mot-norms">Expected amplitude for {age}: about {fmt(Math.max(h.avg, 0.5))} D ({h.min >= 0.5 ? `minimum ${fmt(h.min)} D` : 'no minimum expected at this age'}). Keys: <b>←</b> approach (toward the nose), <b>→</b> retreat, Shift = slower, <b>B</b> or <b>Space</b> marks, <b>R</b> repeats.</p>
         </aside>
       </div>
       {nudge ? <div class="mot-toast" role="status" key={nudge}>{nudge}</div> : null}
       <footer class="mot-foot">
         <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{stepsDone}/4 measured</span><ProgressBar value={stepsDone} max={4} ariaLabel="Measurements completed" accent="#ffd27a" size="sm" /></div>
-        <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief}>Record findings</Button>
+        {!canRecord && !tutorial ? <span class="mot-foot__note" id="mot-gate">{gateHint}</span> : null}
+        <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief || !canRecord} aria-describedby={canRecord ? undefined : 'mot-gate'}>Record findings</Button>
       </footer>
       {tutorial ? <Tutorial eyebrow="Convergence & accommodation" steps={STEPS} onClose={() => { setTutorial(false); rootRef.current?.focus({ preventScroll: true }); }} /> : null}
       {debrief ? (
