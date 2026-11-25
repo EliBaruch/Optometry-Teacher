@@ -43,3 +43,14 @@ Now running: render revise (wf_e24dfd0e-8db), ui-kit revise (wf_fa54d3a9-c32),
 Still to resume later: wf_a09adb36-637, wf_d78e444f-f28, wf_9ef352fc-414 (system reviews),
 wf_8a034212-fc7 (results/meta reviews), wf_f5a7b76d-d74, wf_7ae52ba3-802 (mini-game reviews/builds);
 then new: mg-retinoscopy, mg-pupils, mg-cover-test, mg-motility, mg-tonometry, mg-ophthalmoscopy.
+
+## Update 2026-11-25 ~08:45 UTC — model routing (owner request: stop inheriting Opus)
+New script `lumen-v2.js` (template `build-review-v2.js`). Per role:
+builder/reviser = Sonnet (effort high only for heavy units: scene-exam, render-eye-fundus, mg-slit-lamp,
+mg-ophthalmoscopy, mg-retinoscopy, mg-phoropter; medium otherwise) · critic = Sonnet medium ·
+new mechanical gate before every review = Haiku low (typecheck/boundaries/tests/language grep; failures skip
+the expensive review and go straight to revise). Units carry `start`: review | continue | build.
+Running: wf_53290a05-580 [scene-exam, scene-hub] · wf_21465cf8-bb9 [scene-title, mg-slit-lamp] ·
+wf_88e15d8e-075 [render-eye-fundus, render-fx-avatar] · wf_33ec223f-117 [ui-kit, mg-visual-acuity]
+Queued: systems ×7, scene-results, scene-meta, mg-phoropter/color-vision/amsler (review), mg-keratometry,
+mg-visual-fields (continue), mg-retinoscopy/pupils/cover-test/motility/tonometry/ophthalmoscopy (build).
