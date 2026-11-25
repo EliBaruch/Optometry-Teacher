@@ -17,12 +17,29 @@ export function gradingScore(mine: Grid, truth: Grid): number {
   return den ? num / den : 1;
 }
 
-export interface MotilityScoreIn { grading: number; visited: number; seconds: number }
-/** Technique: grading 70%, completeness of the 9-position sweep 25%, a light pace term 5%. */
+/** Share (0..1) of truly abnormal cells the player graded as normal (a missed deficit). */
+export function missedDeficitShare(mine: Grid, truth: Grid): number {
+  let abnormal = 0, missed = 0;
+  for (const e of EYES) for (const g of GAZE_IDS) {
+    if (truth[e][g] === 0) continue;
+    abnormal++;
+    if (mine[e][g] === 0) missed++;
+  }
+  return abnormal ? missed / abnormal : 0;
+}
+
+export interface MotilityScoreIn { grading: number; visited: number; seconds: number; missedShare?: number }
+/**
+ * Technique: grading 70%, completeness of the 9-position sweep 25%, a light pace term 5%.
+ * Missing a real deficit is clinically the worst error, so it caps technique: missing every
+ * abnormal cell caps at 50%, missing half caps at 75%.
+ */
 export function motilityAccuracy(s: MotilityScoreIn): number {
   const completeness = clamp01(s.visited / 9);
   const pace = clamp01(1 - Math.max(0, s.seconds - 60) / 120);
-  return clamp01(0.7 * s.grading + 0.25 * completeness + 0.05 * pace);
+  const raw = clamp01(0.7 * s.grading + 0.25 * completeness + 0.05 * pace);
+  const cap = 1 - 0.5 * clamp01(s.missedShare ?? 0);
+  return Math.min(raw, cap);
 }
 
 /** 1 at zero error, 0 at twice the tolerance. */

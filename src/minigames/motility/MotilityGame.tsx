@@ -6,7 +6,7 @@ import {
   EYES, GAZE_IDS, GAZE_X, GAZE_Y, NODES, classifyMotility, emptyGrid, eyeGazeAt, gradeText, misalignment, multiplierGrid, nodeNear, trueGrid,
   type Grid,
 } from './model';
-import { gradingScore, motilityAccuracy } from './scoring';
+import { gradingScore, motilityAccuracy, missedDeficitShare } from './scoring';
 import { reportMotility } from './report';
 import { motilityChallenge, motilityTeach } from './practice';
 import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, useNudge, type EyeFrame, type TutStep } from './ui';
@@ -248,7 +248,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const record = () => {
     if (!canRecord) { setNudge(gateHint); play('error', { volume: 0.5 }); return; }
     const grading = gradingScore(mine, truth);
-    const technique = motilityAccuracy({ grading, visited: visited.length, seconds: (performance.now() - startAt.current) / 1000 });
+    const technique = motilityAccuracy({ grading, visited: visited.length, seconds: (performance.now() - startAt.current) / 1000, missedShare: missedDeficitShare(mine, truth) });
     play('stamp');
     setDebrief({ grading, technique });
   };

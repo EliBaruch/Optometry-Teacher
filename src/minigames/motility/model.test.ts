@@ -3,7 +3,8 @@ import { buildFindings, createRng } from '@core';
 import { classifyMotility, convTruth, ConvSim, convergenceDeg, eyeGazeAt, misalignment, multiplierGrid, recoveryFor, trueGrid } from './model';
 import { motilityScenario, convergenceScenario, classifyConvergence, motilityChallenge, convergenceChallenge } from './practice';
 import { reportConvergence, reportMotility } from './report';
-import { gradingScore, convergenceAccuracy, motilityAccuracy } from './scoring';
+import { GAZE_IDS } from './model';
+import { gradingScore, convergenceAccuracy, missedDeficitShare, motilityAccuracy } from './scoring';
 
 describe('motility model', () => {
   it('normal findings give full equal gaze and no misalignment', () => {
@@ -96,5 +97,17 @@ describe('scoring', () => {
   it('convergence accuracy', () => {
     expect(convergenceAccuracy({ breakErr: 0, recoveryErr: 0, breakCm: 6, recoveryCm: 7.5, ampErrD: [0, 0], fastShare: 0, trials: 1 })).toBeCloseTo(1);
     expect(convergenceAccuracy({ breakErr: 8, recoveryErr: null, breakCm: 6, recoveryCm: 7.5, ampErrD: [], fastShare: 1, trials: 3 })).toBeLessThan(0.1);
+  });
+});
+
+describe('missed deficits', () => {
+  it('caps technique when an abnormal eye is graded as normal', () => {
+    const truth = { OD: Object.fromEntries(GAZE_IDS.map((g) => [g, 0])), OS: Object.fromEntries(GAZE_IDS.map((g) => [g, 0])) } as unknown as Parameters<typeof missedDeficitShare>[1];
+    (truth.OS as Record<string, number>)[GAZE_IDS[0]!] = -3;
+    (truth.OS as Record<string, number>)[GAZE_IDS[1]!] = -2;
+    const allZero = { OD: { ...truth.OD }, OS: Object.fromEntries(GAZE_IDS.map((g) => [g, 0])) } as typeof truth;
+    expect(missedDeficitShare(allZero, truth)).toBe(1);
+    expect(motilityAccuracy({ grading: 0.9, visited: 9, seconds: 30, missedShare: 1 })).toBeLessThanOrEqual(0.5);
+    expect(missedDeficitShare(truth, truth)).toBe(0);
   });
 });

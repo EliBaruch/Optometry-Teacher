@@ -165,6 +165,8 @@ export function Tutorial({ eyebrow, steps, onClose, onStep }: { eyebrow: string;
       const clampX = (x: number) => Math.max(m, Math.min(O.width - cw - m, x));
       const clampY = (y: number) => Math.max(m, Math.min(O.height - ch - m, y));
       const cx = clampX(sp.x + sp.w / 2 - cw / 2), cy = clampY(sp.y + sp.h / 2 - ch / 2);
+      // narrow screens: park the card at the far edge, away from the highlighted control and the instrument it drives
+      if (O.width <= 560) { setPos({ left: cx, top: sp.y + sp.h / 2 > O.height / 2 ? m : O.height - ch - m }); return; }
       if (O.height - (sp.y + sp.h) >= ch + m * 2) setPos({ left: cx, top: sp.y + sp.h + m });
       else if (sp.y >= ch + m * 2) setPos({ left: cx, top: sp.y - ch - m });
       else if (O.width - (sp.x + sp.w) >= cw + m * 2) setPos({ left: sp.x + sp.w + m, top: cy });

@@ -46,10 +46,10 @@ export const IO_GAZE: Record<Eye, Gaze> = { OD: 'upLeft', OS: 'upRight' };
 
 // ───────────────────────── eye rotation for a target position
 /** Largest natural rotation, in the painter's -1..1 gaze units (1 ≈ 40°). */
-export const GAZE_X = 0.85;
-export const GAZE_Y = 0.7;
+export const GAZE_X = 0.92;
+export const GAZE_Y = 0.78;
 /** Each grade of under/over-action changes the excursion by this fraction. */
-const K = 0.17;
+const K = 0.2;
 
 interface Mult { mx: number; my: number }
 
@@ -57,7 +57,7 @@ interface Mult { mx: number; my: number }
 export function multiplierGrid(f: PatientFindings, eye: Eye): Mult[] {
   return NODES.map((n) => {
     const grade = n.id === 'primary' ? 0 : f.motility.versions[n.id]?.[eye] ?? 0;
-    const m = Math.max(0.22, Math.min(1.7, 1 + K * grade));
+    const m = Math.max(0.16, Math.min(1.7, 1 + K * grade));
     // horizontal gaze: the horizontal recti act; vertical and oblique gazes: elevators/depressors
     return n.v === 0 ? { mx: m, my: 1 } : { mx: 1, my: m };
   });

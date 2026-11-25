@@ -17,6 +17,10 @@ const STEPS: TutStep[] = [
   { title: 'Push-up amplitude', body: 'Cover one eye and bring a line of small letters toward it until they stay blurred: that near point gives the amplitude of accommodation in dioptres (100 ÷ cm). Repeat for the other eye.', keys: ['OD', 'OS'], target: '.mot-panel--conv' },
 ];
 type Phase = 'brk' | 'rec' | 'amp';
+/** Display gain so adduction reads on the face (true angle is small; drawn ~3x so near convergence is obvious). */
+const CONV_VISUAL = 3.0;
+/** How far (gaze units, temporal) the breaking eye swings out at full drift. */
+const BREAK_SWING = 0.45;
 const OTHER = (e: Eye): Eye => (e === 'OD' ? 'OS' : 'OD');
 const fmt = (n: number) => (Math.round(n * 10) / 10).toFixed(1);
 
@@ -109,7 +113,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     for (const e of ['OD', 'OS'] as Eye[]) {
       const b = base[e];
       const drift = L.phase !== 'amp' && e === truth.deviatingEye ? sim.current.drift : 0;
-      out[e] = { ...b, lidAperture: openLid(b.lidAperture), gaze: { x: nasalSign(e) * k.cg * (1 - 1.7 * drift), y: 0.05 + 0.08 * prox }, pupilMm: Math.max(2, b.pupilMm - 1.4 * prox) };
+      out[e] = { ...b, lidAperture: openLid(b.lidAperture), gaze: { x: Math.max(-1, Math.min(1, nasalSign(e) * (Math.min(1, k.cg * CONV_VISUAL) * (1 - drift) - BREAK_SWING * drift))), y: 0.04 + 0.06 * prox }, pupilMm: Math.max(2, b.pupilMm - 1.4 * prox) };
     }
 
     // DOM: ruler handle, front-view card, readouts
@@ -117,17 +121,22 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     if (handleRef.current) handleRef.current.style.left = `${pct}%`;
     if (cardRef.current) {
       // perspective: the card swells, tips toward the examiner and throws a longer shadow as it nears the face
-      const sc = 0.46 + 14 / (k.d + 6), tilt = 26 * prox * prox;
+      const narrow = (rootRef.current?.clientWidth ?? 900) < 600;
+      const sc = Math.min(narrow ? 0.95 : 1.5, 0.46 + 14 / (k.d + 6)), tilt = 26 * prox * prox;
       cardRef.current.style.transform = `translate(-50%, ${(-prox * 10).toFixed(1)}px) perspective(380px) rotateX(${tilt.toFixed(1)}deg) scale(${sc.toFixed(3)})`;
       cardRef.current.style.setProperty('--p', prox.toFixed(3));
     }
     if (beamRef.current) { beamRef.current.style.opacity = String((0.25 + 0.75 * prox).toFixed(2)); beamRef.current.style.transform = `translateX(-50%) scaleX(${(0.6 + 1.2 * prox).toFixed(2)})`; }
     if (chipRef.current) chipRef.current.textContent = `${fmt(k.d)} cm`;
     if (liveRead.current) liveRead.current.textContent = `${fmt(k.d)} cm`;
-    if (livePD.current) livePD.current.textContent = `${convergenceDemandPD(Math.max(1.5, k.d))} Δ`;
+    if (livePD.current) {
+      // Demand = IPD(cm) x vergence(D); beyond ~100 Δ it is outside physiological convergence, so cap the display.
+      const pd = convergenceDemandPD(Math.max(1.5, k.d));
+      livePD.current.textContent = pd > 99 ? '>99 Δ' : `${pd} Δ`;
+    }
     if (liveEyes.current) {
       const br = L.phase !== 'amp' && state === 'broken';
-      liveEyes.current.textContent = L.phase === 'amp' ? 'accommodating' : br ? 'one eye out' : 'fused';
+      liveEyes.current.textContent = L.phase === 'amp' ? 'accommodating' : br ? 'drifting' : 'fused';
       liveEyes.current.dataset.s = br ? 'bad' : 'ok';
     }
     if (gaugeRef.current) gaugeRef.current.style.left = `${Math.min(100, (k.d / 20) * 100)}%`;
