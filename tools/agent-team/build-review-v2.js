@@ -139,6 +139,12 @@ async function runUnit(u) {
     if (!report) return { key: u.key, status: 'build-failed' }
   }
   let review = null
+  // Optional: carry a previous critic's verdict straight into a revision (saves a fresh review).
+  const prior = args && args.priorReview && args.priorReview[u.key]
+  if (prior) {
+    const fixed = await agent(fixPrompt(u, report, prior, 0), { label: `revise:${u.key}#0`, phase: 'Revise', schema: BUILD_SCHEMA, ...M.revise(u) })
+    if (fixed) report = fixed
+  }
   for (let round = 1; round <= MAX_FIX_ROUNDS + 1; round++) {
     const chk = await agent(checksPrompt(u), { label: `checks:${u.key}#${round}`, phase: 'Checks', schema: CHECK_SCHEMA, ...M.checks() })
     // Drop gate false positives (e.g. Math.sin identifiers the reporter itself marked as ignorable).
