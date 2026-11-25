@@ -418,7 +418,6 @@ html.reduced-motion .exm-board *, html.reduced-motion .exm-stamp-layer * { anima
 /* ── Hebrew edition (RTL) ──────────────────────────────── */
 /* Directional chevrons mirror; the rotated up/down pair in the suspects list does not. */
 html[dir="rtl"] { --exm-dir: -1; }
-html[dir="rtl"] .exm-flip svg { transform: scaleX(-1); }
 /* Letter-spaced capitals make no sense in Hebrew; they only pull the letters apart. */
 :lang(he) .exm-qgroup__title, :lang(he) .exm-msg--them b, :lang(he) .exm-dx__cat, :lang(he) .exm-cg__title, :lang(he) .exm-cg__tag, :lang(he) .exm-count, :lang(he) .exm-dx__pin, :lang(he) .exm-eye,
 :lang(he) .exm-tool__tech, :lang(he) .exm-stamp__top, :lang(he) .exm-stamp__bot, :lang(he) .exm-card__meta { letter-spacing: 0; text-transform: none; }

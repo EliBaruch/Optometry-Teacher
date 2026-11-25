@@ -166,7 +166,7 @@ describe('fundus geometry', () => {
       if (type === 'venous-beading') expect(r.calls.join('\n'), type).not.toBe(base.calls.join('\n'));
       else expect(r.calls.length, type).toBeGreaterThan(base.calls.length);
     }
-  });
+  }, 20_000); // paints every lesion type on a full canvas: slow under parallel CI load
 
   it('places flame haemorrhages along the nerve-fibre direction and near veins', () => {
     const m = computeFundusLayout(post({ lesions: [{ type: 'flame-hemorrhage', zone: 'inferotemporal', density: 4 }] }), 'OD', 12);

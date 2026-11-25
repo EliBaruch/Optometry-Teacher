@@ -207,7 +207,7 @@ export const S = defineStrings({
 
     historyTitle: 'אנמנזה',
     historyEyebrow: 'שיחה עם המטופל',
-    historyCount: (n: number, total: number) => `נשאלו ${n} מתוך ${total} שאלות`,
+    historyCount: (n: number, total: number) => n === 1 ? `נשאלה שאלה אחת מתוך ${total}` : `נשאלו ${n} מתוך ${total} שאלות`,
     alreadyAsked: (q: string) => `${q} (כבר נשאלה)`,
     historyNone: 'זה כל מה שהיה למטופל לספר.',
     conversation: 'שיחה',
@@ -224,7 +224,7 @@ export const S = defineStrings({
 
     trayTitle: 'מכשירים',
     trayEyebrow: 'בדיקת המטופל',
-    trayCount: (n: number, total: number) => `בוצעו ${n} מתוך ${total} בדיקות`,
+    trayCount: (n: number, total: number) => n === 1 ? `בוצעה בדיקה אחת מתוך ${total}` : `בוצעו ${n} מתוך ${total} בדיקות`,
     trayEmpty: 'עגלת המכשירים ריקה כרגע. תצטרכו להסתדר עם שאלות ושיקול דעת קליני.',
     toolAria: (name: string, minutes: number, done: boolean) => `${done ? 'חזרה על' : 'התחלת'} ${name}, ${minutes === 1 ? 'דקה אחת' : `${minutes} דקות`}${done ? ', כבר בוצעה' : ''}`,
     toolByTech: 'בוצעה בידי הטכנאי',

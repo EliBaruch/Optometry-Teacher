@@ -102,7 +102,7 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
       {pressure > 0 && <div class="exm-pressure" aria-hidden="true" />}
       <div class="exm-board__scroll">
         <header class="exm-board__head">
-          <IconButton icon="chevron-left" label={t.boardBack} onClick={onClose} sfx="back" disabled={stamped} class="exm-flip" />
+          <IconButton icon="chevron-left" label={t.boardBack} onClick={onClose} sfx="back" disabled={stamped} />
           <div class="exm-board__titles">
             <div class="lm-eyebrow">{t.boardEyebrow}</div>
             <h1 id="exm-board-title" class="lm-display">{t.boardTitle(first, kase.patient.sex)}</h1>

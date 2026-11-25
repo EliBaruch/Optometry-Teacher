@@ -30,7 +30,7 @@ describe('Hebrew chart wording', () => {
   });
   it('re-expresses labels and common values', () => {
     expect(localizeFinding({ label: 'Ret reflex', value: 'Normal — crisp, even reflex' }, 'he')).toEqual({ label: 'רפלקס ברטינוסקופיה', value: 'תקין: רפלקס חד ואחיד' });
-    expect(chartValueHe('30Δ constant L exotropia with 8Δ R hyper')).toBe('30Δ אקסוטרופיה קבועה בעין שמאל עם 8Δ היפר ימין');
+    expect(chartValueHe('30Δ constant L exotropia with 8Δ R hyper')).toBe('30Δ אקזוטרופיה קבועה בעין שמאל עם 8Δ היפר ימין');
     expect(chartValueHe('3.0 mm, greater in the light (larger pupil OD)')).toBe('3.0 מ״מ, גדולה יותר באור (האישון הגדול: OD)');
     expect(chartValueHe('+2.75 −0.50 × 090')).toBe('+2.75 −0.50 × 090');
   });
@@ -40,5 +40,20 @@ describe('Hebrew chart wording', () => {
   });
   it('falls back to the original text for unknown findings', () => {
     expect(localizeFinding({ label: 'Mystery', value: 'Unknown thing' }, 'he')).toEqual({ label: 'Mystery', value: 'Unknown thing' });
+  });
+});
+
+describe('Hebrew chart wording, editor round 3', () => {
+  it('uses the guide terminology', () => {
+    expect(localizeFinding({ label: 'PH', value: 'x' }, 'he').label).toBe('חדות עם חריר');
+    expect(localizeFinding({ label: 'Cover test (near)', value: 'x' }, 'he').label).toBe('מבחן כיסוי, קרוב');
+    expect(localizeFinding({ label: 'Endpoint', value: 'x' }, 'he').label).toBe('נקודת הניטרול');
+    expect(localizeFinding({ label: 'Cup:disc', value: 'x' }, 'he').label).toBe('יחס C/D');
+    expect(chartValueHe('Inferior altitudinal — respects the horizontal meridian')).toBe('פגם אלטיטודינלי תחתון: נעצר בקו האמצע האופקי');
+    expect(chartValueHe('Pre-chiasmal — OS: retina — detachment in the opposite part of the fundus')).not.toMatch(/:.*:/);
+  });
+  it('uses singular count forms', () => {
+    expect(S.he.trayCount(1, 5)).toBe('בוצעה בדיקה אחת מתוך 5');
+    expect(S.he.historyCount(1, 9)).toBe('נשאלה שאלה אחת מתוך 9');
   });
 });
