@@ -47,7 +47,6 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       startK: d < 0.4 ? 43 : eighth(r.float(40, 46)),
     };
   }, []);
-  (window as unknown as Record<string, unknown>).__krDebug = { hidden, truth }; // TEMP-DEBUG
   const challenge = useMemo<Challenge | null>(() => (ctx.mode === 'practice' ? makeChallenge(f, ctx.rng.fork('challenge')) : null), []);
 
   const fresh = (): EyeSession => ({
