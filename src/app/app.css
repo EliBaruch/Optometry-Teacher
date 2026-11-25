@@ -6,3 +6,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 .scene-host--out { opacity: 0; transform: scale(0.985); filter: blur(4px); }
 .scene-host--in { opacity: 1; transform: none; filter: none; }
 .missing-scene { padding: 48px; font-family: system-ui; color: #eee; background: #111; height: 100%; }
+
+/* Host badge strip (see watchHostBadge in main.tsx): the game area ends above it. */
+html.has-host-badge #app { bottom: var(--host-badge-h, 64px); }
+html.has-host-badge body::after {
+  content: 'Lumen · an educational game — not medical advice';
+  position: fixed; left: 0; right: 0; bottom: 0; height: var(--host-badge-h, 64px);
+  display: flex; align-items: center; padding: 0 20px; box-sizing: border-box;
+  font: 500 12px/1 'Inter Variable', system-ui, sans-serif; letter-spacing: 0.04em; color: rgba(169, 155, 189, 0.7);
+  background: linear-gradient(180deg, #0d0819, #07040f); border-top: 1px solid rgba(255, 210, 122, 0.14);
+}

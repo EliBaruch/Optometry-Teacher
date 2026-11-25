@@ -39,6 +39,7 @@ async function boot() {
   window.addEventListener('pointerdown', unlock, { once: true });
   window.addEventListener('keydown', unlock, { once: true });
 
+  watchHostBadge();
   const sandbox = new URLSearchParams(location.search).get('sandbox');
   if (sandbox) {
     const { mountSandbox } = await import('./sandbox/Sandbox');
@@ -63,6 +64,24 @@ async function boot() {
   services.bus.emit('app:ready', {});
   // Debug handle for QA / e2e tests.
   (window as unknown as { __lumen: unknown }).__lumen = services;
+}
+
+/**
+ * Some hosts (e.g. Netlify's free-tier badge) inject a fixed overlay in the bottom-right corner.
+ * Rather than hide their attribution, reserve a footer strip for it so it can never cover game UI.
+ */
+function watchHostBadge() {
+  const selector = '#nl-badge-frame';
+  const apply = () => {
+    const badge = document.querySelector<HTMLElement>(selector);
+    const h = badge ? Math.ceil(badge.getBoundingClientRect().height) : 0;
+    document.documentElement.classList.toggle('has-host-badge', h > 0);
+    document.documentElement.style.setProperty('--host-badge-h', `${h}px`);
+  };
+  apply();
+  const obs = new MutationObserver(apply);
+  obs.observe(document.body, { childList: true });
+  window.addEventListener('resize', apply);
 }
 
 void boot();
