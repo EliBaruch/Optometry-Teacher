@@ -79,7 +79,16 @@ function watchHostBadge() {
     document.documentElement.style.setProperty('--host-badge-h', `${h}px`);
   };
   apply();
-  const obs = new MutationObserver(apply);
+  const sizes = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(apply) : null;
+  let watched: Element | null = null;
+  const obs = new MutationObserver(() => {
+    const badge = document.querySelector(selector);
+    if (badge && badge !== watched) {
+      watched = badge;
+      sizes?.observe(badge);
+    }
+    apply();
+  });
   obs.observe(document.body, { childList: true });
   window.addEventListener('resize', apply);
 }

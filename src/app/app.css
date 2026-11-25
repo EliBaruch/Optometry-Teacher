@@ -8,7 +8,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 .missing-scene { padding: 48px; font-family: system-ui; color: #eee; background: #111; height: 100%; }
 
 /* Host badge strip (see watchHostBadge in main.tsx): the game area ends above it. */
-html.has-host-badge #app { bottom: var(--host-badge-h, 64px); }
+/* transform makes #app the containing block for position:fixed scene frames and modals */
+html.has-host-badge #app { bottom: var(--host-badge-h, 64px); transform: translateZ(0); }
 html.has-host-badge body::after {
   content: 'Lumen · an educational game — not medical advice';
   position: fixed; left: 0; right: 0; bottom: 0; height: var(--host-badge-h, 64px);
