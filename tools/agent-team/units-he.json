@@ -1,0 +1,180 @@
+[
+ {
+  "key": "he-uikit-modes",
+  "owns": [
+   "src/ui-kit/",
+   "src/modes/",
+   "src/render/"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nYOUR SCOPE: the design system (component default labels like Close/Back, toast host, Screen chrome, tooltips, any built-in text), base RTL behaviour for the whole app: in ui-kit make directional icons (chevron-left/right, arrow-left/right) flip under [dir=rtl] via a class or CSS, check every component in RTL (Modal close position, Tabs order, ProgressBar fill direction, Tooltip placement, SpeechBubble tail, Screen top bar & back button \u2014 the back chevron must point right in RTL). The 5 game modes in src/modes/ (title, tagline via `text: { he }` on each ModeModule; locked() reasons via services.locale). src/render: any aria-labels/text in avatars, FX floatText defaults. Sandbox page to check: ?lang=he&sandbox=page/ui-kit."
+ },
+ {
+  "key": "he-title-hub",
+  "owns": [
+   "src/scenes/title/",
+   "src/scenes/hub/"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nYOUR SCOPE: the cinematic title (the wordmark: write the brand as '\u05dc\u05d5\u05de\u05df' with a beautiful Hebrew subtitle in the spirit of 'The Eye Clinic' / 'an after-hours eye clinic'; the 3-card first-run intro) and the lobby (greetings by time of day, mode cards via modeText(mode, locale) from @core, wing tiles use the HubEntry titles (they come from the systems, already localized by them), section headings, waiting-room flavour). Check ?lang=he&sandbox=scene/title and ?lang=he&sandbox=scene/hub."
+ },
+ {
+  "key": "he-exam",
+  "owns": [
+   "src/scenes/exam/"
+  ],
+  "tier": "heavy",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nYOUR SCOPE: the exam room \u2014 the heart of the game. Patient card, speech bubble labels, history panel (category headings; questions/answers come from the localized case data), instrument tray (use testText(id, locale) and miniGameText from @core), 'Ask the technician', chart panel, suspects board, the diagnosis board (diagnosis names come from the localized registry; urgency options routine/soon/urgent/emergency with plain-language descriptions per the terminology table; confidence options), hints/nudges, leave dialog, timers. The three-column layout naturally mirrors in RTL (patient on the right) \u2014 that is correct; but the mini-game stage content must not mirror. Check ?lang=he&sandbox=scene/exam&caseId=ant-angle-closure-cinema and a mobile shot."
+ },
+ {
+  "key": "he-results",
+  "owns": [
+   "src/scenes/results/"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nYOUR SCOPE: results and run-summary \u2014 verdict copy (correct/wrong/timeout headlines; make them land emotionally in Hebrew), grade lines, score part labels, teaching section headings, 'what you missed', confidence callouts ('confidently wrong' etc. \u2014 find natural Hebrew), reflection prompt, buttons, the run summary. Check ?lang=he&sandbox=scene/results&demo=correct&run=1, demo=wrong, demo=certain-wrong, demo=timeout, and ?lang=he&sandbox=scene/run-summary&demo=1."
+ },
+ {
+  "key": "he-meta",
+  "owns": [
+   "src/scenes/arcade/",
+   "src/scenes/codex/",
+   "src/scenes/profile/",
+   "src/scenes/settings/"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nYOUR SCOPE: Arcade (difficulty names, medals, practice copy; game titles via miniGameText), Codex (category names, headings, mastery labels; diagnosis text comes from the localized registry), Profile, Settings (every label, the clinical disclaimer, reset confirmation, credits). Check each scene with ?lang=he&sandbox=scene/<id>."
+ },
+ {
+  "key": "he-sys-ranks-economy",
+  "owns": [
+   "src/systems/ranks/",
+   "src/systems/economy/",
+   "src/app/sandbox/pages/sys-ranks.tsx",
+   "src/app/sandbox/pages/sys-economy.tsx"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nYOUR SCOPE: Career (rank ladder titles \u2014 give them a prestigious Israeli-clinical ring; 53 achievements: titles + descriptions rewritten with wit, not translated; career scene; HUD badge; promotion ceremony) and Boutique & coins (currency name \u2014 keep the \u2726 'lumens' idea with a Hebrew name, crates, rarity names, shop items, themes, receipts). Check ?lang=he&sandbox=page/sys-ranks&demo=1&view=career and ?lang=he&sandbox=page/sys-economy&rich=1&view=boutique."
+ },
+ {
+  "key": "he-sys-rivals-streaks",
+  "owns": [
+   "src/systems/rivals/",
+   "src/systems/streaks/",
+   "src/app/sandbox/pages/sys-rivals.tsx",
+   "src/app/sandbox/pages/sys-streaks.tsx"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nYOUR SCOPE: Rivals (the AI colleagues: give them Israeli names and personalities that land in Hebrew \u2014 e.g. a brilliant smug one, a meticulous one, a fast one, a kind mentor \u2014 their quips and the clinical lessons in their per-case comparisons; league table; overtake toasts) and Streaks (combo tiers, the clinic flame, milestones, near-miss nudges \u2014 warm, never guilt-tripping). Check ?lang=he&sandbox=page/sys-rivals&demo=1&view=scene and ?lang=he&sandbox=page/sys-streaks&preset=hot."
+ },
+ {
+  "key": "he-sys-other",
+  "owns": [
+   "src/systems/collection/",
+   "src/systems/emergencies/",
+   "src/systems/comfort/",
+   "src/app/sandbox/pages/sys-collection.tsx",
+   "src/app/sandbox/pages/sys-emergencies.tsx",
+   "src/app/sandbox/pages/sys-comfort.tsx"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nYOUR SCOPE: Gallery (iris cards, rarity and frame names, set names, card back pearls come from the localized diagnoses registry), Code Red (the countdown, 'CODE RED' banner \u2014 find a punchy Hebrew equivalent used in Israeli ERs, the 'sight saved' finale, debrief outcomes over/under-triage, Grand Rounds), Lounge (daily gift, welcome back, idle earnings, tips of the day). Check their sandbox pages with ?lang=he&sandbox=page/sys-collection&view=gallery&fill=20, page/sys-emergencies&auto=saved&dock=0, page/sys-comfort&view=scene."
+ },
+ {
+  "key": "he-mg-a",
+  "owns": [
+   "src/minigames/visual-acuity/",
+   "src/minigames/phoropter/",
+   "src/minigames/retinoscopy/"
+  ],
+  "tier": "heavy",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nMini-game specifics: add `text: { he: { title, instructions, teaches } }` to each MiniGameModule (see miniGameText in @core); everything inside mount() uses ctx.locale. report() chart lines (RevealedFinding label/value) must be in the edition language too: give report access to the locale \u2014 report(findings, patient) has no locale parameter, so keep report() English-compatible and add an internal reportFor(findings, patient, locale) that mount() uses for the chart, OR read the locale from a module-level setter set in mount(); choose the cleanest option and keep report()'s English output byte-identical for existing tests. Optotypes (Snellen/ETDRS letters, tumbling E) stay Latin as on Israeli charts; the patient still reads letter names. Clinical abbreviations (OD/OS, RAPD, IOP, mmHg, D, \u0394, C/D) stay as Israeli optometrists use them. Spatial instrument views must never mirror.\nYOUR SCOPE: visual acuity + pinhole, phoropter ('\u05d0\u05d7\u05ea \u05d0\u05d5 \u05e9\u05ea\u05d9\u05d9\u05dd?' \u2014 the classic patient dialogue in natural Hebrew), retinoscopy. Check ?lang=he&sandbox=minigame/<id> for each (pinhole: ?lang=he&sandbox=minigame/pinhole)."
+ },
+ {
+  "key": "he-mg-b",
+  "owns": [
+   "src/minigames/keratometry/",
+   "src/minigames/pupils/",
+   "src/minigames/cover-test/"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nMini-game specifics: add `text: { he: { title, instructions, teaches } }` to each MiniGameModule (see miniGameText in @core); everything inside mount() uses ctx.locale. report() chart lines (RevealedFinding label/value) must be in the edition language too: give report access to the locale \u2014 report(findings, patient) has no locale parameter, so keep report() English-compatible and add an internal reportFor(findings, patient, locale) that mount() uses for the chart, OR read the locale from a module-level setter set in mount(); choose the cleanest option and keep report()'s English output byte-identical for existing tests. Optotypes (Snellen/ETDRS letters, tumbling E) stay Latin as on Israeli charts; the patient still reads letter names. Clinical abbreviations (OD/OS, RAPD, IOP, mmHg, D, \u0394, C/D) stay as Israeli optometrists use them. Spatial instrument views must never mirror.\nYOUR SCOPE: keratometry, pupils, cover test. Check ?lang=he&sandbox=minigame/<id>."
+ },
+ {
+  "key": "he-mg-c",
+  "owns": [
+   "src/minigames/motility/",
+   "src/minigames/color-vision/",
+   "src/minigames/amsler/"
+  ],
+  "tier": "standard",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nMini-game specifics: add `text: { he: { title, instructions, teaches } }` to each MiniGameModule (see miniGameText in @core); everything inside mount() uses ctx.locale. report() chart lines (RevealedFinding label/value) must be in the edition language too: give report access to the locale \u2014 report(findings, patient) has no locale parameter, so keep report() English-compatible and add an internal reportFor(findings, patient, locale) that mount() uses for the chart, OR read the locale from a module-level setter set in mount(); choose the cleanest option and keep report()'s English output byte-identical for existing tests. Optotypes (Snellen/ETDRS letters, tumbling E) stay Latin as on Israeli charts; the patient still reads letter names. Clinical abbreviations (OD/OS, RAPD, IOP, mmHg, D, \u0394, C/D) stay as Israeli optometrists use them. Spatial instrument views must never mirror.\nYOUR SCOPE: motility + convergence, colour plates (numbers on plates stay digits), Amsler grid. Check ?lang=he&sandbox=minigame/<id> (motility, convergence, color-vision, amsler)."
+ },
+ {
+  "key": "he-mg-d",
+  "owns": [
+   "src/minigames/visual-fields/",
+   "src/minigames/slit-lamp/"
+  ],
+  "tier": "heavy",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nMini-game specifics: add `text: { he: { title, instructions, teaches } }` to each MiniGameModule (see miniGameText in @core); everything inside mount() uses ctx.locale. report() chart lines (RevealedFinding label/value) must be in the edition language too: give report access to the locale \u2014 report(findings, patient) has no locale parameter, so keep report() English-compatible and add an internal reportFor(findings, patient, locale) that mount() uses for the chart, OR read the locale from a module-level setter set in mount(); choose the cleanest option and keep report()'s English output byte-identical for existing tests. Optotypes (Snellen/ETDRS letters, tumbling E) stay Latin as on Israeli charts; the patient still reads letter names. Clinical abbreviations (OD/OS, RAPD, IOP, mmHg, D, \u0394, C/D) stay as Israeli optometrists use them. Spatial instrument views must never mirror.\nYOUR SCOPE: visual fields (defect names per terminology), slit lamp + fluorescein (the tagging radial menu sign names \u2014 Israeli clinical Hebrew, with Latin where clinicians use it). Check ?lang=he&sandbox=minigame/visual-fields, slit-lamp, fluorescein."
+ },
+ {
+  "key": "he-mg-e",
+  "owns": [
+   "src/minigames/tonometry/",
+   "src/minigames/ophthalmoscopy/"
+  ],
+  "tier": "heavy",
+  "kind": "ui",
+  "brief": "Make every player-visible string in your folders bilingual, with Hebrew written natively (docs/LOCALIZATION.md).\nWhere English text hides: JSX text; aria-label / title / placeholder / alt attributes; tutorial steps; nudges, hints, errors, empty states; toasts and bus payloads you emit (toast message, reward:granted label/value text, achievement:unlocked title/description) \u2014 choose the language with services.locale / ctx.locale at emit time; text drawn on canvas; constants arrays (quips, achievement lists, tips); HubEntry/HudWidget titles registered in install(services) (pick by services.locale); SceneModule-level text.\nPattern: a strings.ts per folder (or per sub-area if large) with defineStrings({ en, he }) from @core; components call useStrings(S) from @ui-kit; non-Preact code uses pickStrings(S, locale). Interpolations are functions. Keep English verbatim.\nThen make the module look right in the Hebrew edition (RTL): logical CSS properties, directional icons flipped, clinical/spatial visuals stay dir=\"ltr\", Latin/number runs wrapped so punctuation lands correctly, Hebrew fonts render. Verify with ?lang=he screenshots (desktop + 375px) and also confirm the English screen (no lang param) is unchanged.\nMini-game specifics: add `text: { he: { title, instructions, teaches } }` to each MiniGameModule (see miniGameText in @core); everything inside mount() uses ctx.locale. report() chart lines (RevealedFinding label/value) must be in the edition language too: give report access to the locale \u2014 report(findings, patient) has no locale parameter, so keep report() English-compatible and add an internal reportFor(findings, patient, locale) that mount() uses for the chart, OR read the locale from a module-level setter set in mount(); choose the cleanest option and keep report()'s English output byte-identical for existing tests. Optotypes (Snellen/ETDRS letters, tumbling E) stay Latin as on Israeli charts; the patient still reads letter names. Clinical abbreviations (OD/OS, RAPD, IOP, mmHg, D, \u0394, C/D) stay as Israeli optometrists use them. Spatial instrument views must never mirror.\nYOUR SCOPE: tonometry (Goldmann + iCare), ophthalmoscopy (fundus tag names, disc/vessel/macula forms). Check ?lang=he&sandbox=minigame/tonometry and ophthalmoscopy."
+ },
+ {
+  "key": "he-dx",
+  "owns": [
+   "src/content/he/diagnoses/"
+  ],
+  "tier": "heavy",
+  "kind": "content",
+  "brief": "Write Hebrew content OVERLAYS (pure data) \u2014 the clinical data stays single-sourced in the English files, you rewrite only the words.\nRead each English case/diagnosis fully, understand the clinical story and the patient as a person, then write the Hebrew as an Israeli clinician-writer would, from scratch (docs/LOCALIZATION.md \u00a71-2). Adapt the patient to Israel where natural (name, occupation, places, cultural references, the way they talk), consistent with their age, sex and avatar (skin tone) and keeping every clinical fact, number, timeline and risk factor identical. Patients speak in their own gendered voice. History questions are what an Israeli optometrist would actually ask, in the plural-free direct form addressed to the patient (e.g. \"\u05de\u05ea\u05d9 \u05d6\u05d4 \u05d4\u05ea\u05d7\u05d9\u05dc?\", \"\u05d9\u05e9 \u05db\u05d0\u05d1 \u05d1\u05ea\u05e0\u05d5\u05e2\u05d5\u05ea \u05d4\u05e2\u05d9\u05e0\u05d9\u05d9\u05dd?\"). Teaching points, management and red flags: precise Israeli professional Hebrew with the terminology table.\nValidate: npx vitest run tests/content-he.test.ts tests/content.test.ts and npm run check:mod -- <your folder>. Also open a case in the Hebrew edition to read it in context: node scripts/shot.cjs \"?lang=he&sandbox=scene/exam&caseId=<id>\" /tmp/shots/he-<id>.png.\nYOUR SCOPE: Hebrew overlays for ALL 57 diagnoses: src/content/he/diagnoses/<category>.ts, each `export default DiagnosisText[]` (type from @core) mirroring the English files in src/content/diagnoses/. name (the Hebrew clinical name Israelis use, e.g. '\u05e1\u05d2\u05d9\u05e8\u05ea \u05d6\u05d5\u05d5\u05d9\u05ea \u05d7\u05e8\u05d9\u05e4\u05d4', with the English/Latin name in aka if clinicians use it), aka, summary, keyFindings, pearls \u2014 the codex an Israeli student would love to study from."
+ },
+ {
+  "key": "he-cases-a",
+  "owns": [
+   "src/content/he/cases/vision-binocular-neuro/"
+  ],
+  "tier": "heavy",
+  "kind": "content",
+  "brief": "Write Hebrew content OVERLAYS (pure data) \u2014 the clinical data stays single-sourced in the English files, you rewrite only the words.\nRead each English case/diagnosis fully, understand the clinical story and the patient as a person, then write the Hebrew as an Israeli clinician-writer would, from scratch (docs/LOCALIZATION.md \u00a71-2). Adapt the patient to Israel where natural (name, occupation, places, cultural references, the way they talk), consistent with their age, sex and avatar (skin tone) and keeping every clinical fact, number, timeline and risk factor identical. Patients speak in their own gendered voice. History questions are what an Israeli optometrist would actually ask, in the plural-free direct form addressed to the patient (e.g. \"\u05de\u05ea\u05d9 \u05d6\u05d4 \u05d4\u05ea\u05d7\u05d9\u05dc?\", \"\u05d9\u05e9 \u05db\u05d0\u05d1 \u05d1\u05ea\u05e0\u05d5\u05e2\u05d5\u05ea \u05d4\u05e2\u05d9\u05e0\u05d9\u05d9\u05dd?\"). Teaching points, management and red flags: precise Israeli professional Hebrew with the terminology table.\nValidate: npx vitest run tests/content-he.test.ts tests/content.test.ts and npm run check:mod -- <your folder>. Also open a case in the Hebrew edition to read it in context: node scripts/shot.cjs \"?lang=he&sandbox=scene/exam&caseId=<id>\" /tmp/shots/he-<id>.png.\nYOUR SCOPE: Hebrew overlays (CaseText from @core) for all 16 cases in src/content/cases/vision-binocular-neuro/ \u2014 one file per case in src/content/he/cases/vision-binocular-neuro/<same-name>.ts, `export default <CaseText>`."
+ },
+ {
+  "key": "he-cases-b",
+  "owns": [
+   "src/content/he/cases/anterior/"
+  ],
+  "tier": "heavy",
+  "kind": "content",
+  "brief": "Write Hebrew content OVERLAYS (pure data) \u2014 the clinical data stays single-sourced in the English files, you rewrite only the words.\nRead each English case/diagnosis fully, understand the clinical story and the patient as a person, then write the Hebrew as an Israeli clinician-writer would, from scratch (docs/LOCALIZATION.md \u00a71-2). Adapt the patient to Israel where natural (name, occupation, places, cultural references, the way they talk), consistent with their age, sex and avatar (skin tone) and keeping every clinical fact, number, timeline and risk factor identical. Patients speak in their own gendered voice. History questions are what an Israeli optometrist would actually ask, in the plural-free direct form addressed to the patient (e.g. \"\u05de\u05ea\u05d9 \u05d6\u05d4 \u05d4\u05ea\u05d7\u05d9\u05dc?\", \"\u05d9\u05e9 \u05db\u05d0\u05d1 \u05d1\u05ea\u05e0\u05d5\u05e2\u05d5\u05ea \u05d4\u05e2\u05d9\u05e0\u05d9\u05d9\u05dd?\"). Teaching points, management and red flags: precise Israeli professional Hebrew with the terminology table.\nValidate: npx vitest run tests/content-he.test.ts tests/content.test.ts and npm run check:mod -- <your folder>. Also open a case in the Hebrew edition to read it in context: node scripts/shot.cjs \"?lang=he&sandbox=scene/exam&caseId=<id>\" /tmp/shots/he-<id>.png.\nYOUR SCOPE: Hebrew overlays (CaseText from @core) for all 16 cases in src/content/cases/anterior/ \u2014 one file per case in src/content/he/cases/anterior/<same-name>.ts, `export default <CaseText>`."
+ },
+ {
+  "key": "he-cases-c",
+  "owns": [
+   "src/content/he/cases/retina-emergency/"
+  ],
+  "tier": "heavy",
+  "kind": "content",
+  "brief": "Write Hebrew content OVERLAYS (pure data) \u2014 the clinical data stays single-sourced in the English files, you rewrite only the words.\nRead each English case/diagnosis fully, understand the clinical story and the patient as a person, then write the Hebrew as an Israeli clinician-writer would, from scratch (docs/LOCALIZATION.md \u00a71-2). Adapt the patient to Israel where natural (name, occupation, places, cultural references, the way they talk), consistent with their age, sex and avatar (skin tone) and keeping every clinical fact, number, timeline and risk factor identical. Patients speak in their own gendered voice. History questions are what an Israeli optometrist would actually ask, in the plural-free direct form addressed to the patient (e.g. \"\u05de\u05ea\u05d9 \u05d6\u05d4 \u05d4\u05ea\u05d7\u05d9\u05dc?\", \"\u05d9\u05e9 \u05db\u05d0\u05d1 \u05d1\u05ea\u05e0\u05d5\u05e2\u05d5\u05ea \u05d4\u05e2\u05d9\u05e0\u05d9\u05d9\u05dd?\"). Teaching points, management and red flags: precise Israeli professional Hebrew with the terminology table.\nValidate: npx vitest run tests/content-he.test.ts tests/content.test.ts and npm run check:mod -- <your folder>. Also open a case in the Hebrew edition to read it in context: node scripts/shot.cjs \"?lang=he&sandbox=scene/exam&caseId=<id>\" /tmp/shots/he-<id>.png.\nYOUR SCOPE: Hebrew overlays (CaseText from @core) for all 14 cases in src/content/cases/retina-emergency/ \u2014 one file per case in src/content/he/cases/retina-emergency/<same-name>.ts, `export default <CaseText>`."
+ }
+]

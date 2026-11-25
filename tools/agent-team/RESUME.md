@@ -62,3 +62,9 @@ foundation (ui-kit, audio, render ×2, learning+modes), content (57 diagnoses, 4
 boundary-clean, 1301 tests passing, production build OK; live end-to-end playthrough with zero console
 errors. Live: https://lumen-eye-clinic.netlify.app (deploy from a `git archive HEAD` export — the deploy
 uploader follows git worktrees back to the live working tree).
+
+## Hebrew edition (started 2026-11-25)
+Separate site: lumen-eye-clinic-he (Netlify site id fec9f6b6-95f8-4ad9-bd50-dc385809a8e9), built with
+VITE_LOCALE=he via `scripts/export-edition.sh he <dir>`. English site id 6e04d147-ec81-4945-b348-10ab9e25aa9e.
+Team script: tools/agent-team/he-team.js (units in units-he.json); guide: docs/LOCALIZATION.md.
+Writers Sonnet (high for clinical content/heavy units), editor critic Sonnet high, Haiku gate.
