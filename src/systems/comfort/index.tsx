@@ -1,4 +1,5 @@
-import type { GameServices, SystemModule } from '@core';
+import { pickStrings, type GameServices, type SystemModule } from '@core';
+import { S } from './strings';
 import { ACCENT, SYSTEM_ID, attach, comfortOf, createController, register, unregister } from './controller';
 import { collectable, giftReady } from './logic';
 import { LoungeBanner } from './ui/LoungeBanner';
@@ -24,14 +25,15 @@ const comfort: SystemModule = {
     const detach = attach(ctl);
 
     const r = services.registries;
+    const tx = pickStrings(S, services.locale);
     r.hud.register({ id: 'comfort:banner', slot: 'hub-banner', order: 10, system: SYSTEM_ID, component: LoungeBanner });
     // invisible: hosts the welcome-back note on screens without the banner
     r.hud.register({ id: 'comfort:welcome', slot: 'topbar-right', order: 99, system: SYSTEM_ID, component: WelcomeHostWidget });
     r.scenes.register({ id: 'lounge', component: LoungeScene });
     r.hub.register({
       id: 'lounge',
-      title: 'Lounge',
-      subtitle: 'Daily gift, clinic earnings & pearls',
+      title: tx.hubTitle,
+      subtitle: tx.hubSubtitle,
       icon: 'gift',
       accent: ACCENT,
       order: 70,
@@ -41,7 +43,7 @@ const comfort: SystemModule = {
         const c = comfortOf(s);
         if (!c) return undefined;
         const st = c.state.get();
-        if (giftReady(st, s.clock.now())) return 'GIFT';
+        if (giftReady(st, s.clock.now())) return tx.giftBadge;
         const c2 = collectable(st);
         return c2 >= 1 ? `✦ ${c2}` : undefined;
       },

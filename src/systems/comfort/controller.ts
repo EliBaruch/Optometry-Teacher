@@ -1,5 +1,5 @@
-import { dayKey, type GameServices, type Signal } from '@core';
-import { RARITY_LABEL } from '@ui-kit';
+import { dayKey, pickStrings, type GameServices, type Signal } from '@core';
+import { S } from './strings';
 import {
   INITIAL, SLOT, SLOT_VERSION, arrive, claimGift, collect, dismissWelcome, recordCase, sanitize,
   type ComfortState, type GiftResult,
@@ -51,6 +51,7 @@ export function createController(services: GameServices): ComfortController {
   const rng = services.rng.fork('lounge');
   const now = () => services.clock.now();
   const { bus } = services;
+  const tx = pickStrings(S, services.locale);
 
   const ctl: ComfortController = {
     services,
@@ -75,10 +76,10 @@ export function createController(services: GameServices): ComfortController {
       if (!out) return null;
       state.set(out.state);
       const { result } = out;
-      bus.emit('currency:grant', { amount: result.total, reason: `Lounge gift · day ${result.day.day}` });
+      bus.emit('currency:grant', { amount: result.total, reason: tx.giftReason(result.day.day) });
       bus.emit('reward:granted', {
         source: SYSTEM_ID,
-        label: `Daily gift · day ${result.day.day}`,
+        label: tx.giftLabel(result.day.day),
         value: `+${result.coins}`,
         icon: 'gift',
         color: ACCENT,
@@ -87,7 +88,7 @@ export function createController(services: GameServices): ComfortController {
       if (result.satchel) {
         bus.emit('reward:granted', {
           source: SYSTEM_ID,
-          label: `${RARITY_LABEL[result.satchel.rarity]} ${result.day.day === 7 ? 'grand satchel' : 'satchel'}`,
+          label: tx.satchelName(tx.rarity[result.satchel.rarity], result.day.day === 7),
           value: `+${result.satchel.coins}`,
           icon: 'crate',
           color: ACCENT,
@@ -96,7 +97,7 @@ export function createController(services: GameServices): ComfortController {
       }
       bus.emit('comfort:gift-opened', { day: result.day.day, coins: result.total, satchel: result.satchel?.rarity ?? null });
       if (result.day.day === 7) {
-        const m = weekMilestone(Math.floor(state.get().gift.totalClaims / 7));
+        const m = weekMilestone(Math.floor(state.get().gift.totalClaims / 7), services.locale);
         if (m) bus.emit('achievement:unlocked', { ...m, icon: 'gift', system: SYSTEM_ID });
       }
       return result;
@@ -109,12 +110,12 @@ export function createController(services: GameServices): ComfortController {
       const earned = out.coins - kept;
       const gift = out.comeback + kept;
       if (earned > 0) {
-        bus.emit('currency:grant', { amount: earned, reason: 'Clinic earnings while away' });
-        bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Clinic earnings', value: `+${earned}`, icon: 'coin', color: ACCENT, rarity: 'common' });
+        bus.emit('currency:grant', { amount: earned, reason: tx.earningsReason });
+        bus.emit('reward:granted', { source: SYSTEM_ID, label: tx.earningsLabel, value: `+${earned}`, icon: 'coin', color: ACCENT, rarity: 'common' });
       }
       if (gift > 0) {
-        bus.emit('currency:grant', { amount: gift, reason: 'Welcome back gift' });
-        bus.emit('reward:granted', { source: SYSTEM_ID, label: 'Welcome back gift', value: `+${gift}`, icon: 'heart', color: ACCENT, rarity: 'rare' });
+        bus.emit('currency:grant', { amount: gift, reason: tx.comebackReason });
+        bus.emit('reward:granted', { source: SYSTEM_ID, label: tx.comebackLabel, value: `+${gift}`, icon: 'heart', color: ACCENT, rarity: 'rare' });
       }
       return paid;
     },

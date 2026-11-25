@@ -1,3 +1,6 @@
+import { pickStrings, type Locale } from '@core';
+import { S } from './strings';
+
 /**
  * Tiered calendar milestones. Each id is stable, so a trophy wall shows one
  * entry per tier instead of a new copy every week.
@@ -16,7 +19,8 @@ const TIERS: readonly { weeks: number; id: string; title: string; description: s
 ];
 
 /** The milestone reached when the `weeks`-th calendar is completed (null between tiers). */
-export function weekMilestone(weeks: number): Milestone | null {
+export function weekMilestone(weeks: number, locale: Locale = 'en'): Milestone | null {
   const t = TIERS.find((x) => x.weeks === weeks);
-  return t ? { id: t.id, title: t.title, description: t.description } : null;
+  const tx = t && pickStrings(S, locale).milestones[t.id];
+  return t ? { id: t.id, title: tx?.title ?? t.title, description: tx?.description ?? t.description } : null;
 }

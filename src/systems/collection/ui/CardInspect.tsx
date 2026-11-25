@@ -81,9 +81,9 @@ export function CardInspect({ store, list, current, study, onNavigate, onClose }
           <div class="gi-spot" aria-hidden="true" />
           <IrisCard key={shown.dxId} view={shown} size="lg" flipped={flipped} study={study} device sway={!flipped} onActivate={flip} class="gi-card" />
           <div class="gi-controls">
-            <IconButton icon={rtl ? 'chevron-right' : 'chevron-left'} label={t.prev} onClick={() => go(-1)} disabled={list.length < 2} sfx={false} />
+            <IconButton icon="chevron-left" label={t.prev} onClick={() => go(-1)} disabled={list.length < 2} sfx={false} />
             <Button size="sm" icon="refresh" onClick={flip} sfx={false}>{flipped ? t.showFront : hidden ? t.reveal : t.flip} <kbd class="gi-kbd">F</kbd></Button>
-            <IconButton icon={rtl ? 'chevron-left' : 'chevron-right'} label={t.next} onClick={() => go(1)} disabled={list.length < 2} sfx={false} />
+            <IconButton icon="chevron-right" label={t.next} onClick={() => go(1)} disabled={list.length < 2} sfx={false} />
           </div>
         </div>
         <aside class="gi-info">

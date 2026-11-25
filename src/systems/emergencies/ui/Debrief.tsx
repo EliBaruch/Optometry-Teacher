@@ -1,5 +1,5 @@
 import type { GameServices, Urgency } from '@core';
-import { isRtl, pickStrings, type Locale } from '@core';
+import { pickStrings, type Locale } from '@core';
 import { Badge, Icon, useReducedMotion, useSignal, useStrings, type IconName } from '@ui-kit';
 import { classify, formatMSS, type Outcome } from '../logic';
 import { S } from '../strings';
@@ -80,7 +80,7 @@ export function DebriefWidget({ services }: { services: GameServices }) {
             <dt>{tx.youTriaged}</dt>
             <dd>{tx.urgencyLabel[chosen]}</dd>
           </div>
-          <span class="cr-debrief__arrow" aria-hidden="true"><Icon name={chosen === needed ? 'check' : isRtl(services.locale) ? 'chevron-left' : 'chevron-right'} size={14} /></span>
+          <span class="cr-debrief__arrow" aria-hidden="true"><Icon name={chosen === needed ? 'check' : 'chevron-right'} size={14} /></span>
           <div class="cr-debrief__tri is-needed">
             <dt>{tx.needed}</dt>
             <dd>{tx.urgencyLabel[needed]}</dd>

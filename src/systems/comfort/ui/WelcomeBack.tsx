@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { beginRun, type GameServices } from '@core';
-import { Button, CountUp, Modal, useReducedMotion, useSignal } from '@ui-kit';
+import { beginRun, modeText, type GameServices } from '@core';
+import { Button, CountUp, Modal, useReducedMotion, useSignal, useStrings } from '@ui-kit';
 import { ACCENT } from '../controller';
 import { COMEBACK_AFTER_MS, EARN_CAP_HOURS, collectable, formatDuration, jarCapacity, ratePerHour, welcomeLine } from '../logic';
+import { S } from '../strings';
 import { Jar } from './Jar';
 import { centerOf, doctorName, safePlay, useComfort, useHostLease } from './hooks';
 
@@ -17,6 +18,8 @@ const HOST_PRIORITY: Record<WelcomeHost, number> = { scene: 2, banner: 1, global
  */
 export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }) {
   const { services } = props;
+  const t = useStrings(S);
+  const loc = services.locale;
   const { ctl, state } = useComfort(services);
   const mine = useHostLease(services, HOST_PRIORITY[props.host]);
   // The global host never interrupts a patient: it waits until the run is over.
@@ -73,8 +76,8 @@ export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }
     <Modal
       open={!!note}
       onClose={() => ctl.dismissWelcome()}
-      eyebrow={note ? `Away ${formatDuration(note.awayMs)}` : undefined}
-      title={`Welcome back, ${doctorName(services)}`}
+      eyebrow={note ? t.away(formatDuration(note.awayMs, loc)) : undefined}
+      title={t.welcomeTitle(doctorName(services))}
       accent={ACCENT}
       size="md"
       class="cf-welcome"
@@ -82,35 +85,35 @@ export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }
       footer={
         <div class="cf-welcome__actions">
           <Button variant="ghost" onClick={() => ctl.dismissWelcome()} sfx="back">
-            Keep it in the jar
+            {t.keepJar}
           </Button>
           <Button variant="primary" icon="coin" class="cf-welcome__collect" onClick={() => finish()} loading={closing} sfx={false}>
-            {coins + comeback > 0 ? `Collect ✦ ${coins + comeback}` : 'Into the clinic'}
+            {coins + comeback > 0 ? t.collectN(coins + comeback) : t.intoClinic}
           </Button>
         </div>
       }
     >
       {note && (
         <div class="cf-welcome__body">
-          <p class="cf-welcome__line">{welcomeLine(note.awayMs, hour)}</p>
+          <p class="cf-welcome__line">{welcomeLine(note.awayMs, hour, loc)}</p>
           <div class="cf-welcome__grid">
             <div class="cf-welcome__jar" ref={jarRef}>
               <Jar fill={Math.min(1, state.jar / jarCapacity(state))} size={128} />
             </div>
             <div class="cf-welcome__earn">
-              <div class="lm-eyebrow">Your technicians earned</div>
+              <div class="lm-eyebrow">{t.technicians}</div>
               <div class="cf-welcome__coins">
                 <span class="cf-welcome__glyph">✦</span>
                 <CountUp value={coins} from={0} delay={reduced ? 0 : 350} class="cf-welcome__num" />
               </div>
               <p class="lm-muted cf-welcome__rate">
-                ✦ {ratePerHour(state).toFixed(1)} an hour{capped ? ` · the jar holds ${EARN_CAP_HOURS} hours` : ''}
+                {t.rateHour(ratePerHour(state).toFixed(1))}{capped ? t.jarHolds(EARN_CAP_HOURS) : ''}
               </p>
-              {kept > 0 && <p class="cf-welcome__kept">Includes the ✦ {kept} gift you kept for later.</p>}
+              {kept > 0 && <p class="cf-welcome__kept">{t.includesKept(kept)}</p>}
               {comeback > 0 && (
                 <div class="cf-welcome__bonus">
-                  <strong>+{comeback}</strong> welcome back gift
-                  {note.awayMs >= COMEBACK_AFTER_MS && <span> — we kept your chair warm.</span>}
+                  <strong>+{comeback}</strong>{t.bonusLabel}
+                  {note.awayMs >= COMEBACK_AFTER_MS && <span>{t.chairWarm}</span>}
                 </div>
               )}
             </div>
@@ -118,11 +121,11 @@ export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }
           {due > 0 && (
             <div class="cf-welcome__flag">
               <span>
-                Your team set aside <strong>{due}</strong> {due === 1 ? 'diagnosis' : 'diagnoses'} for a second look — a short review now makes them stick.
+                {t.dueA}<strong>{due}</strong>{t.dueB(due)}
               </span>
               {reviewOpen && (
                 <Button variant="glass" icon="refresh" onClick={() => finish(() => beginRun(services, 'review'))}>
-                  {review!.title}
+                  {modeText(review!, loc).title}
                 </Button>
               )}
             </div>

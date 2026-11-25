@@ -8,9 +8,10 @@
  *   (taken from the case authors' teaching points). Every wrong call carries one of these.
  */
 import {
-  TEST_CATALOG, formatSnellen,
-  type ClinicalCase, type Diagnosis, type DiagnosisId, type Eye, type TestId,
+  TEST_CATALOG, formatSnellen, testText,
+  type ClinicalCase, type Diagnosis, type DiagnosisId, type Eye, type Locale, type TestId,
 } from '@core';
+import { CONTRASTS_HE, SKIP_LESSON_DX_HE } from './clinical.he';
 
 export interface Contrast {
   mimic: DiagnosisId;
@@ -266,48 +267,55 @@ export const CONTRASTS: Record<DiagnosisId, Contrast[]> = {
 // ───────────────────────── Urgency
 
 const TIMING = /\b(today|stroke|same[- ]day|within (\d|a day|hours|days|weeks|24)|immediately|minutes|days, not months)\b/i;
+const TIMING_HE = /(היום|מיידי|מיידית|באותו יום|תוך (יום|ימים|שעות|שבוע|דקות|\d)|חירום|שבץ)/;
 
 /** Why the patient's urgency was what it was: a timing teaching point from the case, else a plain statement. */
-export function urgencyLesson(kase: ClinicalCase, dxName: string, needed: string): string {
-  const tp = kase.teachingPoints.find((t) => TIMING.test(t) && t.length <= 260);
-  return tp ?? `Urgency is part of the diagnosis: ${dxName} needs ${needed}.`;
+export function urgencyLesson(kase: ClinicalCase, dxName: string, needed: string, locale: Locale = 'en'): string {
+  const he = locale === 'he';
+  const tp = kase.teachingPoints.find((t) => (he ? TIMING_HE : TIMING).test(t) && t.length <= 260);
+  if (tp) return tp;
+  return he ? `דחיפות היא חלק מהאבחנה. אצל מטופל עם ${dxName}: ${needed}.` : `Urgency is part of the diagnosis: ${dxName} needs ${needed}.`;
 }
 
 // ───────────────────────── Case findings in words
 
 const EYE_WORD: Record<Eye, string> = { OD: 'right', OS: 'left' };
+const EYE_WORD_HE: Record<Eye, string> = { OD: 'ימין', OS: 'שמאל' };
 
 /** "56 mmHg in the right eye" / "24 and 22 mmHg" — or null when the case has no pressures. */
-export function iopPhrase(kase: ClinicalCase): string | null {
+export function iopPhrase(kase: ClinicalCase, locale: Locale = 'en'): string | null {
   const iop = kase.findings?.iop;
   if (!iop || typeof iop.OD !== 'number' || typeof iop.OS !== 'number') return null;
+  const he = locale === 'he';
   if (Math.abs(iop.OD - iop.OS) >= 5) {
     const eye: Eye = iop.OD > iop.OS ? 'OD' : 'OS';
-    return `${iop[eye]} mmHg in the ${EYE_WORD[eye]} eye`;
+    return he ? `${iop[eye]} mmHg בעין ${EYE_WORD_HE[eye]}` : `${iop[eye]} mmHg in the ${EYE_WORD[eye]} eye`;
   }
-  return iop.OD === iop.OS ? `${iop.OD} mmHg in both eyes` : `${iop.OD} and ${iop.OS} mmHg`;
+  if (iop.OD === iop.OS) return he ? `${iop.OD} mmHg בשתי העיניים` : `${iop.OD} mmHg in both eyes`;
+  return he ? `${iop.OD} ו-${iop.OS} mmHg` : `${iop.OD} and ${iop.OS} mmHg`;
 }
 
 /** The worse eye's best-corrected acuity, e.g. { eye: 'right', snellen: '20/400' }. */
-export function worseAcuity(kase: ClinicalCase): { eye: string; snellen: string; logmar: number } | null {
+export function worseAcuity(kase: ClinicalCase, locale: Locale = 'en'): { eye: string; snellen: string; logmar: number } | null {
   const va = kase.findings?.va;
   if (!va?.OD || !va?.OS || typeof va.OD.bestCorrected !== 'number' || typeof va.OS.bestCorrected !== 'number') return null;
   const eye: Eye = va.OD.bestCorrected >= va.OS.bestCorrected ? 'OD' : 'OS';
   const logmar = va[eye].bestCorrected;
   const sn = formatSnellen(logmar);
-  return { eye: EYE_WORD[eye], snellen: sn === 'CF' ? 'count fingers' : sn, logmar };
+  const he = locale === 'he';
+  return { eye: he ? EYE_WORD_HE[eye] : EYE_WORD[eye], snellen: sn === 'CF' ? (he ? 'ספירת אצבעות' : 'count fingers') : sn, logmar };
 }
 
-function fill(text: string, kase: ClinicalCase): string {
-  return text.replace('{iop}', iopPhrase(kase) ?? 'a measured pressure');
+function fill(text: string, kase: ClinicalCase, locale: Locale): string {
+  return text.replace('{iop}', iopPhrase(kase, locale) ?? (locale === 'he' ? 'לחץ שנמדד' : 'a measured pressure'));
 }
 
 /** Contrasts for this case whose mimic is one of its listed differentials. */
-export function contrastsFor(kase: ClinicalCase): Contrast[] {
+export function contrastsFor(kase: ClinicalCase, locale: Locale = 'en'): Contrast[] {
   const listed = new Set(kase.differentials);
   return (CONTRASTS[kase.diagnosis] ?? [])
     .filter((c) => c.mimic !== kase.diagnosis && listed.has(c.mimic))
-    .map((c) => ({ ...c, finding: fill(c.finding, kase) }));
+    .map((c) => ({ ...c, finding: fill((locale === 'he' && CONTRASTS_HE[`${kase.diagnosis}>${c.mimic}`]) || c.finding, kase, locale) }));
 }
 
 const words = (s: string) => s.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
@@ -319,9 +327,10 @@ const words = (s: string) => s.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w
 export function separatingLesson(
   kase: ClinicalCase,
   mimic: DiagnosisId,
-  ctx: { diagnosisName(id: string): string; diagnosis?(id: string): Diagnosis | undefined },
+  ctx: { diagnosisName(id: string): string; diagnosis?(id: string): Diagnosis | undefined; locale?: Locale },
 ): { finding: string; test?: TestId } {
-  const curated = contrastsFor(kase).find((c) => c.mimic === mimic);
+  const locale = ctx.locale ?? 'en';
+  const curated = contrastsFor(kase, locale).find((c) => c.mimic === mimic);
   if (curated) return { finding: curated.finding, test: curated.test };
   const m = ctx.diagnosis?.(mimic);
   const names = [ctx.diagnosisName(mimic), ...(m?.aka ?? [])].map((n) => n.toLowerCase());
@@ -331,8 +340,8 @@ export function separatingLesson(
   });
   if (tp) return { finding: tp };
   const kf = ctx.diagnosis?.(kase.diagnosis)?.keyFindings?.[0];
-  if (kf) return { finding: `${ctx.diagnosisName(kase.diagnosis)} is marked by ${lowerFirst(kf)}.` };
-  return { finding: kase.teachingPoints[0] ?? 'Let the findings, not the first impression, make the diagnosis.' };
+  if (kf) return { finding: locale === 'he' ? `${ctx.diagnosisName(kase.diagnosis)} מזוהה לפי הממצא הבא: ${kf}` : `${ctx.diagnosisName(kase.diagnosis)} is marked by ${lowerFirst(kf)}.` };
+  return { finding: kase.teachingPoints[0] ?? (locale === 'he' ? 'תנו לממצאים, לא לרושם הראשוני, לקבוע את האבחנה.' : 'Let the findings, not the first impression, make the diagnosis.') };
 }
 
 export function lowerFirst(s: string): string {
@@ -343,7 +352,8 @@ export function lowerFirst(s: string): string {
 }
 
 /** Test names mid-sentence, keeping proper nouns capitalised ("Amsler grid", "slit lamp"). */
-export function testNameInline(t: TestId): string {
+export function testNameInline(t: TestId, locale: Locale = 'en'): string {
+  if (locale === 'he') return testText(t, 'he').name;
   const name = TEST_CATALOG[t]?.name ?? t;
   return name
     .split(' ')
@@ -356,7 +366,11 @@ const FINDINGS_NOUN: Partial<Record<TestId, string>> = {
   'pupils': 'pupil', 'ophthalmoscopy': 'fundus', 'tonometry': 'pressure', 'slit-lamp': 'slit-lamp', 'visual-fields': 'field',
   'visual-acuity': 'acuity', 'color-vision': 'colour vision', 'phoropter': 'refraction', 'cover-test': 'cover test', 'convergence': 'near point',
 };
-export const findingsNoun = (t: TestId) => FINDINGS_NOUN[t] ?? testNameInline(t);
+const FINDINGS_NOUN_HE: Partial<Record<TestId, string>> = {
+  'pupils': 'האישונים', 'ophthalmoscopy': 'הקרקעית', 'tonometry': 'הלחץ', 'slit-lamp': 'מנורת הסדק', 'visual-fields': 'שדה הראייה',
+  'visual-acuity': 'חדות הראייה', 'color-vision': 'ראיית הצבעים', 'phoropter': 'הרפרקציה', 'cover-test': 'מבחן הכיסוי', 'convergence': 'נקודת ההתכנסות',
+};
+export const findingsNoun = (t: TestId, locale: Locale = 'en') => (locale === 'he' ? FINDINGS_NOUN_HE[t] ?? testNameInline(t, 'he') : FINDINGS_NOUN[t] ?? testNameInline(t));
 
 /** How a clinician says they skipped a test. */
 const SKIP_PHRASE: Partial<Record<TestId, string>> = {
@@ -370,7 +384,19 @@ const SKIP_PHRASE: Partial<Record<TestId, string>> = {
   'slit-lamp': 'the slit-lamp exam',
   'fluorescein': 'the fluorescein stain',
 };
-export const skipPhrase = (t: TestId) => SKIP_PHRASE[t] ?? `the ${testNameInline(t)}`;
+const SKIP_PHRASE_HE: Partial<Record<TestId, string>> = {
+  'tonometry': 'בדיקת הלחץ',
+  'visual-acuity': 'בדיקת חדות הראייה',
+  'pinhole': 'בדיקת החריר',
+  'amsler': 'רשת אמסלר',
+  'pupils': 'בדיקת האישונים',
+  'visual-fields': 'בדיקת שדה הראייה',
+  'ophthalmoscopy': 'בדיקת קרקעית העין המורחבת',
+  'slit-lamp': 'בדיקת מנורת הסדק',
+  'fluorescein': 'צביעת הפלואורסצאין',
+};
+export const skipPhrase = (t: TestId, locale: Locale = 'en') =>
+  locale === 'he' ? SKIP_PHRASE_HE[t] ?? `בדיקת ${testNameInline(t, 'he')}` : SKIP_PHRASE[t] ?? `the ${testNameInline(t)}`;
 
 /** Diagnosis-specific reasons a non-decisive test still mattered. */
 const SKIP_LESSON_DX: Record<string, string> = {
@@ -389,7 +415,8 @@ const SKIP_LESSON_DX: Record<string, string> = {
 };
 
 /** Why skipping a (non-decisive) test still mattered, built from the case's own findings. */
-export function skipLesson(kase: ClinicalCase, test: TestId): string {
+export function skipLesson(kase: ClinicalCase, test: TestId, locale: Locale = 'en'): string {
+  if (locale === 'he') return skipLessonHe(kase, test);
   const specific = SKIP_LESSON_DX[`${kase.diagnosis}:${test}`];
   if (specific) return specific;
   switch (test) {
@@ -422,5 +449,41 @@ export function skipLesson(kase: ClinicalCase, test: TestId): string {
       return 'Look at the back of the eye: the disc and the macula explain what the front of the eye cannot.';
     default:
       return `The ${testNameInline(test)} was part of the essential work-up for this patient.`;
+  }
+}
+
+function skipLessonHe(kase: ClinicalCase, test: TestId): string {
+  const specific = SKIP_LESSON_DX_HE[`${kase.diagnosis}:${test}`];
+  if (specific) return specific;
+  switch (test) {
+    case 'visual-acuity': {
+      const va = worseAcuity(kase, 'he');
+      return va && va.logmar > 0.05
+        ? `חדות ראייה היא סימן החיים של העין: בעין ${va.eye} נמדדו ${va.snellen} בתיקון מיטבי. זה קו הבסיס לכל מעקב, וחלק מהדחיפות.`
+        : 'חדות ראייה היא סימן החיים של העין: מתחילים ממנה בכל ביקור, כקו בסיס לכל מעקב.';
+    }
+    case 'pinhole':
+      return 'חריר מפריד בין טשטוש שבירתי למחלה: אם הוא לא מחזיר חדות תקינה, בדקו את המדיה, המקולה או העצב.';
+    case 'tonometry': {
+      const iop = iopPhrase(kase, 'he');
+      return iop ? `מדדו לחץ בכל עין שבודקים: כאן הוא היה ${iop}, ורק מדידה מגלה זאת.` : 'מדדו לחץ בכל עין שבודקים: עלייה שקטה מתגלה רק במדידה.';
+    }
+    case 'amsler':
+      return 'רשת אמסלר ממפה עיוות וסקוטומות במקולה, והיא מבחן האזהרה הביתי של המטופל.';
+    case 'pupils': {
+      const p = kase.findings?.pupils;
+      if (p && p.rapd && p.rapd !== 'none') return `היה RAPD בעין ${EYE_WORD_HE[p.rapd]}: הוכחה אובייקטיבית למחלה בעצב הראייה או למחלה רחבה ברשתית, שמתגלה רק בפנס מתנדנד.`;
+      return 'בדקו אישונים בכל מטופל: RAPD או אישון חריג משנים גם את האבחנה וגם את הדחיפות.';
+    }
+    case 'visual-fields':
+      return 'שדות מראים מה המחלה לקחה: הם ממקמים את הנגע, והם נקודת ההשוואה לכל מעקב.';
+    case 'slit-lamp':
+      return 'כל עין אדומה, כואבת או מטושטשת צריכה מנורת סדק: עפעפיים, קרנית, לשכה ועדשה נראים באמת רק שם.';
+    case 'fluorescein':
+      return 'פלואורסצאין באור כחול-קובלט חושף פגמי אפיתל ודנדריטים שהאור הלבן מסתיר.';
+    case 'ophthalmoscopy':
+      return 'הסתכלו אחורה: הדיסקה והמקולה מסבירות מה שהחלק הקדמי של העין לא יכול.';
+    default:
+      return `${skipPhrase(test, 'he')} הייתה חלק מהבירור החיוני של המטופל הזה.`;
   }
 }

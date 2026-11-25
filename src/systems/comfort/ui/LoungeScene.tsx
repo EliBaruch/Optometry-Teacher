@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { dayKey, type SceneProps } from '@core';
 import {
-  Button, CountUp, GlassPanel, IconButton, ProgressBar, Screen, useReducedMotion, useRegistry,
+  Button, CountUp, GlassPanel, IconButton, ProgressBar, Screen, useReducedMotion, useRegistry, useStrings,
 } from '@ui-kit';
 import { ACCENT } from '../controller';
 import {
@@ -9,6 +9,7 @@ import {
   collectable, ratePerHour, salutation, skillOf,
 } from '../logic';
 import { pearlsFor } from '../pearls';
+import { S } from '../strings';
 import { GiftBox } from './GiftBox';
 import { GiftCalendar } from './GiftCalendar';
 import { GiftReveal } from './GiftReveal';
@@ -33,9 +34,9 @@ function useNarrow(): boolean {
   return narrow;
 }
 
-const REASON_LABEL = { review: 'Due for review', seen: 'From your cases', discover: 'New to you' } as const;
-
 export function LoungeScene({ services }: SceneProps) {
+  const t = useStrings(S);
+  const loc = services.locale;
   const { ctl, state } = useComfort(services);
   const now = useNow(services, 30_000);
   const reduced = useReducedMotion();
@@ -64,8 +65,8 @@ export function LoungeScene({ services }: SceneProps) {
   const back = () => (services.registries.scenes.has('hub') ? services.router.go('hub') : services.router.back());
   if (!ctl) {
     return (
-      <Screen title="Lounge" onBack={back} escToBack backdrop="calm">
-        <p class="lm-muted">The lounge is closed tonight.</p>
+      <Screen title={t.hubTitle} onBack={back} escToBack backdrop="calm">
+        <p class="lm-muted">{t.closed}</p>
       </Screen>
     );
   }
@@ -95,8 +96,8 @@ export function LoungeScene({ services }: SceneProps) {
 
   return (
     <Screen
-      eyebrow="Rest a moment"
-      title="The Lounge"
+      eyebrow={t.restEyebrow}
+      title={t.sceneTitle}
       onBack={back}
       escToBack
       backdrop="calm"
@@ -106,8 +107,8 @@ export function LoungeScene({ services }: SceneProps) {
           type="button"
           role="switch"
           aria-checked={quiet}
-          aria-label="Quiet mode: calm music"
-          title="Quiet mode: calm music"
+          aria-label={t.quietAria}
+          title={t.quietAria}
           class={`cf-quiet ${quiet ? 'is-on' : ''}`}
           onClick={toggleQuiet}
         >
@@ -118,12 +119,12 @@ export function LoungeScene({ services }: SceneProps) {
               </svg>
             </span>
           </span>
-          <span class="cf-quiet__label" aria-hidden="true">Quiet mode</span>
+          <span class="cf-quiet__label" aria-hidden="true">{t.quietLabel}</span>
         </button>
       }
     >
       <div class="cf-lounge__wrap">
-        <section class="cf-hero" aria-label="The Lounge">
+        <section class="cf-hero" aria-label={t.sceneTitle}>
           <LoungeArt
             lampOn={lampOn}
             sip={sip}
@@ -138,7 +139,7 @@ export function LoungeScene({ services }: SceneProps) {
             onCoffee={(p) => {
               safePlay(services, 'pop', { pitch: 0.8, volume: 0.6 });
               setSip((n) => n + 1);
-              services.fx.floatText('ahh', p.x, p.y - 30, { color: '#f6efe4', size: 20 });
+              services.fx.floatText(t.ahh, p.x, p.y - 30, { color: '#f6efe4', size: 20 });
             }}
             onCat={(p) => {
               safePlay(services, 'sparkle', { volume: 0.5 });
@@ -148,45 +149,45 @@ export function LoungeScene({ services }: SceneProps) {
           />
           <div class="cf-hero__shade" aria-hidden="true" />
           <div class="cf-hero__copy">
-            <p class="lm-eyebrow">{salutation(new Date(now).getHours())}, {doctorName(services)}</p>
-            <h2 class="cf-hero__title">Kick off your shoes. The rain will keep.</h2>
+            <p class="lm-eyebrow">{salutation(new Date(now).getHours(), loc)}, {doctorName(services)}</p>
+            <h2 class="cf-hero__title">{t.heroTitle}</h2>
             {seen >= REST_AFTER_CASES ? (
-              <p class="cf-hero__sub">{seen} patients today — that is a full, good day. Stopping here is a fine choice.</p>
+              <p class="cf-hero__sub">{t.heroDone(seen)}</p>
             ) : (
-              <p class="cf-hero__sub">Open tonight’s gift, collect what the clinic earned, and pick up a pearl before your next patient.</p>
+              <p class="cf-hero__sub">{t.heroSub}</p>
             )}
             {plan && (
               <Button variant="primary" size="lg" trailingIcon="arrow-right" onClick={() => ctl.resume()} sfx="door" class="cf-hero__cta">
-                Continue · {plan.title}
+                {t.continueDot(plan.title)}
               </Button>
             )}
           </div>
         </section>
 
         <div class="cf-grid">
-          <GlassPanel class="cf-card cf-card--gift" accent={ACCENT} glow={ready} eyebrow="Daily gift" title={ready ? `Evening ${next.day} is ready` : 'Opened for today'} icon="gift">
+          <GlassPanel class="cf-card cf-card--gift" accent={ACCENT} glow={ready} eyebrow={t.dailyGift} title={ready ? t.eveningReady(next.day) : t.openedToday} icon="gift">
             <div class="cf-card__gift">
               <button
                 type="button"
                 class="cf-card__giftbtn"
                 onClick={() => (ready ? setGift(true) : safePlay(services, 'tick'))}
-                aria-label={ready ? `Open the gift for evening ${next.day}` : 'Today’s gift is already opened'}
+                aria-label={ready ? t.openEveningAria(next.day) : t.openedAria}
                 aria-disabled={!ready}
               >
                 <GiftBox phase={ready ? 'ready' : 'idle'} size={112} grand={next.day === 7} />
               </button>
               <div>
-                <p class="cf-card__big lm-num">✦ {next.coins}{next.satchel && <small> + satchel</small>}</p>
-                <p class="cf-card__flavour">{next.label}</p>
+                <p class="cf-card__big lm-num">✦ {next.coins}{next.satchel && <small>{t.plusSatchel}</small>}</p>
+                <p class="cf-card__flavour">{t.giftLabels[next.day - 1] ?? next.label}</p>
                 <p class="lm-muted cf-card__small">
-                  {ready ? 'Tap the box to open it.' : `Next gift in ${formatDuration(msUntilTomorrow(now))}.`} Missed evenings never reset the calendar.
+                  {ready ? t.tapBox : t.nextIn(formatDuration(msUntilTomorrow(now), loc))}{t.neverReset}
                 </p>
               </div>
             </div>
             <GiftCalendar next={state.gift.next} ready={ready} totalClaims={state.gift.totalClaims} />
           </GlassPanel>
 
-          <GlassPanel class="cf-card cf-card--jar" accent="#ffd27a" eyebrow="While you’re away" title="Clinic earnings" icon="coin">
+          <GlassPanel class="cf-card cf-card--jar" accent="#ffd27a" eyebrow={t.whileAway} title={t.earnings} icon="coin">
             <div class="cf-card__jarrow">
               <div ref={jarRef} class="cf-card__jar">
                 <Jar fill={cap > 0 ? state.jar / cap : 0} size={118} />
@@ -198,13 +199,13 @@ export function LoungeScene({ services }: SceneProps) {
                 <p class="lm-muted cf-card__small">
                   {state.bonus > 0 && (
                     <span class="cf-card__kept">
-                      Includes your ✦ {state.bonus} welcome back gift, kept safe.{' '}
+                      {t.keptSafe(state.bonus)}
                     </span>
                   )}
-                  Your technicians earn <strong class="lm-num cf-nowrap">✦ {rate.toFixed(1)}/hour</strong> while you’re away, for up to {EARN_CAP_HOURS} hours.
+                  {t.earnA}<strong class="lm-num cf-nowrap">{t.earnRate(rate.toFixed(1))}</strong>{t.earnB(EARN_CAP_HOURS)}
                 </p>
                 <Button variant="primary" icon="coin" onClick={collect} disabled={coins < 1} sfx={false} class="cf-card__collect">
-                  {coins >= 1 ? 'Collect' : 'Jar is filling'}
+                  {coins >= 1 ? t.collect : t.jarFilling}
                 </Button>
               </div>
             </div>
@@ -213,38 +214,38 @@ export function LoungeScene({ services }: SceneProps) {
               max={1}
               accent={ACCENT}
               size="sm"
-              label="Team skill"
-              valueText={state.recent.length ? `${Math.round(skill * 100)}%` : 'no cases yet'}
-              ariaLabel="Team skill from your recent case scores"
+              label={t.teamSkill}
+              valueText={state.recent.length ? `${Math.round(skill * 100)}%` : t.noCases}
+              ariaLabel={t.skillAria}
             />
-            <p class="lm-muted cf-card__tiny">Sharper diagnoses, triage and work-ups train your team — the rate follows your case scores, not your hours.</p>
+            <p class="lm-muted cf-card__tiny">{t.skillNote}</p>
           </GlassPanel>
 
           <GlassPanel
             class="cf-card cf-card--pearl"
             accent="#a78bfa"
-            eyebrow="Pearl of the evening"
-            title={pearl?.diagnosisName ?? 'Clinical pearls'}
+            eyebrow={t.pearlEyebrow}
+            title={pearl?.diagnosisName ?? t.pearlsTitle}
             icon="sparkle"
             actions={
               pearls.length > 1 && (
                 <div class="cf-card__nav">
-                  <IconButton icon="chevron-left" label="Previous pearl" variant="ghost" class="cf-card__navbtn" onClick={() => setTip((t) => t - 1)} />
-                  <IconButton icon="chevron-right" label="Next pearl" variant="ghost" class="cf-card__navbtn" onClick={() => setTip((t) => t + 1)} />
+                  <IconButton icon="chevron-left" label={t.prevPearl} variant="ghost" class="cf-card__navbtn" onClick={() => setTip((n) => n - 1)} />
+                  <IconButton icon="chevron-right" label={t.nextPearl} variant="ghost" class="cf-card__navbtn" onClick={() => setTip((n) => n + 1)} />
                 </div>
               )
             }
           >
             {pearl ? (
               <figure class="cf-pearl" key={pearl.diagnosisId + tip} aria-live="polite">
-                <span class={`cf-pearl__tag cf-pearl__tag--${pearl.reason}`}>{REASON_LABEL[pearl.reason]}</span>
+                <span class={`cf-pearl__tag cf-pearl__tag--${pearl.reason}`}>{t.reason[pearl.reason]}</span>
                 <blockquote class="cf-pearl__text">{pearl.text}</blockquote>
                 <figcaption class="lm-muted cf-card__tiny">
-                  {((tip % pearls.length) + pearls.length) % pearls.length + 1} of {pearls.length}
+                  {t.ofN(((tip % pearls.length) + pearls.length) % pearls.length + 1, pearls.length)}
                 </figcaption>
               </figure>
             ) : (
-              <p class="lm-muted">The library is being shelved — pearls will appear here soon.</p>
+              <p class="lm-muted">{t.noPearls}</p>
             )}
           </GlassPanel>
         </div>

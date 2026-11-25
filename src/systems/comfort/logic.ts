@@ -9,7 +9,8 @@
  *    and their rate is set by how well you treat patients, never by time played.
  *  - The welcome back is warm and guilt-free; no loss is ever applied.
  */
-import { dayKey } from '@core';
+import { dayKey, pickStrings, type Locale } from '@core';
+import { S } from './strings';
 
 export const SLOT = 'sys:comfort';
 export const SLOT_VERSION = 1;
@@ -272,12 +273,13 @@ export function nextGift(s: ComfortState): GiftDay {
 }
 
 /** Short progress line toward the evening-7 grand satchel (counts gifts, not days: missed evenings never matter). */
-export function grandSatchelHint(s: ComfortState, ready: boolean): string {
-  if (!ready && s.gift.next === 0 && s.gift.totalClaims > 0) return 'Week complete. A fresh calendar starts tomorrow';
+export function grandSatchelHint(s: ComfortState, ready: boolean, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
+  if (!ready && s.gift.next === 0 && s.gift.totalClaims > 0) return t.hintWeekDone;
   const next = nextGift(s);
-  if (next.day === GIFT_CALENDAR.length) return ready ? 'Tonight: the grand satchel' : 'The grand satchel is next';
+  if (next.day === GIFT_CALENDAR.length) return ready ? t.hintTonightGrand : t.hintGrandNext;
   const n = GIFT_CALENDAR.length - next.day;
-  return `${n} ${n === 1 ? 'gift' : 'gifts'} until the grand satchel`;
+  return t.hintUntil(n);
 }
 
 /** Published satchel odds; better recent case quality shifts weight to rarer tiers. */
@@ -339,30 +341,33 @@ export function msUntilTomorrow(now: number): number {
 
 // ── Formatting helpers (player-facing) ───────────────────────────────────
 
-export function formatDuration(ms: number): string {
+export function formatDuration(ms: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   const mins = Math.max(0, Math.round(ms / MINUTE));
-  if (mins < 60) return `${mins} min`;
+  if (mins < 60) return t.durMin(mins);
   const h = Math.floor(mins / 60);
   if (h < 48) {
     const m = mins % 60;
-    return m ? `${h}h ${m}m` : `${h}h`;
+    return m ? t.durHM(h, m) : t.durH(h);
   }
-  return `${Math.floor(h / 24)} days`;
+  return t.durDays(Math.floor(h / 24));
 }
 
 /** Time-of-day salutation for the lounge ("Good evening"). */
-export function salutation(hourOfDay: number): string {
-  if (hourOfDay >= 5 && hourOfDay < 12) return 'Good morning';
-  if (hourOfDay >= 12 && hourOfDay < 18) return 'Good afternoon';
-  if (hourOfDay >= 18 && hourOfDay < 22) return 'Good evening';
-  return 'A quiet night';
+export function salutation(hourOfDay: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
+  if (hourOfDay >= 5 && hourOfDay < 12) return t.morning;
+  if (hourOfDay >= 12 && hourOfDay < 18) return t.afternoon;
+  if (hourOfDay >= 18 && hourOfDay < 22) return t.evening;
+  return t.night;
 }
 
 /** Warm, guilt-free greeting line for a return. */
-export function welcomeLine(awayMs: number, hourOfDay: number): string {
-  if (awayMs >= COMEBACK_AFTER_MS) return 'The lamps are lit and your chair is warm. It is lovely to have you back.';
-  if (hourOfDay < 5 || hourOfDay >= 22) return 'A quiet night at Lumen. The rain kept the waiting room company.';
-  if (hourOfDay < 12) return 'Morning light on the brass. Your technicians kept the clinic humming.';
-  if (hourOfDay < 18) return 'An easy afternoon. The clinic ran smoothly while you were out.';
-  return 'Evening at the observatory. Your team saved you a seat by the window.';
+export function welcomeLine(awayMs: number, hourOfDay: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
+  if (awayMs >= COMEBACK_AFTER_MS) return t.welcomeComeback;
+  if (hourOfDay < 5 || hourOfDay >= 22) return t.welcomeNight;
+  if (hourOfDay < 12) return t.welcomeMorning;
+  if (hourOfDay < 18) return t.welcomeAfternoon;
+  return t.welcomeEvening;
 }
