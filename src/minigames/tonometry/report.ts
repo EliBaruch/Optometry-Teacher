@@ -4,29 +4,32 @@
  * pressure rise); < 6 hypotony abnormal. Inter-eye difference >= 6 mmHg is
  * abnormal (asymmetry is a glaucoma risk sign); 4-5 is noted as normal.
  */
-import { EYES, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
-import { flagFor, METHOD_LABEL as METHOD_NAME, type Method } from './optics';
+import { EYES, pickStrings, type Locale, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
+import { flagFor, type Method } from './optics';
+import { S } from './strings';
 export const ASYMMETRY_NOTE = 4;
 export const ASYMMETRY_ABNORMAL = 6;
 
 export interface ReportOpts { method?: Method; /** clock time of the measurement, e.g. '10:42' */ time?: string }
 
-export function buildReport(findings: PatientFindings, method: Method = 'goldmann', time?: string): RevealedFinding[] {
+/** Chart lines in the edition's language. English output is the canonical form used by tests and auto-run. */
+export function buildReport(findings: PatientFindings, method: Method = 'goldmann', time?: string, locale: Locale = 'en'): RevealedFinding[] {
+  const t = pickStrings(S, locale);
   const out: RevealedFinding[] = [];
   const iop = findings.iop;
   for (const eye of EYES) {
     const v = iop?.[eye];
     if (typeof v !== 'number') continue;
-    out.push({ label: 'IOP', value: `${Math.round(v)} mmHg`, eye, flag: flagFor(v) });
+    out.push({ label: t.iop, value: `${Math.round(v)} mmHg`, eye, flag: flagFor(v) });
   }
   if (out.length === 0) return out;
-  out.push({ label: 'IOP method', value: METHOD_NAME[method], eye: 'OU', flag: 'normal' });
-  if (time) out.push({ label: 'IOP time', value: time, eye: 'OU', flag: 'normal' });
+  out.push({ label: t.iopMethod, value: t.methodLabel[method], eye: 'OU', flag: 'normal' });
+  if (time) out.push({ label: t.iopTime, value: time, eye: 'OU', flag: 'normal' });
   if (typeof iop.OD === 'number' && typeof iop.OS === 'number') {
     const d = Math.abs(Math.round(iop.OD) - Math.round(iop.OS));
     if (d >= ASYMMETRY_NOTE) {
       const higher = iop.OD > iop.OS ? 'OD' : 'OS';
-      out.push({ label: 'IOP asymmetry', value: `${d} mmHg (${higher} higher)`, eye: 'OU', flag: d >= ASYMMETRY_ABNORMAL ? 'abnormal' : 'normal' });
+      out.push({ label: t.iopAsymmetry, value: t.asymmetryValue(d, higher), eye: 'OU', flag: d >= ASYMMETRY_ABNORMAL ? 'abnormal' : 'normal' });
     }
   }
   return out;

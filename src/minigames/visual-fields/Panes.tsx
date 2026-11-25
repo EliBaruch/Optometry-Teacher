@@ -8,8 +8,7 @@ import { Pathway } from './Pathway';
 import { Picker } from './Picker';
 import type { Localisation, Pattern } from './interpret';
 import type { ExamScore, TechniqueScore } from './scoring';
-
-const EYE_NAME: Record<Eye, string> = { OD: 'right eye', OS: 'left eye' };
+import { useVf } from './useVf';
 
 export interface TestPaneProps {
   tab: 'bowl' | 'plot';
@@ -24,6 +23,7 @@ export interface TestPaneProps {
 
 /** The test phase: the perimeter bowl on the left, live printout + operator console on the right. */
 export function TestPane({ tab, eye, sideRef, bowl, printout, view, onView, console: cp }: TestPaneProps) {
+  const t = useVf();
   return (
     <div class={`vf__body is-tab-${tab}`}>
       <section class="vf__stage">
@@ -32,9 +32,9 @@ export function TestPane({ tab, eye, sideRef, bowl, printout, view, onView, cons
       <aside class="vf__side" ref={sideRef}>
         <div class="vf-printwrap">
           {printout}
-          <div class="vf-viewtoggle" role="group" aria-label="Printout view">
-            <button type="button" class={view === 'grey' ? 'is-on' : ''} aria-pressed={view === 'grey'} onClick={() => onView('grey')}>Greyscale</button>
-            <button type="button" class={view === 'numeric' ? 'is-on' : ''} aria-pressed={view === 'numeric'} onClick={() => onView('numeric')}>dB values</button>
+          <div class="vf-viewtoggle" role="group" aria-label={t.printView}>
+            <button type="button" class={view === 'grey' ? 'is-on' : ''} aria-pressed={view === 'grey'} onClick={() => onView('grey')}>{t.grey}</button>
+            <button type="button" class={view === 'numeric' ? 'is-on' : ''} aria-pressed={view === 'numeric'} onClick={() => onView('numeric')}>{t.numeric}</button>
           </div>
         </div>
         <Console {...cp} />
@@ -55,19 +55,20 @@ export interface InterpretPaneProps {
 
 /** Interpret phase: name each eye's pattern, then place the lesion on the pathway. */
 export function InterpretPane({ eye, picks, loc, practice, onPick, onLoc, onEye }: InterpretPaneProps) {
+  const t = useVf();
   return (
     <>
       <div class="vf-section">
-        <h3>{eye} — {EYE_NAME[eye]} pattern</h3>
+        <h3>{t.patternOf(eye, t.eyeName[eye])}</h3>
         <Picker eye={eye} value={picks[eye]} onChange={onPick} />
         {picks[eye] && !picks[otherEye(eye)] && (
           <button type="button" class="vf-next" onClick={() => onEye(otherEye(eye))}>
-            Next: {otherEye(eye)} <Icon name="arrow-right" size={13} />
+            {t.nextEye(otherEye(eye))} <Icon name="arrow-right" size={13} class="vf-flip" />
           </button>
         )}
       </div>
       <div class="vf-section">
-        <h3>{practice ? 'Challenge — ' : ''}Where is the lesion?</h3>
+        <h3>{practice ? t.challenge : ''}{t.whereLesion}</h3>
         <Pathway value={loc} onChange={onLoc} />
       </div>
     </>

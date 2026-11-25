@@ -460,3 +460,6 @@
 
 /* the plate book is a physical object: its page-turn controls never mirror */
 .cv-turn .lm-icon[data-icon='chevron-left'], .cv-turn .lm-icon[data-icon='chevron-right'] { scale: none; }
+
+/* Hebrew has no true italic: avoid synthetic slant */
+:lang(he) .cv-page__folio span:first-child, :lang(he) .cv-capstep__feedback, :lang(he) .cv-capstep__feedback *, :lang(he) .cv-cap__hint, :lang(he) [class*="hint"] { font-style: normal; }

@@ -5,6 +5,7 @@
  */
 import { useEffect, useRef } from 'preact/hooks';
 import { clamp, DIAL_MAX, DIAL_MIN } from './optics';
+import { useT } from './locale';
 
 const DEG_PER_MMHG = 9;
 
@@ -15,7 +16,8 @@ export interface DrumProps {
   label?: string;
 }
 
-export function Drum({ value, onChange, disabled, label = 'Measuring drum' }: DrumProps) {
+export function Drum({ value, onChange, disabled, label }: DrumProps) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const live = useRef({ value, onChange, disabled });
   live.current = { value, onChange, disabled };
@@ -115,13 +117,14 @@ export function Drum({ value, onChange, disabled, label = 'Measuring drum' }: Dr
     <div
       ref={ref}
       class="tn-drum"
+      dir="ltr"
       tabIndex={0}
       role="slider"
-      aria-label={label}
+      aria-label={label ?? t.drumLabel}
       aria-valuemin={DIAL_MIN}
       aria-valuemax={DIAL_MAX}
       aria-valuenow={Math.round(value)}
-      aria-valuetext={`${Math.round(value)} millimetres of mercury`}
+      aria-valuetext={t.drumValue(Math.round(value))}
       aria-disabled={disabled || undefined}
     >
       <svg viewBox="0 0 200 200" aria-hidden="true">

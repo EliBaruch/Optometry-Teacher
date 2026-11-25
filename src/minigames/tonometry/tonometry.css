@@ -19,7 +19,7 @@
   background: linear-gradient(180deg, rgba(30, 18, 54, 0.8), rgba(16, 9, 30, 0.35)); }
 .tn-head__title { display: flex; align-items: center; gap: 8px; flex: none; font: 560 1.05rem/1.1 var(--lm-font-display, Georgia, serif); }
 .tn-head__title svg { color: var(--lm-gold, #ffd27a); filter: drop-shadow(0 0 6px rgba(255, 210, 122, 0.5)); }
-.tn-head__hint { flex: 1 1 260px; min-width: 0; margin: 0; padding-left: 14px; border-left: 1px solid var(--lm-hairline);
+.tn-head__hint { flex: 1 1 260px; min-width: 0; margin: 0; padding-inline-start: 14px; border-inline-start: 1px solid var(--lm-hairline);
   font-size: var(--lm-fs-sm, 13.5px); line-height: 1.35; color: var(--lm-ivory-dim, #ddd3c4); animation: tn-fade 380ms var(--lm-ease-out, ease-out) both; }
 .tn-seg { display: flex; gap: 3px; padding: 3px; border-radius: 12px; flex: none; background: rgba(8, 4, 16, 0.62);
   box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1), inset 0 2px 6px rgba(0, 0, 0, 0.4); }
@@ -133,12 +133,12 @@
 .tn-deb__eye-name { font: 600 1.2rem var(--lm-font-display, serif); color: var(--tn-gold); }
 .tn-deb__val { font-size: 1.6rem; font-weight: 800; } .tn-deb__val small { font-size: 0.75rem; opacity: 0.6; font-weight: 600; }
 .tn-deb__truth { font-size: 0.8rem; color: var(--lm-muted); }
-.tn-stars { margin-left: auto; display: flex; } .tn-stars svg { width: 16px; height: 16px; color: rgba(255, 236, 210, 0.2); } .tn-stars svg.is-on { color: var(--tn-gold); filter: drop-shadow(0 0 5px rgba(255, 210, 122, 0.6)); }
+.tn-stars { margin-inline-start: auto; display: flex; } .tn-stars svg { width: 16px; height: 16px; color: rgba(255, 236, 210, 0.2); } .tn-stars svg.is-on { color: var(--tn-gold); filter: drop-shadow(0 0 5px rgba(255, 210, 122, 0.6)); }
 .tn-deb__meta { margin: 2px 0 6px; font-size: 0.74rem; letter-spacing: 0.05em; color: var(--lm-muted); text-transform: uppercase; }
-.tn-deb__notes { margin: 0; padding-left: 16px; font-size: 0.8rem; line-height: 1.45; color: var(--lm-ivory-dim); }
+.tn-deb__notes { margin: 0; padding-inline-start: 16px; font-size: 0.8rem; line-height: 1.45; color: var(--lm-ivory-dim); }
 .tn-quiz h4 { margin: 8px 0; font: 560 1.05rem var(--lm-font-display, serif); }
 .tn-quiz__opts { display: grid; gap: 8px; }
-.tn-opt { text-align: left; padding: 10px 14px; border-radius: 12px; border: 0; cursor: pointer; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px var(--lm-hairline); font-size: 0.9rem; transition: background 160ms, box-shadow 160ms; }
+.tn-opt { text-align: start; padding: 10px 14px; border-radius: 12px; border: 0; cursor: pointer; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px var(--lm-hairline); font-size: 0.9rem; transition: background 160ms, box-shadow 160ms; }
 .tn-opt:hover:not(:disabled) { background: rgba(255, 210, 122, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.5); }
 .tn-opt.is-right { background: rgba(111, 224, 90, 0.2); box-shadow: inset 0 0 0 1px #6fe05a; }
 .tn-opt.is-wrong { background: rgba(255, 100, 100, 0.16); box-shadow: inset 0 0 0 1px #ff7a7a; }
@@ -151,7 +151,7 @@
 @media (max-width: 760px) {
   .tn-head { padding: 6px 10px; gap: 4px 8px; }
   .tn-head__title { font-size: 0.95rem; }
-  .tn-head__hint { flex-basis: 100%; order: 5; padding-left: 0; border-left: 0; font-size: 0.74rem; line-height: 1.25; }
+  .tn-head__hint { flex-basis: 100%; order: 5; padding-inline-start: 0; border-inline-start: 0; font-size: 0.74rem; line-height: 1.25; }
   .tn-seg__b { min-height: 36px; padding: 0 11px; font-size: 0.8rem; }
   .tn-stage { display: flex; flex-direction: column; gap: 8px; padding: 8px 10px; overflow-y: auto; overflow-x: hidden; }
   .tn-scope { flex: none; width: 100%; height: clamp(190px, 37vh, 320px); }
@@ -218,3 +218,7 @@
   .tn-shoot { grid-column: 2 / span 2; grid-row: 2 / span 2; width: 100%; min-height: 56px; }
   .tn-prep__eye { max-height: 20vh; width: min(100%, calc(20vh * 520 / 360)); }
 }
+
+/* Hebrew: no tracking or capitals on Hebrew text */
+:lang(he) .tn-eyebrow, :lang(he) .tn-lcd__sub, :lang(he) .tn-ep, :lang(he) .tn-dye__label, :lang(he) .tn-prog__method, :lang(he) .tn-deb__meta, :lang(he) .tn-keys, :lang(he) .tn-head__title, :lang(he) .tn-seg__b { letter-spacing: 0; text-transform: none; }
+.tn-prog__eyes { display: flex; gap: 8px; }

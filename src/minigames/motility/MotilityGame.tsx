@@ -305,7 +305,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
           </div>
         </div>
         <aside class="mot-panel" aria-label={t.panelAria}>
-          <div class="mot-charts">
+          <div class="mot-charts" dir="ltr">
             <HChart t={t} eye="OD" grid={mine.OD} sel={sel} onSel={(g) => { setSel({ eye: 'OD', gaze: g }); play('dial', { volume: 0.4 }); }} />
             <HChart t={t} eye="OS" grid={mine.OS} sel={sel} onSel={(g) => { setSel({ eye: 'OS', gaze: g }); play('dial', { volume: 0.4 }); }} />
           </div>
@@ -316,7 +316,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
                 <button key={g} type="button" class={`mot-g${sel && cur === g ? ' is-on' : ''}`} data-g={g} aria-pressed={!!sel && cur === g} aria-label={t.gradeBtnAria(gradeText(g))} onClick={() => grade(g)}>{gradeText(g)}</button>
               ))}
             </div>
-            <p class="mot-legend"><span>{t.under}</span><span>{t.full}</span><span>{t.over}</span></p>
+            <p class="mot-legend" dir="ltr"><span>{t.under}</span><span>{t.full}</span><span>{t.over}</span></p>
           </div>
           <div class="mot-log" aria-label={t.reportsAria} aria-live="polite">
             <p class="mot-eyebrow">{t.reportsTitle}</p>
@@ -352,7 +352,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
       {tutorial ? <Tutorial t={t} loc={loc} eyebrow={t.motTitle} steps={t.motSteps.map((s, i) => ({ ...s, target: STEP_TARGETS[i] }))} onStep={(i) => setTab(i === 2 ? 'grade' : 'sweep')} onClose={() => { setTutorial(false); setTab('sweep'); timers.current.push(window.setTimeout(() => stageRef.current?.focus({ preventScroll: true }), 0)); }} /> : null}
       {debrief ? (
         <Debrief t={t} loc={loc} title={t.chartTitle} score={debrief.technique} challenge={challenge} picked={picked} onPick={pick} onFinish={finish} finishLabel={ctx.mode === 'practice' ? t.finish : t.writeToChart}>
-          <div class="mot-charts mot-charts--debrief">
+          <div class="mot-charts mot-charts--debrief" dir="ltr">
             <HChart t={t} eye="OD" grid={mine.OD} truth={truth.OD} sel={null} />
             <HChart t={t} eye="OS" grid={mine.OS} truth={truth.OS} sel={null} />
           </div>

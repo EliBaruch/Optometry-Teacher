@@ -1,5 +1,6 @@
 /** Slit-lamp joystick: drag the ball; the image follows. It springs back to centre. */
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { useT } from './locale';
 
 export interface StickProps {
   onChange: (x: number, y: number) => void;
@@ -9,6 +10,7 @@ export interface StickProps {
 }
 
 export function Stick({ onChange, external, disabled }: StickProps) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const live = useRef({ onChange, disabled });
@@ -57,7 +59,7 @@ export function Stick({ onChange, external, disabled }: StickProps) {
   const x = pos.x || external.x;
   const y = pos.y || external.y;
   return (
-    <div ref={ref} class="tn-stick" role="group" aria-label="Joystick: centre the mires (W A S D also work)" aria-disabled={disabled || undefined}>
+    <div ref={ref} class="tn-stick" dir="ltr" role="group" aria-label={t.stickLabel} aria-disabled={disabled || undefined}>
       <span class="tn-stick__arrow tn-stick__arrow--u" aria-hidden="true" />
       <span class="tn-stick__arrow tn-stick__arrow--d" aria-hidden="true" />
       <span class="tn-stick__arrow tn-stick__arrow--l" aria-hidden="true" />

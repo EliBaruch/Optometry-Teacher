@@ -4,6 +4,7 @@ import { Game } from './Game';
 import { onceDone } from './once';
 import { makeScenario } from './practice';
 import { report } from './report';
+import { S } from './strings';
 import './tonometry.css';
 
 const tonometry: MiniGameModule = {
@@ -19,6 +20,7 @@ const tonometry: MiniGameModule = {
     'A difference of 6 mmHg or more between the eyes is abnormal',
     'iCare rebound needs no drop or dye: average six shots, centred on the apex',
   ],
+  text: { he: { title: S.he.title, instructions: S.he.instructions, teaches: S.he.teaches } },
   mount(host, ctx, done) {
     const once = onceDone(done);
     host.classList.add('tn-host');

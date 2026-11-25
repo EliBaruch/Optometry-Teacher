@@ -23,7 +23,7 @@ export function Tutorial(props: { onClose: () => void; locale?: Locale }) {
   return (
     <div class="cv-overlay cv-overlay--soft" role="dialog" aria-modal="true" aria-labelledby="cv-tut-title">
       <div class="cv-tut" key={step}>
-        <div class="cv-tut__count">{step + 1} / {STEPS.length}</div>
+        <div class="cv-tut__count" dir="ltr">{step + 1} / {STEPS.length}</div>
         <h3 id="cv-tut-title" class="cv-tut__title">{s.title}</h3>
         <p class="cv-tut__body">{rich(s.body)}</p>
         <div class="cv-tut__dots" aria-hidden="true">{STEPS.map((_, i) => <span key={i} class={i === step ? 'is-on' : ''} />)}</div>

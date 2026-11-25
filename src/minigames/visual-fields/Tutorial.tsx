@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { Button, Icon } from '@ui-kit';
+import { Button, Icon, type IconName } from '@ui-kit';
 import { useVf } from './useVf';
 
 const KEY = 'lumen:visual-fields:tutorial-seen';
@@ -48,7 +48,7 @@ export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; redu
       }}
     >
       <div class="vf-tutorial__card" key={i}>
-        <div class="vf-tutorial__icon"><Icon name={step.icon} size={26} /></div>
+        <div class="vf-tutorial__icon"><Icon name={step.icon as IconName} size={26} /></div>
         <p class="vf-tutorial__step">{t.tutStep(i + 1, STEPS.length)}</p>
         <h3>{step.title}</h3>
         <p class="vf-tutorial__body">{step.body}</p>

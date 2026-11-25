@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import type { Eye, PatientFindings, PatientProfile } from '@core';
+import type { Eye, Locale, PatientFindings, PatientProfile } from '@core';
 import { EyeCanvas, eyeStateFromFindings } from '@render';
 import { GRID_30_2, pointKey, snapToGrid, temporalOf, type FieldPoint } from './model';
 import { frameFor, paintBowlBase, paintBowlLive, toDeg } from './paint';
 import type { Flash, PointResult } from './patient';
+import { iso, vfT } from './strings';
+import { useVf, useVfLocale } from './useVf';
 
 /** Mutable per-frame state shared with the game (no re-render per flash). */
 export interface BowlLiveRef {
@@ -27,9 +29,10 @@ export interface BowlProps {
   onKey?: (e: KeyboardEvent) => boolean;
 }
 
-export function describePoint(p: FieldPoint, eye: Eye): string {
+export function describePoint(p: FieldPoint, eye: Eye, locale: Locale = 'en'): string {
+  const s = vfT(locale);
   const t = temporalOf(eye, p.x);
-  return `${t > 0 ? 'Temporal' : 'Nasal'} ${Math.abs(t)}° · ${p.y > 0 ? 'Superior' : 'Inferior'} ${Math.abs(p.y)}°`;
+  return iso(locale, `${t > 0 ? s.ptTemporal : s.ptNasal} ${Math.abs(t)}° · ${p.y > 0 ? s.ptSuperior : s.ptInferior} ${Math.abs(p.y)}°`);
 }
 
 /** Find the next 30-2 location from `from` in a direction (keyboard navigation). */
@@ -45,6 +48,8 @@ export function stepFocus(from: FieldPoint, dx: number, dy: number): FieldPoint 
 }
 
 export function Bowl(props: BowlProps) {
+  const t = useVf();
+  const locale = useVfLocale();
   const wrap = useRef<HTMLDivElement>(null);
   const base = useRef<HTMLCanvasElement>(null);
   const top = useRef<HTMLCanvasElement>(null);
@@ -142,14 +147,14 @@ export function Bowl(props: BowlProps) {
   });
 
   return (
-    <div class="vf-bowl" ref={wrap}>
+    <div class="vf-bowl" ref={wrap} dir="ltr">
       <div
         class={`vf-bowl__dish${props.interactive ? ' is-live' : ''}`}
         style={{ width: size, height: size }}
         tabIndex={props.interactive ? 0 : -1}
         role="application"
-        aria-roledescription="perimeter bowl"
-        aria-label={`Perimeter bowl, ${props.eye === 'OD' ? 'right' : 'left'} eye. Arrow keys choose a test location; Enter or Space presents it.${shown ? ` Selected: ${describePoint(shown, props.eye)}.` : ''}`}
+        aria-roledescription={t.bowlRole}
+        aria-label={t.bowlAria(t.eyeName[props.eye], shown ? describePoint(shown, props.eye, locale) : null)}
         data-testid="vf-bowl"
         onPointerMove={(e) => {
           if (e.pointerType === 'touch') return;
@@ -202,16 +207,16 @@ export function Bowl(props: BowlProps) {
           <EyeCanvas state={monitorState} width={112} height={70} animate={!props.reduced} blink reducedMotion={props.reduced} />
           <span class="vf-monitor__rec" />
         </div>
-        <span class="vf-monitor__label">Gaze monitor · {props.eye}</span>
+        <span class="vf-monitor__label" dir="auto">{t.gazeMonitor(props.eye)}</span>
       </div>
 
-      <div class="vf-readout" aria-live="off">
-        {shown ? describePoint(shown, props.eye) : props.interactive ? 'Choose a location' : '—'}
+      <div class="vf-readout" aria-live="off" dir="auto">
+        {shown ? describePoint(shown, props.eye, locale) : props.interactive ? t.chooseLoc : '—'}
       </div>
 
       <div class="vf-buzzer">
         <div class="vf-buzzer__lamp" ref={lamp} data-testid="vf-buzzer" />
-        <span>Patient<br />response</span>
+        <span dir="auto">{t.patientResp1}<br />{t.patientResp2}</span>
       </div>
     </div>
   );

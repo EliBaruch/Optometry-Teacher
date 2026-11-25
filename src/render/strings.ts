@@ -25,7 +25,7 @@ export const RS = defineStrings({
       const word: Record<string, string> = {
         neutral: 'רגועה', worried: 'מודאגת', pain: 'כואבת', happy: 'שמחה', relieved: 'של הקלה', squint: 'של כיווץ עיניים', surprised: 'מופתעת',
       };
-      return `דיוקן, הבעה ${word[expression] ?? word.neutral}${signs.length ? `; ${signs.join(', ')}` : ''}`;
+      return `דיוקן המטופל: הבעה ${word[expression] ?? word.neutral}${signs.length ? `; ${signs.join(', ')}` : ''}`;
     },
     eyeCloseup: (eye: Eye) => `תקריב של העין ה${eye === 'OD' ? 'ימנית' : 'שמאלית'}`,
     fundus: (eye: Eye) => `קרקעית העין ה${eye === 'OD' ? 'ימנית' : 'שמאלית'}. גררו או השתמשו במקשי החצים כדי להזיז את המבט, ובמקשי פלוס ומינוס כדי לקרב ולהרחיק.`,

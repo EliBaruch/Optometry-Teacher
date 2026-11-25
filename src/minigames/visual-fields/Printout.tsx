@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Eye, FieldDefect } from '@core';
 import { paintPrintout } from './paint';
 import type { PointResult } from './patient';
+import { useVf } from './useVf';
 
 export interface PrintoutProps {
   eye: Eye;
@@ -21,6 +22,7 @@ export interface PrintoutProps {
 
 /** Ivory greyscale printout that builds up as points are tested. */
 export function Printout(p: PrintoutProps) {
+  const t = useVf();
   const ref = useRef<HTMLCanvasElement>(null);
   const [reveal, setReveal] = useState(p.truth ? (p.reduced ? 1 : 0) : 0);
 
@@ -72,21 +74,21 @@ export function Printout(p: PrintoutProps) {
       type={p.onClick ? 'button' : undefined}
       class={`vf-print${p.active ? ' is-active' : ''}${p.onClick ? ' is-button' : ''}`}
       onClick={p.onClick}
-      aria-label={p.onClick ? `Select the ${p.eye === 'OD' ? 'right' : 'left'} eye plot` : undefined}
+      aria-label={p.onClick ? t.printSelect(t.eyeName[p.eye]) : undefined}
     >
       <div class="vf-print__head">
         <strong>{p.eye}</strong>
-        <span>Central 30-2 · GIII white</span>
+        <span>{t.printHead}</span>
       </div>
       <div class="vf-print__paper">
-        <span class="vf-print__side vf-print__side--l">{p.eye === 'OD' ? 'N' : 'T'}</span>
+        <span class="vf-print__side vf-print__side--l">{p.eye === 'OD' ? t.sideN : t.sideT}</span>
         <canvas ref={ref} style={{ width: p.size, height: p.size }} aria-hidden="true" />
-        <span class="vf-print__side vf-print__side--r">{p.eye === 'OD' ? 'T' : 'N'}</span>
+        <span class="vf-print__side vf-print__side--r">{p.eye === 'OD' ? t.sideT : t.sideN}</span>
       </div>
       <div class="vf-print__foot">
-        <span>Pts <b>{p.results.size}</b></span>
-        <span>Stim <b>{p.stimuli}</b></span>
-        <span class={flBad ? 'is-bad' : ''}>FL <b>{fl}</b></span>
+        <span>{t.pts} <b>{p.results.size}</b></span>
+        <span>{t.stim} <b>{p.stimuli}</b></span>
+        <span class={flBad ? 'is-bad' : ''}>{t.fl} <b>{fl}</b></span>
       </div>
       {p.caption && <div class="vf-print__caption">{p.caption}</div>}
     </Tag>
