@@ -102,6 +102,7 @@ export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => vo
         <Rays />
       </div>
       <div class="cr-saved__card">
+        <span class="cr-saved__eyebrow">{reward.rarity === 'legendary' ? 'Code Red · Flawless work-up' : 'Code Red · Resolved'}</span>
         <div class="cr-saved__emblem">
           <EyeJewel uid="saved" size={180} class="cr-eye" />
           {p && (
@@ -110,7 +111,6 @@ export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => vo
             </span>
           )}
         </div>
-        <span class="cr-saved__eyebrow">{reward.rarity === 'legendary' ? 'Code Red · Flawless work-up' : 'Code Red · Resolved'}</span>
         <h2 class="cr-saved__title">Sight saved</h2>
         <p class="cr-saved__dx">
           {info.dxName} <span aria-hidden="true">·</span> called in <span class="lm-num">{info.sec < 1 ? "under a second" : formatDuration(info.sec)}</span>

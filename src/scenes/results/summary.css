@@ -1,7 +1,7 @@
 /* ==========================================================================
    Run summary — end-of-run report. Prefix: sm-
    ========================================================================== */
-.sm-content { padding-bottom: calc(130px + var(--lm-safe-bottom)) !important; }
+.sm-content { padding-bottom: calc(120px + var(--lm-safe-bottom)) !important; }
 .sm-page { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--lm-sp-7); }
 
 .sm-hero {
@@ -106,8 +106,9 @@ button.sm-study__item:focus-visible { outline: none; box-shadow: var(--lm-focus-
 .sm-actions {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--lm-z-hud);
   display: flex; align-items: center; justify-content: center; gap: var(--lm-sp-4);
-  padding: var(--lm-sp-7) var(--lm-gutter) calc(var(--lm-sp-5) + var(--lm-safe-bottom));
-  background: linear-gradient(180deg, rgba(6, 3, 13, 0), rgba(6, 3, 13, 0.85) 45%, rgba(6, 3, 13, 0.95));
+  padding: var(--lm-sp-5) var(--lm-gutter) calc(var(--lm-sp-4) + var(--lm-safe-bottom));
+  background: linear-gradient(180deg, rgba(8, 4, 18, 0.85), rgba(6, 3, 13, 0.98) 40%);
+  border-top: 1px solid rgba(255, 210, 122, 0.14); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   animation: lm-fade-up 700ms var(--lm-ease-out-expo) 1600ms both;
 }
 .sm-again { position: relative; }
@@ -129,7 +130,9 @@ button.sm-study__item:focus-visible { outline: none; box-shadow: var(--lm-focus-
   .sm-row { grid-template-columns: 44px minmax(0, 1fr) 34px 62px; gap: var(--lm-sp-2); padding: var(--lm-sp-2) var(--lm-sp-3); }
   .sm-row__n, .sm-row__res { display: none; }
   .sm-row__crown { left: 30px; }
-  .sm-actions { flex-direction: column-reverse; align-items: stretch; gap: var(--lm-sp-2); }
+  .sm-actions { flex-direction: row; align-items: center; gap: var(--lm-sp-2); }
+  .sm-actions .sm-back { flex: none; width: 48px; min-width: 48px; padding: 0; justify-content: center; }
+  .sm-again { flex: 1; min-width: 0; }
   .sm-again .lm-btn { width: 100%; min-width: 0; }
 }
 @keyframes sm-row-in { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }

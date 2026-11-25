@@ -35,6 +35,13 @@
 .mot-nose { position: absolute; left: 50%; top: 30%; bottom: 14%; width: 8%; transform: translateX(-50%); filter: blur(10px);
   background: linear-gradient(90deg, rgba(10, 4, 16, 0.3), rgba(255, 235, 210, 0.1) 50%, rgba(10, 4, 16, 0.3));
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 25%, #000 60%, transparent); mask-image: linear-gradient(180deg, transparent, #000 25%, #000 60%, transparent); }
+.mot-lid { position: absolute; top: 40%; width: 32%; height: 5%; border-radius: 50%; filter: blur(5px); background: linear-gradient(180deg, rgba(40, 18, 24, 0.5), transparent); }
+.mot-lid--l { left: 17%; } .mot-lid--r { right: 17%; }
+.mot-nostril { position: absolute; left: 50%; top: 66%; width: 13%; height: 3.4%; transform: translateX(-50%); border-radius: 50%; filter: blur(4px); background: radial-gradient(closest-side, rgba(20, 8, 14, 0.55), transparent); }
+.mot-lip { position: absolute; left: 50%; top: 80%; width: 22%; height: 5%; transform: translateX(-50%); border-radius: 50%; filter: blur(4px); background: radial-gradient(closest-side, rgba(150, 60, 70, 0.4), transparent); }
+.mot-cell.is-flag::after { content: ""; position: absolute; inset: 6% 4%; border-radius: 50%; box-shadow: 0 0 0 2px rgba(244, 114, 182, 0.7), 0 0 22px rgba(244, 114, 182, 0.55); animation: mot-pulse 1.1s ease-in-out infinite; pointer-events: none; }
+.mot-ticks i:first-child b { transform: translateX(-10%); }
+.mot-tabs { display: none; }
 .mot-cheek { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(180deg, transparent, rgba(8, 4, 16, 0.7)); }
 
 .mot-eyes { position: absolute; left: 14%; right: 14%; top: 50%; transform: translateY(-50%); display: flex; gap: 2%; justify-content: center; pointer-events: none; }
@@ -159,16 +166,34 @@
 @media (prefers-reduced-motion: reduce) { .mot-root *, .mot-root *::before { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
 
 @media (max-width: 760px) {
-  .mot-root { grid-template-rows: auto minmax(0, 1fr) auto; }
-  .mot-main, .mot-main--conv { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 10px 12px; }
+  .mot-main, .mot-main--conv { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding: 8px 12px; overscroll-behavior: contain; }
   .mot-wrap, .mot-panel { flex: none; }
-  .mot-stage { flex: none; height: min(62vw, 330px); min-height: 230px; }
-  .mot-eyes { left: 9%; right: 9%; } .mot-stage--conv .mot-eyes { left: 2%; right: 2%; }
-  .mot-head { padding: 8px 12px; gap: 8px; } .mot-head__hint { padding-left: 0; border-left: 0; flex-basis: 100%; order: 5; }
-  .mot-foot { flex-wrap: wrap; padding: 8px 12px; gap: 8px; } .mot-foot__bar { flex: 1 1 140px; } .mot-foot__note { order: 5; flex-basis: 100%; }
-  .mot-panel { overflow: visible; }
+  .mot-stage { flex: none; height: clamp(190px, 38vh, 330px); min-height: 0; }
+  .mot-stage--conv { height: clamp(120px, 21vh, 190px); }
+  .mot-eyes { left: 9%; right: 9%; } .mot-stage--conv .mot-eyes { left: 2%; right: 2%; top: 46%; }
+  .mot-head { padding: 6px 12px; gap: 6px; } .mot-head__hint { padding-left: 0; border-left: 0; flex-basis: 100%; order: 5; font-size: 0.78rem; line-height: 1.3; }
+  .mot-foot { flex-wrap: wrap; padding: 6px 12px; gap: 6px 10px; } .mot-foot__bar { flex: 1 1 120px; min-width: 0; } .mot-foot__note { order: 5; flex-basis: 100%; font-size: 0.7rem; }
+  .mot-foot__note:empty { display: none; }
+  .mot-panel { overflow: visible; padding: 10px; }
   .mot-node { width: 24px; height: 24px; margin: -12px 0 0 -12px; }
   .mot-side { display: none; }
-  .mot-ctl .mot-pace { order: 5; flex-basis: 100%; }
-  .mot-say { max-width: 62%; font-size: 0.78rem; }
+  .mot-say { max-width: 62%; font-size: 0.74rem; padding: 6px 9px; left: 8px; bottom: 8px; }
+  /* motility: two-step Sweep / Grade switch so the chart is never hidden under the footer */
+  .mot-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 3px; border-radius: 12px; flex: none; background: rgba(8, 4, 16, 0.62); box-shadow: inset 0 0 0 1px var(--lm-hairline); }
+  .mot-tabs button { min-height: 40px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; font-weight: 700; font-size: 0.82rem; color: var(--lm-muted) !important; }
+  .mot-tabs button small { opacity: 0.8; margin-left: 4px; }
+  .mot-tabs button.is-on { color: var(--lm-text-on-gold, #2a1a05) !important; background: linear-gradient(180deg, #fff0c9, #ffd98c 40%, #f5b942); }
+  .mot-main[data-tab="sweep"] > .mot-panel { display: none; }
+  .mot-main[data-tab="grade"] > .mot-wrap { display: none; }
+  .mot-cellc { min-height: 44px; }
+  /* convergence: compact ruler and a single docked control row */
+  .mot-ruler { padding: 4px 10px 4px 6px; grid-template-columns: 30px minmax(0, 1fr); gap: 4px; }
+  .mot-ruler__eye small { display: none; }
+  .mot-ruler__track { height: 52px; margin: 0 16px 0 10px; }
+  .mot-ctl { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mot-ctl .mot-hold { justify-content: center; padding: 0 8px; }
+  .mot-ctl .mot-pace { grid-column: 1 / -1; order: 5; min-width: 0; }
+  .mot-ctl > .lm-btn, .mot-ctl > button:not(.mot-hold) { grid-column: 1 / -1; }
+  .mot-panel--conv { gap: 6px; }
+  .mot-meas { grid-template-columns: 1fr 1fr; }
 }

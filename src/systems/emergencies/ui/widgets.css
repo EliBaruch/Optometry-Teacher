@@ -48,7 +48,7 @@
   text-shadow: 0 0 14px color-mix(in srgb, var(--cr-c) 70%, transparent), 0 0 2px rgba(255, 255, 255, 0.6);
   transition: color 300ms;
 }
-.cr-clock__sub { font: 500 var(--lm-fs-xs)/1.2 var(--lm-font-ui); color: var(--lm-muted); white-space: nowrap; }
+.cr-clock__sub { font: 500 var(--lm-fs-xs)/1.2 var(--lm-font-ui); color: var(--lm-ivory-dim); white-space: nowrap; }
 .cr-clock--critical .cr-clock__sub, .cr-clock--final .cr-clock__sub { color: #ffb4bb; }
 .cr-clock--final { animation: cr-clock-in 620ms var(--lm-ease-spring-soft) both, cr-throb var(--cr-beat) var(--lm-ease-out) infinite; }
 .cr-clock--final .cr-clock__digits { color: #ffe1e4; }
@@ -127,7 +127,7 @@
 .cr-grand__pill--gold { box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.4); background: rgba(255, 210, 122, 0.07); }
 .cr-grand__pip { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.16); }
 .cr-grand__pip.is-on { background: #ff6b78; box-shadow: 0 0 6px #ef4444; }
-.cr-grand__rotate { font: 500 var(--lm-fs-xs)/1 var(--lm-font-ui); color: var(--lm-muted-2); margin-left: 2px; }
+.cr-grand__rotate { font: 500 var(--lm-fs-xs)/1 var(--lm-font-ui); color: var(--lm-ivory-dim); margin-left: 2px; }
 .cr-grand__cta { display: grid; justify-items: end; }
 .cr-grand.is-still .cr-grand__glow, .cr-grand.is-still .cr-grand__star { animation: none; }
 
@@ -286,3 +286,7 @@
 }
 .cr-record__saves b { color: #5eead4; }
 @media (max-width: 560px) { .cr-record__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cr-clock, .cr-clock *, .cr-grand, .cr-grand *, .cr-debrief, .cr-debrief *, .cr-record, .cr-record * { animation: none !important; }
+}

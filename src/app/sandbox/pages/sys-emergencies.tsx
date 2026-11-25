@@ -127,7 +127,7 @@ function Page({ services }: { services: GameServices }) {
 
         {show('hub') && (
           <section>
-            <div class="crsb-label">hub-banner {featured && <span>· this week: {featured.id}</span>}</div>
+            <div class="crsb-label">hub-banner</div>
             <HudSlot slot="hub-banner" />
           </section>
         )}
@@ -188,9 +188,9 @@ const CSS = `
 .crsb-head h1 { margin: 4px 0 0; font-size: var(--lm-fs-3xl); }
 .crsb-label { font: 600 10px/1 var(--lm-font-num); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-muted-2); margin-bottom: 8px; }
 .crsb-label span { text-transform: none; letter-spacing: 0; }
-.crsb-exam { position: relative; min-height: 190px; border-radius: 20px; padding: 16px; background: rgba(6,3,13,.35); box-shadow: inset 0 0 0 1px var(--lm-hairline); }
-.crsb-overlay { position: absolute; top: 36px; right: 14px; }
-.crsb-room { padding-top: 70px; color: var(--lm-ivory-dim); }
+.crsb-exam { position: relative; border-radius: 20px; padding: 16px; background: rgba(6,3,13,.35); box-shadow: inset 0 0 0 1px var(--lm-hairline); }
+.crsb-overlay { display: flex; justify-content: flex-end; min-height: 96px; margin-bottom: 12px; }
+.crsb-room { padding-top: 0; color: var(--lm-ivory-dim); }
 .crsb-two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
 .crsb-hint { font-size: 13px; }
 .crsb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(470px, calc(100vw - 24px)); box-sizing: border-box; padding: 10px; border-radius: 14px;
@@ -200,7 +200,7 @@ const CSS = `
 .crsb-dock select { width: 100%; background: #1a0f2e; color: var(--lm-ivory); border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 6px; font: 12px var(--lm-font-num); }
 @media (max-width: 760px) {
   .crsb-two { grid-template-columns: 1fr; }
-  .crsb-overlay { left: 14px; right: auto; }
+  .crsb-overlay { justify-content: flex-start; }
 }
 `;
 

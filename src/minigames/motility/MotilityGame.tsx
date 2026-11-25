@@ -9,7 +9,7 @@ import {
 import { gradingScore, motilityAccuracy } from './scoring';
 import { reportMotility } from './report';
 import { motilityChallenge, motilityTeach } from './practice';
-import { Debrief, EyePair, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
+import { Debrief, EyePair, Face, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
 
 const STEPS: TutStep[] = [
   { title: 'Lead the eyes through the H', body: 'Drag the glowing wand, or use the arrow keys, to the nine positions of gaze: straight ahead, right, left, up, down and the four diagonals. Hold briefly at each one so the patient can follow.', keys: ['Drag', '← ↑ → ↓', '1–9'] },
@@ -67,6 +67,8 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const [debrief, setDebrief] = useState<{ grading: number; technique: number } | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const [nudge, setNudge] = useState('');
+  const [tab, setTab] = useState<'sweep' | 'grade'>('sweep');
+  const autoTab = useRef(false);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const wandEl = useRef<HTMLDivElement>(null);
@@ -227,6 +229,9 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   };
 
   const all = visited.length >= 9;
+  useEffect(() => {
+    if (all && !autoTab.current) { autoTab.current = true; setTab('grade'); setNudge('All nine positions seen. Now grade each eye.'); }
+  }, [all]);
   const hint = tutorial ? 'Watch the tutorial, or skip it.' : !all ? 'Guide the wand through all nine positions of gaze and watch each eye follow.' : 'Now grade each eye in every gaze: 0 full, − underaction, + overaction.';
   const cur = sel ? mine[sel.eye][sel.gaze] : 0;
 
@@ -237,12 +242,16 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
         <p class="mot-head__hint" key={hint} aria-live="polite">{hint}</p>
         <button type="button" class="mot-help" onClick={() => setTutorial(true)} aria-label="Show tutorial"><Icon name="info" size={18} /></button>
       </header>
-      <div class="mot-main">
+      <div class="mot-main" data-tab={tab}>
+        <div class="mot-tabs" role="tablist" aria-label="Examination step">
+          <button type="button" role="tab" aria-selected={tab === 'sweep'} class={tab === 'sweep' ? 'is-on' : ''} onClick={() => setTab('sweep')}>1 · Sweep <small>{visited.length}/9</small></button>
+          <button type="button" role="tab" aria-selected={tab === 'grade'} class={tab === 'grade' ? 'is-on' : ''} onClick={() => setTab('grade')}>2 · Grade <small>{gradedCount}</small></button>
+        </div>
         <div class="mot-wrap">
           <div ref={stageRef} class="mot-stage" tabIndex={0} role="application" aria-label="Fixation wand. Arrow keys move it; number keys jump to the nine positions of gaze."
             style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}
             onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onKeyDown={onKey} onKeyUp={onKeyUp} onBlur={() => keys.current.clear()}>
-            <div class="mot-face" aria-hidden="true"><i class="mot-brow mot-brow--l" /><i class="mot-brow mot-brow--r" /><i class="mot-nose" /><i class="mot-cheek" /></div>
+            <Face />
             <svg class="mot-h" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <path d="M10 12H90M10 50H90M10 88H90M50 12V88" />
             </svg>

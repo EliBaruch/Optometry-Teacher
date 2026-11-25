@@ -261,8 +261,8 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
       </div>
 
       <footer class="sm-actions">
-        <Button variant="ghost" icon="home" sfx="back" onClick={() => services.router.go('hub')}>
-          Back to clinic
+        <Button variant="ghost" icon="home" sfx="back" class="sm-back" aria-label="Back to clinic" onClick={() => services.router.go('hub')}>
+          <span class="rs-lbl">Back to clinic</span>
         </Button>
         {mode && (
           <div class="sm-again">

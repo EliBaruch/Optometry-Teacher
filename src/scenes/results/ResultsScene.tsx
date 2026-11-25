@@ -275,7 +275,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
         </div>
 
         <div class={cx('rs-body', panels && 'has-rail')}>
-          <div class={cx('rs-lesson', hit.teaching && 'is-shown')} aria-hidden={!hit.teaching}>
+          <div class={cx('rs-lesson', hit.teaching && 'is-shown')}>
             <Divider label="The lesson" />
             <div class="rs-grid">
               <DiagnosisPanel review={review} panelRef={(el) => (dxPanel.current = el)} />
@@ -322,13 +322,13 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
         </div>
         <div class={cx('rs-actions__btns', (runActive ? 1 : 0) + (hasCodex ? 1 : 0) === 1 && 'is-pair')}>
           {runActive && (
-            <Button variant="ghost" icon="home" onClick={onBack} sfx="back">
-              Back to clinic
+            <Button variant="ghost" icon="home" onClick={onBack} sfx="back" class="rs-sec" aria-label="Back to clinic">
+              <span class="rs-lbl">Back to clinic</span>
             </Button>
           )}
           {hasCodex && (
-            <Button variant="glass" icon="book" onClick={() => services.router.go('codex', { diagnosisId: review.correctId })}>
-              Codex entry
+            <Button variant="glass" icon="book" onClick={() => services.router.go('codex', { diagnosisId: review.correctId })} class="rs-sec" aria-label="Codex entry">
+              <span class="rs-lbl">Codex entry</span>
             </Button>
           )}
           <div class="rs-next" ref={nextBtn}>

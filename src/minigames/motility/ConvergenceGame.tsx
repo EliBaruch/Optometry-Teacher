@@ -8,7 +8,7 @@ import {
 import { convergenceAccuracy } from './scoring';
 import { reportConvergence } from './report';
 import { convergenceChallenge } from './practice';
-import { Debrief, EyePair, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
+import { Debrief, EyePair, Face, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
 
 const STEPS: TutStep[] = [
   { title: 'Bring the target in slowly', body: 'Hold the approach button (or the left arrow) to slide the accommodative target toward the nose at a steady 2–5 cm per second. Too fast and you will overshoot the true break.', keys: ['← hold', 'Drag'] },
@@ -43,6 +43,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const [nudge, setNudge] = useState('');
   const [debrief, setDebrief] = useState<{ accuracy: number } | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
+  const [flag, setFlag] = useState<Eye | null>(null);
 
   const max = phase === 'amp' ? PUSHUP_FAR_CM : 40;
   const rootRef = useRef<HTMLDivElement>(null);
@@ -53,7 +54,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const readRef = useRef<HTMLSpanElement>(null);
   const paceRef = useRef<HTMLSpanElement>(null);
   const paceTxt = useRef<HTMLSpanElement>(null);
-  const c = useRef({ d: 40, td: 40, vel: 0, sp: 0, cg: convergenceGaze(40), drag: false, hold: 0 as -1 | 0 | 1, slow: false, fast: 0, moving: 0 });
+  const c = useRef({ d: 40, td: 40, vel: 0, sp: 0, cg: convergenceGaze(40), drag: false, holdAt: 0, hold: 0 as -1 | 0 | 1, slow: false, fast: 0, moving: 0 });
   const sim = useRef(new ConvSim(truth));
   const live = useRef({ phase, ampEye, max, tutorial, debrief: false, silent: truth.silent, prev: 'fused' as 'fused' | 'broken', blurSaid: false, sayId: 0 });
   live.current.phase = phase; live.current.ampEye = ampEye; live.current.max = max; live.current.tutorial = tutorial; live.current.debrief = !!debrief;
@@ -85,6 +86,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     else sim.current.drift += (0 - sim.current.drift) * 0.2;
     if (active && L.phase !== 'amp' && state !== L.prev) {
       L.prev = state;
+      setFlag(state === 'broken' ? truth.deviatingEye : null);
       if (state === 'broken') {
         play('thud', { volume: 0.4 });
         if (!L.silent) { speak('Double! Now I see two targets.'); play('pop', { pitch: 0.8 }); }
@@ -97,7 +99,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     for (const e of ['OD', 'OS'] as Eye[]) {
       const b = base[e];
       const drift = L.phase !== 'amp' && e === truth.deviatingEye ? sim.current.drift : 0;
-      out[e] = { ...b, gaze: { x: nasalSign(e) * k.cg * (1 - 1.08 * drift), y: 0.05 + 0.08 * prox }, pupilMm: Math.max(2, b.pupilMm - 1.4 * prox) };
+      out[e] = { ...b, gaze: { x: nasalSign(e) * k.cg * (1 - 1.7 * drift), y: 0.05 + 0.08 * prox }, pupilMm: Math.max(2, b.pupilMm - 1.4 * prox) };
     }
 
     // DOM: ruler handle, front-view card, readouts
@@ -125,7 +127,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const retry = () => {
     sim.current = new ConvSim(truth); live.current.prev = 'fused';
     resetTarget(40); c.current.fast = 0; c.current.moving = 0;
-    setMarks((m) => ({ ...m, brk: null, rec: null })); setPhase('brk'); setTrials((n) => n + 1); setSay(null); setNudge('');
+    setMarks((m) => ({ ...m, brk: null, rec: null })); setFlag(null); setPhase('brk'); setTrials((n) => n + 1); setSay(null); setNudge('');
     play('whoosh', { volume: 0.4 });
   };
 
@@ -165,10 +167,18 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     const r = trackRef.current!.getBoundingClientRect();
     c.current.td = Math.max(1.5, Math.min(max, ((clientX - r.left) / r.width) * max));
   };
-  const hold = (dir: -1 | 1) => ({
-    onPointerDown: (e: PointerEvent) => { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); c.current.hold = dir; rootRef.current?.focus({ preventScroll: true }); },
-    onPointerUp: () => { c.current.hold = 0; }, onPointerCancel: () => { c.current.hold = 0; },
-  });
+  // Hold buttons work with mouse, pen and touch; a quick tap nudges the target 2 cm so phones never depend on a long press.
+  const hold = (dir: -1 | 1) => {
+    const stop = (e?: PointerEvent) => {
+      if (c.current.hold !== dir) return;
+      c.current.hold = 0;
+      if (e && e.type === 'pointerup' && performance.now() - c.current.holdAt < 220) c.current.td += dir * 2;
+    };
+    return {
+      onPointerDown: (e: PointerEvent) => { try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* ignore */ } c.current.hold = dir; c.current.holdAt = performance.now(); e.preventDefault(); rootRef.current?.focus({ preventScroll: true }); },
+      onPointerUp: stop, onPointerCancel: () => stop(), onLostPointerCapture: () => stop(), onContextMenu: (e: Event) => e.preventDefault(),
+    };
+  };
 
   const amp = (e: Eye) => marks.amp[e];
   const ampErr = (e: Eye) => (amp(e) == null ? null : amp(e)! - expectedPushupD(amps[e]));
@@ -219,8 +229,8 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
       <div class="mot-main mot-main--conv">
         <div class="mot-wrap">
           <div class="mot-stage mot-stage--conv" style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}>
-            <div class="mot-face" aria-hidden="true"><i class="mot-brow mot-brow--l" /><i class="mot-brow mot-brow--r" /><i class="mot-nose" /><i class="mot-cheek" /></div>
-            <EyePair frame={frame} covered={phase === 'amp' ? OTHER(ampEye) : null} />
+            <Face />
+            <EyePair frame={frame} flag={phase === 'amp' ? null : flag} covered={phase === 'amp' ? OTHER(ampEye) : null} />
             <div ref={cardRef} class="mot-tcard" aria-hidden="true"><div ref={lettersRef} class="mot-tcard__l">E F P T</div></div>
             {say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}
           </div>
@@ -256,7 +266,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
             <div><dt>Amplitude OD</dt><dd class="mot-num">{amp('OD') != null ? `${fmt(amp('OD')!)} D` : '—'}</dd></div>
             <div><dt>Amplitude OS</dt><dd class="mot-num">{amp('OS') != null ? `${fmt(amp('OS')!)} D` : '—'}</dd></div>
           </dl>
-          <p class="mot-norms">Normal NPC: break ≤ 6 cm, recovery ≤ 7 cm; receded beyond 10 cm. Expected amplitude for {age}: about {fmt(Math.max(h.avg, 0.5))} D (minimum {fmt(h.min)} D).</p>
+          <p class="mot-norms">Normal NPC: break ≤ 6 cm, recovery ≤ 7 cm; receded beyond 10 cm. Expected amplitude for {age}: about {fmt(Math.max(h.avg, 0.5))} D ({h.min >= 0.5 ? `minimum ${fmt(h.min)} D` : 'no minimum expected at this age'}).</p>
           <p class="mot-norms">Keys: <b>← / →</b> move (Shift = slower), <b>B</b> or <b>Space</b> marks, <b>R</b> repeats.</p>
         </aside>
       </div>

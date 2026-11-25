@@ -262,14 +262,14 @@ export function createScope(canvas: HTMLCanvasElement): ScopeArt {
       const off = sc.s * Rp0;
       const d = g.createLinearGradient(off - hw * 2.6, 0, off + hw * 2.6, 0);
       const dk = (a: number) => `rgba(3,1,6,${a})`;
-      d.addColorStop(0, dk(0.74));
+      d.addColorStop(0, dk(0.68));
       d.addColorStop(0.22, dk(0.68));
       d.addColorStop(0.38, dk(0.3));
       d.addColorStop(0.46, dk(0));
       d.addColorStop(0.54, dk(0));
       d.addColorStop(0.62, dk(0.3));
       d.addColorStop(0.78, dk(0.68));
-      d.addColorStop(1, dk(0.74));
+      d.addColorStop(1, dk(0.68));
       g.fillStyle = d;
       g.fillRect(-Rv * 2, -Rv * 2, Rv * 4, Rv * 4);
       g.restore();

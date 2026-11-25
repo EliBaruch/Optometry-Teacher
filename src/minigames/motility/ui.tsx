@@ -12,7 +12,7 @@ export interface EyeFrame { OD: EyeState; OS: EyeState }
  * Two live eye canvases (OD on the examiner's left). `frame` is called once per animation frame
  * and may also drive other DOM through refs, so a whole instrument runs from one RAF.
  */
-export function EyePair({ frame, covered }: { frame: (dtMs: number, nowMs: number) => EyeFrame; covered?: Eye | null }) {
+export function EyePair({ frame, covered, flag }: { frame: (dtMs: number, nowMs: number) => EyeFrame; covered?: Eye | null; flag?: Eye | null }) {
   const cvs = { OD: useRef<HTMLCanvasElement>(null), OS: useRef<HTMLCanvasElement>(null) };
   const cells = { OD: useRef<HTMLDivElement>(null), OS: useRef<HTMLDivElement>(null) };
   const live = useRef(frame);
@@ -58,12 +58,23 @@ export function EyePair({ frame, covered }: { frame: (dtMs: number, nowMs: numbe
   return (
     <div class="mot-eyes">
       {(['OD', 'OS'] as Eye[]).map((e) => (
-        <div key={e} ref={cells[e]} class={`mot-cell${covered === e ? ' is-covered' : ''}`}>
+        <div key={e} ref={cells[e]} class={`mot-cell${covered === e ? ' is-covered' : ''}${flag === e ? ' is-flag' : ''}`}>
           <canvas ref={cvs[e]} class="mot-canvas" aria-hidden="true" />
           <span class="mot-eyelab">{e}</span>
           {covered === e ? <span class="mot-occluder" aria-hidden="true" /> : null}
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Soft sculpted face: brows, lid creases, nose bridge, philtrum and lips, all aria-hidden. */
+export function Face() {
+  return (
+    <div class="mot-face" aria-hidden="true">
+      <i class="mot-brow mot-brow--l" /><i class="mot-brow mot-brow--r" />
+      <i class="mot-lid mot-lid--l" /><i class="mot-lid mot-lid--r" />
+      <i class="mot-nose" /><i class="mot-nostril" /><i class="mot-lip" /><i class="mot-cheek" />
     </div>
   );
 }
