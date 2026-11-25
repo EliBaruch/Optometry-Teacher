@@ -14,7 +14,7 @@
  * Angles follow the TABO convention: degrees counter-clockwise from 3 o'clock
  * as the examiner sees the patient. Pure — no DOM.
  */
-import { isolateLtrRuns, pickStrings, type Keratometry, type Locale } from '@core';
+import { pickStrings, type Keratometry, type Locale } from '@core';
 import { S } from './strings';
 
 export type MireGrade = Keratometry['mires'];
@@ -237,5 +237,5 @@ export function fmtCornealCyl(r: KReading, locale: Locale = 'en'): string {
   const t = pickStrings(S, locale);
   if (c < 0.125) return t.spherical;
   const out = `${c.toFixed(2)} D ${t.ori[orientation(r.axisK1)]} (−${c.toFixed(2)} × ${fmtAxis(r.axisK1)})`;
-  return locale === 'he' ? isolateLtrRuns(out) : out;
+  return locale === 'he' ? `\u2066${out}\u2069` : out;
 }

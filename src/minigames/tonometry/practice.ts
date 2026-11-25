@@ -15,10 +15,14 @@ const editionLocale = (): Locale => (typeof document !== 'undefined' && document
 /** Hebrew practice patients: the same slots as the English lists (so the seeded draw is identical), written for Israel. */
 const NAMES_F_HE = ['מרים לוי', 'לוסי פרארי', 'עאלייה חאמד', 'אירינה וולקוב', 'רוזה בן־שושן', 'סיגלית אוחיון', 'פאטמה זועבי', 'נטע שפירא'];
 const NAMES_M_HE = ['אברהם כץ', 'דמיטרי וולקוב', 'חמזה סעדי', 'אסף פרץ', 'יורם ברנדט', 'דני מזרחי', 'מוחמד עיסא', 'יוסף בן־דוד'];
-const JOBS_HE = ['מורה בגמלאות', 'נהג מונית', 'רואה חשבון', 'אופה', 'רוקח', 'נגר', 'זמר במקהלה', 'חקלאי', 'בודק תוכנה'];
+/** [feminine, masculine] */
+const JOBS_HE: [string, string][] = [
+  ['מורה בגמלאות', 'מורה בגמלאות'], ['נהגת מונית', 'נהג מונית'], ['רואת חשבון', 'רואה חשבון'], ['אופה', 'אופה'], ['רוקחת', 'רוקח'],
+  ['נגרית', 'נגר'], ['זמרת במקהלה', 'זמר במקהלה'], ['חקלאית', 'חקלאי'], ['בודקת תוכנה', 'בודק תוכנה'],
+];
 const PERSONALITY_HE: [string, string][] = [
   ['רגועה, אבל מצמצת כשהאור מתקרב.', 'רגוע, אבל מצמץ כשהאור מתקרב.'],
-  ['חוששת מ״הבדיקה עם הפוף של האוויר״.', 'חושש מ״הבדיקה עם הפוף של האוויר״.'],
+  ['חוששת מ״בדיקת הפוף״.', 'חושש מ״בדיקת הפוף״.'],
   ['פטפטנית, אבל יושבת בלי לזוז כשמבקשים.', 'פטפטן, אבל יושב בלי לזוז כשמבקשים.'],
   ['נוטה לסחוט את העפעפיים חזק.', 'נוטה לסחוט את העפעפיים חזק.'],
 ];
@@ -109,7 +113,7 @@ export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
     name: rng.pick(sex === 'F' ? (he ? NAMES_F_HE : NAMES_F) : (he ? NAMES_M_HE : NAMES_M)),
     age: g.age,
     sex,
-    occupation: rng.pick(he ? JOBS_HE : JOBS),
+    occupation: he ? rng.pick(JOBS_HE)[sex === 'F' ? 0 : 1]! : rng.pick(JOBS),
     personality: he ? rng.pick(PERSONALITY_HE)[sex === 'F' ? 0 : 1] : rng.pick(personalityEn),
     avatar: { ...generateAvatar(rng, { age: g.age, sex }), glasses: 'none' },
   };

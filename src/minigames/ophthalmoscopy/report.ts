@@ -139,5 +139,5 @@ export function report(findings: PatientFindings, patient: PatientProfile): Reve
 /** One-line summary of an eye for practice answer keys. */
 export function summarise(findings: PatientFindings, eye: Eye, locale: Locale = 'en'): string {
   const lines = eyeLines(findings, eye, false, locale).filter((l) => l.flag !== 'normal');
-  return lines.length ? lines.map((l) => `${l.label} ${l.value}`).join('; ') : strs(locale).normalFundus;
+  return lines.length ? lines.map((l) => `${l.label}${locale === 'he' ? ':' : ''} ${l.value}`).join('; ') : strs(locale).normalFundus;
 }

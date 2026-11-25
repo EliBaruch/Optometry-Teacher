@@ -14,9 +14,9 @@ const NAMES_F = ['Amara Osei', 'Lena Fischer', 'Priya Raman', 'Sofia Marquez', '
 const NAMES_M = ['Kwame Mensah', 'Tom Becker', 'Arjun Mehta', 'Diego Alvarez', 'Kenji Mori', 'Liam O’Brien', 'Yusuf Kaya', 'Mateo Rossi'];
 const NAMES_X = ['Alex Rivera', 'Sam Okafor', 'Robin Ashby', 'Jordan Lee'];
 
-const NAMES_F_HE = ['אסתר אופיר', 'לנה פישר', 'פריה רמן', 'סופיה מרקס', 'הילה סבן', 'שלומית מרטין', 'נור חדאד', 'אינגריד לונד'];
-const NAMES_M_HE = ['קוואמה מנסה', 'תומר בקר', 'ארג׳ון מהטה', 'דייגו אלווארז', 'קנג׳י מורי', 'ליאם אוברייאן', 'יוסוף קאיה', 'מתאו רוסי'];
-const NAMES_X_HE = ['אלכס ריברה', 'סם אוקפור', 'רובין אשבי', 'ג׳ורדן לי'];
+const NAMES_F_HE = ['אסתר אופיר', 'רחל פישר', 'פריאל מזרחי', 'סיגל מרקוביץ׳', 'הילה סבן', 'שלומית מרטין', 'נור חדאד', 'אורית לוי'];
+const NAMES_M_HE = ['קוואמי כהן', 'תומר בקר', 'אבי מזרחי', 'דייגו אלבז', 'קובי מורי', 'ליאם אברהם', 'יוסוף קאיה', 'מתי רוזן'];
+const NAMES_X_HE = ['אלכס רבינוביץ׳', 'סמי חורי', 'רובין אשכנזי', 'יובל לי'];
 
 /** [masculine, feminine] — picked by the patient's sex. */
 const JOBS_HE: Record<Kind, [string, string][]> = {

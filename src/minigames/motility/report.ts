@@ -23,7 +23,7 @@ export function reportMotilityFor(f: PatientFindings, _p: PatientProfile | undef
   const out: RevealedFinding[] = [];
   const sick = EYES.filter((e) => cellsText(g[e]));
   if (!sick.length) {
-    out.push({ label: he ? 'תנועות משותפות' : 'Versions', value: he ? 'מלאות, חלקות ושוות (SAFE)' : 'Full, smooth, equal (SAFE)', eye: 'OU', flag: 'normal' });
+    out.push({ label: he ? 'תנועות משותפות' : 'Versions', value: he ? 'מלאות, חלקות ושוות' : 'Full, smooth, equal (SAFE)', eye: 'OU', flag: 'normal' });
   } else {
     for (const e of sick) {
       out.push({ label: he ? 'תנועות משותפות' : 'Versions', value: cellsText(g[e]), eye: e, flag: pat.id === 'cn3' ? 'critical' : 'abnormal' });

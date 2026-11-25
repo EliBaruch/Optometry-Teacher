@@ -374,7 +374,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     <LocaleContext.Provider value={ctx.locale}>
     <div class="cvt-root" ref={rootRef} tabIndex={-1} aria-label={t.coverTestAria} data-spot={tutorial ? spot ?? '' : ''}>
       <header class="cvt-head">
-        <div class="cvt-head__title"><Icon name="cover-test" size={18} /> {t.title}</div>
+        <div class="cvt-head__title"><Icon name="cover-test" size={18} /> {t.headTitle}</div>
         <p class="cvt-head__hint" key={hint.slice(0, 18)} aria-live="polite"><span class="cvt-hint-long">{hint}</span><span class="cvt-hint-short">{hintShort}</span></p>
         <div class="cvt-seg" role="radiogroup" aria-label={t.fixDistance}>
           {TARGETS.map((tg) => (

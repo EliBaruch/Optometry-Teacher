@@ -4,12 +4,22 @@ import {
 } from '@core';
 import { generateAvatar } from '@render';
 import { anisocoria } from './model';
-import { P } from './strings';
+import { fix, P } from './strings';
 
 export type PupilKind = 'normal' | 'physiologic' | 'rapd' | 'horner' | 'adie' | 'cn3' | 'pharm' | 'lnd';
 
 const NAMES_F = ['Margit Hoffmann', 'Lucia Ferrari', 'Aaliyah Brooks', 'Ingrid Nilsen', 'Mei Tanaka', 'Rosa Delgado', 'Fatima Zahra', 'Ewa Kowal'];
 const NAMES_M = ['Walter Pryce', 'Dmitri Volkov', 'Hamza Qureshi', 'Luis Ortega', 'Tobias Brandt', 'Kofi Asante', 'Arvind Nair', 'Henrik Moller'];
+const NAMES_F_HE = ['מרים לוי', 'לוסי פרארי', 'עאלייה חאמד', 'אירינה וולקוב', 'רוזה בן־שושן', 'סיגלית אוחיון', 'פאטמה זועבי', 'נטע שפירא'];
+const NAMES_M_HE = ['אברהם כץ', 'דמיטרי וולקוב', 'חמזה סעדי', 'אסף פרץ', 'יורם ברנדט', 'דני מזרחי', 'מוחמד עיסא', 'יוסף בן־דוד'];
+const JOBS_HE = ['מורה בגמלאות', 'נהג מונית', 'רואה חשבון', 'אופה', 'רוקח', 'נגר', 'זמר במקהלה', 'חקלאי', 'בודק תוכנה'];
+const PERSONALITY_HE: [string, string][] = [
+  ['מסתכלת ישר קדימה ומנסה לא למצמץ.', 'מסתכל ישר קדימה ומנסה לא למצמץ.'],
+  ['מכווצת עיניים כשהאור מתקרב.', 'מכווץ עיניים כשהאור מתקרב.'],
+  ['פטפטנית, אבל יושבת בלי לזוז כשמבקשים.', 'פטפטן, אבל יושב בלי לזוז כשמבקשים.'],
+  ['קצת לחוצה מהאור החזק.', 'קצת לחוץ מהאור החזק.'],
+];
+const editionLocale = (): Locale => (typeof document !== 'undefined' && document.documentElement.lang === 'he' ? 'he' : 'en');
 const JOBS = ['Retired teacher', 'Taxi driver', 'Accountant', 'Baker', 'Pharmacist', 'Carpenter', 'Choir singer', 'Farmer', 'Software tester'];
 const other = (e: Eye): Eye => (e === 'OD' ? 'OS' : 'OD');
 
@@ -27,7 +37,7 @@ export function pickKind(rng: Rng, difficulty: number): PupilKind {
 const dim = (age: number) => (age > 60 ? 5 : 6);
 const lit = (age: number) => (age > 60 ? 2.5 : 3);
 
-interface Gen { age: number; patch: DeepPartial<PatientFindings>; story: string }
+interface Gen { age: number; patch: DeepPartial<PatientFindings>; story: string; storyHe: string }
 
 function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
   const age = kind === 'normal' || kind === 'physiologic' ? rng.int(18, 80) : rng.int(30, 78);
@@ -38,11 +48,11 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
   const brisk = { OD: 'brisk', OS: 'brisk' } as const;
   switch (kind) {
     case 'normal':
-      return { age, patch: { pupils: { sizeLightMm: { OD: L, OS: L }, sizeDarkMm: { OD: D, OS: D } } }, story: 'Equal, round, briskly reactive pupils: no RAPD, normal near response.' };
+      return { age, patch: { pupils: { sizeLightMm: { OD: L, OS: L }, sizeDarkMm: { OD: D, OS: D } } }, story: 'Equal, round, briskly reactive pupils: no RAPD, normal near response.', storyHe: 'אישונים שווים, עגולים ותגובתיים במהירות: אין RAPD ותגובת הקרוב תקינה.' };
     case 'physiologic': {
       const a = rng.pick([0.5, 0.8, 1.0]);
       return {
-        age, story: `Physiologic anisocoria: about ${a} mm, the same in light and dark, brisk reactions and no ptosis.`,
+        age, story: `Physiologic anisocoria: about ${a} mm, the same in light and dark, brisk reactions and no ptosis.`, storyHe: `אניזוקוריה פיזיולוגית: כ-${a} מ״מ, זהה באור ובחושך, תגובות מהירות וללא פטוזיס.`,
         patch: { pupils: { sizeLightMm: { [eye]: L + a, [ok]: L }, sizeDarkMm: { [eye]: D + a, [ok]: D } } } as DeepPartial<PatientFindings>,
       };
     }
@@ -50,7 +60,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
       const grade = (difficulty > 0.6 ? rng.pick([1, 1, 2, 3, 4]) : rng.pick([2, 2, 3, 3, 4, 1])) as 1 | 2 | 3 | 4;
       const sev = grade >= 3 ? { reactivity: { ...brisk }, } : {};
       return {
-        age, story: `RAPD ${eye} grade ${grade}+: the pupils are equal and brisk, but when the light swings onto the ${eye} both pupils dilate (optic nerve or extensive retinal disease in that eye).`,
+        age, story: `RAPD ${eye} grade ${grade}+: the pupils are equal and brisk, but when the light swings onto the ${eye} both pupils dilate (optic nerve or extensive retinal disease in that eye).`, storyHe: `‏RAPD ב-${eye} דרגה ${grade}+: האישונים שווים ותגובתיים, אבל כשהאור עובר ל-${eye} שני האישונים מתרחבים (פגיעה בעצב הראייה או מחלת רשתית נרחבת באותה עין).`,
         patch: { pupils: { sizeLightMm: { OD: L, OS: L }, sizeDarkMm: { OD: D, OS: D }, rapd: eye, rapdGrade: grade, ...sev } } as DeepPartial<PatientFindings>,
       };
     }
@@ -58,7 +68,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
       const smallL = L - rng.pick([0.5, 0.7]);
       const smallD = D - rng.pick([1.4, 1.8, 2.0]);
       return {
-        age, story: `Horner-type picture: ${eye} is the smaller pupil and anisocoria is greater in the dark, with a mild ptosis and dilation lag on that side (sympathetic lesion).`,
+        age, story: `Horner-type picture: ${eye} is the smaller pupil and anisocoria is greater in the dark, with a mild ptosis and dilation lag on that side (sympathetic lesion).`, storyHe: `תמונה של תסמונת הורנר: ${eye} הוא האישון הקטן והאניזוקוריה בולטת יותר בחושך, עם פטוזיס קל ועיכוב בהתרחבות בצד הזה (פגיעה סימפתטית).`,
         patch: {
           pupils: { sizeLightMm: { [eye]: smallL, [ok]: L }, sizeDarkMm: { [eye]: smallD, [ok]: D } },
           external: { ptosis: [eye] },
@@ -68,7 +78,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
     case 'adie': {
       const big = L + rng.pick([2.0, 2.5, 3.0]);
       return {
-        age, story: `Adie tonic pupil ${eye}: larger in the light, slow and segmental to light, constricts slowly to near and redilates very slowly (light-near dissociation).`,
+        age, story: `Adie tonic pupil ${eye}: larger in the light, slow and segmental to light, constricts slowly to near and redilates very slowly (light-near dissociation).`, storyHe: `אישון טוני של אדי ב-${eye}: גדול יותר באור, איטי וסגמנטלי לאור, מתכווץ לאט לקרוב ומתרחב מחדש לאט מאוד (דיסוציאציה אור-קרוב).`,
         patch: {
           pupils: {
             sizeLightMm: { [eye]: big, [ok]: L }, sizeDarkMm: { [eye]: big + 0.4, [ok]: D },
@@ -79,7 +89,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
     }
     case 'cn3':
       return {
-        age, story: `Third-nerve palsy ${eye}: a dilated, non-reactive pupil with ptosis, no near response. Urgent imaging for a compressive cause such as an aneurysm.`,
+        age, story: `Third-nerve palsy ${eye}: a dilated, non-reactive pupil with ptosis, no near response. Urgent imaging for a compressive cause such as an aneurysm.`, storyHe: `שיתוק עצב שלישי ב-${eye}: אישון מורחב שאינו מגיב, עם פטוזיס וללא תגובת קרוב. הדמיה דחופה לאיתור סיבה לוחצת כמו מפרצת.`,
         patch: {
           pupils: {
             sizeLightMm: { [eye]: 7, [ok]: L }, sizeDarkMm: { [eye]: 7.5, [ok]: D },
@@ -90,7 +100,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
       };
     case 'pharm':
       return {
-        age, story: `Pharmacologic mydriasis ${eye}: very large (7-8 mm) round fixed pupil, no ptosis, normal eye movements. A fresh dilating drop or exposure to an anticholinergic.`,
+        age, story: `Pharmacologic mydriasis ${eye}: very large (7-8 mm) round fixed pupil, no ptosis, normal eye movements. A fresh dilating drop or exposure to an anticholinergic.`, storyHe: `מידריאזיס תרופתי ב-${eye}: אישון עגול, קבוע וגדול מאוד (7-8 מ״מ), בלי פטוזיס ועם תנועות עיניים תקינות. טיפת הרחבה טרייה או חשיפה לחומר אנטיכולינרגי.`,
         patch: {
           pupils: { sizeLightMm: { [eye]: 8, [ok]: L }, sizeDarkMm: { [eye]: 8, [ok]: D }, reactivity: { [eye]: 'fixed', [ok]: 'brisk' } },
         } as DeepPartial<PatientFindings>,
@@ -99,7 +109,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
       const ar = rng.chance(0.5);
       return ar
         ? {
-          age, story: 'Argyll Robertson-type pupils: small, irregular, both eyes, poor to light yet brisk to near (light-near dissociation). Think neurosyphilis and test serology.',
+          age, story: 'Argyll Robertson-type pupils: small, irregular, both eyes, poor to light yet brisk to near (light-near dissociation). Think neurosyphilis and test serology.', storyHe: 'אישונים מסוג ארגייל רוברטסון: קטנים, לא סדירים, בשתי העיניים, חלשים לאור אך מהירים לקרוב (דיסוציאציה אור-קרוב). חשבו על עגבת עצבית ובדקו סרולוגיה.',
           patch: {
             pupils: {
               sizeLightMm: { OD: 2, OS: 2 }, sizeDarkMm: { OD: 2.5, OS: 2.5 }, reactivity: { OD: 'sluggish', OS: 'sluggish' },
@@ -108,7 +118,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
           } as DeepPartial<PatientFindings>,
         }
         : {
-          age, story: 'Dorsal midbrain (Parinaud) pattern: mid-dilated pupils that react poorly to light but constrict to near (light-near dissociation).',
+          age, story: 'Dorsal midbrain (Parinaud) pattern: mid-dilated pupils that react poorly to light but constrict to near (light-near dissociation).', storyHe: 'דפוס של המידברין הגבי (פארינו): אישונים בינוניים-מורחבים שמגיבים חלש לאור אך מתכווצים לקרוב (דיסוציאציה אור-קרוב).',
           patch: {
             pupils: {
               sizeLightMm: { OD: 5, OS: 5 }, sizeDarkMm: { OD: 6, OS: 6 }, reactivity: { OD: 'sluggish', OS: 'sluggish' }, nearResponse: 'light-near-dissociation',
@@ -126,13 +136,17 @@ export function makeScenario(rng: Rng, difficulty: number, forceKind?: PupilKind
   const g = gen(kind, rng, difficulty);
   const findings = buildFindings(g.age, g.patch);
   const sex = rng.pick(['F', 'M'] as const);
+  const locale = editionLocale();
+  const he = locale === 'he';
   const patient: PatientProfile = {
-    name: rng.pick(sex === 'F' ? NAMES_F : NAMES_M),
-    age: g.age, sex, occupation: rng.pick(JOBS),
-    personality: rng.pick(['Looks straight ahead and tries not to blink.', 'Squints when the light comes close.', 'Chatty, but holds still when asked.', 'A little anxious about the bright light.']),
+    name: rng.pick(sex === 'F' ? (he ? NAMES_F_HE : NAMES_F) : (he ? NAMES_M_HE : NAMES_M)),
+    age: g.age, sex, occupation: rng.pick(he ? JOBS_HE : JOBS),
+    personality: he
+      ? rng.pick(PERSONALITY_HE)[sex === 'F' ? 0 : 1]
+      : rng.pick(['Looks straight ahead and tries not to blink.', 'Squints when the light comes close.', 'Chatty, but holds still when asked.', 'A little anxious about the bright light.']),
     avatar: { ...generateAvatar(rng, { age: g.age, sex }), glasses: 'none' },
   };
-  return { patient, findings, answer: g.story };
+  return { patient, findings, answer: he ? fix(locale, g.storyHe) : g.story };
 }
 
 // ───────────────────────── recognition challenge

@@ -409,7 +409,8 @@
 
 /* Hebrew edition: numbers and Latin runs keep their order; the instrument itself never mirrors. */
 .kr-num { unicode-bidi: isolate; }
-.kr-scope__legend { direction: rtl; }
+:lang(he) .kr-scope__legend { direction: rtl; }
+.kr-db__cols b.kr-num { direction: ltr; }
 :lang(he) .kr-head__title, :lang(he) .kr-eyebrow { letter-spacing: 0; }
 :lang(he) .kr-readout span, :lang(he) .kr-scope__legend { letter-spacing: 0; text-transform: none; }
 .kr-drum__value, .kr-drum__sub, .kr-readout em, .kr-readout b, .kr-ax { direction: ltr; unicode-bidi: isolate; }

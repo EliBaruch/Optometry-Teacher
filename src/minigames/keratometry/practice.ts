@@ -7,13 +7,23 @@ import {
   type Locale, type PerEye, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
-import { P, S } from './strings';
+import { fix, P, S } from './strings';
 import { cornealCyl, fmtK, fmtReading, normalizeK, ORIENTATION_SHORT, orientation, quarter, wrapAxis } from './optics';
 
 export type CorneaKind = 'normal' | 'regular' | 'oblique' | 'keratoconus';
 
 const NAMES_F = ['Amara Okafor', 'Lena Fischer', 'Priya Raman', 'Sofia Marquez', 'Hana Sato', 'Noor Haddad', 'Chloé Martin', 'Ines Duarte'];
 const NAMES_M = ['Theo Laurent', 'Kwame Mensah', 'Arjun Mehta', 'Mateo Rossi', 'Yusuf Demir', 'Owen Gallagher', 'Kenji Mori', 'Samir Aziz'];
+const NAMES_F_HE = ['אמרה אוקפור', 'לנה פישר', 'פריה רמן', 'סופיה מרקס', 'הנה סאטו', 'נור חדאד', 'שלומית אזולאי', 'אינס דוארטה'];
+const NAMES_M_HE = ['תיאו לורן', 'קוואמה מנסה', 'ארג׳ון מהטה', 'מתאו רוסי', 'יוסף דמיר', 'אוון גלאגר', 'קנג׳י מורי', 'סמיר עזיז'];
+const JOBS_HE = ['מרכיב עדשות מגע', 'מעצבת גרפית', 'נהג אוטובוס', 'כנר', 'בריסטה', 'סטודנט להנדסה', 'טייס', 'ספרנית', 'גיימר', 'אחות'];
+const PERSONALITY_HE: [string, string][] = [
+  ['קובעת מבט יציב ומשתפת פעולה.', 'קובע מבט יציב ומשתף פעולה.'],
+  ['מצמצת הרבה מול האור.', 'מצמץ הרבה מול האור.'],
+  ['סקרנית לגבי הטבעות הזוהרות.', 'סקרן לגבי הטבעות הזוהרות.'],
+  ['קצת לחוצה, הסנטר ממשיך לזוז.', 'קצת לחוץ, הסנטר ממשיך לזוז.'],
+];
+const editionLocale = (): Locale => (typeof document !== 'undefined' && document.documentElement.lang === 'he' ? 'he' : 'en');
 const JOBS = ['Contact-lens wearer', 'Graphic designer', 'Bus driver', 'Violinist', 'Barista', 'Engineering student', 'Pilot', 'Librarian', 'Gamer', 'Nurse'];
 
 /** Weighted pick of the cornea type: pathology and oblique axes grow with difficulty. */
@@ -137,16 +147,20 @@ export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
   const g = genCornea(kind, rng, difficulty);
   const findings = buildFindings(g.age, coherentPatch(kind, g, rng));
   const sex = rng.chance(0.5) ? 'F' : 'M';
+  const locale = editionLocale();
+  const he = locale === 'he';
   const patient: PatientProfile = {
-    name: rng.pick(sex === 'F' ? NAMES_F : NAMES_M),
+    name: rng.pick(sex === 'F' ? (he ? NAMES_F_HE : NAMES_F) : (he ? NAMES_M_HE : NAMES_M)),
     age: g.age,
     sex,
-    occupation: rng.pick(JOBS),
-    personality: rng.pick(['Steady fixation, very cooperative.', 'Blinks a lot under the light.', 'Curious about the glowing rings.', 'A little nervous, chin keeps drifting.']),
+    occupation: rng.pick(he ? JOBS_HE : JOBS),
+    personality: he
+      ? rng.pick(PERSONALITY_HE)[sex === 'F' ? 0 : 1]
+      : rng.pick(['Steady fixation, very cooperative.', 'Blinks a lot under the light.', 'Curious about the glowing rings.', 'A little nervous, chin keeps drifting.']),
     avatar: { ...generateAvatar(rng, { age: g.age, sex }), glasses: 'none' },
   };
-  const line = (e: Eye) => `${e} ${fmtReading(normalizeK(g.k[e]))} (${describeKind(g.k[e]).toLowerCase()})`;
-  return { patient, findings, answer: `${line('OD')} · ${line('OS')}` };
+  const line = (e: Eye) => `${e} ${fmtReading(normalizeK(g.k[e]))} (${describeKind(g.k[e], locale).toLowerCase()})`;
+  return { patient, findings, answer: fix(locale, `${line('OD')} · ${line('OS')}`) };
 }
 
 // ───────────────────────── recognition challenge

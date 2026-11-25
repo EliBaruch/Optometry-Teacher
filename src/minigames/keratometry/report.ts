@@ -25,7 +25,7 @@ export function reportFor(findings: PatientFindings, locale: Locale): RevealedFi
     const k = normalizeK(raw);
     const irregular = k.mires !== 'regular';
     const outOfRange = k.k2 > STEEP_K_LIMIT || k.k1 < FLAT_K_LIMIT;
-    out.push({ label: t.kReading, value: fmtReading(k), eye, flag: outOfRange || irregular ? 'abnormal' : 'normal' });
+    out.push({ label: t.kReading, value: locale === 'he' ? `\u2066${fmtReading(k)}\u2069` : fmtReading(k), eye, flag: outOfRange || irregular ? 'abnormal' : 'normal' });
     out.push({ label: t.cornealAst, value: fmtCornealCyl(k, locale), eye, flag: cornealCyl(k) >= HIGH_CYL ? 'abnormal' : 'normal' });
     out.push({ label: t.miresLabel, value: t.mireChart[k.mires], eye, flag: irregular ? 'abnormal' : 'normal' });
   }

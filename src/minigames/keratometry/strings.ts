@@ -131,7 +131,7 @@ export const S = defineStrings({
     plusSigns: 'סימני פלוס',
     minusSigns: 'סימני מינוס',
     cyl: 'Cyl',
-    locked: 'ננעל',
+    locked: 'ננעלה',
     controls: 'בקרות המכשיר',
     focus: 'פוקוס',
     horizLong: (ax: string) => `אופקי · ${ax}°`,
