@@ -10,7 +10,9 @@ const mountWith = (Comp: typeof MotilityGame): MiniGameModule['mount'] => (host,
   let called = false;
   const once: typeof done = (r) => { if (called) return; called = true; done(r); };
   host.classList.add('mot-host');
-  render(h(Comp, { ctx, done: once }), host);
+  // honour the OS setting even when the host did not pass it down
+  const rm = ctx.reducedMotion || (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  render(h(Comp, { ctx: rm === ctx.reducedMotion ? ctx : { ...ctx, reducedMotion: rm }, done: once }), host);
   return () => { render(null, host); host.classList.remove('mot-host'); };
 };
 

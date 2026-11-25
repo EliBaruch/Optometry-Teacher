@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { EYES, otherEye, type Eye, type MiniGameContext, type MiniGameResult, type SfxId } from '@core';
 import { Button, Icon, Kbd } from '@ui-kit';
-import { Bowl, type BowlLiveRef } from './Bowl';
-import { Console } from './Console';
-import { Debrief } from './Debrief';
-import { Pathway } from './Pathway';
-import { Picker } from './Picker';
+import type { BowlLiveRef } from './Bowl';
+import { DebriefPane, InterpretPane, TestPane } from './Panes';
 import { Printout } from './Printout';
 import { Tutorial, tutorialSeen } from './Tutorial';
+import { usePrintSize } from './usePrintSize';
 import { localise, patternOf, type Localisation, type Pattern } from './interpret';
 import { grid242, pointKey, type FieldPoint } from './model';
 import { makeResponder, MAX_DB, type PointResult, type Responder, type TestMode } from './patient';
@@ -28,24 +26,6 @@ const EYE_NAME: Record<Eye, string> = { OD: 'right eye', OS: 'left eye' };
 export interface GameProps {
   ctx: MiniGameContext;
   finish: (r: MiniGameResult) => void;
-}
-
-function usePrintSize(ref: { current: HTMLElement | null }, phase: Phase): number {
-  const [s, setS] = useState(200);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const measure = () => {
-      const r = el.getBoundingClientRect();
-      if (phase === 'test') setS(Math.max(130, Math.min(r.width < 520 ? 160 : 220, Math.floor(r.width - 64))));
-      else setS(Math.max(130, Math.min(290, Math.floor(r.width / 2 - 88), Math.floor(r.height - 120))));
-    };
-    measure();
-    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null;
-    ro?.observe(el);
-    return () => ro?.disconnect();
-  }, [phase]);
-  return s;
 }
 
 export function Game({ ctx, finish }: GameProps) {
@@ -399,46 +379,16 @@ export function Game({ ctx, finish }: GameProps) {
         </div>
       )}
       {phase === 'test' ? (
-        <div class={`vf__body is-tab-${tab}`}>
-          <section class="vf__stage">
-            <Bowl
-              eye={eye}
-              results={w.results}
-              version={version}
-              live={live.current}
-              patient={ctx.patient}
-              findings={ctx.findings}
-              interactive={!sweeping}
-              reduced={ctx.reducedMotion}
-              glance={glance}
-              onFrame={onFrame}
-              onTest={test}
-              onKey={onKey}
-            />
-          </section>
-          <aside class="vf__side" ref={sideRef}>
-            <div class="vf-printwrap">
-              {printout(eye, false)}
-              <div class="vf-viewtoggle" role="group" aria-label="Printout view">
-                <button type="button" class={view === 'grey' ? 'is-on' : ''} aria-pressed={view === 'grey'} onClick={() => { setView('grey'); play('click'); }}>Greyscale</button>
-                <button type="button" class={view === 'numeric' ? 'is-on' : ''} aria-pressed={view === 'numeric'} onClick={() => { setView('numeric'); play('click'); }}>dB values</button>
-              </div>
-            </div>
-            <Console
-              mode={mode}
-              onMode={changeMode}
-              offset={offset}
-              onOffset={(v) => { setOffset(v); play('dial', { volume: 0.5, pitch: 0.8 + v / 20 }); }}
-              sweeping={sweeping}
-              busy={busy}
-              remaining242={remaining242}
-              onSweep={sweep}
-              onStop={stop}
-              stimRef={stimRef}
-              meterRef={meterRef}
-            />
-          </aside>
-        </div>
+        <TestPane
+          tab={tab}
+          eye={eye}
+          sideRef={sideRef}
+          bowl={{ results: w.results, version, live: live.current, patient: ctx.patient, findings: ctx.findings, interactive: !sweeping, reduced: ctx.reducedMotion, glance, onFrame, onTest: test, onKey }}
+          printout={printout(eye, false)}
+          view={view}
+          onView={(v) => { setView(v); play('click'); }}
+          console={{ mode, onMode: changeMode, offset, onOffset: (v) => { setOffset(v); play('dial', { volume: 0.5, pitch: 0.8 + v / 20 }); }, sweeping, busy, remaining242, onSweep: sweep, onStop: stop, stimRef, meterRef }}
+        />
       ) : (
         <div class="vf__body vf__body--read">
           <section class="vf__plots" ref={plotsRef}>
@@ -447,37 +397,10 @@ export function Game({ ctx, finish }: GameProps) {
           </section>
           <aside class="vf__side vf__side--read">
             {phase === 'interpret' && (
-              <>
-                <div class="vf-section">
-                  <h3>{eye} — {EYE_NAME[eye]} pattern</h3>
-                  <Picker eye={eye} value={picks[eye]} onChange={pickPattern} />
-                  {picks[eye] && !picks[otherEye(eye)] && (
-                    <button type="button" class="vf-next" onClick={() => switchEye(otherEye(eye))}>
-                      Next: {otherEye(eye)} <Icon name="arrow-right" size={13} />
-                    </button>
-                  )}
-                </div>
-                <div class="vf-section">
-                  <h3>{practice ? 'Challenge — ' : ''}Where is the lesion?</h3>
-                  <Pathway value={loc} onChange={pickLoc} />
-                </div>
-              </>
+              <InterpretPane eye={eye} picks={picks} loc={loc} practice={practice} onPick={pickPattern} onLoc={pickLoc} onEye={switchEye} />
             )}
             {phase === 'debrief' && scores && (
-              <>
-                <Debrief
-                  ctx={ctx}
-                  picks={picks}
-                  classify={scores.classify}
-                  technique={scores.technique}
-                  loc={loc}
-                  truthLoc={truthLoc}
-                  score={scores.exam}
-                />
-                <div class="vf-section vf-section--path">
-                  <Pathway value={loc} truth={truthLoc} disabled />
-                </div>
-              </>
+              <DebriefPane ctx={ctx} picks={picks} loc={loc} truthLoc={truthLoc} scores={scores} />
             )}
           </aside>
         </div>

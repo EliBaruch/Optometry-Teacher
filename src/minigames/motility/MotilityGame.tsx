@@ -9,12 +9,12 @@ import {
 import { gradingScore, motilityAccuracy } from './scoring';
 import { reportMotility } from './report';
 import { motilityChallenge, motilityTeach } from './practice';
-import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
+import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, useNudge, type EyeFrame, type TutStep } from './ui';
 
 const STEPS: TutStep[] = [
-  { title: 'Lead the eyes through the H', body: 'Drag the glowing wand, or use the arrow keys, to the nine positions of gaze: straight ahead, right, left, up, down and the four diagonals. Hold briefly at each one so the patient can follow.', keys: ['Drag', '← ↑ → ↓', '1–9'] },
-  { title: 'Watch both eyes, and listen', body: 'Both eyes should move together, smoothly and fully. Notice an eye that stops short (underaction) or overshoots (overaction), and any double vision or pain the patient reports.', keys: ['Eyes', 'Patient'] },
-  { title: 'Grade every gaze for each eye', body: 'Pick a cell on the OD or OS chart, then grade it: 0 is full movement, −1 to −4 is increasing underaction, +1 to +4 overaction. Record when you are done.', keys: ['+', '−', '0'] },
+  { title: 'Lead the eyes through the H', body: 'Drag the glowing wand, or use the arrow keys, to the nine positions of gaze: straight ahead, right, left, up, down and the four diagonals. Hold briefly at each one so the patient can follow.', keys: ['Drag', '← ↑ → ↓', '1–9'], target: '.mot-wand__halo' },
+  { title: 'Watch both eyes, and listen', body: 'Both eyes should move together, smoothly and fully. Notice an eye that stops short (underaction) or overshoots (overaction), and any double vision or pain the patient reports.', keys: ['Eyes', 'Patient'], target: '.mot-eyes' },
+  { title: 'Grade every gaze for each eye', body: 'Pick a cell on the OD or OS chart, then grade it: 0 is full movement, −1 to −4 is increasing underaction, +1 to +4 overaction. Record when you are done.', keys: ['+', '−', '0'], target: '.mot-panel' },
 ];
 const DIP_WORD = { horizontal: 'side by side', vertical: 'one above the other', oblique: 'at a slant' } as const;
 const whereName = (x: number, y: number) => {
@@ -39,7 +39,7 @@ function HChart({ eye, grid, truth, sel, onSel }: { eye: Eye; grid: Record<Gaze,
           const on = sel?.eye === eye && sel.gaze === n.id;
           return (
             <button key={n.id} type="button" class={`mot-cellc${on ? ' is-sel' : ''}${state}`} data-g={truth ? t : g} disabled={!onSel}
-              aria-label={`${eye} ${n.name} gaze, grade ${gradeText(truth ? t! : g)}`} aria-pressed={on} onClick={() => onSel?.(n.id as Gaze)}>
+              aria-label={`${eye} ${n.name} gaze, grade ${gradeText(truth ? t! : g)}`} aria-pressed={on} onFocus={() => { if (!on) onSel?.(n.id as Gaze); }} onClick={() => onSel?.(n.id as Gaze)}>
               <span class="mot-num" key={truth ? t : g}>{gradeText(truth ? t! : g)}</span>
               {truth && g !== t ? <small>you {gradeText(g)}</small> : null}
             </button>
@@ -71,7 +71,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const [say, setSay] = useState<{ id: number; text: string } | null>(null);
   const [debrief, setDebrief] = useState<{ grading: number; technique: number } | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
-  const [nudge, setNudge] = useState('');
+  const [nudge, setNudge] = useNudge();
   const [log, setLog] = useState<{ id: number; where: string; text: string }[]>([]);
   const [tab, setTab] = useState<'sweep' | 'grade'>('sweep');
   const autoTab = useRef(false);
@@ -81,7 +81,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const ghostEl = useRef<HTMLDivElement>(null);
   const dims = useRef({ w: 600, h: 440 });
   const wand = useRef({ x: 0, y: 0, tx: 0, ty: 0, px: 0, py: 0, drag: false, glide: false });
-  const keys = useRef(new Set<string>());
+  const heldKeys = useRef(new Map<string, number>());
   const sim = useRef({ dwell: {} as Record<string, number>, seen: new Set<string>(), dip: false, dipAt: -1e9, painAt: -1e9, painUntil: 0, sayId: 0, moved: 0, lastX: 0, lastY: 0, tutorial: true, debrief: false });
   const startAt = useRef(performance.now());
   const doneRef = useRef(false);
@@ -109,14 +109,16 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const frame = (dt: number, now: number): EyeFrame => {
     const w = wand.current, s = sim.current;
     const active = !s.tutorial && !s.debrief;
-    if (active && keys.current.size) {
-      const sp = (keys.current.has('Shift') ? 0.45 : 1.5) * dt / 1000;
-      if (keys.current.has('ArrowLeft')) w.tx -= sp;
-      if (keys.current.has('ArrowRight')) w.tx += sp;
-      if (keys.current.has('ArrowUp')) w.ty -= sp;
-      if (keys.current.has('ArrowDown')) w.ty += sp;
-      w.tx = Math.max(-1, Math.min(1, w.tx)); w.ty = Math.max(-1, Math.min(1, w.ty));
-      w.glide = false;
+    if (active && heldKeys.current.size) {
+      // a tap steps to the next position of gaze (see onKey); holding past 280 ms sweeps smoothly
+      const sp = (heldKeys.current.has('Shift') ? 0.45 : 1.5) * dt / 1000;
+      let moved = false;
+      for (const [k, t0] of heldKeys.current) {
+        if (now - t0 < 280) continue;
+        if (k === 'ArrowLeft') w.tx -= sp; else if (k === 'ArrowRight') w.tx += sp; else if (k === 'ArrowUp') w.ty -= sp; else if (k === 'ArrowDown') w.ty += sp; else continue;
+        moved = true;
+      }
+      if (moved) { w.tx = Math.max(-1, Math.min(1, w.tx)); w.ty = Math.max(-1, Math.min(1, w.ty)); w.glide = false; }
     }
     const tau = w.drag ? 35 : w.glide ? 120 : 70;
     const k = 1 - Math.exp(-dt / tau);
@@ -160,7 +162,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
     const n = nodeNear(w.x, w.y);
     if (n && !s.seen.has(n.id)) {
       s.dwell[n.id] = (s.dwell[n.id] ?? 0) + dt;
-      if (s.dwell[n.id]! > 450) {
+      if (s.dwell[n.id]! > 380) {
         s.seen.add(n.id);
         setVisited([...s.seen]);
         play('lens-click', { pitch: 1 + s.seen.size * 0.04 });
@@ -195,12 +197,11 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   };
   const onMove = (e: PointerEvent) => { if (wand.current.drag) setWand(e.clientX, e.clientY); };
   const onUp = () => { wand.current.drag = false; };
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key.startsWith('Arrow') || e.key === 'Shift') { keys.current.add(e.key); if (e.key !== 'Shift') e.preventDefault(); return; }
-    const n = NODES.find((x) => x.key === e.key);
-    if (n) { wand.current.tx = n.u; wand.current.ty = n.v; wand.current.glide = true; e.preventDefault(); }
+  const stepTo = (t: number, dir: number) => {
+    const r = Math.round(t);
+    return Math.max(-1, Math.min(1, Math.abs(t - r) < 0.15 ? r + dir : dir > 0 ? Math.ceil(t) : Math.floor(t)));
   };
-  const onKeyUp = (e: KeyboardEvent) => { keys.current.delete(e.key); };
+  const onKeyUp = (e: KeyboardEvent) => { heldKeys.current.delete(e.key); };
 
   const grade = (v: number) => {
     if (!sel) { setNudge('Tap a cell on the OD or OS chart first, then choose its grade.'); play('error', { volume: 0.4 }); return; }
@@ -209,11 +210,34 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
     play('dial', { pitch: 0.9 + (nv + 4) * 0.04 });
   };
   const onRootKey = (e: KeyboardEvent) => {
-    if (!sel || tutorial || debrief) return;
-    const cur = mine[sel.eye][sel.gaze];
-    if (e.key === '+' || e.key === '=') { grade(cur + 1); e.preventDefault(); }
-    else if (e.key === '-' || e.key === '_') { grade(cur - 1); e.preventDefault(); }
-    else if (e.key === '0' && !(e.target as HTMLElement).closest?.('.mot-stage')) { grade(0); e.preventDefault(); }
+    if (tutorial || debrief || e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target as HTMLElement;
+    const inChart = !!t.closest?.('.mot-chart__grid');
+    // roving focus inside a chart: arrows move between cells (each focused cell is selected for grading)
+    if (inChart && e.key.startsWith('Arrow')) {
+      const cells = Array.from(t.closest('.mot-chart__grid')!.children) as HTMLElement[];
+      const i = cells.indexOf(t.closest('button') as HTMLElement);
+      const d = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' ? -3 : 3;
+      let j = i + d;
+      while (j >= 0 && j < 9 && j !== i && cells[j]!.tagName !== 'BUTTON') j += d;
+      if (j >= 0 && j < 9 && cells[j]!.tagName === 'BUTTON') (cells[j] as HTMLElement).focus();
+      e.preventDefault(); return;
+    }
+    if (e.key === 'Shift') { heldKeys.current.set('Shift', 0); return; }
+    if (e.key.startsWith('Arrow')) {
+      if (!e.repeat && !heldKeys.current.has(e.key)) {
+        const w = wand.current, dir = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') w.tx = stepTo(w.tx, dir); else w.ty = stepTo(w.ty, dir);
+        w.glide = true;
+        heldKeys.current.set(e.key, performance.now());
+      }
+      e.preventDefault(); return;
+    }
+    if (sel && (e.key === '+' || e.key === '=')) { grade(mine[sel.eye][sel.gaze] + 1); e.preventDefault(); return; }
+    if (sel && (e.key === '-' || e.key === '_')) { grade(mine[sel.eye][sel.gaze] - 1); e.preventDefault(); return; }
+    if (sel && e.key === '0') { grade(0); e.preventDefault(); return; }
+    const n = NODES.find((x) => x.key === e.key);
+    if (n) { wand.current.tx = n.u; wand.current.ty = n.v; wand.current.glide = true; e.preventDefault(); }
   };
 
   const gradedCount = EYES.reduce((n, e) => n + GAZE_IDS.filter((g) => mine[e][g] !== 0).length, 0);
@@ -247,7 +271,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
   const cur = sel ? mine[sel.eye][sel.gaze] : 0;
 
   return (
-    <div class={`mot-root${ctx.reducedMotion ? ' is-rm' : ''}`} onKeyDown={onRootKey}>
+    <div class={`mot-root${ctx.reducedMotion ? ' is-rm' : ''}`} onKeyDown={onRootKey} onKeyUp={onKeyUp} onBlur={(e) => { if (!(e.relatedTarget as HTMLElement | null)?.closest?.('.mot-root')) heldKeys.current.clear(); }}>
       <header class="mot-head">
         <div class="mot-head__title"><Icon name="motility" size={20} /> Extraocular motility</div>
         <p class="mot-head__hint" key={hint} aria-live="polite">{hint}</p>
@@ -259,10 +283,11 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
           <button type="button" role="tab" aria-selected={tab === 'grade'} class={tab === 'grade' ? 'is-on' : ''} onClick={() => setTab('grade')}>2 · Grade <small>{gradedCount}</small></button>
         </div>
         <div class="mot-wrap">
-          <div ref={stageRef} class="mot-stage" tabIndex={0} role="application" aria-label="Fixation wand. Arrow keys move it; number keys jump to the nine positions of gaze."
+          <div ref={stageRef} class="mot-stage" tabIndex={0} role="application" aria-label="Fixation wand. Arrow keys step it between positions of gaze, hold to sweep; number keys 1 to 9 jump to a position."
             style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}
-            onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onKeyDown={onKey} onKeyUp={onKeyUp} onBlur={() => keys.current.clear()}>
+            onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
             <Face />
+            <div class="mot-kbd" aria-hidden="true"><kbd>← ↑ → ↓</kbd> step · hold to sweep · <kbd>1–9</kbd> jump</div>
             <svg class="mot-h" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <path d="M10 12H90M10 50H90M10 88H90M50 12V88" />
             </svg>
@@ -291,21 +316,37 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
             </div>
             <p class="mot-legend"><span>underaction</span><span>full</span><span>overaction</span></p>
           </div>
-          <div class="mot-log" aria-label="Patient reports">
+          <div class="mot-log" aria-label="Patient reports" aria-live="polite">
             <p class="mot-eyebrow">Patient reports</p>
             {log.length ? (
-              <ul>{log.slice().reverse().map((l) => <li key={l.id}>{l.where ? <b>{l.where}</b> : null}{l.text}</li>)}</ul>
-            ) : <p class="mot-log__empty">Nothing yet. Double vision or pain on moving the eyes will appear here, with the gaze where it happened.</p>}
+              <ul>{log.slice().reverse().map((l, i) => <li key={l.id} class={i === 0 ? 'is-latest' : ''}>{l.where ? <b>{l.where}</b> : null}{l.text}</li>)}</ul>
+            ) : <p class="mot-log__empty">Nothing yet. Double vision or pain on movement appears here with the gaze where it happened.</p>}
           </div>
-          <p class="mot-key"><b>Grading key.</b> −1 slight, −2 moderate, −3 marked, −4 no movement beyond the midline. +1 to +4 overaction of the same degree.</p>
+          <div class="mot-look" aria-label="What to look for">
+            <p class="mot-eyebrow">Look for</p>
+            <ul>
+              <li><b>Range</b> does either eye stop short of the target?</li>
+              <li><b>Overshoot</b> does an eye shoot up or in when it should not?</li>
+              <li><b>Symptoms</b> double vision, or pain on moving the eyes.</li>
+            </ul>
+          </div>
+          <div class="mot-legendcard" aria-label="Grading key">
+            <p class="mot-eyebrow">Grading key</p>
+            <ul>
+              <li><i data-g="0" /><b>0</b> full, smooth movement</li>
+              <li><i data-g="-1" /><b>−1 / −2</b> slight to moderate underaction</li>
+              <li><i data-g="-3" /><b>−3 / −4</b> marked; −4 cannot pass the midline</li>
+              <li><i data-g="2" /><b>+1 to +4</b> overaction, same scale</li>
+            </ul>
+          </div>
         </aside>
       </div>
+      {nudge ? <div class="mot-toast" role="status" key={nudge}>{nudge}</div> : null}
       <footer class="mot-foot">
-        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{visited.length}/9 positions</span><ProgressBar value={visited.length} max={9} ariaLabel="Positions of gaze examined" accent="#ffd27a" size="sm" /></div>
-        <span class="mot-foot__note" role="status">{nudge || `${gradedCount} cells graded`}</span>
+        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{visited.length}/9 positions<em> · {gradedCount} graded</em></span><ProgressBar value={visited.length} max={9} ariaLabel="Positions of gaze examined" accent="#ffd27a" size="sm" /></div>
         <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief}>Record findings</Button>
       </footer>
-      {tutorial ? <Tutorial eyebrow="Extraocular motility" steps={STEPS} onClose={() => { setTutorial(false); stageRef.current?.focus({ preventScroll: true }); }} /> : null}
+      {tutorial ? <Tutorial eyebrow="Extraocular motility" steps={STEPS} onStep={(i) => setTab(i === 2 ? 'grade' : 'sweep')} onClose={() => { setTutorial(false); setTab('sweep'); timers.current.push(window.setTimeout(() => stageRef.current?.focus({ preventScroll: true }), 0)); }} /> : null}
       {debrief ? (
         <Debrief title="Motility chart" score={debrief.technique} challenge={challenge} picked={picked} onPick={pick} onFinish={finish} finishLabel={ctx.mode === 'practice' ? 'Finish' : 'Write to chart'}>
           <div class="mot-charts mot-charts--debrief">

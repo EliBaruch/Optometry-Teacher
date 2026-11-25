@@ -3,17 +3,18 @@ import type { Eye, MiniGameContext, MiniGameDone } from '@core';
 import { Button, Icon, ProgressBar } from '@ui-kit';
 import { eyeStateFromFindings, nasalSign } from '@render';
 import {
-  BLUR_REPORT_D, ConvSim, PUSHUP_FAR_CM, convTruth, convergenceGaze, defocusD, expectedPushupD, hofstetter, type ConvTruth,
+  BLUR_REPORT_D, ConvSim, PUSHUP_FAR_CM, convTruth, convergenceDemandPD, convergenceGaze, defocusD, expectedPushupD, hofstetter, type ConvTruth,
 } from './model';
 import { convergenceAccuracy } from './scoring';
 import { reportConvergence } from './report';
 import { convergenceChallenge } from './practice';
-import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, type EyeFrame, type TutStep } from './ui';
+import { Debrief, EyePair, Face, openLid, SKIN_HEX, Tutorial, useNudge, type EyeFrame, type TutStep } from './ui';
+import { PlanView, type PlanState } from './PlanView';
 
 const STEPS: TutStep[] = [
-  { title: 'Bring the target in slowly', body: 'Hold the approach button (or the left arrow) to slide the accommodative target toward the nose at a steady 2–5 cm per second. Too fast and you will overshoot the true break.', keys: ['← hold', 'Drag'] },
-  { title: 'Break, then recovery', body: 'Watch both eyes. When one drifts outward the patient sees double: press Break. Then retreat slowly until the eye swings back in and single vision returns: press Recovered.', keys: ['B', 'Space'] },
-  { title: 'Push-up amplitude', body: 'Cover one eye and bring a line of small letters toward it until they stay blurred: that near point gives the amplitude of accommodation in dioptres (100 ÷ cm). Repeat for the other eye.', keys: ['OD', 'OS'] },
+  { title: 'Bring the target in slowly', body: 'Hold the approach button (or the left arrow) to slide the accommodative target toward the nose at a steady 2–5 cm per second. Too fast and you will overshoot the true break.', keys: ['← hold', 'Drag'], target: '.mot-ctl' },
+  { title: 'Break, then recovery', body: 'Watch both eyes. When one drifts outward the patient sees double: press Break. Then retreat slowly until the eye swings back in and single vision returns: press Recovered.', keys: ['B', 'Space'], target: '.mot-stage' },
+  { title: 'Push-up amplitude', body: 'Cover one eye and bring a line of small letters toward it until they stay blurred: that near point gives the amplitude of accommodation in dioptres (100 ÷ cm). Repeat for the other eye.', keys: ['OD', 'OS'], target: '.mot-panel--conv' },
 ];
 type Phase = 'brk' | 'rec' | 'amp';
 const OTHER = (e: Eye): Eye => (e === 'OD' ? 'OS' : 'OD');
@@ -40,7 +41,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const [marks, setMarks] = useState<{ brk: number | null; rec: number | null; amp: Partial<Record<Eye, number>> }>({ brk: null, rec: null, amp: {} });
   const [trials, setTrials] = useState(1);
   const [say, setSay] = useState<{ id: number; text: string } | null>(null);
-  const [nudge, setNudge] = useState('');
+  const [nudge, setNudge] = useNudge();
   const [debrief, setDebrief] = useState<{ accuracy: number } | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const [flag, setFlag] = useState<Eye | null>(null);
@@ -52,11 +53,20 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const cardRef = useRef<HTMLDivElement>(null);
   const lettersRef = useRef<HTMLDivElement>(null);
   const readRef = useRef<HTMLSpanElement>(null);
+  const beamRef = useRef<HTMLDivElement>(null);
+  const chipRef = useRef<HTMLSpanElement>(null);
+  const liveRead = useRef<HTMLElement>(null);
+  const livePD = useRef<HTMLElement>(null);
+  const liveEyes = useRef<HTMLElement>(null);
+  const gaugeRef = useRef<HTMLElement>(null);
+  const planDraw = useRef<(s: PlanState) => void>(() => {});
+  const pins = useRef<{ brk: number | null; rec: number | null }>({ brk: null, rec: null });
   const paceRef = useRef<HTMLSpanElement>(null);
   const paceTxt = useRef<HTMLSpanElement>(null);
   const c = useRef({ d: 40, td: 40, vel: 0, sp: 0, cg: convergenceGaze(40), drag: false, holdAt: 0, hold: 0 as -1 | 0 | 1, slow: false, fast: 0, moving: 0 });
   const sim = useRef(new ConvSim(truth));
   const live = useRef({ phase, ampEye, max, tutorial, debrief: false, silent: truth.silent, prev: 'fused' as 'fused' | 'broken', blurSaid: false, sayId: 0 });
+  pins.current = { brk: marks.brk, rec: marks.rec };
   live.current.phase = phase; live.current.ampEye = ampEye; live.current.max = max; live.current.tutorial = tutorial; live.current.debrief = !!debrief;
   const startAt = useRef(performance.now());
   const doneRef = useRef(false);
@@ -105,7 +115,18 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     // DOM: ruler handle, front-view card, readouts
     const pct = (k.d / L.max) * 100;
     if (handleRef.current) handleRef.current.style.left = `${pct}%`;
-    if (cardRef.current) cardRef.current.style.transform = `translate(-50%, 0) scale(${(0.3 + 14 / (k.d + 4)).toFixed(3)})`;
+    if (cardRef.current) cardRef.current.style.transform = `translate(-50%, 0) scale(${(0.5 + 11 / (k.d + 5)).toFixed(3)})`;
+    if (beamRef.current) { beamRef.current.style.opacity = String((0.25 + 0.75 * prox).toFixed(2)); beamRef.current.style.transform = `translateX(-50%) scaleX(${(0.6 + 1.2 * prox).toFixed(2)})`; }
+    if (chipRef.current) chipRef.current.textContent = `${fmt(k.d)} cm`;
+    if (liveRead.current) liveRead.current.textContent = `${fmt(k.d)} cm`;
+    if (livePD.current) livePD.current.textContent = `${convergenceDemandPD(Math.max(1.5, k.d))} Δ`;
+    if (liveEyes.current) {
+      const br = L.phase !== 'amp' && state === 'broken';
+      liveEyes.current.textContent = L.phase === 'amp' ? 'accommodating' : br ? 'one eye out' : 'fused';
+      liveEyes.current.dataset.s = br ? 'bad' : 'ok';
+    }
+    if (gaugeRef.current) gaugeRef.current.style.left = `${Math.min(100, (k.d / 20) * 100)}%`;
+    planDraw.current({ d: k.d, drift: L.phase === 'amp' ? 0 : sim.current.drift, devEye: truth.deviatingEye, pins: pins.current });
     if (readRef.current) readRef.current.textContent = `${fmt(k.d)} cm`;
     if (paceRef.current) paceRef.current.style.width = `${Math.min(100, (k.sp / 8) * 100)}%`;
     if (paceTxt.current) {
@@ -153,10 +174,15 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
   const chooseEye = (e: Eye) => { if (e === ampEye) return; setAmpEye(e); resetTarget(PUSHUP_FAR_CM); live.current.blurSaid = false; setSay(null); play('lens-click', { volume: 0.5 }); };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') { c.current.hold = -1; e.preventDefault(); }
-    else if (e.key === 'ArrowRight') { c.current.hold = 1; e.preventDefault(); }
+    if (tutorial || debrief) return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const dir = e.key === 'ArrowLeft' ? -1 : 1;
+      if (!e.repeat && c.current.hold !== dir) { c.current.td += dir; c.current.hold = dir; }   // a tap nudges 1 cm; holding glides
+      e.preventDefault();
+    }
     else if (e.key === 'Shift') c.current.slow = true;
-    else if ((e.key === 'b' || e.key === 'B' || e.key === ' ' || e.key === 'Enter') && !(e.target as HTMLElement).closest?.('button')) { mark(); e.preventDefault(); }
+    else if (e.key === 'b' || e.key === 'B') { mark(); e.preventDefault(); }
+    else if ((e.key === ' ' || e.key === 'Enter') && !(e.target as HTMLElement).closest?.('button')) { mark(); e.preventDefault(); }
     else if ((e.key === 'r' || e.key === 'R') && phase !== 'amp') retry();
   };
   const onKeyUp = (e: KeyboardEvent) => {
@@ -229,9 +255,10 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
       <div class="mot-main mot-main--conv">
         <div class="mot-wrap">
           <div class="mot-stage mot-stage--conv" style={{ '--mot-skin': SKIN_HEX[ctx.patient.avatar.skin] } as never}>
-            <Face />
+            <Face dy={-8} />
             <EyePair frame={frame} flag={phase === 'amp' || ctx.mode !== 'practice' ? null : flag} covered={phase === 'amp' ? OTHER(ampEye) : null} />
-            <div ref={cardRef} class="mot-tcard" aria-hidden="true"><div ref={lettersRef} class="mot-tcard__l">E F P T</div></div>
+            <div ref={beamRef} class="mot-beam" aria-hidden="true" />
+            <div ref={cardRef} class="mot-tcard" aria-hidden="true"><div ref={lettersRef} class="mot-tcard__l">E F P T</div><span ref={chipRef} class="mot-tcard__cm mot-num">40.0 cm</span></div>
             {say ? <div class="mot-say" key={say.id} role="status"><span>{ctx.patient.name.split(' ')[0]}</span>{say.text}</div> : null}
           </div>
           <div class="mot-ruler" aria-label="Ruler">
@@ -261,6 +288,13 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
           </div>
         </div>
         <aside class="mot-panel mot-panel--conv" aria-label="Measurements">
+          <p class="mot-eyebrow">Plan view</p>
+          <div class="mot-planwrap"><PlanView bind={(fn) => { planDraw.current = fn; }} /></div>
+          <div class="mot-live" aria-hidden="true">
+            <div><span>Target</span><b ref={liveRead} class="mot-num">40.0 cm</b></div>
+            <div><span>Demand</span><b ref={livePD} class="mot-num">16 Δ</b></div>
+            <div><span>Eyes</span><b ref={liveEyes} data-s="ok">fused</b></div>
+          </div>
           <p class="mot-eyebrow">Measurements</p>
           <dl class="mot-meas">
             <div><dt>NPC break</dt><dd class="mot-num">{marks.brk != null ? `${fmt(marks.brk)} cm` : '—'}</dd></div>
@@ -268,13 +302,17 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
             <div><dt>Amplitude OD</dt><dd class="mot-num">{amp('OD') != null ? `${fmt(amp('OD')!)} D` : '—'}</dd></div>
             <div><dt>Amplitude OS</dt><dd class="mot-num">{amp('OS') != null ? `${fmt(amp('OS')!)} D` : '—'}</dd></div>
           </dl>
-          <p class="mot-norms">Normal NPC: break ≤ 6 cm, recovery ≤ 7 cm; receded beyond 10 cm. Expected amplitude for {age}: about {fmt(Math.max(h.avg, 0.5))} D ({h.min >= 0.5 ? `minimum ${fmt(h.min)} D` : 'no minimum expected at this age'}).</p>
-          <p class="mot-norms">Keys: <b>← / →</b> move (Shift = slower), <b>B</b> or <b>Space</b> marks, <b>R</b> repeats.</p>
+          <div class="mot-gauge" aria-hidden="true">
+            <div class="mot-gauge__bar"><i class="z-ok" /><i class="z-mid" /><i class="z-bad" /><span ref={gaugeRef} class="mot-gauge__now" />
+              {marks.brk != null ? <span class="mot-gauge__pin" style={{ left: `${Math.min(100, (marks.brk / 20) * 100)}%` }}>B</span> : null}</div>
+            <p><span>0</span><span>6 cm normal</span><span>10 receded</span><span>20</span></p>
+          </div>
+          <p class="mot-norms">Expected amplitude for {age}: about {fmt(Math.max(h.avg, 0.5))} D ({h.min >= 0.5 ? `minimum ${fmt(h.min)} D` : 'no minimum expected at this age'}). Keys: <b>← / →</b> move (Shift = slower), <b>B</b> or <b>Space</b> marks, <b>R</b> repeats.</p>
         </aside>
       </div>
+      {nudge ? <div class="mot-toast" role="status" key={nudge}>{nudge}</div> : null}
       <footer class="mot-foot">
         <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{stepsDone}/4 measured</span><ProgressBar value={stepsDone} max={4} ariaLabel="Measurements completed" accent="#ffd27a" size="sm" /></div>
-        <span class="mot-foot__note" role="status">{nudge}</span>
         <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief}>Record findings</Button>
       </footer>
       {tutorial ? <Tutorial eyebrow="Convergence & accommodation" steps={STEPS} onClose={() => { setTutorial(false); rootRef.current?.focus({ preventScroll: true }); }} /> : null}

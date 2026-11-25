@@ -216,3 +216,105 @@
   .mot-panel--conv { gap: 6px; }
   .mot-meas { grid-template-columns: 1fr 1fr; }
 }
+
+/* ───────── revision 1 ───────── */
+.mot-face { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; display: block; }
+.mot-face::before, .mot-face::after { content: none; }
+.mot-stage:focus { outline: none; }
+.mot-stage:focus, .mot-stage:focus-visible { box-shadow: inset 0 0 0 2px var(--lm-gold, #ffd27a), inset 0 0 90px rgba(5, 2, 14, 0.7), 0 0 0 3px rgba(255, 210, 122, 0.25), var(--lm-shadow-2, 0 12px 36px rgba(0,0,0,.45)); }
+.mot-kbd { position: absolute; left: 12px; top: 10px; z-index: 4; padding: 4px 10px; border-radius: 99px; font-size: 0.66rem; letter-spacing: 0.04em; color: rgba(255, 244, 220, 0.78); background: rgba(10, 5, 20, 0.62); box-shadow: inset 0 0 0 1px rgba(255, 224, 160, 0.22); pointer-events: none; opacity: 0.8; transition: opacity 200ms; }
+.mot-kbd kbd { font: 700 0.66rem var(--lm-font-num, sans-serif); color: var(--lm-gold, #ffd27a); }
+.mot-stage:focus .mot-kbd { opacity: 1; }
+.mot-wrap { gap: 0; }
+.mot-wrap > .mot-stage { flex: 1 1 auto; }
+
+/* grading panel: content-sized log + legend card */
+.mot-log { flex: none; min-height: 0; }
+.mot-log ul { max-height: 150px; overflow-y: auto; }
+.mot-log li.is-latest { padding: 8px 10px; border-radius: 10px; background: rgba(255, 210, 122, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.22); color: var(--lm-ivory); }
+.mot-legendcard { margin-top: auto; padding: 10px 12px; border-radius: 12px; background: rgba(6, 3, 14, 0.5); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.08); display: grid; gap: 8px; }
+.mot-legendcard ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.mot-legendcard li { display: flex; align-items: center; gap: 9px; font-size: 0.76rem; line-height: 1.3; color: var(--lm-ivory-dim); }
+.mot-legendcard li b { color: var(--lm-ivory); font-family: var(--lm-font-num, sans-serif); white-space: nowrap; }
+.mot-legendcard i { flex: none; width: 16px; height: 16px; border-radius: 5px; background: rgba(94, 234, 212, 0.14); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.2); }
+.mot-legendcard i[data-g="-1"] { background: rgba(251, 191, 36, 0.4); } .mot-legendcard i[data-g="-3"] { background: rgba(244, 63, 94, 0.5); } .mot-legendcard i[data-g="2"] { background: rgba(167, 139, 250, 0.5); }
+
+/* footer: progress + record only; nudges float above it */
+.mot-foot { min-height: 62px; justify-content: space-between; }
+.mot-foot__bar { flex: 1 1 320px; max-width: 420px; }
+.mot-foot__lab em { font-style: normal; font-weight: 500; color: var(--lm-muted); }
+.mot-toast { position: absolute; left: 50%; bottom: 72px; z-index: 15; max-width: min(520px, calc(100% - 32px)); transform: translateX(-50%); padding: 9px 16px; border-radius: 99px; font-size: 0.82rem; line-height: 1.3; text-align: center; color: #fff4dc; pointer-events: none;
+  background: rgba(20, 11, 38, 0.94); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.4), 0 10px 30px rgba(0, 0, 0, 0.55); animation: mot-toast 280ms cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes mot-toast { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* tutorial spotlight: no blur, a light dim with a cut-out around the control being described */
+.mot-overlay--tut { display: block; background: rgba(5, 2, 12, 0.5); backdrop-filter: none; overflow: hidden; padding: 0; }
+.mot-overlay--tut.has-spot { background: transparent; }
+.mot-spot { position: absolute; z-index: 1; border-radius: 18px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(5, 2, 12, 0.58), 0 0 0 2px var(--lm-gold, #ffd27a), 0 0 26px rgba(255, 210, 122, 0.45); transition: left 320ms cubic-bezier(.3, .8, .3, 1), top 320ms cubic-bezier(.3, .8, .3, 1), width 320ms cubic-bezier(.3, .8, .3, 1), height 320ms cubic-bezier(.3, .8, .3, 1); }
+.mot-card--tut { position: absolute; z-index: 2; width: min(380px, calc(100% - 24px)); padding: 16px 18px; gap: 8px; }
+.mot-card--tut .mot-card__title { font-size: 1.12rem; }
+.mot-card--tut .mot-card__body { font-size: 0.84rem; line-height: 1.45; }
+.mot-root.is-rm .mot-spot { transition: none; }
+
+/* convergence: bigger target card, approach beam, plan view and live readouts */
+.mot-main--conv { grid-template-columns: minmax(0, 1fr) 300px; }
+.mot-stage--conv .mot-eyes { top: 40%; }
+.mot-tcard { top: 62%; width: 96px; padding: 7px 6px 6px; border-radius: 9px; z-index: 3; }
+.mot-tcard__l { font: 800 1.5rem/1 var(--lm-font-display, Georgia, serif); letter-spacing: 0.16em; padding-left: 0.16em; }
+.mot-tcard__cm { display: block; margin-top: 5px; padding-top: 4px; border-top: 1px solid rgba(26, 18, 38, 0.18); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em; color: #4a3a2a; }
+.mot-beam { position: absolute; left: 50%; top: 62%; bottom: 0; width: 6px; z-index: 2; pointer-events: none; transform-origin: 50% 0; border-radius: 3px;
+  background: linear-gradient(180deg, rgba(255, 224, 160, 0.95), rgba(255, 210, 122, 0.12) 80%, transparent); filter: blur(1.5px); box-shadow: 0 0 22px rgba(255, 210, 122, 0.5); }
+.mot-planwrap { height: 190px; border-radius: 12px; overflow: hidden; background: radial-gradient(80% 90% at 50% 100%, rgba(120, 90, 255, 0.16), rgba(6, 3, 14, 0.7)); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); }
+.mot-plan { display: block; width: 100%; height: 100%; }
+.mot-live { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mot-live div { display: grid; gap: 3px; padding: 8px 8px 7px; border-radius: 10px; background: rgba(6, 3, 14, 0.55); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.08); min-width: 0; }
+.mot-live span { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-muted); }
+.mot-live b { font-size: 0.8rem; line-height: 1.2; color: var(--lm-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mot-live b[data-s="ok"] { color: var(--lm-normal, #5eead4); } .mot-live b[data-s="bad"] { color: #f472b6; }
+.mot-gauge { display: grid; gap: 4px; }
+.mot-gauge__bar { position: relative; display: flex; height: 10px; border-radius: 99px; overflow: visible; background: rgba(255, 255, 255, 0.06); }
+.mot-gauge__bar i { height: 100%; } .mot-gauge__bar .z-ok { width: 30%; background: rgba(94, 234, 212, 0.55); border-radius: 99px 0 0 99px; } .mot-gauge__bar .z-mid { width: 20%; background: rgba(251, 191, 36, 0.5); } .mot-gauge__bar .z-bad { flex: 1; background: rgba(244, 63, 94, 0.45); border-radius: 0 99px 99px 0; }
+.mot-gauge__now { position: absolute; top: -3px; width: 2px; height: 16px; background: #fff; box-shadow: 0 0 8px #fff; transform: translateX(-1px); will-change: left; }
+.mot-gauge__pin { position: absolute; top: -17px; transform: translateX(-50%); font: 800 0.6rem var(--lm-font-num, sans-serif); color: #2a1a05; padding: 1px 5px; border-radius: 99px; background: var(--lm-gold); animation: mot-pop 300ms both; }
+.mot-gauge p { display: flex; justify-content: space-between; margin: 0; font-size: 0.56rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--lm-muted-2, #8d7fa6); }
+.mot-panel--conv { gap: 10px; }
+.mot-panel--conv .mot-norms { margin-top: auto; }
+
+@media (max-width: 760px) {
+  .mot-main, .mot-main--conv { padding: 8px 12px 14px; }
+  .mot-wrap { flex: 1 1 auto; }
+  .mot-main:not(.mot-main--conv) > .mot-wrap > .mot-stage { flex: 1 1 auto; height: auto; min-height: 340px; }
+  .mot-main--conv > .mot-wrap { flex: none; }
+  .mot-main--conv .mot-stage { height: clamp(140px, 20vh, 175px); min-height: 0; flex: none; }
+  .mot-main--conv .mot-wrap { gap: 8px; }
+  .mot-stage--conv .mot-eyes { top: 38%; }
+  .mot-tcard { width: 72px; top: 64%; padding: 5px 4px 4px; } .mot-tcard__l { font-size: 1.05rem; } .mot-tcard__cm { font-size: 0.56rem; margin-top: 3px; padding-top: 3px; }
+  .mot-beam { top: 64%; width: 4px; }
+  .mot-kbd { display: none; }
+  .mot-foot { flex-wrap: nowrap; min-height: 60px; gap: 10px; padding: 8px 12px; }
+  .mot-foot__bar { flex: 1 1 0; max-width: none; min-width: 0; flex-direction: column; align-items: stretch; gap: 5px; }
+  .mot-foot__lab { font-size: 0.72rem; } .mot-foot__lab em { display: none; }
+  .mot-foot .lm-btn { flex: none; }
+  .mot-toast { bottom: 70px; font-size: 0.76rem; padding: 7px 12px; border-radius: 14px; }
+  .mot-planwrap { height: 170px; }
+  .mot-panel--conv { padding: 10px; }
+  .mot-meas { grid-template-columns: 1fr 1fr; }
+  .mot-legendcard { margin-top: 0; }
+  .mot-log ul { max-height: 120px; }
+  .mot-card--tut { padding: 14px 16px; }
+}
+.mot-look { padding: 10px 12px; border-radius: 12px; background: rgba(255, 210, 122, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.16); display: grid; gap: 8px; }
+.mot-look ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.mot-look li { font-size: 0.76rem; line-height: 1.35; color: var(--lm-ivory-dim); } .mot-look li b { display: inline-block; min-width: 68px; color: var(--lm-gold); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.mot-legendcard { margin-top: 0; }
+@media (max-width: 760px) { .mot-look { display: none; } }
+@media (max-width: 760px) {
+  .mot-main:not(.mot-main--conv) > .mot-wrap { flex: 1 1 0; min-height: 0; }
+  .mot-main:not(.mot-main--conv) > .mot-wrap > .mot-stage { flex: 1 1 0; min-height: 240px; }
+  .mot-card--tut .mot-card__keys { display: none; }
+  .mot-card--tut .mot-card__body { font-size: 0.8rem; line-height: 1.4; }
+  .mot-card--tut .mot-card__title { font-size: 1rem; }
+}
+.mot-tcard__l { font-size: 1.3rem; letter-spacing: 0.06em; padding-left: 0.06em; white-space: nowrap; }
+.mot-planwrap { flex: 1 1 190px; min-height: 190px; height: auto; }
+@media (max-width: 760px) { .mot-planwrap { flex: none; height: 170px; } .mot-tcard__l { font-size: 0.95rem; } }
