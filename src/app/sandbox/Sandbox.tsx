@@ -33,7 +33,8 @@ export async function mountSandbox(root: HTMLElement, services: GameServices, sp
   document.body.classList.add('sandbox');
 
   if (kind === 'minigame') {
-    await discoverPlugins(services, { filter: { minigames: (k) => k === `minigames/${id}`, systems: () => false, scenes: () => false, modes: () => false } });
+    // Load every mini-game folder: one folder may register several modules (e.g. visual-acuity + pinhole).
+    await discoverPlugins(services, { filter: { systems: () => false, scenes: () => false, modes: () => false } });
     const mg = services.registries.minigames.get(id);
     render(<ServicesProvider services={services}>{mg ? <MiniGameHarness services={services} mg={mg} caseId={q.get('case')} difficulty={Number(q.get('difficulty') ?? 0.5)} /> : <p class="sb-error">Mini-game “{id}” not found or failed to load (see console).</p>}</ServicesProvider>, root);
     return;

@@ -347,7 +347,7 @@
 .va-log__ok { color: var(--lm-normal, #5eead4); }
 .va-log__tip { margin: 9px 2px 0; font-size: 0.72rem; line-height: 1.4; color: var(--lm-muted, #a99bbd); }
 .va-toast {
-  position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%); z-index: 20; max-width: min(92%, 460px);
+  position: absolute; left: 50%; width: max-content; bottom: 78px; transform: translateX(-50%); z-index: 20; max-width: min(92%, 460px);
   display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-radius: 12px; font-size: 0.84rem; line-height: 1.35;
   color: #fff3d6; background: linear-gradient(160deg, rgba(120, 60, 30, 0.96), rgba(60, 22, 40, 0.96));
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 190, 120, 0.5);
@@ -381,7 +381,10 @@
   .va-lcd__main { font-size: 1.6rem; }
   .va-dial { width: 76px; height: 76px; }
   .va__foot { padding: 8px 12px; }
-  .va-progress li { padding: 5px 8px; }
+  .va-progress { flex-wrap: nowrap; gap: 5px; overflow: hidden; }
+  .va-progress li { padding: 5px 7px; gap: 5px; font-size: 0.72rem; }
+  .va-progress b { font-size: 0.72rem; }
+  .va__foot .lm-btn { padding-inline: 14px; }
   .va-progress li.is-opt { display: none; }
 }
 
