@@ -10,7 +10,7 @@ function ctx(id: string): MiniGameContext {
     mode: 'case', difficulty: 0.5, rng: createRng('mount'),
     audio: { play: vi.fn() } as unknown as MiniGameContext['audio'],
     fx: { burst: vi.fn(), shake: vi.fn() } as unknown as MiniGameContext['fx'],
-    reducedMotion: true,
+    reducedMotion: true, locale: 'en',
   };
 }
 

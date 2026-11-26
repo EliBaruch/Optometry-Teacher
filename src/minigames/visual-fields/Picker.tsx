@@ -1,9 +1,10 @@
 import type { Eye } from '@core';
 import { Glyph } from './Glyph';
 import {
-  anatomicalSide, defectOf, FAMILIES, FAMILY_LABEL, FAMILY_SIDES, FAMILY_SUB, SIDE_LABEL,
+  anatomicalSide, defectOf, FAMILIES, FAMILY_SIDES,
   type Family, type Pattern, type Side,
 } from './interpret';
+import { useVf, useVfLocale } from './useVf';
 
 export interface PickerProps {
   eye: Eye;
@@ -14,6 +15,8 @@ export interface PickerProps {
 
 /** Pattern classification: a family, then (where it has one) the side as plotted. */
 export function Picker({ eye, value, onChange, disabled }: PickerProps) {
+  const t = useVf();
+  const locale = useVfLocale();
   const fam = value?.family ?? null;
   const sides = fam ? FAMILY_SIDES[fam] : [];
   const pickFamily = (f: Family) => {
@@ -23,7 +26,7 @@ export function Picker({ eye, value, onChange, disabled }: PickerProps) {
   };
   return (
     <div class="vf-picker">
-      <div class="vf-picker__grid" role="radiogroup" aria-label={`Field pattern, ${eye}`}>
+      <div class="vf-picker__grid" role="radiogroup" aria-label={t.pickAria(eye)}>
         {FAMILIES.map((f) => {
           const def = defectOf({ family: f, side: FAMILY_SIDES[f][0] }, eye);
           const on = fam === f;
@@ -37,19 +40,19 @@ export function Picker({ eye, value, onChange, disabled }: PickerProps) {
               class={`vf-chip${on ? ' is-on' : ''}`}
               onClick={() => pickFamily(f)}
               data-testid={`vf-family-${f}`}
-              title={FAMILY_SUB[f]}
+              title={t.famSub[f]}
             >
               <Glyph defect={def} eye={eye} size={30} tone={on ? 'gold' : 'dark'} />
               <span class="vf-chip__text">
-                <strong>{FAMILY_LABEL[f]}</strong>
-                <small>{FAMILY_SUB[f]}</small>
+                <strong>{t.famLabel[f]}</strong>
+                <small>{t.famSub[f]}</small>
               </span>
             </button>
           );
         })}
       </div>
       {fam && sides.length > 0 && (
-        <div class="vf-picker__sides" role="radiogroup" aria-label="Which part of the field">
+        <div class="vf-picker__sides" role="radiogroup" aria-label={t.pickSideAria}>
           {sides.map((s: Side) => {
             const on = value?.side === s;
             return (
@@ -65,8 +68,8 @@ export function Picker({ eye, value, onChange, disabled }: PickerProps) {
               >
                 <Glyph defect={defectOf({ family: fam, side: s }, eye)} eye={eye} size={24} tone={on ? 'gold' : 'dark'} />
                 <span>
-                  {SIDE_LABEL[s]}
-                  <small>{anatomicalSide(s, eye)}</small>
+                  {t.sideLabel[s]}
+                  <small>{anatomicalSide(s, eye, locale)}</small>
                 </span>
               </button>
             );

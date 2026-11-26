@@ -1,5 +1,6 @@
-import { createRng, dayKey, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
+import { createRng, pickStrings, dayKey, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
 import { dailyRecord, ensureDailyTracking } from './attempts';
+import { S } from './strings';
 
 export { dailyRecord, DAILY_SLOT, type DailyRecord } from './attempts';
 
@@ -65,6 +66,7 @@ const daily: ModeModule = {
   id: 'daily',
   title: 'Daily Rounds',
   tagline: 'Three patients, the same for every clinician today. Make your chart the cleanest.',
+  text: { he: { title: 'סבב יומי', tagline: 'שלושה מטופלים, אותם שלושה לכולם היום. נסו להגיש את התיק הנקי ביותר.' } },
   icon: '🗓️',
   accent: '#4ade80',
   order: 20,
@@ -73,12 +75,12 @@ const daily: ModeModule = {
   rules: { length: DAILY_LENGTH, scoreMultiplier: 1, hints: false, autoRun: false },
   pickNext,
   locked(services) {
-    if (!services.registries.cases.all().length) return 'Today’s patients are still on their way in.';
+    const t = pickStrings(S, services.locale);
+    if (!services.registries.cases.all().length) return t.dailyNoCases;
     // One scored round per day keeps the board fair: everyone gets one attempt at the same three.
     const rec = dailyRecord(services);
     if (rec.doneToday) {
-      const streak = rec.streak > 1 ? ` ${rec.streak} days running.` : '';
-      return `Today’s rounds are done.${streak} New patients at midnight.`;
+      return t.dailyDone(rec.streak);
     }
     return undefined;
   },

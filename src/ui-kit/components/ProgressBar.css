@@ -10,14 +10,14 @@
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 236, 210, 0.08), 0 1px 0 rgba(255, 245, 230, 0.05);
 }
 .lm-progress__fill {
-  position: absolute; left: 0; top: 0; bottom: 0; min-width: var(--prog-h); border-radius: inherit;
+  position: absolute; inset-inline-start: 0; top: 0; bottom: 0; min-width: var(--prog-h); border-radius: inherit;
   background: linear-gradient(180deg, color-mix(in srgb, var(--prog-c) 55%, white) 0%, var(--prog-c) 50%, color-mix(in srgb, var(--prog-c) 75%, black) 100%);
   box-shadow: 0 0 14px color-mix(in srgb, var(--prog-c) 55%, transparent);
   transition: width 900ms var(--lm-ease-out-expo), opacity var(--lm-dur-ui);
 }
 .lm-progress__fill.is-empty { opacity: 0; }
 .lm-progress__tip {
-  position: absolute; right: 0; top: 0; bottom: 0; width: 16px; border-radius: inherit;
+  position: absolute; inset-inline-end: 0; top: 0; bottom: 0; width: 16px; border-radius: inherit;
   background: radial-gradient(ellipse at right center, rgba(255, 255, 255, 0.9), transparent 72%);
 }
 .lm-progress__fill.is-shimmer { overflow: hidden; }
@@ -27,3 +27,4 @@
   animation: lm-shimmer 2.2s var(--lm-ease-in-out) infinite;
 }
 html.lm-lite .lm-progress__fill.is-shimmer::after { animation-iteration-count: 2; }
+[dir='rtl'] .lm-progress__tip { background: radial-gradient(ellipse at left center, rgba(255, 255, 255, 0.9), transparent 72%); }

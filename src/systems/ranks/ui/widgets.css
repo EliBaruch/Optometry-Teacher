@@ -21,7 +21,7 @@
   --rk-c: var(--lm-career);
   display: inline-flex; align-items: center; gap: 10px; min-width: 0;
   padding: 3px 14px 3px 3px; border: 0; border-radius: var(--lm-r-pill); cursor: pointer;
-  color: var(--lm-ivory); font: inherit; text-align: left;
+  color: var(--lm-ivory); font: inherit; text-align: start;
   background: linear-gradient(160deg, rgba(58, 38, 96, 0.55), rgba(16, 9, 30, 0.7));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rk-c) 35%, transparent), inset 0 1px 0 rgba(255, 245, 230, 0.08), var(--lm-shadow-1);
   backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
@@ -40,7 +40,7 @@
 }
 .rk-badge__crest { position: relative; margin-top: -1px; }
 .rk-badge__lv {
-  position: absolute; right: -4px; bottom: -3px; min-width: 18px; height: 18px; padding: 0 4px;
+  position: absolute; inset-inline-end: -4px; bottom: -3px; min-width: 18px; height: 18px; padding: 0 4px;
   display: grid; place-items: center; border-radius: 9px;
   font-size: 10px; font-weight: 700; color: var(--lm-text-on-gold);
   background: linear-gradient(180deg, var(--lm-gold-200), var(--lm-gold-500));
@@ -72,7 +72,7 @@
 .rk-xp--lg .rk-xp__track { height: 14px; }
 .rk-xp--lg .rk-xp__title { font-size: var(--lm-fs-lg); }
 .rk-xp__base, .rk-xp__gain { position: absolute; top: 0; bottom: 0; }
-.rk-xp__base { left: 0; border-radius: inherit; background: linear-gradient(90deg, #5b45a8, var(--lm-career)); }
+.rk-xp__base { inset-inline-start: 0; border-radius: inherit; background: linear-gradient(90deg, #5b45a8, var(--lm-career)); }
 .rk-xp__gain {
   background: linear-gradient(90deg, #c4b5fd, #fff4da);
   box-shadow: 0 0 14px rgba(255, 236, 200, 0.7);
@@ -138,7 +138,7 @@
 .rk-profile__foot { display: flex; justify-content: flex-end; }
 @media (max-width: 520px) {
   .rk-profile__head { flex-direction: column; text-align: center; gap: var(--lm-sp-3); }
-  .rk-profile__rank { width: 100%; text-align: left; }
+  .rk-profile__rank { width: 100%; text-align: start; }
   .rk-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -163,3 +163,5 @@ html.reduced-motion .rk-crest.is-anim .rk-crest__halo,
 html.reduced-motion .rk-crest.is-anim .rk-crest__sheen,
 html.reduced-motion .rk-badge .rk-badge__dial,
 html.reduced-motion .rk-xp__flare { animation: none; }
+
+:lang(he) .rk-profile__motto { font-style: normal; }

@@ -1,6 +1,7 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { Icon, cx, useSfx, type IconName } from '@ui-kit';
+import { Icon, cx, useSfx, useStrings, type IconName } from '@ui-kit';
+import { S } from './strings';
 import { percent, snapVolume } from './logic';
 
 /* ── Brass slider: a native range input (accessible, touch-friendly) dressed as an instrument dial ── */
@@ -18,6 +19,7 @@ export function VolumeSlider(props: {
   /** Mute toggle beside the slider. */
   onToggleMute?: () => void;
 }) {
+  const t = useStrings(S);
   const v = snapVolume(props.value);
   const muted = v === 0;
   return (
@@ -35,7 +37,7 @@ export function VolumeSlider(props: {
           <button
             type="button"
             class="settings-slider__mute"
-            aria-label={muted ? `Unmute ${props.label}` : `Mute ${props.label}`}
+            aria-label={muted ? t.unmute(props.label) : t.mute(props.label)}
             aria-pressed={muted}
             onClick={props.onToggleMute}
           >
@@ -43,7 +45,7 @@ export function VolumeSlider(props: {
           </button>
         )}
       </div>
-      <div class="settings-slider__track">
+      <div class="settings-slider__track" dir="ltr">
         <div class="settings-slider__ticks" aria-hidden="true">
           {Array.from({ length: 11 }, (_, i) => <span key={i} class={cx(i / 10 <= v + 1e-6 && 'is-lit')} />)}
         </div>
@@ -109,6 +111,7 @@ export function SwitchRow(props: {
  * Releasing early cancels. Works identically with reduced motion (the fill is functional, not decorative).
  */
 export function HoldButton(props: { label: string; holdMs?: number; onConfirm: () => void; icon?: IconName }) {
+  const t = useStrings(S);
   const hold = props.holdMs ?? 1400;
   const [progress, setProgress] = useState(0);
   const raf = useRef(0);
@@ -173,7 +176,7 @@ export function HoldButton(props: { label: string; holdMs?: number; onConfirm: (
         if (e.key === 'Enter' || e.key === ' ') stop();
       }}
       onContextMenu={(e) => e.preventDefault()}
-      aria-label={`${props.label} — press and hold to confirm`}
+      aria-label={t.holdAria(props.label)}
     >
       <span class="settings-hold__fill" aria-hidden="true" />
       {/* Both labels share one grid cell, so the button keeps the width of the wider one and nothing reflows mid-hold. */}
@@ -184,7 +187,7 @@ export function HoldButton(props: { label: string; holdMs?: number; onConfirm: (
         </span>
         <span class={cx('settings-hold__label', !holding && 'is-hidden')} aria-hidden={!holding}>
           {props.icon && <Icon name={props.icon} />}
-          Keep holding…
+          {t.keepHolding}
         </span>
       </span>
     </button>

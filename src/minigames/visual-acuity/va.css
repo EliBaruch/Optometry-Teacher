@@ -49,7 +49,7 @@
 /* ── body ───────────────────────────────────────────────────────────────── */
 .va__body { display: grid; grid-template-columns: minmax(0, 1fr) 316px; gap: 14px; padding: 14px 16px; min-height: 0; }
 .va__stage { position: relative; min-width: 0; min-height: 0; display: flex; }
-.va__side { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: auto; padding-right: 2px; scrollbar-width: thin; }
+.va__side { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: auto; padding-inline-end: 2px; scrollbar-width: thin; }
 
 /* projector bezel: lacquered frame, brass inlay, glow spilling into the dark lane */
 .va-bezel {
@@ -67,12 +67,12 @@
 }
 .va-bezel__plate { padding: 8px 2px 0; }
 .va-bezel__pov {
-  position: absolute; z-index: 2; top: 20px; left: 20px; padding: 3px 8px; border-radius: 999px; pointer-events: none;
+  position: absolute; z-index: 2; top: 20px; inset-inline-start: 20px; padding: 3px 8px; border-radius: 999px; pointer-events: none;
   font: 700 0.58rem/1.3 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase;
   color: rgba(60, 40, 20, 0.7); background: rgba(255, 250, 240, 0.55); box-shadow: 0 0 0 1px rgba(120, 90, 50, 0.2);
 }
 .va-pctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.va-pctl__hint { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 3px; font-size: 0.66rem; color: var(--lm-muted-2, #7d6f95); }
+.va-pctl__hint { margin-inline-start: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 3px; font-size: 0.66rem; color: var(--lm-muted-2, #7d6f95); }
 .va-pctl__hint .lm-kbd { font-size: 0.58rem; }
 @media (hover: none), (max-width: 860px) { .va-pctl__hint, .va-occhint .lm-kbd { display: none; } }
 @media (hover: none) { .va-patient__portrait:hover .va-eyehit__tag { opacity: 0; } }
@@ -125,7 +125,7 @@
   transition: color 200ms var(--va-ease);
 }
 .va-occhint.is-warn { color: var(--lm-abnormal, #fbbf24); }
-.va-occhint .lm-kbd { margin-left: auto; }
+.va-occhint .lm-kbd { margin-inline-start: auto; }
 .va-scchip { font-size: 0.74rem; color: var(--lm-muted); }
 .va-scchip b { font-family: var(--lm-font-num); color: var(--lm-ivory); }
 
@@ -158,7 +158,7 @@
   background: radial-gradient(120% 140% at 30% 0%, rgba(255, 210, 122, 0.1), transparent 60%), linear-gradient(180deg, #0b0614, #120a20);
   box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.2), inset 0 2px 8px rgba(0, 0, 0, 0.6);
 }
-.va-lcd__ref { margin-left: 8px; padding: 1px 6px; border-radius: 6px; letter-spacing: 0.06em; color: var(--lm-ivory); background: rgba(255, 210, 122, 0.12); }
+.va-lcd__ref { margin-inline-start: 8px; padding: 1px 6px; border-radius: 6px; letter-spacing: 0.06em; color: var(--lm-ivory); background: rgba(255, 210, 122, 0.12); }
 .va-lcd__eyebrow { white-space: nowrap; font: 600 0.6rem/1 var(--lm-font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 220, 160, 0.6); }
 .va-lcd__main {
   margin: 5px 0 3px; font: 600 1.9rem/1 var(--lm-font-num); color: var(--lm-gold, #ffd27a); letter-spacing: 0.01em;
@@ -168,7 +168,7 @@
 .va-lcd__sub i { font-style: normal; opacity: 0.5; }
 .va-remote__dial { display: flex; align-items: center; }
 .va-lcd { position: relative; }
-.va-lcd__steps { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 3px; }
+.va-lcd__steps { position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 3px; }
 .va-step {
   width: 28px; height: 22px; display: grid; place-items: center; border: 0; border-radius: 8px; cursor: pointer;
   background: rgba(255, 255, 255, 0.04); color: var(--lm-muted); transition: background 160ms, color 160ms;
@@ -200,7 +200,7 @@
 
 .va-remote__keys { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .va-key {
-  display: flex; align-items: center; gap: 7px; min-height: 42px; padding: 7px 10px; border-radius: 12px; border: 0; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 7px; min-height: 42px; padding: 7px 10px; border-radius: 12px; border: 0; cursor: pointer; text-align: start;
   font-weight: 600; font-size: 0.84rem; line-height: 1.15;
   transition: transform 160ms var(--va-spring), box-shadow 200ms var(--va-ease), background 200ms var(--va-ease);
 }
@@ -224,7 +224,7 @@
 /* pinhole controls */
 .va-remote__ph { display: flex; flex-direction: column; gap: 8px; }
 .va-flip {
-  display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; border: 0; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; border: 0; cursor: pointer; text-align: start;
   background: rgba(8, 4, 16, 0.5); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.12); transition: box-shadow 220ms var(--va-ease), background 220ms;
 }
 .va-flip.is-on { background: rgba(255, 210, 122, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.55), 0 0 20px rgba(255, 210, 122, 0.16); }
@@ -248,7 +248,7 @@
 .va-flip__text small { font-size: 0.68rem; color: var(--lm-muted); }
 .va-verdict { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .va-verdict button {
-  display: flex; flex-direction: column; gap: 1px; align-items: flex-start; padding: 6px 8px; border-radius: 10px; border: 0; cursor: pointer; text-align: left;
+  display: flex; flex-direction: column; gap: 1px; align-items: flex-start; padding: 6px 8px; border-radius: 10px; border: 0; cursor: pointer; text-align: start;
   background: rgba(8, 4, 16, 0.45); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); transition: all 200ms var(--va-ease);
 }
 .va-verdict b { font-size: 0.74rem; line-height: 1.15; }
@@ -311,11 +311,11 @@
 .va-quiz__summary li.is-ok svg { color: var(--lm-normal); }
 .va-quiz__summary li.is-off { box-shadow: inset 3px 0 0 var(--lm-abnormal); }
 .va-quiz__summary li.is-off svg { color: var(--lm-abnormal); }
-.va-quiz__notes { margin: 8px 0 0; padding-left: 18px; font-size: 0.74rem; color: var(--lm-muted); line-height: 1.45; }
+.va-quiz__notes { margin: 8px 0 0; padding-inline-start: 18px; font-size: 0.74rem; color: var(--lm-muted); line-height: 1.45; }
 .va-quiz__prompt { margin: 16px 0 10px; font-family: var(--lm-font-display, serif); font-weight: 520; font-size: 1.15rem; line-height: 1.35; }
 .va-quiz__opts { display: flex; flex-direction: column; gap: 7px; }
 .va-quiz__opt {
-  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 9px 12px; border-radius: 12px; border: 0; cursor: pointer; text-align: left; font-size: 0.88rem;
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 9px 12px; border-radius: 12px; border: 0; cursor: pointer; text-align: start; font-size: 0.88rem;
   background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.12); transition: all 220ms var(--va-ease);
 }
 .va-quiz__opt:hover:not(:disabled) { background: rgba(255, 210, 122, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.5); }
@@ -366,7 +366,7 @@
   .va { grid-template-rows: auto minmax(0, 1fr) auto; }
   .va__head { flex-wrap: wrap; padding: 8px 12px; gap: 8px; }
   .va__title p { display: none; }
-  .va-eyes { margin-left: auto; }
+  .va-eyes { margin-inline-start: auto; }
   .va-eyes__btn { padding: 7px 10px; }
   .va-eyes__name { display: none; }
   .va__body { grid-template-columns: 1fr; grid-template-rows: auto auto; padding: 10px 12px 22px; gap: 10px; overflow-y: auto; overflow-x: hidden; align-content: start; scroll-padding-bottom: 24px; -webkit-overflow-scrolling: touch; }
@@ -389,3 +389,6 @@
 }
 
 .va-key b { font-family: var(--lm-font-num); font-weight: 700; }
+
+/* ── Hebrew edition: tracked capitals look wrong on Hebrew letters */
+:lang(he) .va, :lang(he) .va * { letter-spacing: 0; }

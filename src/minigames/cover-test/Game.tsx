@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Eye, MiniGameContext, MiniGameDone, PatientFindings } from '@core';
 import { Button, Icon, ProgressBar } from '@ui-kit';
+import { pickStrings } from '@core';
+import { fix, S } from './strings';
+import { LocaleContext } from './locale';
 import { drawEye, eyeStateFromFindings, type EyeState } from '@render';
 import {
   CoverSim, NEAR_CONVERGENCE, baseWord, turnToGaze, truthOf, TARGETS, type Dir, type Kind, type Prism, type Target, type Truth,
 } from './model';
 import { scoreCall, totalScore, type Call } from './scoring';
 import { makeChallenge, type Challenge } from './practice';
-import { report } from './report';
+import { reportFor } from './report';
 import { PrismBar } from './PrismBar';
 import { Tutorial } from './Tutorial';
 import { Debrief } from './Debrief';
@@ -21,22 +24,16 @@ const EYE_ASPECT = 1.9;
 const GAZE_GAIN = 1.35;
 interface Draft { kind: Kind | null; dir: Dir | null; eye: 'OD' | 'OS' | 'alternating' | null }
 const EMPTY: Draft = { kind: null, dir: null, eye: null };
-const KINDS: { id: Kind; label: string }[] = [
-  { id: 'ortho', label: 'No movement' }, { id: 'phoria', label: 'Phoria' }, { id: 'tropia', label: 'Tropia' }, { id: 'intermittent', label: 'Intermittent' },
-];
-const DIRS: { id: Dir; label: string }[] = [
-  { id: 'eso', label: 'Eso' }, { id: 'exo', label: 'Exo' }, { id: 'hyperR', label: 'R hyper' }, { id: 'hyperL', label: 'L hyper' },
-];
-const DEV_EYES: { id: 'OD' | 'OS' | 'alternating'; label: string }[] = [
-  { id: 'OD', label: 'OD' }, { id: 'OS', label: 'OS' }, { id: 'alternating', label: 'Alternating' },
-];
-const STEP_LABEL = ['OD covered', 'OS covered', 'Uncover', 'Alternate', 'Prism', 'Call'];
+const KIND_IDS: Kind[] = ['ortho', 'phoria', 'tropia', 'intermittent'];
+const DIR_IDS: Dir[] = ['eso', 'exo', 'hyperR', 'hyperL'];
+const DEV_EYE_IDS: ('OD' | 'OS' | 'alternating')[] = ['OD', 'OS', 'alternating'];
 
 interface Pad { x: number; y: number; tx: number; ty: number; drag: boolean; auto: boolean; autoT: number; autoEye: Eye; ox: number; oy: number }
 interface Lay { W: number; H: number; bw: number; bh: number; cell: Record<Eye, { x0: number; y0: number; x1: number; y1: number }>; rest: { x: number; y: number } }
 
 export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
   const { audio, fx } = ctx;
+  const t = pickStrings(S, ctx.locale);
   const reduced = ctx.reducedMotion;
   const rng = useMemo(() => ctx.rng.fork('cover-test'), []);
   const truths = useMemo(() => ({ distance: truthOf(ctx.findings, 'distance'), near: truthOf(ctx.findings, 'near') }) as Record<Target, Truth>, []);
@@ -329,26 +326,22 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   // ───────────── finish
   const anyCall = !!(calls.distance || calls.near);
   const stepFlags = [snap.od, snap.os, snap.unc, snap.alt >= 2, snap.pr === 2, !!locked];
-  const hint = !snap.od && !snap.os
-    ? `Drag the black paddle over one eye (or press ← →) and watch the OTHER eye. The patient is looking at the ${target === 'near' ? 'near target (33 cm)' : 'distance letter (6 m)'}.`
-    : !snap.unc
-      ? 'Now uncover: slide the paddle away and watch the eye that was behind it. Try both eyes.'
-      : !(snap.od && snap.os)
-        ? 'Repeat on the other eye. A tropia shows when the fixing eye is covered; a phoria shows on uncover.'
-        : snap.alt < 2
-          ? 'Swing the paddle from eye to eye (Alternate) to reveal the full deviation.'
-          : snap.pr < 2
-            ? 'Slide prism over an eye until the movement stops: base-out for eso, base-in for exo, base-down over a higher eye.'
-            : !locked ? 'Neutralised. Name what you found and lock your call.'
-              : target === 'distance' && !calls.near ? 'Locked. Now press Near (33 cm) and repeat, or record your findings.' : 'Locked. Record your findings when ready.';
+  const tgWord = target === 'near' ? t.hintNearTarget : t.hintFarTarget;
+  const hint = !snap.od && !snap.os ? t.hint1(tgWord)
+    : !snap.unc ? t.hint2
+      : !(snap.od && snap.os) ? t.hint3
+        : snap.alt < 2 ? t.hint4
+          : snap.pr < 2 ? t.hint5
+            : !locked ? t.hint6
+              : target === 'distance' && !calls.near ? t.hint7 : t.hint8;
 
-  const hintShort = !snap.od && !snap.os ? 'Drag the paddle over one eye and watch the OTHER eye.'
-    : !snap.unc ? 'Now uncover and watch the eye that was behind it.'
-      : !(snap.od && snap.os) ? 'Repeat on the other eye.'
-        : snap.alt < 2 ? 'Tap Alternate to reveal the full deviation.'
-          : snap.pr < 2 ? 'Open the Prism tab and neutralise the movement.'
-            : !locked ? 'Neutralised. Name what you found and lock your call.'
-              : 'Locked. Switch target or record your findings.';
+  const hintShort = !snap.od && !snap.os ? t.s1
+    : !snap.unc ? t.s2
+      : !(snap.od && snap.os) ? t.s3
+        : snap.alt < 2 ? t.s4
+          : snap.pr < 2 ? t.s5
+            : !locked ? t.s6
+              : t.s7;
 
   function scoreAll(c: Record<Target, Call | null>) {
     return { distance: scoreCall(truths.distance, c.distance), near: scoreCall(truths.near, c.near) };
@@ -357,7 +350,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     if (!anyCall) return;
     const stats = [sims.distance.stats, sims.near.stats];
     const tot = totalScore([truths.distance, truths.near], [calls.distance, calls.near], stats);
-    const ch = ctx.mode === 'practice' ? makeChallenge(ctx.findings, rng.fork('challenge')) : null;
+    const ch = ctx.mode === 'practice' ? makeChallenge(ctx.findings, rng.fork('challenge'), ctx.locale) : null;
     const fin = { challenge: ch, accuracy: tot.accuracy, perfect: tot.perfect, scores: scoreAll(calls) };
     if (!ch) { play('reveal'); finish(null, fin); return; } // case mode: Record findings files the chart straight away
     setFinal(fin);
@@ -370,22 +363,23 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const accuracy = chOk === null ? fin.accuracy : 0.68 * fin.accuracy + 0.32 * (chOk ? 1 : 0);
     const perfect = fin.perfect && chOk !== false;
     if (perfect) { play('success'); fx.burst(window.innerWidth / 2, window.innerHeight / 2, { kind: 'stars', count: 36 }); }
-    done({ testId: 'cover-test', accuracy: Math.max(0, Math.min(1, accuracy)), timeMs: Math.round(performance.now() - startAt.current), findings: report(ctx.findings, ctx.patient), perfect });
+    done({ testId: 'cover-test', accuracy: Math.max(0, Math.min(1, accuracy)), timeMs: Math.round(performance.now() - startAt.current), findings: reportFor(ctx.findings, ctx.locale), perfect });
   };
 
-  const missing = !calls.distance ? 'Distance not called yet' : !calls.near ? 'Near not called yet' : '';
+  const missing = !calls.distance ? t.distNotCalled : !calls.near ? t.nearNotCalled : '';
   const done6 = stepFlags.filter(Boolean).length;
   const covered = snap.covered;
 
   return (
-    <div class="cvt-root" ref={rootRef} tabIndex={-1} aria-label="Cover test" data-spot={tutorial ? spot ?? '' : ''}>
+    <LocaleContext.Provider value={ctx.locale}>
+    <div class="cvt-root" ref={rootRef} tabIndex={-1} aria-label={t.coverTestAria} data-spot={tutorial ? spot ?? '' : ''}>
       <header class="cvt-head">
-        <div class="cvt-head__title"><Icon name="cover-test" size={18} /> Cover test</div>
+        <div class="cvt-head__title"><Icon name="cover-test" size={18} /> {t.headTitle}</div>
         <p class="cvt-head__hint" key={hint.slice(0, 18)} aria-live="polite"><span class="cvt-hint-long">{hint}</span><span class="cvt-hint-short">{hintShort}</span></p>
-        <div class="cvt-seg" role="radiogroup" aria-label="Fixation distance">
-          {TARGETS.map((t) => (
-            <button key={t} type="button" role="radio" aria-checked={target === t} class={`cvt-seg__b${target === t ? ' is-on' : ''}`} onClick={() => switchTarget(t)}>
-              {t === 'distance' ? 'Distance · 6 m' : 'Near · 33 cm'}{calls[t] && <Icon name="check" size={13} />}
+        <div class="cvt-seg" role="radiogroup" aria-label={t.fixDistance}>
+          {TARGETS.map((tg) => (
+            <button key={tg} type="button" role="radio" aria-checked={target === tg} class={`cvt-seg__b${target === tg ? ' is-on' : ''}`} onClick={() => switchTarget(tg)}>
+              {tg === 'distance' ? t.distanceBtn : t.nearBtn}{calls[tg] && <Icon name="check" size={13} />}
             </button>
           ))}
         </div>
@@ -394,12 +388,12 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       <div class="cvt-main">
         <section class="cvt-wrap">
           <div class="cvt-stage" ref={stageRef} style={{ '--cvt-skin': SKIN_HEX[ctx.patient.avatar.skin] ?? SKIN_HEX[1] } as Record<string, string>}>
-            <div class={`cvt-fix cvt-fix--${target}`} aria-hidden="true"><span class="cvt-fix__dot" /><span class="cvt-fix__lab">{target === 'near' ? 'Accommodative target · 33 cm' : 'Letter chart · 6 m'}</span></div>
+            <div class={`cvt-fix cvt-fix--${target}`} aria-hidden="true"><span class="cvt-fix__dot" /><span class="cvt-fix__lab">{target === 'near' ? t.fixNear : t.fixFar}</span></div>
             <Face />
             <div class="cvt-eyes">
               {EYES_LIST.map((e) => (
                 <div key={e} class={`cvt-cell${covered === e ? ' is-covered' : ''}`} ref={cellRef[e]} onPointerDown={() => tapEye(e)}>
-                  <canvas ref={cvs[e]} class="cvt-canvas" role="img" aria-label={`${e === 'OD' ? 'Right' : 'Left'} eye of the patient`} />
+                  <canvas ref={cvs[e]} class="cvt-canvas" role="img" aria-label={t.eyeAria(e)} />
                   <span class="cvt-eyelab">{e}</span>
                   {prism.mag > 0 && prism.eye === e && (
                     <div class={`cvt-slab cvt-slab--${prism.base}`} aria-hidden="true">
@@ -409,62 +403,62 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
                 </div>
               ))}
             </div>
-            <div class="cvt-paddle" ref={paddleRef} onPointerDown={onPaddleDown} onPointerMove={onPaddleMove} onPointerUp={onPaddleUp} onPointerCancel={onPaddleUp} role="img" aria-label="Occluder paddle: drag over an eye, or use the arrow keys">
+            <div class="cvt-paddle" ref={paddleRef} onPointerDown={onPaddleDown} onPointerMove={onPaddleMove} onPointerUp={onPaddleUp} onPointerCancel={onPaddleUp} role="img" aria-label={t.paddleAria}>
               <div class="cvt-paddle__shadow" /><div class="cvt-paddle__blade" /><div class="cvt-paddle__grip" aria-hidden="true"><i /><i /><i /></div>
             </div>
           </div>
-          <div class="cvt-tools" role="toolbar" aria-label="Occluder controls">
-            <Button variant="glass" size="sm" sfx={false} icon="chevron-left" onClick={() => goCover('OD')} aria-pressed={covered === 'OD'}>Cover OD</Button>
-            <Button variant="glass" size="sm" sfx={false} onClick={() => goCover(null)}>Uncover</Button>
-            <Button variant="glass" size="sm" sfx={false} trailingIcon="chevron-right" onClick={() => goCover('OS')} aria-pressed={covered === 'OS'}>Cover OS</Button>
+          <div class="cvt-tools" dir="ltr" role="toolbar" aria-label={t.occluderControls}>
+            <Button variant="glass" size="sm" sfx={false} icon="chevron-left" onClick={() => goCover('OD')} aria-pressed={covered === 'OD'}>{t.coverOD}</Button>
+            <Button variant="glass" size="sm" sfx={false} onClick={() => goCover(null)}>{t.uncover}</Button>
+            <Button variant="glass" size="sm" sfx={false} trailingIcon="chevron-right" onClick={() => goCover('OS')} aria-pressed={covered === 'OS'}>{t.coverOS}</Button>
             <span class="cvt-tools__sp" />
-            <Button variant={autoAlt ? 'primary' : 'glass'} size="sm" sfx={false} icon="refresh" onClick={toggleAuto} aria-pressed={autoAlt}>Alternate</Button>
-            <Button variant={slow ? 'primary' : 'glass'} size="sm" sfx={false} icon="clock" onClick={() => { setSlow(!slow); play('click'); }} aria-pressed={slow} title="Slow motion: easier to see small movements">Slow</Button>
+            <Button variant={autoAlt ? 'primary' : 'glass'} size="sm" sfx={false} icon="refresh" onClick={toggleAuto} aria-pressed={autoAlt}>{t.alternate}</Button>
+            <Button variant={slow ? 'primary' : 'glass'} size="sm" sfx={false} icon="clock" onClick={() => { setSlow(!slow); play('click'); }} aria-pressed={slow} title={t.slowTitle}>{t.slow}</Button>
           </div>
         </section>
 
-        <aside class={`cvt-panel is-tab-${tab}`} aria-label="Findings">
-          <div class="cvt-tabs" role="tablist" aria-label="Findings steps">
-            <button type="button" role="tab" aria-selected={tab === 'call'} class={`cvt-tab${tab === 'call' ? ' is-on' : ''}`} onClick={() => { setTab('call'); play('click', { volume: 0.4 }); }}>1 · Your call</button>
-            <button type="button" role="tab" aria-selected={tab === 'measure'} class={`cvt-tab${tab === 'measure' ? ' is-on' : ''}`} onClick={() => { setTab('measure'); play('click', { volume: 0.4 }); }}>2 · Prism bar{snap.alt >= 2 && snap.pr < 2 && <i class="cvt-tab__dot" />}</button>
+        <aside class={`cvt-panel is-tab-${tab}`} aria-label={t.findings}>
+          <div class="cvt-tabs" role="tablist" aria-label={t.findingsSteps}>
+            <button type="button" role="tab" aria-selected={tab === 'call'} class={`cvt-tab${tab === 'call' ? ' is-on' : ''}`} onClick={() => { setTab('call'); play('click', { volume: 0.4 }); }}>{t.tabCall}</button>
+            <button type="button" role="tab" aria-selected={tab === 'measure'} class={`cvt-tab${tab === 'measure' ? ' is-on' : ''}`} onClick={() => { setTab('measure'); play('click', { volume: 0.4 }); }}>{t.tabPrism}{snap.alt >= 2 && snap.pr < 2 && <i class="cvt-tab__dot" />}</button>
           </div>
           <div class="cvt-sec cvt-sec--call">
-          <p class="cvt-eyebrow">What did you see? · {target === 'distance' ? 'Distance' : 'Near'}</p>
-          <div class="cvt-group" role="radiogroup" aria-label="Type of deviation">
-            {KINDS.map((k) => <button key={k.id} type="button" role="radio" aria-checked={draft.kind === k.id} class={`cvt-chip${draft.kind === k.id ? ' is-on' : ''}`} onClick={() => setDraft({ kind: k.id })}>{k.label}</button>)}
+          <p class="cvt-eyebrow">{t.seeQ} · {target === 'distance' ? t.distanceWord : t.nearWord}</p>
+          <div class="cvt-group" role="radiogroup" aria-label={t.devType}>
+            {KIND_IDS.map((k) => <button key={k} type="button" role="radio" aria-checked={draft.kind === k} class={`cvt-chip${draft.kind === k ? ' is-on' : ''}`} onClick={() => setDraft({ kind: k })}>{t.kinds[k]}</button>)}
           </div>
           {needDir && (
-            <div class="cvt-group" role="radiogroup" aria-label="Direction of deviation">
-              {DIRS.map((k) => <button key={k.id} type="button" role="radio" aria-checked={draft.dir === k.id} class={`cvt-chip${draft.dir === k.id ? ' is-on' : ''}`} onClick={() => setDraft({ dir: k.id })}>{k.label}</button>)}
+            <div class="cvt-group" role="radiogroup" aria-label={t.devDir}>
+              {DIR_IDS.map((k) => <button key={k} type="button" role="radio" aria-checked={draft.dir === k} class={`cvt-chip${draft.dir === k ? ' is-on' : ''}`} onClick={() => setDraft({ dir: k })}>{t.dirs[k as 'eso']}</button>)}
             </div>
           )}
           {needEye && (
-            <div class="cvt-group" role="radiogroup" aria-label="Deviating eye">
-              {DEV_EYES.map((k) => <button key={k.id} type="button" role="radio" aria-checked={draft.eye === k.id} class={`cvt-chip${draft.eye === k.id ? ' is-on' : ''}`} onClick={() => setDraft({ eye: k.id })}>{k.label}</button>)}
+            <div class="cvt-group" role="radiogroup" aria-label={t.devEye}>
+              {DEV_EYE_IDS.map((k) => <button key={k} type="button" role="radio" aria-checked={draft.eye === k} class={`cvt-chip${draft.eye === k ? ' is-on' : ''}`} onClick={() => setDraft({ eye: k })}>{t.devEyes[k]}</button>)}
             </div>
           )}
           </div>
           <div class="cvt-sec cvt-sec--measure">
           <PrismBar prism={prism} onChange={onPrism} sound={(pitch) => play('dial', { pitch, volume: 0.5 })} />
-          <p class="cvt-note">Prism strength is read from the bar. On screen the eye turn is magnified about 1.35x so small movements are easy to see.</p>
+          <p class="cvt-note">{fix(ctx.locale, t.prismNote)}</p>
           </div>
           <div class="cvt-sec cvt-sec--lock">
           <Button variant={locked ? 'glass' : 'primary'} size="md" block disabled={!locked && !complete} icon={locked ? 'check' : 'lock'} onClick={lockCall} sfx={false}>
-            {locked ? 'Call locked · change' : 'Lock call'}
+            {locked ? t.callLocked : t.lockCall}
           </Button>
-          {locked && <p class="cvt-locked" role="status">{locked.prism ? `${locked.prism.mag}Δ ${baseWord(locked.prism.base)}` : 'No prism'} · {locked.kind === 'ortho' ? 'orthophoria' : `${locked.kind}, ${locked.dir}`}</p>}
+          {locked && <p class="cvt-locked" role="status"><bdi>{locked.prism ? `${locked.prism.mag}Δ ${baseWord(locked.prism.base, ctx.locale)}` : t.noPrism}</bdi> · {locked.kind === 'ortho' ? t.orthophoriaLower : (ctx.locale === 'he' ? `${t.kinds[locked.kind]}, ${locked.dir === 'none' ? '' : t.dirs[locked.dir]}` : `${locked.kind}, ${locked.dir}`)}</p>}
           </div>
         </aside>
       </div>
 
       <footer class="cvt-foot">
-        <div class="cvt-steps" aria-label="Technique checklist">
-          {STEP_LABEL.map((s, i) => <span key={s} class={`cvt-step${stepFlags[i] ? ' is-done' : ''}`}>{stepFlags[i] ? <Icon name="check" size={11} /> : <i />}{s}</span>)}
+        <div class="cvt-steps" aria-label={t.techChecklist}>
+          {t.stepLabels.map((s, i) => <span key={s} class={`cvt-step${stepFlags[i] ? ' is-done' : ''}`}>{stepFlags[i] ? <Icon name="check" size={11} /> : <i />}{s}</span>)}
         </div>
-        <div class="cvt-foot__bar"><ProgressBar value={done6} max={6} size="sm" ariaLabel="Technique progress" /><span class="cvt-num">{done6}/6</span></div>
+        <div class="cvt-foot__bar"><ProgressBar value={done6} max={6} size="sm" ariaLabel={t.techProgress} /><span class="cvt-num">{done6}/6</span></div>
         <div class="cvt-foot__go">
           {missing && anyCall && <span class="cvt-foot__note">{missing}</span>}
-          <Button variant="primary" size="md" icon="check" disabled={!anyCall} onClick={record}>Record findings</Button>
+          <Button variant="primary" size="md" icon="check" disabled={!anyCall} onClick={record}>{t.record}</Button>
         </div>
       </footer>
 
@@ -473,5 +467,6 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
         <Debrief truths={truths} calls={calls} scores={final.scores} challenge={final.challenge} accuracy={final.accuracy} onFinish={finish} />
       )}
     </div>
+    </LocaleContext.Provider>
   );
 }

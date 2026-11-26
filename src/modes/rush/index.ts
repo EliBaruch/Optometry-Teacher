@@ -56,6 +56,7 @@ const rush: ModeModule = {
   id: 'rush',
   title: 'Rush Hour',
   tagline: 'The waiting room never empties. Keep the streak alive — three slips and the doors close.',
+  text: { he: { title: 'שעת העומס', tagline: 'חדר ההמתנה לא מתרוקן. שמרו על הרצף: שלוש החמצות והדלתות ננעלות.' } },
   icon: '⚡',
   accent: '#fb923c',
   order: 30,

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import type { Eye } from '@core';
 import { PD_MM } from './model';
+import type { S } from './strings';
 
 /** One frame of the top-down schematic. `drift` is 0..1 outward drift of `devEye`; `out` marks that eye's divergence. */
 export interface PlanState { d: number; drift: number; devEye: Eye; pins: { brk: number | null; rec: number | null } }
@@ -13,7 +14,7 @@ const dist = (cm: number, L: number) => L * (Math.log(1 + cm / 3) / Math.log(1 +
  * Top-down "plan view" of the two eyes and the target: visual axes converge on the target, the deviating eye's axis
  * swings outward at the break point. Redrawn from the shared RAF (`draw` is returned through `bind`).
  */
-export function PlanView({ bind }: { bind: (draw: (s: PlanState) => void) => void }) {
+export function PlanView({ t, bind }: { t: typeof S.en; bind: (draw: (s: PlanState) => void) => void }) {
   const cv = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const c = cv.current!;
@@ -40,7 +41,7 @@ export function PlanView({ bind }: { bind: (draw: (s: PlanState) => void) => voi
         g.strokeStyle = cm === 6 ? 'rgba(94, 234, 212, 0.45)' : 'rgba(255, 236, 210, 0.12)';
         g.setLineDash(cm === 6 ? [] : [2, 4]); g.beginPath(); g.moveTo(10, y); g.lineTo(W - 10, y); g.stroke(); g.setLineDash([]);
         g.fillStyle = cm === 6 ? 'rgba(120, 245, 224, 1)' : 'rgba(255, 244, 226, 0.88)';
-        g.fillText(`${cm} cm`, 12, y - 7);
+        g.fillText(t.cm(String(cm)), 12, y - 7);
       }
       // normal zone wash
       const y6 = ey - dist(6, L);
@@ -94,9 +95,9 @@ export function PlanView({ bind }: { bind: (draw: (s: PlanState) => void) => voi
       g.fillStyle = '#fffbe9'; g.beginPath(); g.arc(cx, ty, rad, 0, 7); g.fill();
       // convergence readout
       g.fillStyle = broken ? 'rgba(244, 114, 182, 0.95)' : 'rgba(255, 236, 210, 0.75)'; g.textAlign = 'right'; g.font = '700 12px system-ui, sans-serif';
-      g.fillText(broken ? 'eye drifting out' : `${(Math.atan(PD_MM / 2 / (s.d * 10)) * 360 / Math.PI).toFixed(0)}° convergence`, W - 10, 12);
+      g.fillText(broken ? t.planDrifting : t.planConv((Math.atan(PD_MM / 2 / (s.d * 10)) * 360 / Math.PI).toFixed(0)), W - 10, 12);
     });
     return () => { ro?.disconnect(); bind(() => {}); };
   }, []);
-  return <canvas ref={cv} class="mot-plan" aria-hidden="true" />;
+  return <canvas ref={cv} class="mot-plan" aria-hidden="true" dir="ltr" />;
 }

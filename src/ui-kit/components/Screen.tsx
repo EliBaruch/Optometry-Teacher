@@ -6,6 +6,7 @@ import { cx } from '../lib/cx';
 import { Backdrop, type BackdropVariant } from './Backdrop';
 import { IconButton } from './IconButton';
 import './Screen.css';
+import { useUiStrings } from '../strings';
 
 export interface ScreenProps {
   title?: ComponentChildren;
@@ -33,9 +34,10 @@ export interface ScreenProps {
 
 /** Fixed full-viewport scene frame: backdrop + top bar (back · HUD · title · HUD) + content. */
 export function Screen({
-  title, eyebrow, onBack, backLabel = 'Back', escToBack = false, backdrop = 'hub', hud = true, left, right, bare, fill,
+  title, eyebrow, onBack, backLabel, escToBack = false, backdrop = 'hub', hud = true, left, right, bare, fill,
   class: klass, contentClass, children,
 }: ScreenProps) {
+  const ui = useUiStrings();
   const services = useOptionalServices();
   const play = useSfx();
 
@@ -58,7 +60,7 @@ export function Screen({
       {!bare && (
         <header class="lm-screen__bar">
           <div class="lm-screen__side lm-screen__side--left">
-            {onBack && <IconButton icon="chevron-left" label={backLabel} onClick={onBack} sfx="back" class="lm-screen__back" />}
+            {onBack && <IconButton icon="chevron-left" label={backLabel ?? ui.back} onClick={onBack} sfx="back" class="lm-screen__back" />}
             {left}
             {showHud && <HudSlot slot="topbar-left" />}
           </div>

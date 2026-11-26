@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { SceneProps } from '@core';
-import { Button, Icon, IconButton, Kbd, Modal, ProgressBar, Screen, cx, useReducedMotion, useRegistry, useSignal } from '@ui-kit';
+import { Button, Icon, IconButton, Kbd, Modal, ProgressBar, Screen, cx, useReducedMotion, useRegistry, useSignal, useStrings } from '@ui-kit';
 import { EntryDetail } from './EntryDetail';
 import { CATEGORY_ORDER, categoryMeta, groupDiagnoses, neighbour, toRoman } from './logic';
 import { EntryCard, Illumination, RarityGem, SearchGlyph, useNarrow, useParallax } from './parts';
+import { S } from './strings';
 import './codex.css';
 
 interface CodexPrefs {
@@ -11,6 +12,7 @@ interface CodexPrefs {
 }
 
 export function CodexScene({ services, params }: SceneProps) {
+  const t = useStrings(S);
   const reduced = useReducedMotion();
   const all = useRegistry(services.registries.diagnoses);
   const prefsSlot = useMemo(() => services.save.slot<CodexPrefs>('scene:codex', { study: false }), []);
@@ -53,7 +55,7 @@ export function CodexScene({ services, params }: SceneProps) {
         e.preventDefault();
         searchRef.current?.focus();
       } else if (openId && !typing && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
-        const next = neighbour(flatOpenIds, openId, e.key === 'ArrowRight' ? 1 : -1);
+        const next = neighbour(flatOpenIds, openId, (e.key === 'ArrowRight') === (services.locale !== 'he') ? 1 : -1);
         if (next) {
           e.preventDefault();
           services.audio.play('whoosh', { volume: 0.4 });
@@ -82,10 +84,16 @@ export function CodexScene({ services, params }: SceneProps) {
   const current = openId ? services.registries.diagnoses.get(openId) : undefined;
   const lockedDx = lockedId ? services.registries.diagnoses.get(lockedId) : undefined;
   const ratio = all.length ? discovered / all.length : 0;
+  /** Category metadata with this edition's words. */
+  const cm = (c: string) => {
+    const m = categoryMeta(c);
+    const l = t.cat[c as keyof typeof t.cat];
+    return l ? { ...m, ...l } : m;
+  };
   let cardIndex = 0;
 
   return (
-    <Screen title="Codex" eyebrow="The illuminated atlas" onBack={() => services.router.back()} escToBack hud={!narrow} backdrop="calm" class="codex-scene" contentClass="codex-content">
+    <Screen title={t.title} eyebrow={t.eyebrow} onBack={() => services.router.back()} escToBack hud={!narrow} backdrop="calm" class="codex-scene" contentClass="codex-content">
       <div class="codex-hero" ref={heroRef}>
         <svg class="codex-hero__chart" viewBox="0 0 400 200" aria-hidden="true">
           <g class="codex-hero__rings">
@@ -97,20 +105,20 @@ export function CodexScene({ services, params }: SceneProps) {
           </g>
         </svg>
         <div class="codex-hero__text lm-enter">
-          <p class="codex-hero__lede">Every condition you meet in clinic is inscribed here — findings, pearls and how fast to act.</p>
+          <p class="codex-hero__lede">{t.lede}</p>
           <div class="codex-hero__progress">
-            <ProgressBar value={discovered} max={Math.max(1, all.length)} label="Discovered" valueText={<><b>{discovered}</b> / {all.length}</>} shimmer={ratio > 0 && ratio < 1} />
-            <span class="codex-hero__mastered"><Icon name="star" /> <b class="lm-num">{mastered}</b> mastered</span>
+            <ProgressBar value={discovered} max={Math.max(1, all.length)} label={t.discovered} valueText={<bdi dir="ltr"><b>{discovered}</b> / {all.length}</bdi>} shimmer={ratio > 0 && ratio < 1} />
+            <span class="codex-hero__mastered"><Icon name="star" /> <b class="lm-num">{mastered}</b> {t.masteredN}</span>
           </div>
           {discovered === 0 && all.length > 0 && !study && (
-            <p class="codex-hero__hint"><Icon name="sparkle" /> Every page starts sealed. Each patient you diagnose in clinic breaks a seal and inks a page.</p>
+            <p class="codex-hero__hint"><Icon name="sparkle" /> {t.sealedHint}</p>
           )}
         </div>
         <div class="codex-hero__tools lm-enter" style={{ '--lm-delay': '120ms' }}>
           <label class="codex-search">
             <SearchGlyph class="codex-search__icon" />
-            <span class="lm-sr-only">Search the Codex</span>
-            <input ref={searchRef} type="search" placeholder="Search conditions, signs…" value={query}
+            <span class="lm-sr-only">{t.searchLabel}</span>
+            <input ref={searchRef} type="search" placeholder={t.searchPlaceholder} value={query}
               onInput={(e) => setQuery((e.currentTarget as HTMLInputElement).value)}
               onKeyDown={(e) => {
                 if (e.key === 'Escape' && query) {
@@ -119,24 +127,24 @@ export function CodexScene({ services, params }: SceneProps) {
                   setQuery('');
                 }
               }} />
-            {query ? <IconButton icon="close" label="Clear search" variant="ghost" size="sm" onClick={() => setQuery('')} /> : <Kbd class="codex-search__kbd">/</Kbd>}
+            {query ? <IconButton icon="close" label={t.clearSearch} variant="ghost" size="sm" onClick={() => setQuery('')} /> : <Kbd class="codex-search__kbd">/</Kbd>}
           </label>
           <button type="button" role="switch" aria-checked={study} class={cx('codex-study', study && 'is-on')} onClick={() => setStudy(!study)}>
             <span class="codex-study__track"><span class="codex-study__knob"><Icon name={study ? 'unlock' : 'lock'} /></span></span>
             <span class="codex-study__text">
-              <b>Study<span class="codex-study__long"> mode</span></b>
-              <small>{study ? 'Every entry open' : 'Unlock as you meet them'}</small>
+              <b>{t.studyA}<span class="codex-study__long">{t.studyB}</span></b>
+              <small>{study ? t.studyOn : t.studyOff}</small>
             </span>
           </button>
         </div>
       </div>
 
-      <nav class="codex-cats" aria-label="Categories">
+      <nav class="codex-cats" aria-label={t.categories}>
         <button type="button" class={cx('codex-cat', !category && 'is-active')} aria-pressed={!category} onClick={() => { setCategory(null); services.audio.play('select', { volume: 0.5 }); }}>
-          All <span class="lm-num">{all.length}</span>
+          {t.all} <span class="lm-num">{all.length}</span>
         </button>
         {categories.map((c) => {
-          const m = categoryMeta(c);
+          const m = cm(c);
           const total = all.filter((d) => d.category === c).length;
           const found = all.filter((d) => d.category === c && seen(d.id)).length;
           return (
@@ -151,21 +159,21 @@ export function CodexScene({ services, params }: SceneProps) {
       {all.length === 0 && (
         <div class="codex-empty lm-enter">
           <Illumination letter="L" accent="#ffd27a" size={88} />
-          <h2>The atlas is still being illuminated</h2>
-          <p>No conditions are installed yet. Come back once the library is stocked.</p>
+          <h2>{t.emptyTitle}</h2>
+          <p>{t.emptyBody}</p>
         </div>
       )}
       {all.length > 0 && groups.length === 0 && (
         <div class="codex-empty lm-enter">
-          <h2>Nothing matches “{query}”</h2>
-          <p>Try a sign (“cherry-red spot”), a symptom or an abbreviation.</p>
-          <Button variant="ghost" icon="close" onClick={() => setQuery('')}>Clear search</Button>
+          <h2>{t.noMatchTitle(query)}</h2>
+          <p>{t.noMatchBody}</p>
+          <Button variant="ghost" icon="close" onClick={() => setQuery('')}>{t.clearSearch}</Button>
         </div>
       )}
 
       <div class="codex-groups">
         {groups.map((g, gi) => {
-          const m = categoryMeta(g.category);
+          const m = cm(g.category);
           return (
             <section key={g.category} class="codex-group" style={{ '--acc': m.accent }} aria-labelledby={`cat-${g.category}`}>
               <header class="codex-group__head lm-enter" style={{ '--lm-delay': `${reduced ? 0 : 60 + gi * 60}ms` }}>
@@ -175,7 +183,7 @@ export function CodexScene({ services, params }: SceneProps) {
                   {m.blurb && <p class="codex-group__blurb">{m.blurb}</p>}
                 </div>
                 <span class="codex-group__rule" aria-hidden="true" />
-                <span class="codex-group__count lm-num" aria-label={`${g.items.filter((d) => seen(d.id)).length} of ${g.items.length} discovered`}>
+                <span class="codex-group__count lm-num" aria-label={t.discoveredOf(g.items.filter((d) => seen(d.id)).length, g.items.length)}>
                   {g.items.filter((d) => seen(d.id)).length}<small>/{g.items.length}</small>
                 </span>
               </header>
@@ -183,7 +191,7 @@ export function CodexScene({ services, params }: SceneProps) {
                 {g.items.map((d) => {
                   const s = seen(d.id);
                   return (
-                    <EntryCard key={d.id} d={d} unlocked={isUnlocked(d.id)} seen={s} mastery={s ? services.learning.mastery(d.id) : 0}
+                    <EntryCard key={d.id} d={d} cm={cm} unlocked={isUnlocked(d.id)} seen={s} mastery={s ? services.learning.mastery(d.id) : 0}
                       index={cardIndex++} folio={folio.get(d.id)} reduced={reduced} onOpen={() => open(d.id)} />
                   );
                 })}
@@ -193,31 +201,30 @@ export function CodexScene({ services, params }: SceneProps) {
         })}
       </div>
 
-      <Modal open={!!current} onClose={() => setOpenId(null)} size="lg" ariaLabel={current?.name ?? 'Codex entry'} accent={current ? categoryMeta(current.category).accent : undefined} class="codex-modal"
+      <Modal open={!!current} onClose={() => setOpenId(null)} size="lg" ariaLabel={current?.name ?? t.entryFallback} accent={current ? cm(current.category).accent : undefined} class="codex-modal"
         footer={flatOpenIds.length > 1 && openId ? (
           <div class="codex-pager">
-            <Button variant="ghost" size="sm" icon="chevron-left" onClick={() => { const n = neighbour(flatOpenIds, openId, -1); if (n) setOpenId(n); }} sfx="whoosh">Previous</Button>
+            <Button variant="ghost" size="sm" icon="chevron-left" onClick={() => { const n = neighbour(flatOpenIds, openId, -1); if (n) setOpenId(n); }} sfx="whoosh">{t.previous}</Button>
             <span class="codex-pager__hint"><Kbd>←</Kbd><Kbd>→</Kbd></span>
-            <Button variant="ghost" size="sm" trailingIcon="chevron-right" onClick={() => { const n = neighbour(flatOpenIds, openId, 1); if (n) setOpenId(n); }} sfx="whoosh">Next</Button>
+            <Button variant="ghost" size="sm" trailingIcon="chevron-right" onClick={() => { const n = neighbour(flatOpenIds, openId, 1); if (n) setOpenId(n); }} sfx="whoosh">{t.next}</Button>
           </div>
         ) : undefined}>
-        {current && <EntryDetail key={current.id} services={services} d={current} isUnlocked={isUnlocked} onNavigate={open} />}
+        {current && <EntryDetail key={current.id} services={services} cm={cm} d={current} isUnlocked={isUnlocked} onNavigate={open} />}
       </Modal>
 
-      <Modal open={!!lockedDx} onClose={() => setLockedId(null)} size="sm" eyebrow={lockedDx ? categoryMeta(lockedDx.category).label : ''} title="Undiscovered" icon="lock"
-        class="codex-locked-modal" accent={lockedDx ? categoryMeta(lockedDx.category).accent : undefined}
+      <Modal open={!!lockedDx} onClose={() => setLockedId(null)} size="sm" eyebrow={lockedDx ? cm(lockedDx.category).label : ''} title={t.undiscovered} icon="lock"
+        class="codex-locked-modal" accent={lockedDx ? cm(lockedDx.category).accent : undefined}
         footer={<>
-          <Button variant="ghost" onClick={() => setLockedId(null)}>Not now</Button>
-          <Button variant="primary" icon="unlock" sfx={false} onClick={() => { const id = lockedId; setLockedId(null); setStudy(true); if (id) setOpenId(id); }}>Open in Study mode</Button>
+          <Button variant="ghost" onClick={() => setLockedId(null)}>{t.notNow}</Button>
+          <Button variant="primary" icon="unlock" sfx={false} onClick={() => { const id = lockedId; setLockedId(null); setStudy(true); if (id) setOpenId(id); }}>{t.openStudy}</Button>
         </>}>
         {lockedDx && (
-          <div class="codex-locked" style={{ '--acc': categoryMeta(lockedDx.category).accent }}>
-            <Illumination letter="?" accent={categoryMeta(lockedDx.category).accent} size={64} locked />
+          <div class="codex-locked" style={{ '--acc': cm(lockedDx.category).accent }}>
+            <Illumination letter="?" accent={cm(lockedDx.category).accent} size={64} locked />
             <div>
-              <p class="codex-locked__folio">Folio {toRoman(folio.get(lockedDx.id) ?? 0)} · sealed{lockedDx.rarity !== 'common' && <> · <RarityGem rarity={lockedDx.rarity} suffix="find" /></>}</p>
+              <p class="codex-locked__folio">{t.folio(toRoman(folio.get(lockedDx.id) ?? 0), folio.get(lockedDx.id) ?? 0)} · {t.sealed}{lockedDx.rarity !== 'common' && <> · <RarityGem rarity={lockedDx.rarity} suffix={t.findSuffix} /></>}</p>
               <p class="codex-locked-copy">
-                This page stays sealed until you meet the condition in clinic — a little mystery makes the diagnosis stick.
-                Prefer to read ahead? Study mode opens every entry.
+                {t.lockedCopy1} {t.lockedCopy2}
               </p>
             </div>
           </div>

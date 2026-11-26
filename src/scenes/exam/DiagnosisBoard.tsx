@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ClinicalCase, Confidence, Diagnosis, GameServices, Urgency } from '@core';
 import { Backdrop, Button, Icon, IconButton, Ornament, useFocusTrap, useReducedMotion, useSfx } from '@ui-kit';
+import { pickStrings } from '@core';
+import { S } from './strings';
 import {
   boardOrder, CATEGORY_INFO, CONFIDENCE_INFO, CONFIDENCE_LIST, prettifyId, URGENCY_INFO, URGENCY_LIST,
 } from './logic';
@@ -25,6 +27,8 @@ export interface DiagnosisBoardProps {
 export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClose, onSubmit, onFinished }: DiagnosisBoardProps) {
   const reduced = useReducedMotion();
   const play = useSfx();
+  const t = pickStrings(S, services.locale);
+  const first = kase.patient.name.split(' ')[0] ?? kase.patient.name;
   const root = useRef<HTMLDivElement>(null);
   const [dx, setDx] = useState<string | null>(null);
   const [urgency, setUrgency] = useState<Urgency | null>(null);
@@ -70,7 +74,7 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
       onSubmit(dx, urgency, conf);
     } catch (err) {
       console.error('[exam] could not file the diagnosis', err);
-      setError('The chart would not close. Please try again.');
+      setError(t.boardError);
       return;
     }
     setError(null);
@@ -98,19 +102,19 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
       {pressure > 0 && <div class="exm-pressure" aria-hidden="true" />}
       <div class="exm-board__scroll">
         <header class="exm-board__head">
-          <IconButton icon="chevron-left" label="Back to the exam room" onClick={onClose} sfx="back" disabled={stamped} />
+          <IconButton icon="chevron-left" label={t.boardBack} onClick={onClose} sfx="back" disabled={stamped} />
           <div class="exm-board__titles">
-            <div class="lm-eyebrow">The moment of decision</div>
-            <h1 id="exm-board-title" class="lm-display">What is wrong with {kase.patient.name.split(' ')[0]}?</h1>
+            <div class="lm-eyebrow">{t.boardEyebrow}</div>
+            <h1 id="exm-board-title" class="lm-display">{t.boardTitle(first, kase.patient.sex)}</h1>
           </div>
-          {clock && <span class="exm-clock exm-clock--red lm-num" aria-label="Time left">{clock}</span>}
+          {clock && <span class="exm-clock exm-clock--red lm-num" aria-label={t.timeLeft}>{clock}</span>}
         </header>
         <Ornament class="exm-board__orn" width={170} />
 
         <form class="exm-board__form" onSubmit={(e) => { e.preventDefault(); commit(); }}>
           <fieldset class="exm-step">
-            <legend><span class="exm-step__n lm-num">1</span> Your diagnosis</legend>
-            <div class="exm-dx-grid" role="radiogroup" aria-label="Diagnosis">
+            <legend><span class="exm-step__n lm-num">1</span> {t.step1}</legend>
+            <div class="exm-dx-grid" role="radiogroup" aria-label={t.dxAria}>
               {ids.map((id, i) => {
                 const d = dxOf(id);
                 const cat = d ? CATEGORY_INFO[d.category] : undefined;
@@ -132,8 +136,8 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
                     <span class="exm-dx__card">
                       <span class="exm-dx__gem" aria-hidden="true"><Icon name={cat?.icon ?? 'eye'} size={26} /></span>
                       <span class="exm-dx__name lm-display">{nameOf(id)}</span>
-                      <span class="exm-dx__cat">{cat?.label ?? 'Condition'}</span>
-                      {pinIdx >= 0 && <span class="exm-dx__pin lm-num" title="One of your suspects">Suspect {pinIdx + 1}</span>}
+                      <span class="exm-dx__cat">{d ? t.category[d.category] : t.condition}</span>
+                      {pinIdx >= 0 && <span class="exm-dx__pin lm-num" title={t.suspectTitle}>{t.suspectN(pinIdx + 1)}</span>}
                       <span class="exm-dx__tick" aria-hidden="true"><Icon name="check" size={16} strokeWidth={2.6} /></span>
                     </span>
                   </label>
@@ -143,10 +147,11 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
           </fieldset>
 
           <fieldset class="exm-step" ref={step2} disabled={!dx}>
-            <legend><span class="exm-step__n lm-num">2</span> How urgent is it?</legend>
-            <div class="exm-urg-grid" role="radiogroup" aria-label="Urgency">
+            <legend><span class="exm-step__n lm-num">2</span> {t.step2}</legend>
+            <div class="exm-urg-grid" role="radiogroup" aria-label={t.urgencyAria}>
               {URGENCY_LIST.map((u) => {
                 const info = URGENCY_INFO[u];
+                const txt = t.urgency[u];
                 return (
                   <label key={u} class={`exm-urg${urgency === u ? ' is-picked' : ''}`} style={{ '--c': info.color }}>
                     <input
@@ -165,9 +170,9 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
                       <span class="exm-urg__meter" aria-hidden="true">
                         {[1, 2, 3, 4].map((n) => <i key={n} class={n <= info.level ? 'on' : ''} />)}
                       </span>
-                      <span class="exm-urg__label lm-display">{info.label}</span>
-                      <span class="exm-urg__blurb">{info.blurb}</span>
-                      <span class="exm-urg__detail">{info.detail}</span>
+                      <span class="exm-urg__label lm-display">{txt.label}</span>
+                      <span class="exm-urg__blurb">{txt.blurb}</span>
+                      <span class="exm-urg__detail">{txt.detail}</span>
                     </span>
                   </label>
                 );
@@ -176,10 +181,11 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
           </fieldset>
 
           <fieldset class="exm-step" ref={step3} disabled={!dx || !urgency}>
-            <legend><span class="exm-step__n lm-num">3</span> How sure are you?</legend>
-            <div class="exm-conf" role="radiogroup" aria-label="Confidence">
+            <legend><span class="exm-step__n lm-num">3</span> {t.step3}</legend>
+            <div class="exm-conf" role="radiogroup" aria-label={t.confAria}>
               {CONFIDENCE_LIST.map((c) => {
                 const info = CONFIDENCE_INFO[c];
+                const txt = t.confidence[c];
                 return (
                   <label key={c} class={`exm-conf__opt${conf === c ? ' is-picked' : ''}`}>
                     <input type="radio" name="conf" value={c} checked={conf === c} onChange={() => { setConf(c); play('select'); }} />
@@ -187,8 +193,8 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
                       <span class="exm-conf__dots" aria-hidden="true">
                         {[1, 2, 3].map((n) => <i key={n} class={n <= info.level ? 'on' : ''} />)}
                       </span>
-                      <b>{info.label}</b>
-                      <small>{info.blurb}</small>
+                      <b>{txt.label}</b>
+                      <small>{txt.blurb}</small>
                     </span>
                   </label>
                 );
@@ -202,25 +208,25 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
         <p class="exm-board__sum" aria-live="polite">
           {ready ? (
             <>
-              <b>{nameOf(dx!)}</b> · {URGENCY_INFO[urgency!].label} · {CONFIDENCE_INFO[conf!].label}
+              <b>{nameOf(dx!)}</b> · {t.urgency[urgency!].label} · {t.confidence[conf!].label}
             </>
           ) : (
-            <span class="lm-muted">Choose a diagnosis, an urgency and your confidence to sign off.</span>
+            <span class="lm-muted">{t.boardHint}</span>
           )}
         </p>
         {error && <p class="exm-board__err" role="alert">{error}</p>}
         <Button type="button" onClick={commit} variant="primary" size="lg" icon="check" disabled={!ready || stamped} sfx={false}>
-          Sign off the diagnosis
+          {t.signOff}
         </Button>
       </div>
 
       {stamped && dx && (
         <div class="exm-stamp-layer" aria-live="assertive">
-          <div class="exm-stamp" role="img" aria-label={`Diagnosis filed: ${nameOf(dx)}`}>
+          <div class="exm-stamp" role="img" aria-label={t.stampAria(nameOf(dx))}>
             <span class="exm-stamp__ring" />
-            <span class="exm-stamp__top">Diagnosis</span>
+            <span class="exm-stamp__top">{t.stampTop}</span>
             <span class="exm-stamp__name lm-display">{nameOf(dx)}</span>
-            <span class="exm-stamp__bot">Filed</span>
+            <span class="exm-stamp__bot">{t.stampBot}</span>
           </div>
         </div>
       )}

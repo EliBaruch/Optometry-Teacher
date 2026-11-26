@@ -1,7 +1,8 @@
 import { useEffect, useState, type MutableRef } from 'preact/hooks';
 import type { Diagnosis } from '@core';
-import { Icon, RingMeter, cx, isIconName } from '@ui-kit';
-import { RARITY_META, URGENCY_META, categoryMeta, silhouette, toRoman } from './logic';
+import { Icon, RingMeter, cx, isIconName, useStrings } from '@ui-kit';
+import { RARITY_META, URGENCY_META, silhouette, toRoman } from './logic';
+import { S } from './strings';
 
 /** Pointer parallax: writes --mx / --my (-1..1) on the element. Off with reduced motion. */
 export function useParallax(ref: MutableRef<HTMLElement | null>, reduced: boolean) {
@@ -83,7 +84,8 @@ export function Illumination(props: { letter: string; accent: string; size?: num
 }
 
 export function UrgencyTag(props: { urgency: Diagnosis['typicalUrgency']; long?: boolean }) {
-  const u = URGENCY_META[props.urgency];
+  const t = useStrings(S);
+  const u = { ...URGENCY_META[props.urgency], ...t.urgency[props.urgency] };
   return (
     <span class={cx('codex-urgency', `codex-urgency--${props.urgency}`)} style={{ '--u': u.color }} title={u.when}>
       <span class="codex-urgency__dot" aria-hidden="true" />
@@ -94,11 +96,12 @@ export function UrgencyTag(props: { urgency: Diagnosis['typicalUrgency']; long?:
 }
 
 export function RarityGem(props: { rarity: Diagnosis['rarity']; suffix?: string }) {
+  const t = useStrings(S);
   const r = RARITY_META[props.rarity] ?? RARITY_META.common;
   return (
     <span class="codex-rarity" style={{ '--r': r.color }}>
       <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .8 11 4.4 6 11.2 1 4.4z" /></svg>
-      {r.label}{props.suffix ? ` ${props.suffix}` : ''}
+      {t.rarity[props.rarity] ?? r.label}{props.suffix ? ` ${props.suffix}` : ''}
     </span>
   );
 }
@@ -106,6 +109,7 @@ export function RarityGem(props: { rarity: Diagnosis['rarity']; suffix?: string 
 /** One entry in the atlas grid. Locked entries show an engraved silhouette. */
 export function EntryCard(props: {
   d: Diagnosis;
+  cm: (c: string) => { label: string; accent: string };
   unlocked: boolean;
   seen: boolean;
   mastery: number;
@@ -115,8 +119,9 @@ export function EntryCard(props: {
   reduced: boolean;
   onOpen: () => void;
 }) {
+  const t = useStrings(S);
   const { d, unlocked } = props;
-  const meta = categoryMeta(d.category);
+  const meta = props.cm(d.category);
   const delay = props.reduced ? 0 : Math.min(props.index, 14) * 45;
   return (
     <button
@@ -124,7 +129,7 @@ export function EntryCard(props: {
       class={cx('codex-card', unlocked ? 'is-open' : 'is-locked', props.seen && 'is-seen')}
       style={{ '--acc': meta.accent, '--lm-delay': `${delay}ms` }}
       onClick={props.onOpen}
-      aria-label={unlocked ? `${d.name}${props.seen ? `, mastery ${Math.round(props.mastery * 100)}%` : ''}` : `Undiscovered ${meta.label} entry`}
+      aria-label={unlocked ? t.cardAria(d.name, props.seen, Math.round(props.mastery * 100)) : t.undiscoveredEntry(meta.label)}
       data-id={d.id}
     >
       <span class="codex-card__shine" aria-hidden="true" />
@@ -145,21 +150,21 @@ export function EntryCard(props: {
               {silhouette(d.name).map((w, i) => <span key={i} style={{ width: `${w * 0.55}em` }} />)}
             </span>
             <span class="codex-card__sealed">
-              {props.folio ? <span class="codex-card__folio">Folio {toRoman(props.folio)}</span> : null}
+              {props.folio ? <span class="codex-card__folio">{t.folio(toRoman(props.folio), props.folio)}</span> : null}
               {d.rarity !== 'common'
-                ? <RarityGem rarity={d.rarity} suffix="find" />
-                : <span class="codex-card__hint">Meet it in clinic</span>}
+                ? <RarityGem rarity={d.rarity} suffix={t.findSuffix} />
+                : <span class="codex-card__hint">{t.meetInClinic}</span>}
             </span>
           </>
         )}
       </span>
       {unlocked && props.seen && (
-        <RingMeter value={props.mastery} size={40} thickness={11} ticks={false} accent={meta.accent} class="codex-card__ring" ariaLabel="Mastery">
+        <RingMeter value={props.mastery} size={40} thickness={11} ticks={false} accent={meta.accent} class="codex-card__ring" ariaLabel={t.mastery}>
           <span class="lm-num codex-card__pct">{Math.round(props.mastery * 100)}</span>
         </RingMeter>
       )}
       {unlocked && !props.seen && (
-        <span class="codex-card__new" title="Not yet met in clinic">
+        <span class="codex-card__new" title={t.notMet}>
           <Icon name="eye" size={16} />
         </span>
       )}

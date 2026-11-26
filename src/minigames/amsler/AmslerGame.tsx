@@ -10,7 +10,8 @@ import {
   classOf, createMask, maskCount, paintStroke, scoreEye, scoreExam, type AmslerClass, type EyeScore, type Mask,
 } from './geometry';
 import { buildChallenge, patientSays } from './practice';
-import { describeAmsler, report } from './report';
+import { describeAmsler, reportFor } from './report';
+import { T } from './strings';
 
 interface EyeWork {
   asked: boolean;
@@ -22,13 +23,11 @@ interface EyeWork {
 
 type Phase = 'exam' | 'challenge' | 'debrief';
 
-const CLASS_OPTIONS: { id: AmslerClass; title: string; sub: string; key: string }[] = [
-  { id: 'normal', title: 'Straight & complete', sub: 'No distortion, all corners seen', key: '1' },
-  { id: 'metamorphopsia', title: 'Wavy / bent lines', sub: 'Metamorphopsia', key: '2' },
-  { id: 'scotoma', title: 'Missing / grey patch', sub: 'Scotoma', key: '3' },
+const CLASS_OPTIONS: { id: AmslerClass; key: string }[] = [
+  { id: 'normal', key: '1' },
+  { id: 'metamorphopsia', key: '2' },
+  { id: 'scotoma', key: '3' },
 ];
-
-const EYE_NAME: Record<Eye, string> = { OD: 'right eye', OS: 'left eye' };
 
 export interface AmslerGameProps {
   ctx: MiniGameContext;
@@ -36,6 +35,9 @@ export interface AmslerGameProps {
 }
 
 export function AmslerGame({ ctx, finish }: AmslerGameProps) {
+  const loc = ctx.locale;
+  const t = T(loc);
+  const EYE_NAME = t.eyeName;
   const t0 = useRef(performance.now());
   const finished = useRef(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -67,7 +69,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
   };
 
   const practice = ctx.mode === 'practice';
-  const challenge = useMemo(() => (practice ? buildChallenge(ctx.findings, ctx.rng.fork('amsler-challenge')) : null), []);
+  const challenge = useMemo(() => (practice ? buildChallenge(ctx.findings, ctx.rng.fork('amsler-challenge'), loc) : null), []);
   // Subtler perception at higher difficulty: the player must look harder.
   const strength = 1 - 0.45 * Math.max(0, Math.min(1, ctx.difficulty));
   const w = work.current[eye];
@@ -213,7 +215,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
     if (ok) {
       play('success');
       const r = rootRef.current?.getBoundingClientRect();
-      if (r) ctx.fx.floatText('Correct', r.left + r.width / 2, r.top + r.height * 0.3, { color: '#5eead4' });
+      if (r) ctx.fx.floatText(t.floatCorrect, r.left + r.width / 2, r.top + r.height * 0.3, { color: '#5eead4' });
     } else {
       play('fail');
       ctx.fx.shake(ctx.reducedMotion ? 0 : 0.4, 240);
@@ -240,7 +242,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
       testId: 'amsler',
       accuracy: Math.round(accuracy * 1000) / 1000,
       timeMs: Math.round(examTime),
-      findings: report(ctx.findings, ctx.patient),
+      findings: reportFor(ctx.findings, ctx.patient, loc),
       perfect,
     });
   };
@@ -296,8 +298,8 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
   const external = { ...(ctx.findings.external ?? {}), eyePatch: otherEye(eye) };
   const abnormalHere = finding.result !== 'normal';
   const speech = !w.asked
-    ? `Cover my ${EYE_NAME[otherEye(eye)]}… and look at the dot in the middle?`
-    : patientSays(finding);
+    ? t.speechAsk(EYE_NAME[otherEye(eye)])
+    : patientSays(finding, loc);
 
   const progressDone = EYES.filter(eyeDone).length;
 
@@ -307,13 +309,11 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
         <div class="amsler__title">
           <Icon name="amsler" size={20} class="amsler__title-icon" />
           <div>
-            <h2>Amsler Grid</h2>
-            <p>{phase === 'exam'
-              ? 'Near glasses on, one eye covered, eyes on the dot — map where lines bend or vanish.'
-              : phase === 'challenge' ? 'One last read of the grid.' : 'Your map against the true defect.'}</p>
+            <h2>{t.title}</h2>
+            <p>{phase === 'exam' ? t.subExam : phase === 'challenge' ? t.subChallenge : t.subDebrief}</p>
           </div>
         </div>
-        <div class="amsler-eyes" role="tablist" aria-label="Eye tested">
+        <div class="amsler-eyes" role="tablist" aria-label={t.eyeTested} dir="ltr">
           {EYES.map((e) => (
             <button
               key={e}
@@ -325,7 +325,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
               disabled={phase === 'challenge'}
             >
               <span class="amsler-eyes__code">{e}</span>
-              <span class="amsler-eyes__name">{e === 'OD' ? 'Right' : 'Left'}</span>
+              <span class="amsler-eyes__name">{e === 'OD' ? t.right : t.left}</span>
               {eyeDone(e) && <Icon name="check" size={14} class="amsler-eyes__check" />}
             </button>
           ))}
@@ -343,6 +343,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
             mask={w.mask}
             maskKey={`${eye}:${w.version}`}
             sideLabels={sideLabels}
+            locale={loc}
             showTruth={phase === 'debrief'}
             idle={!w.asked}
             tool={tool}
@@ -357,19 +358,19 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
               if (nb !== b) play('dial', { volume: 0.45, pitch: 0.8 + nb / 6 });
               return nb;
             })}
-            label={`Amsler grid, ${EYE_NAME[eye]}. ${w.asked ? 'Patient’s view shown. Arrow keys move the brush, hold Space to mark.' : 'Ask the patient to fixate the dot first.'}`}
+            label={t.cardLabel(EYE_NAME[eye], w.asked)}
           />
           {!w.asked && phase === 'exam' && (
             <div class="amsler__ask">
               <Button variant="primary" size="lg" icon="eye" sfx={false} onClick={ask} data-testid="amsler-ask">
-                Ask: “Look at the dot”
+                {t.askBtn}
               </Button>
-              <span class="amsler__ask-hint">Testing the {EYE_NAME[eye]} · <Kbd>A</Kbd></span>
+              <span class="amsler__ask-hint">{t.testing(EYE_NAME[eye])} <Kbd>A</Kbd></span>
             </div>
           )}
-          <div class={`amsler__viewtoggle${w.asked ? '' : ' is-hidden'}`} role="group" aria-label="View" aria-hidden={!w.asked}>
-            <button type="button" class={view === 'patient' ? 'is-on' : ''} aria-pressed={view === 'patient'} disabled={!w.asked} onClick={() => { setView('patient'); play('lens-click'); }}>Patient’s view</button>
-            <button type="button" class={view === 'card' ? 'is-on' : ''} aria-pressed={view === 'card'} disabled={!w.asked} onClick={() => { setView('card'); play('lens-click', { pitch: 0.9 }); }}>Printed card</button>
+          <div class={`amsler__viewtoggle${w.asked ? '' : ' is-hidden'}`} role="group" aria-label={t.viewAria} aria-hidden={!w.asked}>
+            <button type="button" class={view === 'patient' ? 'is-on' : ''} aria-pressed={view === 'patient'} disabled={!w.asked} onClick={() => { setView('patient'); play('lens-click'); }}>{t.viewPatient}</button>
+            <button type="button" class={view === 'card' ? 'is-on' : ''} aria-pressed={view === 'card'} disabled={!w.asked} onClick={() => { setView('card'); play('lens-click', { pitch: 0.9 }); }}>{t.viewCard}</button>
           </div>
         </section>
 
@@ -385,14 +386,14 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
                 lookAt={{ x: 0, y: 0.15 }}
                 size={84}
                 reducedMotion={ctx.reducedMotion}
-                label={`${ctx.patient.name}, ${EYE_NAME[otherEye(eye)]} covered`}
+                label={t.avatarLabel(ctx.patient.name, EYE_NAME[otherEye(eye)])}
               />
             </div>
             <SpeechBubble
               key={`${eye}-${w.asked}`}
               text={speech}
               speaker={ctx.patient.name}
-              tail="left"
+              tail={loc === 'he' ? 'right' : 'left'}
               voice={false}
               speed={70}
               class="amsler-patient__bubble"
@@ -402,8 +403,8 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
           {phase === 'exam' && (
             <>
               <div class="amsler-section">
-                <h3>What does the patient report?</h3>
-                <div class="amsler-classes" role="radiogroup" aria-label="Classification">
+                <h3>{t.reportQ}</h3>
+                <div class="amsler-classes" role="radiogroup" aria-label={t.classAria}>
                   {CLASS_OPTIONS.map((o) => (
                     <button
                       key={o.id}
@@ -417,8 +418,8 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
                     >
                       <ClassGlyph kind={o.id} />
                       <span class="amsler-class__text">
-                        <strong>{o.title}</strong>
-                        <small>{o.sub}</small>
+                        <strong>{t.classOptions[o.id].title}</strong>
+                        <small>{t.classOptions[o.id].sub}</small>
                       </span>
                       <Kbd class="amsler-class__kbd">{o.key}</Kbd>
                     </button>
@@ -427,25 +428,25 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
               </div>
               <div class="amsler-section amsler-tools">
                 <div class="amsler-tools__row">
-                  <div class="amsler-seg" role="group" aria-label="Marking tool">
-                    <button type="button" class={tool === 'paint' ? 'is-on' : ''} aria-pressed={tool === 'paint'} onClick={() => { setTool('paint'); play('click'); }} disabled={!w.asked}>Mark</button>
-                    <button type="button" class={tool === 'erase' ? 'is-on' : ''} aria-pressed={tool === 'erase'} onClick={() => { setTool('erase'); play('click'); }} disabled={!w.asked}>Erase <Kbd>E</Kbd></button>
+                  <div class="amsler-seg" role="group" aria-label={t.toolAria}>
+                    <button type="button" class={tool === 'paint' ? 'is-on' : ''} aria-pressed={tool === 'paint'} onClick={() => { setTool('paint'); play('click'); }} disabled={!w.asked}>{t.mark}</button>
+                    <button type="button" class={tool === 'erase' ? 'is-on' : ''} aria-pressed={tool === 'erase'} onClick={() => { setTool('erase'); play('click'); }} disabled={!w.asked}>{t.erase} <Kbd>E</Kbd></button>
                   </div>
                   <Dial
                     value={brush}
                     min={0.5}
                     max={4}
                     step={0.25}
-                    label="Brush"
+                    label={t.dialLabel}
                     format={(v) => `${v.toFixed(2).replace(/0$/, '')}°`}
                     onChange={(v) => { setBrush(v); play('dial', { volume: 0.5, pitch: 0.8 + v / 6 }); }}
                     size={52}
                   />
                 </div>
                 <div class="amsler-tools__row amsler-tools__row--small">
-                  <button type="button" class="amsler-link" onClick={undo} disabled={!w.history.length}>Undo <Kbd>Ctrl Z</Kbd></button>
-                  <button type="button" class="amsler-link" onClick={clear} disabled={!maskCount(w.mask)}>Clear map</button>
-                  <span class="amsler-tools__hint"><Kbd>V</Kbd> view · <Kbd>[</Kbd><Kbd>]</Kbd> size</span>
+                  <button type="button" class="amsler-link" onClick={undo} disabled={!w.history.length}>{t.undo} <Kbd>Ctrl Z</Kbd></button>
+                  <button type="button" class="amsler-link" onClick={clear} disabled={!maskCount(w.mask)}>{t.clearMap}</button>
+                  <span class="amsler-tools__hint"><Kbd>V</Kbd> {t.viewKey} · <Kbd>[</Kbd><Kbd>]</Kbd> {t.sizeKey}</span>
                 </div>
               </div>
             </>
@@ -480,7 +481,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
       </div>
 
       <footer class="amsler__foot">
-        <div class="amsler-progress" aria-label={`${progressDone} of 2 eyes mapped`}>
+        <div class="amsler-progress" aria-label={t.mapped(progressDone)}>
           {EYES.map((e) => (
             <span key={e} class={`amsler-progress__pip${eyeDone(e) ? ' is-done' : ''}${eye === e ? ' is-cur' : ''}`}>
               <i />{e}
@@ -488,19 +489,19 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
           ))}
           <span class="amsler-progress__txt">
             {phase === 'exam'
-              ? allDone ? 'Both eyes mapped' : !w.asked ? `Ask the patient to fixate (${eye})` : w.cls === null ? 'Classify what they report' : w.cls !== 'normal' && !maskCount(w.mask) ? 'Mark the affected area' : `Now test the ${EYE_NAME[otherEye(eye)]}`
-              : phase === 'challenge' ? 'Choose an answer' : 'Debrief'}
+              ? allDone ? t.pBoth : !w.asked ? t.pAsk(eye) : w.cls === null ? t.pClassify : w.cls !== 'normal' && !maskCount(w.mask) ? t.pMark : t.pNow(EYE_NAME[otherEye(eye)])
+              : phase === 'challenge' ? t.pChoose : t.pDebrief}
           </span>
         </div>
         <div ref={recordRef}>
           {phase === 'exam' && (
             <Button variant="primary" icon="check" sfx={false} disabled={!allDone} onClick={record} data-testid="amsler-record">
-              Record findings
+              {t.record}
             </Button>
           )}
           {phase === 'debrief' && (
             <Button variant="primary" icon="arrow-right" sfx={false} onClick={complete} data-testid="amsler-finish">
-              {practice ? 'Finish' : 'Add to chart'}
+              {practice ? t.finish : t.addToChart}
             </Button>
           )}
         </div>
@@ -508,6 +509,7 @@ export function AmslerGame({ ctx, finish }: AmslerGameProps) {
 
       {tutorial && (
         <Tutorial
+          locale={loc}
           reducedMotion={ctx.reducedMotion}
           onClose={() => {
             setTutorial(false);
@@ -530,14 +532,16 @@ function Debrief(props: {
   onEye: (e: Eye) => void;
 }) {
   const { scores, ctx, work, challenge, choice } = props;
+  const loc = ctx.locale;
+  const t = T(loc);
   const picked = challenge?.options.find((o) => o.id === choice);
   const right = challenge?.options.find((o) => o.correct);
   return (
     <div class="amsler-section amsler-debrief">
       {challenge && picked && (
         <div class={`amsler-verdict ${picked.correct ? 'is-good' : 'is-bad'}`}>
-          <strong>{picked.correct ? 'Correct' : 'Not quite'}</strong>
-          {!picked.correct && right && <span>Answer: {right.label}</span>}
+          <strong>{picked.correct ? t.correct : t.notQuite}</strong>
+          {!picked.correct && right && <span>{t.answer} {right.label}</span>}
           <p>{challenge.explanation}</p>
         </div>
       )}
@@ -551,14 +555,14 @@ function Debrief(props: {
               <button type="button" class={`amsler-debrief__eye${props.eye === e ? ' is-on' : ''}`} onClick={() => props.onEye(e)}>
                 <span class="amsler-debrief__code">{e}</span>
                 <span class="amsler-debrief__body">
-                  <span class="amsler-debrief__truth">{describeAmsler(truth, e)}</span>
+                  <span class="amsler-debrief__truth">{describeAmsler(truth, e, loc)}</span>
                   <span class="amsler-debrief__you">
                     <span class={s.classOk ? 'ok' : 'bad'}>
-                      <Icon name={s.classOk ? 'check' : 'x'} size={13} /> {yours ? CLASS_SHORT[yours] : '—'}
+                      <Icon name={s.classOk ? 'check' : 'x'} size={13} /> {yours ? t.classShort[yours] : '—'}
                     </span>
                     {s.iou !== null
-                      ? <span class={s.region >= 0.999 ? 'ok' : s.region > 0.5 ? 'meh' : 'bad'}>map overlap {Math.round(s.iou * 100)}%</span>
-                      : <span class={s.region >= 0.999 ? 'ok' : 'bad'}>{s.region >= 0.999 ? 'clean map' : 'stray marks'}</span>}
+                      ? <span class={s.region >= 0.999 ? 'ok' : s.region > 0.5 ? 'meh' : 'bad'}>{t.overlap(Math.round(s.iou * 100))}</span>
+                      : <span class={s.region >= 0.999 ? 'ok' : 'bad'}>{s.region >= 0.999 ? t.cleanMap : t.stray}</span>}
                   </span>
                 </span>
               </button>
@@ -567,24 +571,19 @@ function Debrief(props: {
         })}
       </ul>
       <p class="amsler-debrief__legend">
-        <span><i class="sw sw--you" /> your map</span>
-        <span><i class="sw sw--truth" /> true defect</span>
-        <span>1 square = 1° at 33 cm</span>
+        <span><i class="sw sw--you" /> {t.legendYou}</span>
+        <span><i class="sw sw--truth" /> {t.legendTruth}</span>
+        <span>{t.legendScale}</span>
       </p>
       {!challenge && <p class="amsler-debrief__teach">{teachFor(ctx)}</p>}
     </div>
   );
 }
 
-const CLASS_SHORT: Record<AmslerClass, string> = { normal: 'normal', metamorphopsia: 'metamorphopsia', scotoma: 'scotoma' };
-
 function teachFor(ctx: MiniGameContext): string {
   const kinds = EYES.map((e) => classOf(ctx.findings.amsler[e] ?? { result: 'normal' }));
-  if (kinds.includes('metamorphopsia')) {
-    return ctx.patient.age >= 50
-      ? 'New distortion in a patient over 50 is neovascular AMD until proven otherwise — same-week retina referral.'
-      : 'Distortion means the photoreceptors are displaced: fluid (central serous, oedema) or a membrane over the macula.';
-  }
-  if (kinds.includes('scotoma')) return 'A missing patch is lost function. Central loss with colour desaturation points to the optic nerve; a patch sparing fixation suggests atrophy.';
-  return 'Both grids straight and complete. Send the card home: weekly, one eye at a time, near glasses on.';
+  const t = T(ctx.locale);
+  if (kinds.includes('metamorphopsia')) return ctx.patient.age >= 50 ? t.teachMetaOld : t.teachMetaYoung;
+  if (kinds.includes('scotoma')) return t.teachScotoma;
+  return t.teachNormal;
 }

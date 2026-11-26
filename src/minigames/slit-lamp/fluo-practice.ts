@@ -1,10 +1,12 @@
 /** Fluorescein practice scenarios and challenge questions. Pure. */
 import {
-  buildFindings, EYES, type AnteriorSegment, type DeepPartial, type Eye, type PatientFindings, type PracticeScenario, type Rng, type StainPattern,
+  buildFindings, EYES, isolateLtrRuns, type AnteriorSegment, type DeepPartial, type Eye, type Locale, type PatientFindings, type PracticeScenario, type Rng, type StainPattern,
 } from '@core';
+import { STAIN_HE } from './he';
 import { makePatient } from './people';
 import type { Question } from './practice';
-import { STAIN_LABEL, STAIN_MEANING, STAIN_SHORT, tbutOf, TBUT_NORMAL } from './report';
+import { STAIN_LABEL, stainText, tbutOf, TBUT_NORMAL } from './report';
+import { docLocale, slT } from './strings';
 
 interface Gen { age: number; stain: StainPattern; eye: Eye; patch: DeepPartial<AnteriorSegment>; both?: boolean; tbut: number }
 
@@ -19,6 +21,9 @@ export const FLUO_DX: Record<StainPattern, string> = {
   interpalpebral: 'Exposure or contact-lens related dry eye',
   focal: 'Embedded corneal foreign body',
 };
+
+/** The condition a stain pattern points to, in the edition's language. */
+export const fluoDx = (p: StainPattern, locale: Locale = 'en'): string => (locale === 'he' ? STAIN_HE[p].dx : FLUO_DX[p]);
 
 function gen(stain: StainPattern, rng: Rng, d: number): Gen {
   const eye: Eye = rng.chance(0.5) ? 'OD' : 'OS';
@@ -49,15 +54,20 @@ export function makeFluoScenario(rng: Rng, difficulty: number): PracticeScenario
     else anterior[e] = e === g.eye ? { ...g.patch, tbutSec: g.tbut } : fellow();
   }
   const findings = buildFindings(g.age, { anterior });
-  const where = g.both ? 'both eyes' : g.eye;
+  const locale = docLocale();
+  const t = slT(locale).q;
+  const where = g.both ? t.both : g.eye;
+  const answer = t.fluoAnswer(stainText(stain, locale).label, where, fluoDx(stain, locale), g.tbut);
   return {
-    patient: makePatient(rng, g.age),
+    patient: makePatient(rng, g.age, locale),
     findings,
-    answer: `${STAIN_LABEL[stain]} (${where}) — ${FLUO_DX[stain]}. TBUT ≈ ${g.tbut} s.`,
+    answer: locale === 'he' ? isolateLtrRuns(answer) : answer,
   };
 }
 
-export function makeFluoChallenge(f: PatientFindings, rng: Rng): Question[] {
+export function makeFluoChallenge(f: PatientFindings, rng: Rng, locale: Locale = 'en'): Question[] {
+  const t = slT(locale).q;
+  const fix = (v: string) => (locale === 'he' ? isolateLtrRuns(v) : v);
   const eye = EYES.find((e) => f.anterior[e].fluorescein !== 'none') ?? 'OD';
   const truth = f.anterior[eye].fluorescein;
   const pool = (Object.keys(STAIN_LABEL) as StainPattern[]).filter((p) => p !== truth);
@@ -65,28 +75,29 @@ export function makeFluoChallenge(f: PatientFindings, rng: Rng): Question[] {
   const dis = [...near, ...rng.shuffle(pool)].filter((p, i, a) => a.indexOf(p) === i && p !== truth).slice(0, 3);
   const opts = rng.shuffle([truth, ...dis]);
   const q1: Question = {
-    prompt: truth === 'none' ? 'What does the fluorescein show on this cornea?' : `Which pattern does the ${eye === 'OD' ? 'right' : 'left'} eye (${eye}) show?`,
-    options: opts.map((p) => STAIN_LABEL[p]),
+    prompt: truth === 'none' ? t.stainNone : t.stainPrompt(eye),
+    options: opts.map((p) => stainText(p, locale).label),
     correct: opts.indexOf(truth),
-    explain: `${STAIN_LABEL[truth]}. ${STAIN_MEANING[truth]}`,
+    explain: `${stainText(truth, locale).label}. ${stainText(truth, locale).meaning}`,
   };
   const dxs = [...new Set(Object.values(FLUO_DX))];
   const right = FLUO_DX[truth];
   const dxOpts = rng.shuffle([right, ...rng.shuffle(dxs.filter((x) => x !== right)).slice(0, 3)]);
   const q2: Question = {
-    prompt: 'Which condition does this pattern point to?',
-    options: dxOpts,
+    prompt: t.dxPrompt,
+    options: dxOpts.map((x) => (locale === 'he' ? STAIN_HE[(Object.keys(FLUO_DX) as StainPattern[]).find((k) => FLUO_DX[k] === x)!].dx : x)),
     correct: dxOpts.indexOf(right),
-    explain: `${right}. ${STAIN_MEANING[truth]}`,
+    explain: `${fluoDx(truth, locale)}. ${stainText(truth, locale).meaning}`,
   };
-  const t = tbutOf(f.anterior[eye]);
+  const tb = tbutOf(f.anterior[eye]);
   const q3: Question = {
-    prompt: `The tear film broke up after ${Math.round(t)} seconds. How do you read that?`,
-    options: ['Normal (10 s or more)', 'Borderline (8–9 s)', 'Reduced (under 10 s) — unstable tear film', 'Severely reduced (under 2 s) — surface failure'],
-    correct: t >= TBUT_NORMAL ? 0 : t < 2 ? 3 : 2,
-    explain: t >= TBUT_NORMAL ? 'A break-up time of 10 s or more is normal.' : 'Under 10 s the tear film is unstable — evaporative or aqueous-deficient dry eye. The inferior cornea usually shows the stain first.',
+    prompt: t.tbutPrompt(Math.round(tb)),
+    options: t.tbutOptions,
+    correct: tb >= TBUT_NORMAL ? 0 : tb < 2 ? 3 : 2,
+    explain: tb >= TBUT_NORMAL ? t.tbutNormal : t.tbutLow,
   };
-  return truth === 'none' ? [q1, q3] : [q1, q2];
+  const qs = truth === 'none' ? [q1, q3] : [q1, q2];
+  return qs.map((q) => ({ ...q, prompt: fix(q.prompt), options: q.options.map(fix), explain: fix(q.explain) }));
 }
 
-export const shortName = (p: StainPattern) => STAIN_SHORT[p];
+export const shortName = (p: StainPattern, locale: Locale = 'en') => stainText(p, locale).short;

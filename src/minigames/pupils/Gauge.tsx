@@ -8,7 +8,7 @@ const W = SLOT * (G_MAX - G_MIN + 1);
 const clampG = (v: number) => Math.max(G_MIN, Math.min(G_MAX, Math.round(v / G_STEP) * G_STEP));
 
 /** A plastic pupil gauge: black half-circles from 2 to 9 mm. Drag, wheel or arrows to pick the one that matches. */
-export function Gauge(props: { value: number; onChange: (v: number) => void; label: string }) {
+export function Gauge(props: { value: number; onChange: (v: number) => void; label: string; valueText?: (v: string) => string }) {
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef(false);
   const fromX = (clientX: number) => {
@@ -20,6 +20,7 @@ export function Gauge(props: { value: number; onChange: (v: number) => void; lab
   return (
     <div
       ref={ref}
+      dir="ltr"
       class="pu-gauge"
       role="slider"
       tabIndex={0}
@@ -27,7 +28,7 @@ export function Gauge(props: { value: number; onChange: (v: number) => void; lab
       aria-valuemin={G_MIN}
       aria-valuemax={G_MAX}
       aria-valuenow={props.value}
-      aria-valuetext={`${props.value.toFixed(1)} millimetres`}
+      aria-valuetext={props.valueText ? props.valueText(props.value.toFixed(1)) : `${props.value.toFixed(1)} millimetres`}
       onPointerDown={(e) => { drag.current = true; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); props.onChange(fromX(e.clientX)); }}
       onPointerMove={(e) => { if (drag.current) props.onChange(fromX(e.clientX)); }}
       onPointerUp={() => { drag.current = false; }}

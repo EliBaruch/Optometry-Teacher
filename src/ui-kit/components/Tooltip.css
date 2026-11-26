@@ -2,7 +2,7 @@
 .lm-tip__bubble {
   position: absolute; z-index: var(--lm-z-tooltip); pointer-events: none;
   width: max-content; max-width: min(260px, 80vw); padding: 8px 12px; border-radius: 10px;
-  font: 500 var(--lm-fs-xs)/1.45 var(--lm-font-ui); color: var(--lm-ivory); text-align: left; white-space: normal;
+  font: 500 var(--lm-fs-xs)/1.45 var(--lm-font-ui); color: var(--lm-ivory); text-align: start; white-space: normal;
   background: linear-gradient(180deg, rgba(50, 32, 86, 0.97), rgba(26, 15, 46, 0.97));
   box-shadow: inset 0 0 0 1px var(--lm-glass-border-hi), inset 0 1px 0 rgba(255, 245, 230, 0.12), var(--lm-shadow-2);
   opacity: 0; visibility: hidden;

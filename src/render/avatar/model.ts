@@ -9,7 +9,8 @@
  * reads happen per frame.
  */
 import { useEffect, useId, useLayoutEffect, useMemo, useRef } from 'preact/hooks';
-import type { AvatarSpec, Eye } from '@core';
+import { pickStrings, type AvatarSpec, type Eye } from '@core';
+import { RS, SIGNS, renderLocale } from '../strings';
 import type { AvatarSex } from './generate';
 import { buildGeo, traitsFor, type Geo, type Side } from './geometry';
 import { SKIN } from './palette';
@@ -60,32 +61,31 @@ export function signSideFor(ext: External | undefined): Side {
   return eye === 'OD' ? -1 : 1;
 }
 
-const EYE_WORD: Record<Eye, string> = { OD: 'right', OS: 'left' };
-function eyesPhrase(list: Eye[] | undefined, one: string, both: string): string | null {
-  if (!list || !list.length) return null;
-  return list.length > 1 ? both : one.replace('%', EYE_WORD[list[0]!]);
-}
-
 /** Screen-reader description of the visible clinical clues (patient's right/left). */
-export function describeSigns(ext: External | undefined, strab?: Strabismus, pupils?: Partial<Record<Eye, number>>): string[] {
+export function describeSigns(ext: External | undefined, strab?: Strabismus, pupils?: Partial<Record<Eye, number>>, locale: 'en' | 'he' = 'en'): string[] {
   if (!ext && !strab && !pupils) return [];
+  const T = pickStrings(SIGNS, locale);
   const e = ext ?? {};
   const out: string[] = [];
-  const push = (s: string | null) => s && out.push(s);
-  push(eyesPhrase(e.redEye, 'red % eye', 'both eyes red'));
-  push(eyesPhrase(e.tearing, 'watering % eye', 'both eyes watering'));
-  push(eyesPhrase(e.ptosis, 'drooping % upper eyelid', 'both upper eyelids drooping'));
-  push(eyesPhrase(e.proptosis, 'bulging % eye', 'both eyes bulging'));
-  if (e.squinting) out.push('squinting');
-  if (e.photophobia) out.push('shielding the eyes from light');
-  if (e.eyePatch) out.push(`patch over the ${EYE_WORD[e.eyePatch]} eye`);
-  if (e.rash === 'forehead-dermatomal') out.push(`blistering rash on the ${EYE_WORD[signSideFor(e) < 0 ? 'OD' : 'OS']} forehead`);
-  if (e.templeTenderness) out.push(`prominent, tortuous ${EYE_WORD[signSideFor(e) < 0 ? 'OD' : 'OS']} temple artery`);
-  if (strab) out.push(`${EYE_WORD[strab.eye]} eye turned ${strab.direction}`);
+  const both = (l: Eye[] | undefined, one: (eye: Eye) => string, two: string) => {
+    if (!l || !l.length) return;
+    out.push(l.length > 1 ? two : one(l[0]!));
+  };
+  const side = (): Eye => (signSideFor(e) < 0 ? 'OD' : 'OS');
+  both(e.redEye, T.redEye, T.bothRed);
+  both(e.tearing, T.tearing, T.bothTearing);
+  both(e.ptosis, T.ptosis, T.bothPtosis);
+  both(e.proptosis, T.proptosis, T.bothProptosis);
+  if (e.squinting) out.push(T.squinting);
+  if (e.photophobia) out.push(T.photophobia);
+  if (e.eyePatch) out.push(T.eyePatch(e.eyePatch));
+  if (e.rash === 'forehead-dermatomal') out.push(T.rash(side()));
+  if (e.templeTenderness) out.push(T.temple(side()));
+  if (strab) out.push(T.strab(strab.eye, strab.direction));
   for (const eye of ['OD', 'OS'] as const) {
     const k = pupils?.[eye];
-    if (k && k > 1.2) out.push(`large ${EYE_WORD[eye]} pupil`);
-    else if (k && k < 0.8) out.push(`small ${EYE_WORD[eye]} pupil`);
+    if (k && k > 1.2) out.push(T.pupilLarge(eye));
+    else if (k && k < 0.8) out.push(T.pupilSmall(eye));
   }
   return out;
 }
@@ -153,8 +153,9 @@ export function useAvatarModel(props: AvatarModelProps): AvatarModel {
 
   const s = st.current;
   const a = rigAttrs(geo, { params: s.params, gazeL: s.gaze, gazeR: s.gaze, blink: 0, breath: 0, sway: 0, nod: 0 });
-  const signs = describeSigns(external, strabismus, pupils);
-  const label = props.label ?? `Patient portrait, ${expression === 'neutral' ? 'calm' : expression} expression${signs.length ? `; ${signs.join(', ')}` : ''}`;
+  const loc = renderLocale();
+  const signs = describeSigns(external, strabismus, pupils, loc);
+  const label = props.label ?? pickStrings(RS, loc).portrait(expression, signs);
 
   // Synchronous + idempotent so the very first paint is already laid out.
   if (typeof document !== 'undefined') ensureAvatarStyles();

@@ -1,7 +1,9 @@
 import { render } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { signal, type GameServices, type Signal } from '@core';
-import { Button, formatNumber, IconOrText, overlayRoot, RARITY_COLOR, RARITY_LABEL, ServicesProvider, useReducedMotion, useSignal } from '@ui-kit';
+import { Button, formatNumber, IconOrText, overlayRoot, RARITY_COLOR, ServicesProvider, useLocale, useReducedMotion, useSignal, useStrings } from '@ui-kit';
+import { achText, rarityLabel } from '../model/locale';
+import { S } from '../strings';
 import type { Moment } from '../engine';
 import { Crest } from './Crest';
 import './moments.css';
@@ -81,6 +83,7 @@ const BANNER_MS = 4200;
 /** A new tier inside the same rank: a luminous banner drops in, never blocks play. */
 function LevelBanner({ services, m, onDone }: { services: GameServices; m: Extract<Moment, { kind: 'rank' }>; onDone: () => void }) {
   const reduced = useReducedMotion();
+  const t = useStrings(S);
   const ref = useRef<HTMLButtonElement>(null);
   const [leaving, setLeaving] = useState(false);
   const { info } = m;
@@ -106,7 +109,7 @@ function LevelBanner({ services, m, onDone }: { services: GameServices; m: Extra
     return () => ts.forEach(clearTimeout);
   }, []);
 
-  const toRank = info.nextRank ? `${formatNumber(info.toNextRank)} XP to ${info.nextRank.title}` : `${formatNumber(info.toNext)} XP to ${info.nextTitle}`;
+  const toRank = info.nextRank ? t.xpTo(formatNumber(info.toNextRank), info.nextRank.title) : t.xpTo(formatNumber(info.toNext), info.nextTitle);
   return (
     <button
       ref={ref}
@@ -115,13 +118,13 @@ function LevelBanner({ services, m, onDone }: { services: GameServices; m: Extra
       class={`rk-banner${leaving ? ' is-leaving' : ''}`}
       style={{ '--rk-c': info.rank.color, '--rk-c2': info.rank.color2 }}
       onClick={leave}
-      aria-label={`Career level ${info.number}: ${info.title}. ${toRank}.`}
+      aria-label={t.careerLevelLabel(String(info.number), info.title, toRank)}
     >
       <span class="rk-banner__crest" aria-hidden="true">
         <Crest rankIndex={info.rankIndex} tier={info.tier} size={58} animate />
       </span>
       <span class="rk-banner__text" aria-hidden="true">
-        <span class="rk-banner__eyebrow">Career level <b class="lm-num">{info.number}</b></span>
+        <span class="rk-banner__eyebrow">{t.careerLevelWord} <b class="lm-num">{info.number}</b></span>
         <span class="rk-banner__title">{info.title}</span>
         <span class="rk-banner__next lm-num">{toRank}</span>
       </span>
@@ -132,6 +135,9 @@ function LevelBanner({ services, m, onDone }: { services: GameServices; m: Extra
 
 function TrophyToast({ services, m, index, onDone }: { services: GameServices; m: Extract<Moment, { kind: 'trophy' }>; index: number; onDone: () => void }) {
   const reduced = useReducedMotion();
+  const t = useStrings(S);
+  const locale = useLocale();
+  const txt = achText(m.def, locale);
   const ref = useRef<HTMLButtonElement>(null);
   const [leaving, setLeaving] = useState(false);
   const color = RARITY_COLOR[m.def.rarity];
@@ -161,15 +167,15 @@ function TrophyToast({ services, m, index, onDone }: { services: GameServices; m
         setLeaving(true);
         setTimeout(onDone, 300);
       }}
-      aria-label={`Trophy unlocked: ${m.def.title}. ${m.def.description}`}
+      aria-label={t.trophyUnlockedLabel(txt.title, txt.description)}
     >
       <span class="rk-toast__medal" aria-hidden="true">
         <IconOrText icon={m.def.icon} size={24} />
       </span>
       <span class="rk-toast__text">
-        <span class="rk-toast__eyebrow">Trophy unlocked · {RARITY_LABEL[m.def.rarity]}</span>
-        <span class="rk-toast__title">{m.def.title}</span>
-        <span class="rk-toast__desc">{m.def.description}</span>
+        <span class="rk-toast__eyebrow">{t.trophyUnlocked} · {rarityLabel(m.def.rarity, locale)}</span>
+        <span class="rk-toast__title">{txt.title}</span>
+        <span class="rk-toast__desc">{txt.description}</span>
       </span>
       <span class="rk-toast__shine" aria-hidden="true" />
     </button>
@@ -180,6 +186,7 @@ const AUTO_CLOSE_MS = 7000;
 
 function Ceremony({ services, m, onDone }: { services: GameServices; m: Extract<Moment, { kind: 'rank' }>; onDone: () => void }) {
   const reduced = useReducedMotion();
+  const t = useStrings(S);
   const card = useRef<HTMLDivElement>(null);
   const focusBtn = () => card.current?.querySelector<HTMLButtonElement>('.rk-ceremony__btn')?.focus();
   const [leaving, setLeaving] = useState(false);
@@ -189,7 +196,7 @@ function Ceremony({ services, m, onDone }: { services: GameServices; m: Extract<
     if (leaving) return;
     setLeaving(true);
     // The toast is the afterglow: it lands once the ceremony clears the stage.
-    services.bus.emit('toast', { message: `Promoted to ${info.rank.title}. ${info.rank.motto}`, icon: 'crown', tone: 'epic' });
+    services.bus.emit('toast', { message: t.promotedToast(info.rank.title, info.rank.motto), icon: 'crown', tone: 'epic' });
     setTimeout(onDone, reduced ? 0 : 420);
   };
 
@@ -250,7 +257,7 @@ function Ceremony({ services, m, onDone }: { services: GameServices; m: Extract<
           <span class="rk-ceremony__ring" aria-hidden="true" />
           <Crest rankIndex={info.rankIndex} tier={info.tier} size={newRank ? 188 : 150} animate />
         </div>
-        <div class="rk-ceremony__eyebrow">{newRank ? 'Promotion' : 'Career level up'}</div>
+        <div class="rk-ceremony__eyebrow">{newRank ? t.promotion : t.levelUp}</div>
         <h2 id="rk-ceremony-title" class="rk-ceremony__title">
           {info.title}
         </h2>
@@ -258,13 +265,13 @@ function Ceremony({ services, m, onDone }: { services: GameServices; m: Extract<
           <span>{from.title}</span>
           <span class="rk-ceremony__arrow" aria-hidden="true">→</span>
           <span class="rk-ceremony__to">{info.title}</span>
-          <span class="rk-ceremony__lv lm-num">Level {info.number}</span>
+          <span class="rk-ceremony__lv lm-num">{t.levelWord} {info.number}</span>
         </div>
         <p id="rk-ceremony-motto" class="rk-ceremony__motto">
           {info.rank.motto}
         </p>
         <Button variant="primary" size="lg" onClick={() => close.current()} sfx="select" class="rk-ceremony__btn">
-          Continue
+          {t.cont}
         </Button>
       </div>
     </div>

@@ -1,9 +1,10 @@
-import { EYES, type Eye, type FieldDefect, type MiniGameContext } from '@core';
+import { EYES, type Eye, type FieldDefect, type Locale, type MiniGameContext } from '@core';
 import { Icon } from '@ui-kit';
-import { describeEye, FAMILY_LABEL, LOCALISATION_LABEL, SIDE_LABEL, anatomicalSide, type Localisation, type Pattern } from './interpret';
-import { LOCALISATION_TEACH } from './practice';
+import { describeEye, anatomicalSide, type Localisation, type Pattern } from './interpret';
 import { fieldOf } from './report';
 import type { ExamScore, TechniqueScore } from './scoring';
+import { iso, vfT } from './strings';
+import { useVf, useVfLocale } from './useVf';
 
 export interface DebriefProps {
   ctx: MiniGameContext;
@@ -15,39 +16,43 @@ export interface DebriefProps {
   score: ExamScore;
 }
 
-const patternText = (p: Pattern | null, eye: Eye) =>
-  !p ? '—' : p.side ? `${FAMILY_LABEL[p.family]} · ${SIDE_LABEL[p.side].toLowerCase()} (${anatomicalSide(p.side, eye)})` : FAMILY_LABEL[p.family];
+const patternText = (p: Pattern | null, eye: Eye, locale: Locale) => {
+  const t = vfT(locale);
+  return !p ? '—' : p.side ? `${t.famLabel[p.family]} · ${t.sideLabel[p.side].toLowerCase()} (${anatomicalSide(p.side, eye, locale)})` : t.famLabel[p.family];
+};
 
 const verdict = (v: number) => (v >= 0.999 ? 'ok' : v >= 0.3 ? 'meh' : 'bad');
 
 export function Debrief({ ctx, picks, classify, technique, loc, truthLoc, score }: DebriefProps) {
+  const t = useVf();
+  const locale = useVfLocale();
   const locOk = loc === truthLoc;
   const practice = ctx.mode === 'practice';
   return (
     <div class="vf-debrief">
       <div class={`vf-verdict ${locOk ? 'is-good' : 'is-bad'}`}>
-        <strong>{practice ? (locOk ? 'Lesion localised' : 'Not quite') : locOk ? 'Localisation correct' : 'Localisation missed'}</strong>
-        <span>{LOCALISATION_LABEL[truthLoc]}{!locOk && loc ? ` — you chose ${LOCALISATION_LABEL[loc].toLowerCase()}` : ''}</span>
-        <p>{LOCALISATION_TEACH[truthLoc]}</p>
+        <strong>{practice ? (locOk ? t.vLocalised : t.vNotQuite) : locOk ? t.vLocCorrect : t.vLocMissed}</strong>
+        <span>{t.locLabel[truthLoc]}{!locOk && loc ? t.youChose(t.locLabel[loc]) : ''}</span>
+        <p>{iso(locale, t.locTeach[truthLoc])}</p>
       </div>
       <ul class="vf-debrief__eyes">
         {EYES.map((e) => {
           const truth: FieldDefect = fieldOf(ctx.findings, e);
-          const t = technique[e];
+          const tq = technique[e];
           return (
             <li key={e} class="vf-debrief__eye">
-              <span class="vf-debrief__code">{e}</span>
+              <bdi class="vf-debrief__code">{e}</bdi>
               <span class="vf-debrief__body">
-                <span class="vf-debrief__truth">{describeEye(truth, e)}</span>
+                <span class="vf-debrief__truth">{describeEye(truth, e, locale)}</span>
                 <span class="vf-debrief__you">
                   <span class={verdict(classify[e])}>
-                    <Icon name={classify[e] >= 0.999 ? 'check' : 'x'} size={12} /> {patternText(picks[e], e)}
+                    <Icon name={classify[e] >= 0.999 ? 'check' : 'x'} size={12} /> {patternText(picks[e], e, locale)}
                   </span>
                 </span>
                 <span class="vf-debrief__stats">
-                  <span class={t.coverage >= 1 ? 'ok' : t.coverage >= 0.75 ? 'meh' : 'bad'}>coverage {Math.round(t.coverage * 8)}/8 sectors</span>
-                  <span class={t.efficiency >= 1 ? 'ok' : 'meh'}>{t.points} points</span>
-                  {fieldOf(ctx.findings, e) !== 'full' && <span class={t.hits >= 2 ? 'ok' : 'bad'}>{t.hits} in defect</span>}
+                  <span class={tq.coverage >= 1 ? 'ok' : tq.coverage >= 0.75 ? 'meh' : 'bad'}>{t.coverage(Math.round(tq.coverage * 8))}</span>
+                  <span class={tq.efficiency >= 1 ? 'ok' : 'meh'}>{t.points(tq.points)}</span>
+                  {fieldOf(ctx.findings, e) !== 'full' && <span class={tq.hits >= 2 ? 'ok' : 'bad'}>{t.inDefect(tq.hits)}</span>}
                 </span>
               </span>
             </li>
@@ -55,11 +60,11 @@ export function Debrief({ ctx, picks, classify, technique, loc, truthLoc, score 
         })}
       </ul>
       <div class="vf-debrief__score">
-        <span>Technique <b>{Math.round(score.technique * 100)}%</b></span>
-        <span>Patterns <b>{Math.round(score.classify * 100)}%</b></span>
-        <span>Site <b>{Math.round(score.localisation * 100)}%</b></span>
+        <span>{t.scTechnique} <b>{Math.round(score.technique * 100)}%</b></span>
+        <span>{t.scPatterns} <b>{Math.round(score.classify * 100)}%</b></span>
+        <span>{t.scSite} <b>{Math.round(score.localisation * 100)}%</b></span>
       </div>
-      <p class="vf-debrief__legend"><i /> true defect shown in rose on each plot</p>
+      <p class="vf-debrief__legend"><i /> {t.legend}</p>
     </div>
   );
 }

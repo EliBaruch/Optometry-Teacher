@@ -44,6 +44,8 @@ export function blinkAperture(u: number): number {
   return u < 0.38 ? 1 - Math.sin((u / 0.38) * (Math.PI / 2)) : Math.sin(((u - 0.38) / 0.62) * (Math.PI / 2));
 }
 
+import type { Locale } from '@core';
+
 export const INTRO_CARDS = [
   {
     icon: 'eye' as const,
@@ -65,3 +67,30 @@ export const INTRO_CARDS = [
     body: 'Sharp, safe calls earn grades, stars and coins. Climb the career ladder, outshine your rivals and collect jewel-like irises for your gallery.',
   },
 ];
+
+export type IntroCard = { icon: 'eye' | 'book' | 'trophy'; eyebrow: string; title: string; body: string; steps?: string[] };
+
+/** Hebrew edition: written fresh, not carried over sentence by sentence. */
+export const INTRO_CARDS_HE: IntroCard[] = [
+  {
+    icon: 'eye',
+    eyebrow: 'ברוכים הבאים ללומן',
+    title: 'אתם האופטומטריסטים החדשים',
+    body: 'מרפאה שנפתחת כשכולם כבר הלכו הביתה, בתוך מצפה כוכבים ישן מזכוכית. מטופלים נכנסים מהגשם עם עיניים מטושטשות, אדומות, עם הילות או עם ראייה כפולה, ואתם הולכים לפענח למה.',
+  },
+  {
+    icon: 'book',
+    eyebrow: 'ככה נראית בדיקה',
+    title: 'אנמנזה, בדיקות, אבחנה',
+    body: 'שואלים את השאלות הנכונות. עושים בדיקות קליניות אמיתיות, וכל אחת מהן היא משחק קטן שנרשם בתיק. בסוף מגיעים לאבחנה וקובעים כמה דחוף לראות את המטופל: שגרתי, בקרוב, דחוף או חירום.',
+    steps: ['אנמנזה', 'בדיקות', 'אבחנה', 'דחיפות'],
+  },
+  {
+    icon: 'trophy',
+    eyebrow: 'מה יוצא לכם מזה',
+    title: 'דרגות, מטבעות וקשתיות נדירות',
+    body: 'החלטות חדות ובטוחות מזכות בציונים, בכוכבים ובמטבעות. מטפסים בסולם הקריירה, עוקפים את המתחרים ואוספים לגלריה קשתיות יקרות כמו אבני חן.',
+  },
+];
+
+export const introCards = (locale: Locale): IntroCard[] => (locale === 'he' ? INTRO_CARDS_HE : INTRO_CARDS);

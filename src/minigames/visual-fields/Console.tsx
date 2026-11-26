@@ -2,6 +2,8 @@ import type { Ref } from 'preact';
 import { Button, Kbd } from '@ui-kit';
 import { Dial } from './Dial';
 import type { TestMode } from './patient';
+import { iso } from './strings';
+import { useVf, useVfLocale } from './useVf';
 
 export interface ConsoleProps {
   mode: TestMode;
@@ -19,10 +21,12 @@ export interface ConsoleProps {
 
 /** The operator's console: strategy, screening level dial, live stimulus meter, auto sweep. */
 export function Console(p: ConsoleProps) {
+  const t = useVf();
+  const locale = useVfLocale();
   return (
     <div class="vf-console">
       <div class="vf-console__row">
-        <div class="vf-seg" role="radiogroup" aria-label="Test strategy">
+        <div class="vf-seg" role="radiogroup" aria-label={t.strategy}>
           {(['threshold', 'screen'] as const).map((m) => (
             <button
               key={m}
@@ -33,12 +37,12 @@ export function Console(p: ConsoleProps) {
               onClick={() => p.onMode(m)}
               data-testid={`vf-mode-${m}`}
             >
-              {m === 'threshold' ? 'Threshold' : 'Screen'} <Kbd>{m === 'threshold' ? 'T' : 'S'}</Kbd>
+              {m === 'threshold' ? t.threshold : t.screen} <Kbd>{m === 'threshold' ? 'T' : 'S'}</Kbd>
             </button>
           ))}
         </div>
         <p class="vf-console__hint">
-          {p.mode === 'threshold' ? '4-2 dB staircase → true sensitivity (≈5 flashes)' : 'One flash, brighter than age-normal by the dial'}
+          {iso(locale, p.mode === 'threshold' ? t.hintThreshold : t.hintScreen)}
         </p>
       </div>
       <div class="vf-console__row vf-console__row--instr">
@@ -47,21 +51,21 @@ export function Console(p: ConsoleProps) {
           min={2}
           max={16}
           step={1}
-          label="Screen level"
-          format={(v) => `normal −${v} dB`}
+          label={t.screenLevel}
+          format={(v) => iso(locale, t.screenFmt(v))}
           onChange={p.onOffset}
           disabled={p.mode !== 'screen'}
           size={58}
         />
         <div class="vf-meter" aria-hidden="true">
-          <span class="vf-meter__label">Stimulus</span>
+          <span class="vf-meter__label">{t.stimulus}</span>
           <span class="vf-meter__track"><span class="vf-meter__fill" ref={p.meterRef} /></span>
-          <span class="vf-meter__value" ref={p.stimRef}>— dB</span>
+          <span class="vf-meter__value" ref={p.stimRef} dir="ltr">— dB</span>
         </div>
       </div>
       <div class="vf-console__row">
         {p.sweeping ? (
-          <Button variant="glass" size="sm" icon="x" sfx={false} onClick={p.onStop} data-testid="vf-stop">Stop sweep</Button>
+          <Button variant="glass" size="sm" icon="x" sfx={false} onClick={p.onStop} data-testid="vf-stop">{t.stopSweep}</Button>
         ) : (
           <Button
             variant="glass"
@@ -72,10 +76,10 @@ export function Console(p: ConsoleProps) {
             disabled={p.remaining242 === 0 || p.busy}
             data-testid="vf-sweep"
           >
-            Auto 24-2 sweep ({p.remaining242})
+            {iso(locale, t.autoSweep(p.remaining242))}
           </Button>
         )}
-        <span class="vf-console__keys"><Kbd>A</Kbd> sweep · <Kbd>G</Kbd> grey/dB</span>
+        <span class="vf-console__keys"><Kbd>A</Kbd> {t.keySweep} · <Kbd>G</Kbd> {t.keyGreyDb}</span>
       </div>
     </div>
   );

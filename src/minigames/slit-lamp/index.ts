@@ -1,6 +1,7 @@
 import { h, render } from 'preact';
 import type { MiniGameDone, MiniGameModule } from '@core';
 import { Fluorescein } from './Fluorescein';
+import { FLUO_TEXT_HE, SLIT_TEXT_HE } from './he';
 import { makeFluoScenario } from './fluo-practice';
 import { SlitLamp } from './SlitLamp';
 import { makeSlitScenario } from './practice';
@@ -37,6 +38,7 @@ export const slitLamp: MiniGameModule = {
     'Keratic precipitates sit on the endothelium and are seen in a parallelepiped or section at 16× or more',
     'Cobalt blue lights fluorescein and iron rings; red-free light darkens blood vessels',
   ],
+  text: { he: SLIT_TEXT_HE },
   mount: (host, ctx, done) => mountGame(host, SlitLamp, ctx, done),
   report: (findings) => report(findings),
   practice: (rng, difficulty) => makeSlitScenario(rng, difficulty),
@@ -54,6 +56,7 @@ export const fluorescein: MiniGameModule = {
     'Tear break-up time: the seconds from a blink to the first dark spot — under 10 s is reduced',
     'Take the mean of three readings and do not touch the eye or the lids',
   ],
+  text: { he: FLUO_TEXT_HE },
   mount: (host, ctx, done) => mountGame(host, Fluorescein, ctx, done),
   report: (findings) => fluoReport(findings),
   practice: (rng, difficulty) => makeFluoScenario(rng, difficulty),

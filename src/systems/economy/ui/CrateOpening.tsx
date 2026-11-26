@@ -2,8 +2,11 @@ import type { ComponentChild } from 'preact';
 import { createPortal } from 'preact/compat';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices, SfxId } from '@core';
-import { Button, CountUp, Icon, overlayRoot, RARITY_COLOR, RARITY_LABEL, useFocusTrap, useReducedMotion, useSignal } from '@ui-kit';
-import { CRATES, KIND_LABEL, PITY_LIMIT, itemById, type Rarity } from '../catalog';
+import { Button, CountUp, Icon, overlayRoot, RARITY_COLOR, useFocusTrap, useLocale, useReducedMotion, useSignal, useStrings } from '@ui-kit';
+import { pickStrings } from '@core';
+import { CRATES, PITY_LIMIT, itemById, type Rarity } from '../catalog';
+import { S } from '../strings';
+import { crateText, itemText, kindLabel } from '../text';
 import { formatCoins, type CrateDrop } from '../logic';
 import type { Economy, StoredCrate } from '../store';
 import { CoinGlyph } from './CoinGlyph';
@@ -33,6 +36,8 @@ export interface CrateOpeningProps {
  */
 export function CrateOpening({ services, store, crateId, onClose }: CrateOpeningProps) {
   const state = useSignal(store.state);
+  const t = useStrings(S);
+  const locale = useLocale();
   const reduced = useReducedMotion();
   const [crate, setCrate] = useState<StoredCrate | undefined>(() => state.crates.find((c) => c.id === crateId) ?? state.crates[0]);
   const [phase, setPhase] = useState<Phase>('ready');
@@ -45,6 +50,7 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
   const crateRef = useRef<HTMLDivElement>(null);
   useFocusTrap(root, true, '[data-autofocus]');
   const spec = crate ? CRATES[crate.kind] : CRATES.case;
+  const specName = crateText(crate ? crate.kind : 'case', locale).name;
 
   const clear = () => {
     timers.current.forEach(clearTimeout);
@@ -103,7 +109,7 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
     setForeshadow(true);
     setPhase('reveal');
     services.audio.play(RARITY_SFX[d.rarity], { volume: 0.9 });
-    if (d.content.type === 'coins') store.pulse(d.content.amount, spec.name);
+    if (d.content.type === 'coins') store.pulse(d.content.amount, specName);
     if (d.rarity === 'legendary' && !reduced) {
       const { x, y } = center();
       later(260, () => services.fx.burst(x, y - 40, { kind: 'confetti', count: 80 }));
@@ -181,14 +187,14 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
       style={{ '--rc': shown ? RARITY_COLOR[shown] : spec.trim, '--trim': spec.trim }}
       role="dialog"
       aria-modal="true"
-      aria-label={phase === 'reveal' ? `${spec.name} opened` : spec.name}
+      aria-label={phase === 'reveal' ? t.opened2(specName) : specName}
       aria-busy={phase === 'shaking' || phase === 'burst' || undefined}
       tabIndex={-1}
     >
       <div class="eco-open__scrim" onClick={phase === 'reveal' || phase === 'ready' ? close : skip} aria-hidden="true" />
       <div class="eco-open__rays" aria-hidden="true" />
       <div class="eco-open__stage">
-        <p class="eco-open__eyebrow lm-eyebrow">{spec.name}</p>
+        <p class="eco-open__eyebrow lm-eyebrow">{specName}</p>
 
         {crate && phase !== 'reveal' && (
           <div class="eco-open__crate" ref={crateRef} onClick={phase === 'ready' ? open : skip} aria-hidden="true">
@@ -202,29 +208,29 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
           {phase === 'ready' && crate && (
             <>
               <Button variant="primary" size="lg" icon="crate" onClick={open} data-autofocus sfx={false}>
-                Open crate
+                {t.openCrate}
               </Button>
               <p class="eco-open__hint">
-                {crate.reason} · epic or better guaranteed within <span class="lm-num">{pityLeft}</span> {pityLeft === 1 ? 'crate' : 'crates'}
+                <bdi>{t.hintLine(crate.reason, pityLeft)}</bdi>
               </p>
             </>
           )}
           {phase === 'ready' && !crate && (
             <>
-              <p class="eco-open__hint">No crates waiting. Exemplary cases earn more.</p>
-              <Button variant="glass" icon="check" onClick={close} data-autofocus>Back to the Boutique</Button>
+              <p class="eco-open__hint">{t.noCrates}</p>
+              <Button variant="glass" icon="check" onClick={close} data-autofocus>{t.backToBoutique}</Button>
             </>
           )}
-          {(phase === 'shaking' || phase === 'burst') && <p class="eco-open__hint eco-open__hint--skip">Tap to skip<span class="eco-open__keys"> · Space</span></p>}
+          {(phase === 'shaking' || phase === 'burst') && <p class="eco-open__hint eco-open__hint--skip">{t.tapSkip}<span class="eco-open__keys">{t.spaceKey}</span></p>}
           {phase === 'reveal' && (
             <div class="eco-open__buttons">
               {remaining > 0 && (
                 <Button variant="glass" icon="crate" onClick={next}>
-                  Open next ({remaining})
+                  {t.openNext(remaining)}
                 </Button>
               )}
               <Button variant="primary" icon="check" onClick={close} data-autofocus>
-                Collect
+                {t.collect}
               </Button>
             </div>
           )}
@@ -237,6 +243,9 @@ export function CrateOpening({ services, store, crateId, onClose }: CrateOpening
 
 function Prize({ drop, store, services }: { drop: CrateDrop; store: Economy; services: GameServices }) {
   const state = useSignal(store.state);
+  const t = useStrings(S);
+  const locale = useLocale();
+  const T = pickStrings(S, locale);
   const c = drop.content;
   const color = RARITY_COLOR[drop.rarity];
   const playerName = useSignal(services.settings).playerName;
@@ -247,8 +256,8 @@ function Prize({ drop, store, services }: { drop: CrateDrop; store: Economy; ser
   if (c.type === 'cosmetic') {
     const item = itemById(c.itemId)!;
     art = <ItemArt item={item} playerName={playerName} />;
-    title = item.name;
-    sub = KIND_LABEL[item.kind];
+    title = itemText(item, locale).name;
+    sub = kindLabel(item.kind, locale);
     const equipped = state.equipped[item.kind] === item.id;
     extra = (
       <Button
@@ -258,7 +267,7 @@ function Prize({ drop, store, services }: { drop: CrateDrop; store: Economy; ser
           services.audio.play('select');
         }}
       >
-        {equipped ? 'Equipped' : 'Equip now'}
+        {equipped ? t.equipped : t.equipNow}
       </Button>
     );
   } else if (c.type === 'coins') {
@@ -268,21 +277,21 @@ function Prize({ drop, store, services }: { drop: CrateDrop; store: Economy; ser
       </div>
     );
     title = '';
-    sub = c.converted ?? 'Lumens for the Boutique';
+    sub = c.converted ? t.converted : t.coinsSub;
   } else {
     art = (
       <div class="eco-prize__notes">
         <Icon name="book" size={64} />
       </div>
     );
-    title = `${c.amount} consult note${c.amount > 1 ? 's' : ''}`;
-    sub = 'Each one waives the fee cost of a hint in the exam room.';
+    title = t.notesTitle(c.amount);
+    sub = t.notesSub;
   }
   return (
     <div class={`eco-prize eco-prize--${drop.rarity}`} style={{ '--rc': color }}>
       <div class="eco-prize__glow" aria-hidden="true" />
       <div class="eco-prize__card">
-        <span class="eco-prize__rarity">{RARITY_LABEL[drop.rarity]}{drop.guaranteed ? ' · guaranteed' : ''}</span>
+        <span class="eco-prize__rarity">{T.rarity[drop.rarity]}{drop.guaranteed ? t.guaranteed : ''}</span>
         <div class="eco-prize__art">{art}</div>
         <h2 class="eco-prize__title">
           {c.type === 'coins' ? (

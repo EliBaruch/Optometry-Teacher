@@ -1,11 +1,12 @@
 import { useState } from 'preact/hooks';
 import { playSingleCase, type GameServices } from '@core';
-import { Badge, Button, Icon, useInterval, useReducedMotion, useRegistry, useSignal } from '@ui-kit';
+import { Badge, Button, Icon, useInterval, useReducedMotion, useRegistry, useSignal, useStrings } from '@ui-kit';
 import { AvatarBust } from '@render';
 import {
   clip, formatClock, formatRotation, grandRoundsBonus, grandRoundsCase, grandRoundsClaimed, msUntilNextWeek, weekKey,
 } from '../logic';
 import { statsSlot } from '../state';
+import { S } from '../strings';
 import './widgets.css';
 
 /** The best possible Grand Rounds bonus (a flawless work-up) — shown as "up to". */
@@ -28,6 +29,7 @@ function StarChart() {
 
 /** hub-banner: this week's featured emergency, the same for everyone. */
 export function GrandRoundsBanner({ services }: { services: GameServices }) {
+  const tx = useStrings(S);
   const cases = useRegistry(services.registries.cases);
   const stats = useSignal(statsSlot(services));
   const reduced = useReducedMotion();
@@ -49,14 +51,14 @@ export function GrandRoundsBanner({ services }: { services: GameServices }) {
       <StarChart />
       <div class="cr-grand__portrait">
         <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={92} ring={claimed ? '#5eead4' : '#ef4444'} expression={claimed ? 'relieved' : 'worried'} label={p.name} />
-        <span class="cr-grand__week lm-num" aria-hidden="true">WK {weekNo}</span>
+        <span class="cr-grand__week lm-num" aria-hidden="true">{tx.week(weekNo!)}</span>
       </div>
       <div class="cr-grand__body">
         <div class="cr-grand__eyebrow">
           <Icon name="crown" size={14} />
-          Grand Rounds
-          {!claimed && <Badge tone="critical" pulse size="sm">Live</Badge>}
-          {claimed && <Badge tone="good" icon="check" size="sm">Presented</Badge>}
+          {tx.grandRounds}
+          {!claimed && <Badge tone="critical" pulse size="sm">{tx.live}</Badge>}
+          {claimed && <Badge tone="good" icon="check" size="sm">{tx.presented}</Badge>}
         </div>
         <h3 class="cr-grand__title" id="cr-grand-title">
           {p.name}, <span class="lm-num">{p.age}</span>
@@ -65,22 +67,22 @@ export function GrandRoundsBanner({ services }: { services: GameServices }) {
         <blockquote class="cr-grand__quote">“{clip(kase.chiefComplaint, 132)}”</blockquote>
         <div class="cr-grand__meta">
           <span class="cr-grand__pill cr-grand__pill--red">
-            <Icon name="clock" size={13} /> <span class="lm-num">{formatClock(kase.emergency?.timeLimitSec ?? 0)}</span> clock
+            <Icon name="clock" size={13} /> <span class="lm-num">{formatClock(kase.emergency?.timeLimitSec ?? 0)}</span> {tx.clockWord}
           </span>
-          <span class="cr-grand__pill" aria-label={`Difficulty ${kase.difficulty} of 5`}>
+          <span class="cr-grand__pill" aria-label={tx.difficulty(kase.difficulty)}>
             {Array.from({ length: 5 }, (_, i) => (
               <span key={i} class={`cr-grand__pip${i < kase.difficulty ? ' is-on' : ''}`} aria-hidden="true" />
             ))}
           </span>
           <span class="cr-grand__pill cr-grand__pill--gold">
-            {claimed ? 'Bonus claimed' : <>Bonus up to <b class="lm-num">+{MAX_BONUS.coins} ✦ · +{MAX_BONUS.xp} XP</b></>}
+            {claimed ? tx.bonusClaimed : <>{tx.bonusUpTo}<b class="lm-num" dir="ltr">+{MAX_BONUS.coins} ✦ · +{MAX_BONUS.xp} XP</b></>}
           </span>
-          <span class="cr-grand__rotate">New case in <span class="lm-num">{formatRotation(msUntilNextWeek(now))}</span></span>
+          <span class="cr-grand__rotate">{tx.newCaseIn}<span class="lm-num">{formatRotation(msUntilNextWeek(now), services.locale)}</span></span>
         </div>
       </div>
       <div class="cr-grand__cta">
         <Button variant={claimed ? 'glass' : 'danger'} size="lg" icon={claimed ? 'refresh' : 'play'} sfx="select" onClick={open}>
-          {claimed ? 'Replay case' : 'Take the case'}
+          {claimed ? tx.replay : tx.take}
         </Button>
       </div>
     </section>

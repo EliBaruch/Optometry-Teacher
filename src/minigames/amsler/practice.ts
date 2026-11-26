@@ -3,14 +3,25 @@
  */
 import {
   buildFindings, EYES, otherEye,
-  type AmslerFinding, type DeepPartial, type Eye, type PatientFindings, type PatientProfile,
+  type AmslerFinding, type DeepPartial, type Eye, type Locale, type PatientFindings, type PatientProfile,
   type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { classOf, directionOf, normalizeAmsler } from './geometry';
 import { describeAmsler, locationOf, type FieldLocation } from './report';
+import { T } from './strings';
 
-const EYE_WORD: Record<Eye, string> = { OD: 'right eye (OD)', OS: 'left eye (OS)' };
+/** Practice scenarios are generated before mount (no ctx), so read the edition from the page. */
+const docLocale = (): Locale => {
+  try { return document.documentElement.lang === 'he' ? 'he' : 'en'; } catch { return 'en'; }
+};
+
+const FIRST_F_HE = ['מרגלית', 'רחל', 'תמר', 'חנה', 'סמדר', 'אמאל', 'לאה', 'אודליה', 'פאטמה', 'שירה'];
+const FIRST_M_HE = ['אברהם', 'תומר', 'קובי', 'רוני', 'חיים', 'מתן', 'יוחנן', 'אליאס', 'עומר', 'אלי'];
+const LAST_HE = ['אוחיון', 'לינדנבאום', 'מזרחי', 'חדאד', 'טנא', 'רוזנברג', 'גולדשטיין', 'ברנע', 'סבג', 'בלום', 'שפירא', 'מקונן'];
+/** [masculine, feminine] */
+const JOBS_HE: [string, string][] = [['מורה בגמלאות', 'מורה בגמלאות'], ['שען', 'שעונאית'], ['רואה חשבון', 'רואת חשבון'], ['מוכר פרחים', 'מוכרת פרחים'], ['טייס', 'טייסת'], ['מתרגם', 'מתרגמת'], ['אדריכל', 'אדריכלית'], ['אופה', 'אופה'], ['כנר', 'כנרית'], ['גנן', 'גננת']];
+
 
 const FIRST_F = ['Margot', 'Ines', 'Priya', 'Hannah', 'Rosa', 'Yuki', 'Amara', 'Lena', 'Odile', 'Farah'];
 const FIRST_M = ['Arthur', 'Tomas', 'Kofi', 'Ravi', 'Henrik', 'Mateo', 'Jun', 'Elias', 'Omar', 'Felix'];
@@ -207,16 +218,19 @@ export function practiceScenario(rng: Rng, difficulty: number): PracticeScenario
   const sex = rng.chance(0.7) ? arch.sex() : arch.sex() === 'F' ? 'M' : 'F';
   const eye: Eye = rng.chance(0.5) ? 'OD' : 'OS';
   const findings = buildFindings(age, arch.build(rng, d, eye, age));
-  const first = rng.pick(sex === 'F' ? FIRST_F : FIRST_M);
+  const he = docLocale() === 'he';
+  const first = rng.pick(he ? (sex === 'F' ? FIRST_F_HE : FIRST_M_HE) : (sex === 'F' ? FIRST_F : FIRST_M));
   const patient: PatientProfile = {
-    name: `${first} ${rng.pick(LAST)}`,
+    name: `${first} ${rng.pick(he ? LAST_HE : LAST)}`,
     age,
     sex,
-    occupation: rng.pick(JOBS),
+    occupation: he ? rng.pick(JOBS_HE)[sex === 'F' ? 1 : 0]! : rng.pick(JOBS),
     avatar: generateAvatar(rng, { age, sex }),
   };
-  const chart = EYES.map((e) => `${e}: ${describeAmsler(findings.amsler[e], e)}`).join(' · ');
-  return { patient, findings, answer: `${chart}. Likely cause: ${arch.cause}.` };
+  const loc = docLocale();
+  const t = T(loc);
+  const chart = EYES.map((e) => `${e}: ${describeAmsler(findings.amsler[e], e, loc)}`).join(' · ');
+  return { patient, findings, answer: loc === 'he' ? t.answerWith(chart, t.causes[arch.key] ?? arch.cause) : t.answerWith(chart, arch.cause) };
 }
 
 // ───────────────────────── recognition challenge
@@ -234,8 +248,6 @@ export interface Challenge {
   explanation: string;
 }
 
-const KIND_WORD = { metamorphopsia: 'Wavy lines', scotoma: 'Missing patch' } as const;
-
 const MIRROR: Record<FieldLocation, FieldLocation> = {
   central: 'central', superior: 'superior', inferior: 'inferior',
   temporal: 'nasal', nasal: 'temporal',
@@ -248,9 +260,10 @@ const VFLIP: Record<FieldLocation, FieldLocation> = {
   superonasal: 'inferonasal', inferonasal: 'superonasal',
 };
 
-function optLabel(kind: 'normal' | 'metamorphopsia' | 'scotoma', loc?: FieldLocation): string {
-  if (kind === 'normal') return 'Normal grid — straight and complete';
-  return `${KIND_WORD[kind]} — ${loc}`;
+function optLabel(kind: 'normal' | 'metamorphopsia' | 'scotoma', locale: Locale, loc?: FieldLocation): string {
+  const t = T(locale);
+  if (kind === 'normal') return t.optNormal;
+  return t.optKind(t.kindWord[kind], t.locs[loc!]);
 }
 
 /** Choose the eye worth asking about: the abnormal one (largest defect), else OD. */
@@ -260,22 +273,17 @@ export function challengeEye(findings: PatientFindings): Eye {
   return abn.sort((a, b) => normalizeAmsler(findings.amsler[b]).radius - normalizeAmsler(findings.amsler[a]).radius)[0]!;
 }
 
-const TEACH = {
-  normal: 'A healthy macula maps a perfectly straight, complete grid with all four corners visible. Teach the patient to check each eye weekly at reading distance with their near glasses on.',
-  metamorphopsia: 'Wavy or bent lines mean the photoreceptors themselves have been displaced — by fluid, blood or a membrane under or on the macula. New distortion in anyone over 50 is neovascular AMD until proven otherwise: same-week retina referral.',
-  scotoma: 'A missing or grey patch is a scotoma — that part of the retina (or optic nerve) is not responding at all. Central loss with red desaturation points to the optic nerve; a patch that spares fixation in an older patient suggests geographic atrophy.',
-} as const;
-
-export function buildChallenge(findings: PatientFindings, rng: Rng): Challenge {
+export function buildChallenge(findings: PatientFindings, rng: Rng, locale: Locale = 'en'): Challenge {
+  const t = T(locale);
   const eye = challengeEye(findings);
   const f: AmslerFinding = findings.amsler[eye];
   const kind = classOf(f);
   const opts: { label: string; correct: boolean }[] = [];
   if (kind === 'normal') {
-    opts.push({ label: optLabel('normal'), correct: true });
-    opts.push({ label: optLabel('metamorphopsia', 'central'), correct: false });
-    opts.push({ label: optLabel('scotoma', 'central'), correct: false });
-    opts.push({ label: optLabel('scotoma', rng.pick(['superotemporal', 'inferonasal'] as const)), correct: false });
+    opts.push({ label: optLabel('normal', locale), correct: true });
+    opts.push({ label: optLabel('metamorphopsia', locale, 'central'), correct: false });
+    opts.push({ label: optLabel('scotoma', locale, 'central'), correct: false });
+    opts.push({ label: optLabel('scotoma', locale, rng.pick(['superotemporal', 'inferonasal'] as const)), correct: false });
   } else {
     const loc = locationOf(f, eye);
     const other = kind === 'metamorphopsia' ? 'scotoma' : 'metamorphopsia';
@@ -286,51 +294,47 @@ export function buildChallenge(findings: PatientFindings, rng: Rng): Challenge {
       seen.add(label);
       opts.push({ label, correct });
     };
-    add(optLabel(kind, loc), true);
+    add(optLabel(kind, locale, loc), true);
     // The classic error: mirroring temporal/nasal between the two eyes.
-    add(optLabel(kind, mirror), false);
-    add(optLabel(other, loc), false);
+    add(optLabel(kind, locale, mirror), false);
+    add(optLabel(other, locale, loc), false);
     const fillers: FieldLocation[] = [VFLIP[loc], 'central', 'temporal', 'inferonasal'];
-    for (const l of fillers) add(optLabel(kind, l), false);
-    if (opts.length < 4) add(optLabel('normal'), false);
+    for (const l of fillers) add(optLabel(kind, locale, l), false);
+    if (opts.length < 4) add(optLabel('normal', locale), false);
   }
   const options = rng.shuffle(opts).map((o, i) => ({ id: `opt${i}`, ...o }));
-  const sideNote = eye === 'OD'
-    ? 'For the right eye, the patient’s right side of the card is the temporal field.'
-    : 'For the left eye, the patient’s left side of the card is the temporal field.';
-  const answer = kind === 'normal' ? 'a normal grid' : describeAmsler(f, eye).toLowerCase();
+  const sideNote = t.sideNote[eye];
+  const answer = kind === 'normal' ? t.aNormalGrid : t.lc(describeAmsler(f, eye, locale));
   return {
     eye,
-    question: `How should the ${EYE_WORD[eye]} grid be charted?`,
+    question: t.theGrid(t.eyeWord[eye]),
     options,
-    explanation: `${EYE_WORD[eye][0]!.toUpperCase()}${EYE_WORD[eye].slice(1)}: ${answer}. ${TEACH[kind]} ${kind === 'normal' ? '' : sideNote}`.trim(),
+    explanation: t.explain(t.eyeWord[eye], answer, t.teach[kind], kind === 'normal' ? '' : sideNote),
   };
 }
 
 // ───────────────────────── the patient's own words
 
 /** The patient's own words for where it is — same classifier as the chart's field location. */
-export function plainWhere(f: AmslerFinding): string {
+export function plainWhere(f: AmslerFinding, locale: Locale = 'en'): string {
+  const t = T(locale);
   const d = directionOf(f);
-  if (d.central) return 'right around the dot';
-  const v = d.v > 0 ? 'above' : d.v < 0 ? 'below' : '';
-  const h = d.h > 0 ? 'to the right' : d.h < 0 ? 'to the left' : '';
-  if (v && h) return `${v} and ${h} of the dot`;
-  if (v) return `just ${v} the dot`;
-  return `just ${h} of the dot`;
+  if (d.central) return t.aroundDot;
+  const v = d.v > 0 ? t.above : d.v < 0 ? t.below : '';
+  const h = d.h > 0 ? t.toRight : d.h < 0 ? t.toLeft : '';
+  if (v && h) return t.whereBoth(v, h);
+  if (v) return t.whereV(v);
+  return t.whereH(h);
 }
 
 /** What the patient says while fixating the dot with this eye. */
-export function patientSays(f: AmslerFinding): string {
-  if (f.result === 'normal') return 'The lines all look straight, and I can see all four corners of the square.';
+export function patientSays(f: AmslerFinding, locale: Locale = 'en'): string {
+  const t = T(locale);
+  if (f.result === 'normal') return t.sayNormal;
   const n = normalizeAmsler(f);
-  const where = plainWhere(f);
-  if (f.result === 'metamorphopsia') {
-    return n.radius >= 5
-      ? `A big area ${where === 'right around the dot' ? 'around the dot' : where} looks warped — the lines bow and wobble, like old window glass.`
-      : `The lines go wavy ${where} — like looking through rippled glass. The squares there look out of shape.`;
-  }
-  if (n.radius >= 8) return 'It’s nearly all dark. I can only just make out the edges of the card.';
-  if (f.result === 'central-scotoma') return 'There’s a grey smudge right where the dot should be — I can’t actually see the dot.';
-  return `I can see the dot, but there’s a faded, missing patch ${where}.`;
+  const where = plainWhere(f, locale);
+  if (f.result === 'metamorphopsia') return n.radius >= 5 ? t.sayMetaBig(where) : t.sayMeta(where);
+  if (n.radius >= 8) return t.sayDark;
+  if (f.result === 'central-scotoma') return t.sayCentral;
+  return t.sayPara(where);
 }

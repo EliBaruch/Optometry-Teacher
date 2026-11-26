@@ -1,7 +1,9 @@
-import type { ClinicalCase, DiagnosisId, GameServices, RewardGrant, Signal } from '@core';
+import { pickStrings, type ClinicalCase, type DiagnosisId, type GameServices, type RewardGrant, type Signal } from '@core';
 import { newlyUnlocked, type AchievementDef, type AchievementEnv } from './model/achievements';
 import { levelForXp, levelInfo, type LevelInfo } from './model/ladder';
-import { starsOf, STAR_LABEL } from './model/mastery';
+import { starsOf } from './model/mastery';
+import { achText, starLabel } from './model/locale';
+import { S } from './strings';
 import {
   applyCase, applyFailure, applyGrant, applyRunEnded, applyTest, setBestStars,
 } from './model/reduce';
@@ -47,6 +49,8 @@ const xpRarity = (xp: number): RewardGrant['rarity'] => (xp >= 300 ? 'legendary'
  */
 export function startEngine(services: GameServices, hooks: EngineHooks = {}): { state: Signal<RanksState>; stop: () => void } {
   const { bus } = services;
+  const locale = services.locale;
+  const t = pickStrings(S, locale);
   const state = ranksSlot(services);
   const confidence = new Map<string, 'guessing' | 'fairly-sure' | 'certain'>();
   const pendingGrants = new Map<string, XpLine[]>();
@@ -76,12 +80,12 @@ export function startEngine(services: GameServices, hooks: EngineHooks = {}): { 
     state.set(next);
 
     if (toLevel > fromLevel) {
-      const info = levelInfo(next.xp);
-      const from = levelInfo(prev.xp);
+      const info = levelInfo(next.xp, locale);
+      const from = levelInfo(prev.xp, locale);
       const newRank = info.rankIndex > from.rankIndex;
       bus.emit('rank:changed', { level: info.number, title: info.title });
       emitReward({
-        label: newRank ? 'Promotion' : 'Career level',
+        label: newRank ? t.rewardPromotion : t.rewardLevel,
         value: info.title,
         icon: newRank ? 'crown' : 'trophy',
         color: info.rank.color,
@@ -90,8 +94,9 @@ export function startEngine(services: GameServices, hooks: EngineHooks = {}): { 
       present({ kind: 'rank', info, from, newRank }, base + 900);
     }
     fresh.forEach((def, i) => {
-      bus.emit('achievement:unlocked', { id: def.id, title: def.title, description: def.description, icon: def.icon, system: SYSTEM_ID });
-      emitReward({ label: `Trophy · ${def.title}`, value: 'NEW', icon: 'trophy', color: CAREER_COLOR, rarity: def.rarity });
+      const at = achText(def, locale);
+      bus.emit('achievement:unlocked', { id: def.id, title: at.title, description: at.description, icon: def.icon, system: SYSTEM_ID });
+      emitReward({ label: t.rewardTrophy(at.title), value: t.rewardNew, icon: 'trophy', color: CAREER_COLOR, rarity: def.rarity });
       present({ kind: 'trophy', def }, base + (toLevel > fromLevel ? 5200 : 0) + i * 650);
     });
   };
@@ -103,7 +108,7 @@ export function startEngine(services: GameServices, hooks: EngineHooks = {}): { 
     const next = setBestStars(s, id, stars);
     if (announce && next !== s && stars > before) {
       const name = services.registries.diagnoses.get(id)?.name ?? id;
-      emitReward({ label: `${STAR_LABEL[stars]} · ${name}`, value: '★'.repeat(stars), icon: 'star', color: '#ffd27a', rarity: stars >= 3 ? 'legendary' : stars === 2 ? 'epic' : 'rare' });
+      emitReward({ label: `${starLabel(stars, locale)} · ${name}`, value: '★'.repeat(stars), icon: 'star', color: '#ffd27a', rarity: stars >= 3 ? 'legendary' : stars === 2 ? 'epic' : 'rare' });
     }
     return next;
   };
@@ -145,7 +150,7 @@ export function startEngine(services: GameServices, hooks: EngineHooks = {}): { 
       }
       pendingGrants.delete(caseId);
       if (score.diagnosisCorrect) s = refreshStars(s, score.correctDiagnosisId, true);
-      emitReward({ label: 'Career XP', value: `+${gain.total} XP`, icon: 'star', color: CAREER_COLOR, rarity: xpRarity(gain.total) });
+      emitReward({ label: t.rewardXp, value: `+${gain.total} XP`, icon: 'star', color: CAREER_COLOR, rarity: xpRarity(gain.total) });
       commit(s, DELAY.case);
     }),
 

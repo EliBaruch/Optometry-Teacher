@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { dayKey, type ClinicalCase, type GameServices, type Grade, type ModeModule, type RewardGrant, type ScoreBreakdown } from '@core';
+import { dayKey, defineStrings, modeText, pickStrings, type ClinicalCase, type GameServices, type Grade, type ModeModule, type RewardGrant, type ScoreBreakdown } from '@core';
 import { Button, HudSlot, RewardChip, Screen, useSignal } from '@ui-kit';
 import streaks, { streaksOf } from '../../../systems/streaks';
 import { INITIAL } from '../../../systems/streaks/state';
@@ -31,7 +31,27 @@ function fakeScore(kind: Kind): ScoreBreakdown {
   };
 }
 
+const T = defineStrings({
+  en: {
+    lighting: 'Lighting the lamps…', title: 'Streaks', eyebrow: 'Sandbox · system preview',
+    runLine: (mode: string | undefined, n: number, pts: number) => `Run: ${mode} · ${n} correct · ${pts} pts`,
+    startHint: 'Start a run, then finish patients →',
+    dock: 'Streaks sandbox', run: 'Run:', shift: 'Clinic Shift', rush: 'Rush Hour', endRun: 'End run',
+    patient: 'Patient:', missSafe: 'Miss (safe)', miss: 'Miss', timeout: 'Timeout', next: 'Next patient',
+    clock: 'Clock:', plus1: '+1 day', plus2: '+2 days', plus4: '+4 days', reset: 'Reset',
+  },
+  he: {
+    lighting: 'מדליקים את המנורות…', title: 'רצפים', eyebrow: 'ארגז חול · תצוגה מקדימה של המערכת',
+    runLine: (mode: string | undefined, n: number, pts: number) => `סבב: ${mode} · ${n} נכונים · ${pts} נק׳`,
+    startHint: 'התחילו סבב וסיימו טיפול במטופלים ←',
+    dock: 'ארגז החול של הרצפים', run: 'סבב:', shift: 'משמרת במרפאה', rush: 'שעת עומס', endRun: 'סיום הסבב',
+    patient: 'מטופל:', missSafe: 'פספוס (בטוח)', miss: 'פספוס', timeout: 'נגמר הזמן', next: 'המטופל הבא',
+    clock: 'שעון:', plus1: '+יום', plus2: '+יומיים', plus4: '+4 ימים', reset: 'איפוס',
+  },
+});
+
 function Page({ services }: { services: GameServices }) {
+  const t = pickStrings(T, services.locale);
   const q = new URLSearchParams(location.search);
   const [ready, setReady] = useState(false);
   const [rewards, setRewards] = useState<RewardGrant[]>([]);
@@ -70,7 +90,7 @@ function Page({ services }: { services: GameServices }) {
     };
   }, []);
 
-  if (!ready) return <p style={{ padding: 24 }}>Lighting the lamps…</p>;
+  if (!ready) return <p style={{ padding: 24 }}>{t.lighting}</p>;
   const ctl = streaksOf(services)!;
 
   const shiftDays = (d: number) => {
@@ -126,14 +146,14 @@ function Page({ services }: { services: GameServices }) {
   };
 
   return (
-    <Screen title="Streaks" eyebrow="Sandbox · system preview" backdrop="hub" class="sksb">
+    <Screen title={t.title} eyebrow={t.eyebrow} backdrop="hub" class="sksb">
       <style>{CSS}</style>
       <div class="sksb-grid">
         <section class="sksb-col">
           <h2 class="sksb-h">exam-overlay</h2>
           <div class="sksb-exam">
             <div class="sksb-exam__overlay"><HudSlot slot="exam-overlay" /></div>
-            <p class="sksb-exam__hint">{run ? `Run: ${services.registries.modes.get(run.modeId)?.title} · ${run.completed.length} correct · ${run.totalScore} pts` : 'Start a run, then finish patients →'}</p>
+            <p class="sksb-exam__hint">{run ? t.runLine((() => { const m = services.registries.modes.get(run.modeId); return m ? modeText(m, services.locale).title : undefined; })(), run.completed.length, run.totalScore) : t.startHint}</p>
           </div>
           <h2 class="sksb-h">results-extra</h2>
           <HudSlot slot="results-extra" />
@@ -145,29 +165,29 @@ function Page({ services }: { services: GameServices }) {
       </div>
 
       <details class="sksb-dock" open={q.get('dock') !== '0'}>
-        <summary>Streaks sandbox · {dayKey(services.clock.now())}</summary>
+        <summary>{t.dock} · {dayKey(services.clock.now())}</summary>
         <div class="sksb-row">
-          <span>Run:</span>
-          <Button size="sm" onClick={() => startRun('shift')}>Clinic Shift</Button>
-          <Button size="sm" onClick={() => startRun('rush')}>Rush Hour</Button>
-          <Button size="sm" variant="ghost" onClick={endRun}>End run</Button>
+          <span>{t.run}</span>
+          <Button size="sm" onClick={() => startRun('shift')}>{t.shift}</Button>
+          <Button size="sm" onClick={() => startRun('rush')}>{t.rush}</Button>
+          <Button size="sm" variant="ghost" onClick={endRun}>{t.endRun}</Button>
         </div>
         <div class="sksb-row">
-          <span>Patient:</span>
+          <span>{t.patient}</span>
           <Button size="sm" onClick={() => finish('S')}>S</Button>
           <Button size="sm" onClick={() => finish('A')}>A</Button>
           <Button size="sm" onClick={() => finish('B')}>B</Button>
-          <Button size="sm" onClick={() => finish('safe-miss')}>Miss (safe)</Button>
-          <Button size="sm" onClick={() => finish('miss')}>Miss</Button>
-          <Button size="sm" onClick={timeout}>Timeout</Button>
-          <Button size="sm" variant="ghost" onClick={() => nextPatient()}>Next patient</Button>
+          <Button size="sm" onClick={() => finish('safe-miss')}>{t.missSafe}</Button>
+          <Button size="sm" onClick={() => finish('miss')}>{t.miss}</Button>
+          <Button size="sm" onClick={timeout}>{t.timeout}</Button>
+          <Button size="sm" variant="ghost" onClick={() => nextPatient()}>{t.next}</Button>
         </div>
         <div class="sksb-row">
-          <span>Clock:</span>
-          <Button size="sm" onClick={() => shiftDays(1)}>+1 day</Button>
-          <Button size="sm" onClick={() => shiftDays(2)}>+2 days</Button>
-          <Button size="sm" onClick={() => shiftDays(4)}>+4 days</Button>
-          <Button size="sm" variant="ghost" onClick={reset}>Reset</Button>
+          <span>{t.clock}</span>
+          <Button size="sm" onClick={() => shiftDays(1)}>{t.plus1}</Button>
+          <Button size="sm" onClick={() => shiftDays(2)}>{t.plus2}</Button>
+          <Button size="sm" onClick={() => shiftDays(4)}>{t.plus4}</Button>
+          <Button size="sm" variant="ghost" onClick={reset}>{t.reset}</Button>
         </div>
         <div class="sksb-meta">{log.map((l, i) => <div key={i}>{l}</div>)}</div>
         <div class="sksb-rewards">{rewards.map((r, i) => <RewardChip key={i} grant={r} index={i} animate={false} />)}</div>

@@ -11,9 +11,11 @@ import { Radial, type RadialChoice } from './Radial';
 import { ReflexStep } from './Reflex';
 import { Tutorial, tutorialSeen } from './Tutorial';
 import { buildChallenge } from './practice';
-import { report } from './report';
+import { reportFor } from './report';
+import { LocaleContext } from './locale';
+import { strs, fix } from './strings';
 import {
-  TAGS, eyeComplete, focusBlur, focusNeeded, matchTag, maculaTouched, scoreEye, scoreExam, seedFor, tolerance, truthFor,
+  eyeComplete, focusBlur, focusNeeded, matchTag, maculaTouched, scoreEye, scoreExam, seedFor, tolerance, truthFor,
   type EyeScore, type EyeTruth, type EyeWork, type ReflexChoice, type Tag,
 } from './model';
 
@@ -21,7 +23,6 @@ type Phase = 'reflex' | 'exam' | 'challenge' | 'debrief';
 type Mode = 'direct' | 'indirect';
 type SheetId = 'disc' | 'vessels' | 'vitreous' | null;
 
-const EYE_NAME: Record<Eye, string> = { OD: 'right eye', OS: 'left eye' };
 const emptyWork = (): EyeWork => ({ reflex: null, disc: null, vessels: null, vitreous: null, tags: [], misfires: 0 });
 const MEDIA: Record<string, { blur: number; bright: number }> = {
   normal: { blur: 0, bright: 1 }, dull: { blur: 0.8, bright: 0.9 }, asymmetric: { blur: 0.8, bright: 0.9 }, absent: { blur: 2.6, bright: 0.62 }, leukocoria: { blur: 3.2, bright: 0.7 },
@@ -33,6 +34,10 @@ export interface GameProps {
 }
 
 export function Game({ ctx, finish }: GameProps) {
+  const loc = ctx.locale ?? 'en';
+  const tr = strs(loc);
+  const f = (x: string) => fix(loc, x);
+  const EYE_NAME = tr.eyeName;
   const t0 = useRef(performance.now());
   const finished = useRef(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -50,7 +55,7 @@ export function Game({ ctx, finish }: GameProps) {
   const work = useRef<Record<Eye, EyeWork>>({ OD: emptyWork(), OS: emptyWork() });
   const discAt = useRef<Record<Eye, { x: number; y: number } | null>>({ OD: null, OS: null });
   const practice = ctx.mode === 'practice';
-  const challenge = useMemo(() => (practice ? buildChallenge(ctx.findings, ctx.rng.fork('oph-challenge')) : null), []);
+  const challenge = useMemo(() => (practice ? buildChallenge(ctx.findings, ctx.rng.fork('oph-challenge'), loc) : null), []);
 
   const [phase, setPhase] = useState<Phase>('reflex');
   const [eye, setEye] = useState<Eye>('OD');
@@ -125,7 +130,7 @@ export function Game({ ctx, finish }: GameProps) {
     setJump(null);
     setRadial(null);
     play('lens-click', { pitch: m === 'direct' ? 1 : 0.85 });
-    say(m === 'direct' ? 'Direct: upright, about 15× magnification, narrow field.' : 'Indirect, 20 D lens: wide field, image inverted and reversed.');
+    say(f(m === 'direct' ? tr.modeDirectMsg : tr.modeIndirectMsg));
   };
   const switchEye = (e: Eye) => {
     if (e === eye || phase === 'reflex' || phase === 'challenge') return;
@@ -152,7 +157,7 @@ export function Game({ ctx, finish }: GameProps) {
     if (phase !== 'exam' || sheet || tutorial) return;
     const v = store.v;
     if (mode === 'direct' && Math.hypot(e.x - v.cx, e.y - v.cy) * S * v.zoom > lensR) {
-      say('Inside the light circle only: that spot is in the dark.');
+      say(tr.insideCircle);
       return;
     }
     const rect = rootRef.current?.getBoundingClientRect();
@@ -204,7 +209,7 @@ export function Game({ ctx, finish }: GameProps) {
         w.misfires++;
         play('fail', { volume: 0.5 });
         ctx.fx.shake(ctx.reducedMotion ? 0 : 0.2, 160);
-        say('That is not the optic disc. Look for the pale round nerve head where the vessels converge.');
+        say(tr.notDisc);
         setRadial(null);
         rerender();
         return;
@@ -216,13 +221,13 @@ export function Game({ ctx, finish }: GameProps) {
     }
     const dup = w.tags.find((t) => t.kind === c.kind && Math.hypot(t.x - r.wx, t.y - r.wy) < tolerance(S, store.v.zoom));
     if (dup) {
-      say(`Already tagged: ${TAGS[c.kind].label}.`);
+      say(tr.alreadyTagged(tr.tags[c.kind].label));
       setRadial(null);
       return;
     }
     w.tags.push({ id: nextId.current++, kind: c.kind, x: r.wx, y: r.wy, tol: tolerance(S, store.v.zoom) });
     play('select');
-    flyText(TAGS[c.kind].label);
+    flyText(tr.tags[c.kind].label);
     setRadial(null);
     rerender();
   };
@@ -292,7 +297,7 @@ export function Game({ ctx, finish }: GameProps) {
       testId: 'ophthalmoscopy',
       accuracy: Math.round(accuracy * 1000) / 1000,
       timeMs: Math.round(exam.timeMs),
-      findings: report(ctx.findings, ctx.patient),
+      findings: reportFor(ctx.findings, ctx.patient, loc),
       perfect,
     });
   };
@@ -352,23 +357,23 @@ export function Game({ ctx, finish }: GameProps) {
     const found = new Set(sc?.tags.found ?? []);
     for (const t of w.tags) {
       const m = matchTag(truth, t, tolerance(S, 2));
-      markers.push({ id: `t${t.id}`, x: t.x, y: t.y, label: TAGS[t.kind].short, tone: m.itemId ? 'found' : 'false' });
+      markers.push({ id: `t${t.id}`, x: t.x, y: t.y, label: tr.tags[t.kind].short, tone: m.itemId ? 'found' : 'false' });
     }
     for (const it of truth.items) {
       if (found.has(it.id)) continue;
       const pos = it.id === 'macula' ? truth.map.fovea : it.id === 'det' ? truth.map.lesions.find((m) => m.type === 'retinal-detachment') : truth.map.lesions.find((m) => `les:${m.source}` === it.id);
-      if (pos) markers.push({ id: `m${it.id}`, x: pos.x, y: pos.y, label: `Missed: ${TAGS[it.kind].short}`, tone: 'missed' });
+      if (pos) markers.push({ id: `m${it.id}`, x: pos.x, y: pos.y, label: tr.missedMarker(tr.tags[it.kind].short), tone: 'missed' });
     }
   } else {
-    for (const t of w.tags) markers.push({ id: `t${t.id}`, x: t.x, y: t.y, label: TAGS[t.kind].short, tone: 'tag' });
+    for (const tg of w.tags) markers.push({ id: `t${tg.id}`, x: tg.x, y: tg.y, label: tr.tags[tg.kind].short, tone: 'tag' });
     const d = discAt.current[eye];
-    if (w.disc && d) markers.push({ id: 'disc', x: d.x, y: d.y, label: `Disc ${w.disc.cdr.toFixed(2)}`, tone: 'disc' });
+    if (w.disc && d) markers.push({ id: 'disc', x: d.x, y: d.y, label: f(tr.discMarker(w.disc.cdr.toFixed(2))), tone: 'disc' });
   }
 
-  const instruction =
-    phase === 'reflex' ? 'From arm’s length, compare the red reflex in the two pupils.'
-      : phase === 'exam' ? (mode === 'direct' ? 'Drag to explore, tune the lens wheel until sharp, then tap what you find.' : 'Indirect view is inverted: drag to scan, tap to tag what you find.')
-        : phase === 'challenge' ? 'One last recognition check.' : 'Your tags against the true fundus.';
+  const instruction = f(
+    phase === 'reflex' ? tr.instrReflex
+      : phase === 'exam' ? (mode === 'direct' ? tr.instrDirect : tr.instrIndirect)
+        : phase === 'challenge' ? tr.instrChallenge : tr.instrDebrief);
 
   const sharpness = 1 - Math.min(1, focusBlur(dial, needed) / 6);
   const focusCue = mode === 'direct' && phase === 'exam' && !tutorial && focusBlur(dial, needed) >= 1;
@@ -376,16 +381,17 @@ export function Game({ ctx, finish }: GameProps) {
   const external = { ...(ctx.findings.external ?? {}) };
 
   return (
+    <LocaleContext.Provider value={loc}>
     <div class={`oph${ctx.reducedMotion ? ' is-reduced' : ''}`} ref={rootRef} data-phase={phase}>
       <header class="oph__head">
         <div class="oph__title">
           <Icon name="ophthalmoscopy" size={20} class="oph__title-icon" />
           <div>
-            <h2>Ophthalmoscopy</h2>
+            <h2>{tr.title}</h2>
             <p>{instruction}</p>
           </div>
         </div>
-        <div class="oph-eyes" role="tablist" aria-label="Eye examined">
+        <div class="oph-eyes" role="tablist" aria-label={tr.eyeExamined} dir="ltr">
           {EYES.map((e) => {
             const done = eyeComplete(truths[e], work.current[e]);
             return (
@@ -400,7 +406,7 @@ export function Game({ ctx, finish }: GameProps) {
                 data-testid={`oph-eye-${e}`}
               >
                 <span class="oph-eyes__code">{e}</span>
-                <span class="oph-eyes__name">{e === 'OD' ? 'Right' : 'Left'}</span>
+                <span class="oph-eyes__name">{tr.eyeSide[e]}</span>
                 {done && <Icon name="check" size={14} class="oph-eyes__check" />}
               </button>
             );
@@ -429,7 +435,7 @@ export function Game({ ctx, finish }: GameProps) {
               setPhase('exam');
               play('lens-click');
               const dense = EYES.some((e) => truths[e].obscured);
-              if (dense) say('A dense opacity is blocking the light: expect a poor view of the retina.');
+              if (dense) say(tr.denseOpacity);
             }}
           />
         ) : (
@@ -438,6 +444,7 @@ export function Game({ ctx, finish }: GameProps) {
               <div class="oph-scope-area" ref={areaRef}>
                 <div
                   class={`oph-scope oph-scope--${mode}`}
+                  dir="ltr"
                   style={{ width: `${S}px`, height: `${S}px` }}
                   onPointerUpCapture={(e) => { lastPtr.current = { x: e.clientX, y: e.clientY, t: performance.now() }; }}
                   data-testid="oph-scope"
@@ -460,33 +467,33 @@ export function Game({ ctx, finish }: GameProps) {
                       reducedMotion={ctx.reducedMotion}
                       onViewChange={(v) => store.set(v)}
                       onTap={onTap}
-                      label={`Fundus of the ${EYE_NAME[eye]}, ${mode === 'direct' ? 'direct' : 'indirect, inverted'} view. Arrow keys travel, plus and minus zoom, Enter opens the tag wheel.`}
+                      label={tr.fundusLabel(EYE_NAME[eye], mode === 'direct')}
                     />
                   </div>
                   <MarkerLayer store={store} size={S} inverted={inverted} markers={markers} clipRadius={mode === 'direct' && !reveal ? lensR * 0.98 : S / 2 - 6} />
                 </div>
                 {toast && <div class="oph-toast" role="status" key={toast.k}>{toast.text}</div>}
                 {focusCue && (
-                  <div class="oph-hint is-cue" role="status" data-testid="oph-focus-cue"><Icon name="target" size={14} /> Out of focus: turn the lens wheel until the lamp lights</div>
+                  <div class="oph-hint is-cue" role="status" data-testid="oph-focus-cue"><Icon name="target" size={14} /> {tr.focusCue}</div>
                 )}
                 {!focusCue && phase === 'exam' && w.tags.length === 0 && !w.disc && (
-                  <div class="oph-hint" aria-hidden="true"><Icon name="target" size={14} /> Tap the image to tag a finding</div>
+                  <div class="oph-hint" aria-hidden="true"><Icon name="target" size={14} /> {tr.tapHint}</div>
                 )}
               </div>
 
-              <div class="oph-toolbar" role="toolbar" aria-label="Instrument controls">
-                <div class="oph-seg2" role="group" aria-label="Instrument">
-                  <button type="button" class={mode === 'direct' ? 'is-on' : ''} aria-pressed={mode === 'direct'} disabled={phase !== 'exam'} onClick={() => switchMode('direct')} data-testid="oph-mode-direct">Direct</button>
-                  <button type="button" class={mode === 'indirect' ? 'is-on' : ''} aria-pressed={mode === 'indirect'} disabled={phase !== 'exam'} onClick={() => switchMode('indirect')} data-testid="oph-mode-indirect">Indirect 20 D</button>
+              <div class="oph-toolbar" role="toolbar" aria-label={tr.controls}>
+                <div class="oph-seg2" role="group" aria-label={tr.instrument}>
+                  <button type="button" class={mode === 'direct' ? 'is-on' : ''} aria-pressed={mode === 'direct'} disabled={phase !== 'exam'} onClick={() => switchMode('direct')} data-testid="oph-mode-direct">{tr.direct}</button>
+                  <button type="button" class={mode === 'indirect' ? 'is-on' : ''} aria-pressed={mode === 'indirect'} disabled={phase !== 'exam'} onClick={() => switchMode('indirect')} data-testid="oph-mode-indirect">{f(tr.indirect)}</button>
                 </div>
                 <LensDial value={dial} cue={focusCue} disabled={mode !== 'direct' || phase !== 'exam'} sharpness={sharpness} onChange={(v) => { setDial(v); play('dial', { pitch: 0.8 + (v + 10) / 24 }); }} />
-                <button type="button" class={`oph-tool${redFree ? ' is-on' : ''}`} aria-pressed={redFree} aria-label="Red-free filter" onClick={() => { setRedFree((v) => !v); play('lens-click', { pitch: 1.2 }); }} data-testid="oph-redfree" title="Red-free (green) light: haemorrhages turn black, nerve-fibre defects stand out">
-                  <i class="oph-tool__swatch" /> <span class="oph-tool__label">Red-free</span> <Kbd>F</Kbd>
+                <button type="button" class={`oph-tool${redFree ? ' is-on' : ''}`} aria-pressed={redFree} aria-label={tr.redFreeAria} onClick={() => { setRedFree((v) => !v); play('lens-click', { pitch: 1.2 }); }} data-testid="oph-redfree" title={tr.redFreeTitle}>
+                  <i class="oph-tool__swatch" /> <span class="oph-tool__label">{tr.redFree}</span> <Kbd>F</Kbd>
                 </button>
-                <div class="oph-zoom" role="group" aria-label="Zoom">
-                  <button type="button" aria-label="Zoom out" onClick={() => zoomBy(1 / 1.4)}><Icon name="minus" size={16} /></button>
-                  <button type="button" aria-label="Re-centre" data-zoom="recentre" onClick={recentre}><Icon name="target" size={16} /></button>
-                  <button type="button" aria-label="Zoom in" onClick={() => zoomBy(1.4)}><Icon name="plus" size={16} /></button>
+                <div class="oph-zoom" role="group" aria-label={tr.zoom} dir="ltr">
+                  <button type="button" aria-label={tr.zoomOut} onClick={() => zoomBy(1 / 1.4)}><Icon name="minus" size={16} /></button>
+                  <button type="button" aria-label={tr.recentre} data-zoom="recentre" onClick={recentre}><Icon name="target" size={16} /></button>
+                  <button type="button" aria-label={tr.zoomIn} onClick={() => zoomBy(1.4)}><Icon name="plus" size={16} /></button>
                 </div>
               </div>
 
@@ -516,11 +523,11 @@ export function Game({ ctx, finish }: GameProps) {
             <aside class="oph-side">
               <div class="oph-patient">
                 <div class="oph-patient__portrait">
-                  <PatientAvatar spec={ctx.patient.avatar} age={ctx.patient.age} sex={ctx.patient.sex} external={external} size={56} lookAt={{ x: 0, y: 0.1 }} reducedMotion={ctx.reducedMotion} label={`${ctx.patient.name}, ${EYE_NAME[eye]} under examination`} />
+                  <PatientAvatar spec={ctx.patient.avatar} age={ctx.patient.age} sex={ctx.patient.sex} external={external} size={56} lookAt={{ x: 0, y: 0.1 }} reducedMotion={ctx.reducedMotion} label={tr.patientAria(ctx.patient.name, EYE_NAME[eye])} />
                 </div>
                 <div>
                   <strong>{ctx.patient.name}</strong>
-                  <span>{ctx.patient.age} y · dilated · {EYE_NAME[eye]}</span>
+                  <span>{f(tr.patientLine(ctx.patient.age, EYE_NAME[eye]))}</span>
                 </div>
               </div>
 
@@ -554,18 +561,19 @@ export function Game({ ctx, finish }: GameProps) {
       )}
 
       <footer class="oph__foot">
-        <ProgressBar value={phase === 'debrief' || phase === 'challenge' ? 1 : progress} label={phase === 'reflex' ? 'Step 1 of 2' : phase === 'exam' ? 'Exam progress' : 'Findings recorded'} valueText={phase === 'reflex' ? `${reflexDone}/2 reflexes` : phase === 'exam' ? `${coreDone + reflexDone} of 8 steps` : undefined} size="sm" class="oph__progress" />
-        <span class="oph__other">
+        <ProgressBar value={phase === 'debrief' || phase === 'challenge' ? 1 : progress} label={phase === 'reflex' ? tr.step1of2 : phase === 'exam' ? tr.examProgress : tr.findingsRecorded} valueText={phase === 'reflex' ? f(tr.reflexesDone(reflexDone)) : phase === 'exam' ? f(tr.stepsDone(coreDone + reflexDone)) : undefined} size="sm" class="oph__progress" />
+        <span class="oph__other" dir="ltr">
           {EYES.map((e) => <i key={e} class={eyeComplete(truths[e], work.current[e]) ? 'is-on' : ''}>{e}</i>)}
         </span>
-        {phase === 'exam' && !anyComplete && <span class="oph__need" id="oph-need">Finish one eye first: disc, vessels and macula.</span>}
+        {phase === 'exam' && !anyComplete && <span class="oph__need" id="oph-need">{tr.needOneEye}</span>}
         {phase === 'exam' && (
-          <Button variant="primary" size="lg" icon="check" disabled={!anyComplete} sfx={false} onClick={record} data-testid="oph-record" aria-describedby={anyComplete ? undefined : 'oph-need'}>Record findings</Button>
+          <Button variant="primary" size="lg" icon="check" disabled={!anyComplete} sfx={false} onClick={record} data-testid="oph-record" aria-describedby={anyComplete ? undefined : 'oph-need'}>{tr.recordFindings}</Button>
         )}
         {phase === 'debrief' && (
-          <Button variant="primary" size="lg" trailingIcon="arrow-right" sfx={false} onClick={complete} data-testid="oph-finish">Finish exam</Button>
+          <Button variant="primary" size="lg" trailingIcon="arrow-right" sfx={false} onClick={complete} data-testid="oph-finish">{tr.finishExam}</Button>
         )}
       </footer>
     </div>
+    </LocaleContext.Provider>
   );
 }

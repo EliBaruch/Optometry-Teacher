@@ -3,7 +3,8 @@
  * walks (region → sign → grade) and the mapping from the canonical clinical
  * enums to that tree. Pure data — no rendering here.
  */
-import type { ConjSign, CorneaSign, IrisSign, LensSign, LidSign } from '@core';
+import { isolateLtrRuns, type ConjSign, type CorneaSign, type IrisSign, type LensSign, type LidSign, type Locale } from '@core';
+import { LABEL_HE, REGION_HE } from './he';
 
 export type RegionId = 'lids' | 'conj' | 'cornea' | 'chamber' | 'iris' | 'lens';
 export const REGION_IDS: readonly RegionId[] = ['lids', 'conj', 'cornea', 'chamber', 'iris', 'lens'];
@@ -147,17 +148,24 @@ export function parseSelection(leaf: string): { sign: string; grade?: string } {
   return { sign: leaf };
 }
 
-export function signLabel(sign: string): string {
-  return nodeAt(sign)?.label ?? sign;
+/** A menu node's label in the edition's language (English labels live in the tree itself). */
+export const menuLabel = (n: MenuNode, locale: Locale = 'en'): string => (locale === 'he' ? LABEL_HE[n.path] ?? n.label : n.label);
+export const regionLabel = (r: RegionId, locale: Locale = 'en'): string => (locale === 'he' ? REGION_HE[r] : REGION_LABEL[r]);
+
+export function signLabel(sign: string, locale: Locale = 'en'): string {
+  const node = nodeAt(sign);
+  return node ? menuLabel(node, locale) : sign;
 }
-export function gradeLabel(sign: string, grade: string): string {
-  return nodeAt(`${sign}/${grade}`)?.label ?? grade;
+export function gradeLabel(sign: string, grade: string, locale: Locale = 'en'): string {
+  const node = nodeAt(`${sign}/${grade}`);
+  return node ? menuLabel(node, locale) : grade;
 }
 /** Short chart wording: "AC cells 2+", "Dendrite". */
-export function describeSign(sign: string, grade?: string): string {
-  if (grade === undefined) return signLabel(sign);
-  const g = gradeLabel(sign, grade).replace(/\s*[·(].*$/, '');
-  return `${signLabel(sign)} ${g}`;
+export function describeSign(sign: string, grade?: string, locale: Locale = 'en'): string {
+  if (grade === undefined) return signLabel(sign, locale);
+  const g = gradeLabel(sign, grade, locale).replace(/\s*[·(].*$/, '');
+  const out = `${signLabel(sign, locale)} ${g}`;
+  return locale === 'he' ? isolateLtrRuns(out) : out;
 }
 
 // ───────────────────────── canonical enum → menu path

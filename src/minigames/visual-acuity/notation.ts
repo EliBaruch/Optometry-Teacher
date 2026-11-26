@@ -3,7 +3,8 @@
  * ladder (CF / HM / LP / NLP) and the normal / abnormal / critical flags.
  * Pure — no DOM.
  */
-import type { RevealedFinding } from '@core';
+import { pickStrings, type Locale, type RevealedFinding } from '@core';
+import { S } from './strings';
 
 /** Standard logMAR-step Snellen denominators (feet), 20/10 .. 20/400. */
 export const FEET_LINES = [10, 12.5, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 320, 400] as const;
@@ -71,9 +72,9 @@ export function formatLogmar2(logmar: number): string {
 }
 
 /** Chart value: "20/40 (6/12) · logMAR 0.30", or "CF (counts fingers)". */
-export function chartValue(logmar: number): string {
+export function chartValue(logmar: number, locale: Locale = 'en'): string {
   const lv = lowVisionLevel(logmar);
-  if (lv) return `${lv} (${LOW_VISION.find((l) => l.code === lv)!.name.toLowerCase()})`;
+  if (lv) return `${lv} (${pickStrings(S, locale).lowVisionShort[lv]})`;
   const feet = snellenFeet(logmar);
   return `20/${feet} (${metricFor(feet)}) · logMAR ${formatLogmar2(logmar)}`;
 }

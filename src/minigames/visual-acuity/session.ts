@@ -3,12 +3,13 @@
  * open, building an AcuityRecord from them, Snellen "−2 / +1" notation and
  * the off-chart ladder responses (count fingers → hand motion → light).
  */
-import type { Rng } from '@core';
+import { pickStrings, type Locale, type Rng } from '@core';
 import { levelLabel, type ChartKind, type ChartLine } from './charts';
 import { achievesLevel, LOW_VISION } from './notation';
 import type { OpenEyes } from './optics';
 import type { Mood } from './reader';
 import type { AcuityRecord, Slot } from './scoring';
+import { S } from './strings';
 
 /** The lowest dial position: NLP. Chart lines are 0..n-1, the ladder −1 (CF) … −4 (NLP). */
 export const LADDER_MIN = -4;
@@ -75,9 +76,10 @@ export function recordFull(lines: readonly ChartLine[], level: number, log: Leve
 }
 
 /** Human name of a dial level, e.g. "20/40 line" or "Counts fingers". */
-export function levelName(lines: readonly ChartLine[], level: number): string {
-  if (level >= 0) return `${lines[level]!.label} line`;
-  return LOW_VISION[-1 - level]!.name;
+export function levelName(lines: readonly ChartLine[], level: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
+  if (level >= 0) return t.lineName(lines[level]!.label);
+  return t.lowVision[LOW_VISION[-1 - level]!.code];
 }
 
 export interface LadderReading {
@@ -88,30 +90,28 @@ export interface LadderReading {
   fingers?: number;
 }
 
-const NUM = ['zero', 'one', 'two', 'three', 'four', 'five'];
-
 /**
  * The patient's answer to the off-chart tests. `trueLogmar` null = both eyes covered.
  * Level −1 CF, −2 HM, −3 LP; at −4 (NLP) the light test is repeated and
  * `passed` means "no light seen" (the NLP record is correct).
  */
-export function ladderRead(level: number, trueLogmar: number | null, rng: Rng): LadderReading {
-  if (trueLogmar === null) return { passed: false, mood: 'lost', text: "Everything's dark — both my eyes are covered." };
+export function ladderRead(level: number, trueLogmar: number | null, rng: Rng, locale: Locale = 'en'): LadderReading {
+  const t = pickStrings(S, locale);
+  if (trueLogmar === null) return { passed: false, mood: 'lost', text: t.ladderDark };
   if (level === -1) {
     const fingers = rng.int(1, 5);
     if (achievesLevel(trueLogmar, 'CF')) {
-      const said = NUM[fingers]!;
-      return { passed: true, mood: trueLogmar > 1.6 ? 'hesitant' : 'confident', text: `${said[0]!.toUpperCase()}${said.slice(1)} finger${fingers === 1 ? '' : 's'}.`, fingers };
+      return { passed: true, mood: trueLogmar > 1.6 ? 'hesitant' : 'confident', text: t.fingersSaid(t.fingerWords[fingers]!, fingers), fingers };
     }
     const sees = achievesLevel(trueLogmar, 'HM');
-    return { passed: false, mood: 'struggling', fingers, text: sees ? "I can see your hand moving… but I can't count the fingers." : "Your hand? I can't see it at all." };
+    return { passed: false, mood: 'struggling', fingers, text: sees ? t.cfSeesHand : t.cfNothing };
   }
   if (level === -2) {
-    if (achievesLevel(trueLogmar, 'HM')) return { passed: true, mood: 'hesitant', text: 'Yes — something is waving. Your hand?' };
-    return { passed: false, mood: 'lost', text: "Moving? I can't tell. Maybe it's brighter on one side?" };
+    if (achievesLevel(trueLogmar, 'HM')) return { passed: true, mood: 'hesitant', text: t.hmYes };
+    return { passed: false, mood: 'lost', text: t.hmNo };
   }
   const seesLight = achievesLevel(trueLogmar, 'LP');
-  const text = seesLight ? (rng.chance(0.5) ? 'Yes — I can see the light.' : "There! It's on now.") : "No… nothing at all. It's completely dark.";
+  const text = seesLight ? (rng.chance(0.5) ? t.lpYes[0]! : t.lpYes[1]!) : t.lpNo;
   if (level === LADDER_MIN) return { passed: !seesLight, mood: seesLight ? 'hesitant' : 'lost', text };
   return { passed: seesLight, mood: seesLight ? 'hesitant' : 'lost', text };
 }

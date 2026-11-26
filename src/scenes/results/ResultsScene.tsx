@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { abandonRun, advanceRun, type CaseSession, type ClinicalCase, type GameServices, type Grade, type SceneProps } from '@core';
+import { modeText, abandonRun, advanceRun, type CaseSession, type ClinicalCase, type GameServices, type SceneProps } from '@core';
 import {
-  Button, Divider, GlassPanel, GradeStamp, Icon, Kbd, Screen, cx, palette, useReducedMotion, useSignal,
+  Button, Divider, GlassPanel, GradeStamp, Icon, Kbd, Screen, cx, palette, useLocale, useReducedMotion, useSignal, useStrings,
 } from '@ui-kit';
 import { BEAT_ORDER, beats, type Beat } from './choreo';
 import { demoKind, prepareDemo } from './demo';
@@ -9,21 +9,13 @@ import { buildReview, type ReviewModel } from './model';
 import { ClinicPanels, Rewards, useClinicPanels } from './Rewards';
 import { appendEntry, findRun, runLogSlot } from './run-log';
 import { ScoreLedger } from './ScoreLedger';
+import { S } from './strings';
 import { CasePanel, ClockPanel, ConfidenceCallout, DiagnosisPanel, MissedPanel, ReflectionCard, TriagePanel } from './Teaching';
 import { VerdictCard } from './VerdictCard';
 import './results.css';
 
 /** Cases already reported to the run, per services instance — survives re-renders and re-mounts. */
 const reported = new WeakMap<GameServices, Set<string>>();
-
-const HEADLINE: Record<Grade, string> = {
-  S: 'Textbook. Frame it.',
-  A: 'Sharp work, doctor.',
-  B: 'A solid call.',
-  C: 'Right answer, rough road.',
-  D: 'Close, but not this time.',
-  F: 'One for the review pile.',
-};
 
 export function ResultsScene({ services, params }: SceneProps) {
   // Sandbox previews play a case through the session first (never during render).
@@ -48,13 +40,14 @@ function ResultsLoaded({ services, params }: SceneProps) {
 }
 
 function NoCase({ services }: { services: GameServices }) {
+  const t = useStrings(S);
   return (
-    <Screen backdrop="results" title="Case review" onBack={() => services.router.go('hub')} backLabel="Back to clinic">
+    <Screen backdrop="results" title={t.noCaseScreen} onBack={() => services.router.go('hub')} backLabel={t.backToClinic}>
       <div class="rs-empty">
-        <GlassPanel strong padding="lg" icon="info" title="No case to review">
-          <p class="lm-muted">There's no finished patient on the chart right now.</p>
+        <GlassPanel strong padding="lg" icon="info" title={t.noCaseTitle}>
+          <p class="lm-muted">{t.noCaseBody}</p>
           <Button variant="primary" icon="home" onClick={() => services.router.go('hub')}>
-            Back to clinic
+            {t.backToClinic}
           </Button>
         </GlassPanel>
       </div>
@@ -115,8 +108,10 @@ function useBeats(review: ReviewModel, reduced: boolean) {
 
 function ResultsView({ services, kase, session, timeout }: { services: GameServices; kase: ClinicalCase; session: CaseSession | null; timeout: boolean }) {
   const reduced = useReducedMotion();
+  const t = useStrings(S);
+  const locale = useLocale();
   const review = useMemo(
-    () => buildReview({ kase, session, timeout, diagnosis: (id) => services.registries.diagnoses.get(id) }),
+    () => buildReview({ kase, session, timeout, locale, diagnosis: (id) => services.registries.diagnoses.get(id) }),
     [kase, session],
   );
   useReportOnce(services, review, session);
@@ -161,7 +156,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
     const r = stampEl.current?.getBoundingClientRect();
     if (r) {
       services.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: 'confetti', count: 60 });
-      services.fx.floatText('Perfect case', r.left + r.width / 2, r.top, { color: palette.gold, size: 26 });
+      services.fx.floatText(t.perfectFloat, r.left + r.width / 2, r.top, { color: palette.gold, size: 26 });
     }
   }, [hit.total]);
 
@@ -183,7 +178,8 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
   }, [hit.settled]);
 
   const mode = services.run.mode();
-  const modeTitle = (mode && services.registries.modes.get(mode.id)?.title) ?? services.registries.modes.get(session?.modeId ?? '')?.title;
+  const modeMod = (mode && services.registries.modes.get(mode.id)) || services.registries.modes.get(session?.modeId ?? '');
+  const modeTitle = modeMod ? modeText(modeMod, locale).title : undefined;
   const runActive = !!(run && mode);
   const runOver = !!(run && mode && ((run.lives !== null && run.lives <= 0) || (mode.rules.length !== 'endless' && run.completed.length + run.failed.length >= mode.rules.length)));
   const seen = run ? run.completed.length + run.failed.length : 0;
@@ -212,10 +208,10 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
   };
 
   const score = review.score;
-  const headline = score ? (score.perfect ? 'A perfect case.' : HEADLINE[score.grade]) : review.verdict === 'timeout' ? 'The clock won this round.' : 'Case closed early.';
+  const headline = score ? (score.perfect ? t.perfect : t.headline[score.grade]) : review.verdict === 'timeout' ? t.timeoutHeadline : t.closedHeadline;
 
   return (
-    <Screen backdrop="results" eyebrow={modeTitle ?? 'Case review'} title={kase.patient.name} class={cx('rs-screen', `rs--${review.verdict}`, instant && 'is-instant')} contentClass="rs-content">
+    <Screen backdrop="results" eyebrow={modeTitle ?? t.caseReview} title={kase.patient.name} class={cx('rs-screen', `rs--${review.verdict}`, instant && 'is-instant')} contentClass="rs-content">
       <div class="rs-page">
         <div
           class="rs-hero"
@@ -246,16 +242,16 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
                   (score ? (
                     <GradeStamp key={instant ? 's' : 'a'} grade={score.grade} size={150} animate={!instant} shake={!instant && score.grade !== 'F' ? undefined : false} />
                   ) : (
-                    <div class="rs-seal" role="img" aria-label="Out of time">
+                    <div class="rs-seal" role="img" aria-label={t.sealLabel}>
                       <Icon name="clock" size={44} />
-                      <span>{review.verdict === 'timeout' ? 'Out of time' : 'Closed'}</span>
+                      <span>{review.verdict === 'timeout' ? t.outOfTime : t.closed}</span>
                     </div>
                   ))}
               </div>
               <div class="rs-head__text">
-                <span class="lm-eyebrow">{score ? `Grade ${score.grade}` : 'No score'}</span>
+                <span class="lm-eyebrow">{score ? t.gradeEyebrow(score.grade) : t.noScore}</span>
                 <h2 class="rs-head__line">{headline}</h2>
-                {!score && <p class="lm-muted">The correct answer and the full teaching are below. This diagnosis will come back for review.</p>}
+                {!score && <p class="lm-muted">{t.noScoreBody}</p>}
               </div>
             </div>
 
@@ -276,7 +272,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
 
         <div class={cx('rs-body', panels && 'has-rail')}>
           <div class={cx('rs-lesson', hit.teaching && 'is-shown')}>
-            <Divider label="The lesson" />
+            <Divider label={t.lesson} />
             <div class="rs-grid">
               <DiagnosisPanel review={review} panelRef={(el) => (dxPanel.current = el)} />
               <div class="rs-col">
@@ -288,8 +284,8 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
             <ReflectionCard review={review} />
           </div>
           {panels && (
-            <aside class={cx('rs-clinic', hit.rewards && 'is-shown')} aria-label="Around the clinic">
-              <Divider label="Around the clinic" />
+            <aside class={cx('rs-clinic', hit.rewards && 'is-shown')} aria-label={t.aroundClinic}>
+              <Divider label={t.aroundClinic} />
               <ClinicPanels shown={!!hit.rewards} />
             </aside>
           )}
@@ -298,7 +294,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
 
       {!hit.settled && (
         <button type="button" class="rs-skip" onClick={skip}>
-          Skip <Kbd>Space</Kbd>
+          {t.skip} <Kbd>Space</Kbd>
         </button>
       )}
 
@@ -306,11 +302,11 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
         <div class="rs-actions__info">
           {runActive && run && mode && (
             <>
-              <span class="lm-eyebrow">{mode.title}</span>
+              <span class="lm-eyebrow">{modeTitle ?? mode.title}</span>
               <span class="rs-actions__progress">
-                {mode.rules.length === 'endless' ? `Patient ${seen}` : `Patient ${seen} of ${mode.rules.length}`}
+                {mode.rules.length === 'endless' ? t.patientEndless(seen) : t.patientOf(seen, mode.rules.length)}
                 {run.lives !== null && (
-                  <span class="rs-lives" aria-label={`${run.lives} lives left`}>
+                  <span class="rs-lives" aria-label={t.livesLeft(run.lives)}>
                     {Array.from({ length: Math.max(mode.rules.lives ?? 0, run.lives, 0) }, (_, i) => (
                       <Icon key={i} name="heart" class={i < run.lives! ? 'is-full' : ''} />
                     ))}
@@ -322,23 +318,23 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
         </div>
         <div class={cx('rs-actions__btns', (runActive ? 1 : 0) + (hasCodex ? 1 : 0) === 1 && 'is-pair')}>
           {runActive && (
-            <Button variant="ghost" icon="home" onClick={onBack} sfx="back" class="rs-sec" aria-label="Back to clinic">
-              <span class="rs-lbl">Back to clinic</span>
+            <Button variant="ghost" icon="home" onClick={onBack} sfx="back" class="rs-sec" aria-label={t.backToClinic}>
+              <span class="rs-lbl">{t.backToClinic}</span>
             </Button>
           )}
           {hasCodex && (
-            <Button variant="glass" icon="book" onClick={() => services.router.go('codex', { diagnosisId: review.correctId })} class="rs-sec" aria-label="Codex entry">
-              <span class="rs-lbl">Codex entry</span>
+            <Button variant="glass" icon="book" onClick={() => services.router.go('codex', { diagnosisId: review.correctId })} class="rs-sec" aria-label={t.codexEntry}>
+              <span class="rs-lbl">{t.codexEntry}</span>
             </Button>
           )}
           <div class="rs-next" ref={nextBtn}>
             {runActive ? (
               <Button variant="primary" size="lg" icon={runOver ? 'trophy' : undefined} trailingIcon={runOver ? undefined : 'arrow-right'} onClick={onNext} sfx="whoosh">
-                {runOver ? 'See run summary' : 'Next patient'}
+                {runOver ? t.seeSummary : t.nextPatient}
               </Button>
             ) : (
               <Button variant="primary" size="lg" icon="home" onClick={onBack} sfx="back">
-                Back to clinic
+                {t.backToClinic}
               </Button>
             )}
           </div>

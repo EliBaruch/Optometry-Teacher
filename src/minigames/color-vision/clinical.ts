@@ -2,7 +2,8 @@
  * Pure clinical logic: plate scoring, interpretation, chart lines and the
  * player's technique score. No DOM.
  */
-import type { ColorVision, Eye, PatientFindings, PatientProfile, RevealedFinding } from '@core';
+import type { ColorVision, Eye, Locale, PatientFindings, PatientProfile, RevealedFinding } from '@core';
+import { T, fixBidi } from './strings';
 import { BOOKLET, RED_GREEN_KINDS, canonicalPlates, respond, type EyeVision, type Plate, type PlateKind } from './plates';
 
 export type CvClass = 'normal' | 'protan' | 'deutan' | 'tritan' | 'acquired';
@@ -92,17 +93,16 @@ export function redSaturationPct(cv: ColorVision): number {
   }
 }
 
-const SEVERITY_WORD: Record<ColorVision['severity'], string> = { none: '', mild: 'mild', moderate: 'moderate', severe: 'severe' };
-
-function describe(cv: ColorVision): string {
-  const sev = SEVERITY_WORD[cv.severity];
+function describe(cv: ColorVision, locale: Locale = 'en'): string {
+  const t = T(locale);
+  const sev = t.sev[cv.severity];
   switch (cv.type) {
-    case 'protan': return `Protan defect${sev ? `, ${sev}` : ''} (congenital red-green)`;
-    case 'deutan': return `Deutan defect${sev ? `, ${sev}` : ''} (congenital red-green)`;
-    case 'tritan': return `Tritan defect${sev ? `, ${sev}` : ''} (blue-yellow)`;
-    case 'acquired-red-green': return `Acquired red-green defect${sev ? `, ${sev}` : ''}`;
-    case 'acquired-blue-yellow': return `Acquired blue-yellow defect${sev ? `, ${sev}` : ''}`;
-    default: return 'Normal trichromat';
+    case 'protan': return t.describe.protan(sev);
+    case 'deutan': return t.describe.deutan(sev);
+    case 'tritan': return t.describe.tritan(sev);
+    case 'acquired-red-green': return t.describe.acqRg(sev);
+    case 'acquired-blue-yellow': return t.describe.acqBy(sev);
+    default: return t.describe.normal;
   }
 }
 
@@ -112,8 +112,14 @@ function flagFor(cv: ColorVision): RevealedFinding['flag'] {
   return 'abnormal';
 }
 
-/** Chart lines for the colour-vision test. Pure. */
-export function report(f: PatientFindings, _patient?: PatientProfile): RevealedFinding[] {
+/** English chart lines (what the module's `report()` returns). */
+export function report(f: PatientFindings, patient?: PatientProfile): RevealedFinding[] {
+  return reportFor(f, patient, 'en');
+}
+
+/** Chart lines in the edition's language; `mount()` uses this with `ctx.locale`. Pure. */
+export function reportFor(f: PatientFindings, _patient: PatientProfile | undefined, locale: Locale): RevealedFinding[] {
+  const t = T(locale);
   const plates = canonicalPlates();
   const out: RevealedFinding[] = [];
   for (const eye of EYES) {
@@ -121,8 +127,8 @@ export function report(f: PatientFindings, _patient?: PatientProfile): RevealedF
     const s = scoreEye(plates, v);
     const flag = flagFor(v.cv);
     out.push({
-      label: 'Colour plates',
-      value: s.unable ? 'Unable — demo plate not seen' : `${s.correct}/${s.total} (R-G ${s.rgCorrect}/${s.rgTotal}, B-Y ${s.tritanCorrect}/${s.tritanTotal})`,
+      label: t.repPlates,
+      value: s.unable ? t.repUnable : t.repPlatesVal(s.correct, s.total, s.rgCorrect, s.rgTotal, s.tritanCorrect, s.tritanTotal),
       eye,
       flag: s.unable ? 'critical' : s.correct === s.total ? 'normal' : flag === 'normal' ? 'abnormal' : flag,
     });
@@ -131,25 +137,25 @@ export function report(f: PatientFindings, _patient?: PatientProfile): RevealedF
   for (const eye of desat) {
     const other: Eye = eye === 'OD' ? 'OS' : 'OD';
     const pct = redSaturationPct(f.colorVision[eye]);
-    out.push({ label: 'Red desaturation', value: `Red cap ≈ ${pct}% of ${other} saturation`, eye, flag: 'critical' });
+    out.push({ label: t.repDesat, value: fixBidi(t.repDesatVal(pct, other), locale), eye, flag: 'critical' });
   }
   const interp = interpret(f);
   const cvOd = f.colorVision.OD;
   const cvOs = f.colorVision.OS;
   let value: string;
-  if (interp.type === 'normal') value = 'Normal colour vision';
+  if (interp.type === 'normal') value = t.repNormalCv;
   else if (interp.eye === 'OU') {
-    value = describe(isAbnormal(cvOd) ? cvOd : cvOs);
-    if (interp.type !== 'acquired') value += ', both eyes';
+    value = describe(isAbnormal(cvOd) ? cvOd : cvOs, locale);
+    if (interp.type !== 'acquired') value += t.repBoth;
   } else {
     const e = interp.eye as Eye;
-    value = isAbnormal(f.colorVision[e]) ? describe(f.colorVision[e]) : 'Acquired loss (red desaturation)';
+    value = isAbnormal(f.colorVision[e]) ? describe(f.colorVision[e], locale) : t.repAcqLoss;
   }
   const flag: RevealedFinding['flag'] =
     interp.type === 'normal' ? 'normal'
     : EYES.some((e) => flagFor(f.colorVision[e]) === 'critical') ? 'critical'
     : 'abnormal';
-  out.push({ label: 'Colour vision', value, eye: interp.eye ?? 'OU', flag });
+  out.push({ label: t.repCv, value: fixBidi(value, locale), eye: interp.eye ?? 'OU', flag });
   return out;
 }
 

@@ -130,12 +130,12 @@
 .eco-case__glass { position: absolute; inset: 0; z-index: 2; pointer-events: none;
   background: linear-gradient(115deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 30%, transparent 31%, transparent 62%, rgba(255, 255, 255, 0.06) 63%, transparent 72%);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
-.eco-case__gem { position: absolute; z-index: 3; top: 10px; left: 10px; padding: 2px 9px 2px 18px; border-radius: 999px;
+.eco-case__gem { position: absolute; z-index: 3; top: 10px; inset-inline-start: 10px; padding: 2px 9px; padding-inline-start: 18px; border-radius: 999px;
   font: 700 9.5px/1.6 var(--lm-font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--rc);
   background: rgba(6, 3, 14, 0.7); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rc) 45%, transparent); }
-.eco-case__gem::before { content: ''; position: absolute; left: 7px; top: 50%; width: 6px; height: 6px; margin-top: -3px; transform: rotate(45deg);
+.eco-case__gem::before { content: ''; position: absolute; inset-inline-start: 7px; top: 50%; width: 6px; height: 6px; margin-top: -3px; transform: rotate(45deg);
   background: var(--rc); box-shadow: 0 0 8px var(--rc); }
-.eco-case__preview { position: absolute; z-index: 3; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 5px; min-height: 28px;
+.eco-case__preview { position: absolute; z-index: 3; top: 8px; inset-inline-end: 8px; display: inline-flex; align-items: center; gap: 5px; min-height: 28px;
   padding: 3px 10px; border-radius: 999px; font: 600 11px/1 var(--lm-font-ui); color: var(--lm-ivory-dim);
   background: rgba(6, 3, 14, 0.7); box-shadow: inset 0 0 0 1px var(--lm-glass-border); transition: all var(--lm-dur-ui) var(--lm-ease-out); }
 .eco-case__preview:hover { color: var(--lm-gold); box-shadow: inset 0 0 0 1px var(--lm-glass-border-hi); }
@@ -164,11 +164,11 @@
 .eco-ledger__totals { margin-top: 14px; font-size: 11.5px; color: var(--lm-muted-2); }
 .eco-odds { display: grid; gap: 12px; font-size: var(--lm-fs-sm); color: var(--lm-muted); }
 .eco-odds table { width: 100%; border-collapse: collapse; }
-.eco-odds th, .eco-odds td { padding: 8px 6px; text-align: right; border-bottom: 1px solid var(--lm-hairline); }
+.eco-odds th, .eco-odds td { padding: 8px 6px; text-align: end; border-bottom: 1px solid var(--lm-hairline); }
 .eco-odds thead th { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
-.eco-odds tbody th { text-align: left; color: var(--lm-ivory); font-weight: 600; }
+.eco-odds tbody th { text-align: start; color: var(--lm-ivory); font-weight: 600; }
 .eco-odds tbody th small { display: block; font-weight: 400; color: var(--lm-muted-2); font-size: 11px; }
-.eco-odds thead th:first-child { text-align: left; color: var(--lm-muted-2); }
+.eco-odds thead th:first-child { text-align: start; color: var(--lm-muted-2); }
 .eco-odds td { color: var(--lm-ivory-dim); }
 .eco-odds__foot { color: var(--lm-normal); font-size: var(--lm-fs-xs); }
 
@@ -190,7 +190,7 @@
   .eco-case__plaque { padding: 10px 10px 4px; }
   .eco-case__plaque p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; font-size: 11px; line-height: 1.35; }
   .eco-case__actions { padding: 6px 10px 12px; flex-wrap: wrap; gap: 4px; min-height: 0; }
-  .eco-case__preview { top: 34px; left: 8px; right: auto; padding: 2px 8px; min-height: 24px; }
+  .eco-case__preview { top: 34px; inset-inline-start: 8px; inset-inline-end: auto; padding: 2px 8px; min-height: 24px; }
   .eco-case__gem { font-size: 8.5px; }
   .eco-case__art--theme .eco-swatch { min-height: 0; }
   .eco-case__art--theme .eco-swatch__dots { display: none; }
@@ -201,3 +201,5 @@
 }
 html.reduced-motion .eco-shop__hero, html.reduced-motion .eco-shelf, html.reduced-motion .eco-shelf__slot, html.reduced-motion .eco-case,
 html.reduced-motion .eco-case--legendary::before, html.reduced-motion .eco-price.is-confirm { animation: none !important; }
+
+:lang(he) .eco-shop__intro h2 { font-style: normal; font-weight: 600; letter-spacing: 0; line-height: 1.1; }

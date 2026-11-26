@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { ease, formatNumber, useReducedMotion, useSfx } from '@ui-kit';
+import { ease, formatNumber, useLocale, useReducedMotion, useSfx, useStrings } from '@ui-kit';
+import { S } from '../strings';
 import { levelInfo } from '../model/ladder';
 
 export interface XpProgressProps {
@@ -20,6 +21,8 @@ export interface XpProgressProps {
  */
 export function XpProgress({ from, to, delay = 0, duration, size = 'md', onLevel }: XpProgressProps) {
   const reduced = useReducedMotion();
+  const t = useStrings(S);
+  const locale = useLocale();
   const play = useSfx();
   const [xp, setXp] = useState(reduced ? to : from);
   const [flare, setFlare] = useState(0);
@@ -59,14 +62,14 @@ export function XpProgress({ from, to, delay = 0, duration, size = 'md', onLevel
     };
   }, [from, to, reduced]);
 
-  const info = levelInfo(xp);
+  const info = levelInfo(xp, locale);
   const gained = info.level === levelInfo(from).level ? Math.max(0, info.into - (from - info.levelStartXp)) : info.into;
   const startPct = info.level === levelInfo(from).level ? ((from - info.levelStartXp) / info.span) * 100 : 0;
   return (
     <div class={`rk-xp rk-xp--${size}`} style={{ '--rk-c': info.rank.color, '--rk-c2': info.rank.color2 }}>
       <div class="rk-xp__row">
         <span class="rk-xp__title">{info.title}</span>
-        <span class="rk-xp__val lm-num">
+        <span class="rk-xp__val lm-num" dir="ltr">
           {formatNumber(info.into)} / {formatNumber(info.span)} XP
         </span>
       </div>
@@ -76,20 +79,20 @@ export function XpProgress({ from, to, delay = 0, duration, size = 'md', onLevel
         aria-valuemin={0}
         aria-valuemax={info.span}
         aria-valuenow={info.into}
-        aria-label={`${info.title}: ${formatNumber(info.into)} of ${formatNumber(info.span)} XP`}
+        aria-label={t.xpBar(info.title, formatNumber(info.into), formatNumber(info.span))}
       >
         <div class="rk-xp__base" style={{ width: `${startPct}%` }} />
-        <div class="rk-xp__gain" style={{ left: `${startPct}%`, width: `${Math.max(0, info.progress * 100 - startPct)}%` }} data-gained={gained} />
-        <div class="rk-xp__tip" style={{ left: `${info.progress * 100}%` }} />
+        <div class="rk-xp__gain" style={{ insetInlineStart: `${startPct}%`, width: `${Math.max(0, info.progress * 100 - startPct)}%` }} data-gained={gained} />
+        <div class="rk-xp__tip" style={{ insetInlineStart: `${info.progress * 100}%` }} />
         {flare > 0 && <div key={flare} class="rk-xp__flare" />}
       </div>
       <div class="rk-xp__next">
         <span>
-          <b class="lm-num">{formatNumber(info.toNext)}</b> XP to {info.nextTitle}
+          <b class="lm-num">{formatNumber(info.toNext)}</b> {t.xpTail(info.nextTitle)}
         </span>
-        {info.nextRank && info.nextRank.title !== info.nextTitle.replace(/ [IVXLCDM]+$/, '') && (
+        {info.nextRank && info.nextRank.title !== info.nextTitle.replace(/ ([IVXLCDM]+|[א-י]׳)$/, '') && (
           <span class="rk-xp__rank">
-            <b class="lm-num">{formatNumber(info.toNextRank)}</b> to {info.nextRank.title}
+            <b class="lm-num">{formatNumber(info.toNextRank)}</b> {t.toTail(info.nextRank.title)}
           </span>
         )}
       </div>

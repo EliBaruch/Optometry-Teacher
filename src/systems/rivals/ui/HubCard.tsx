@@ -1,10 +1,11 @@
 /** Hub sidebar card: a compact slice of the weekly board around the player. */
 import type { GameServices } from '@core';
-import { GlassPanel, Icon, useReducedMotion, useSfx, useSignal } from '@ui-kit';
+import { GlassPanel, Icon, useReducedMotion, useSfx, useSignal, useStrings } from '@ui-kit';
+import { S, rivalText } from '../strings';
 import { ACCENT, SYSTEM_ID } from '../controller';
 import { PLAYER_ID, boardSeries, nextAbove, playerRank, standings, type Standing } from '../league';
 import { timeLeftLabel, weekNumber, weekStart } from '../week';
-import { PlayerPortrait, RivalPortrait, Sparkline, useRivals } from './shared';
+import { PlayerPortrait, Rich, RivalPortrait, Sparkline, useRivals } from './shared';
 
 /** Up to `n` rows: the leader(s) plus the player and their neighbours. */
 export function boardSlice(rows: Standing[], n = 4): Standing[] {
@@ -16,6 +17,7 @@ export function boardSlice(rows: Standing[], n = 4): Standing[] {
 
 export function HubCard({ services }: { services: GameServices }) {
   const { state, now } = useRivals(services);
+  const t = useStrings(S);
   const settings = useSignal(services.settings);
   const reduced = useReducedMotion();
   const play = useSfx();
@@ -46,19 +48,19 @@ export function HubCard({ services }: { services: GameServices }) {
         }
       }}
       role="button"
-      aria-label={`Rivals: ${joined ? `you are #${rank} of ${rows.length}` : 'join this week by finishing a patient'}. Open the board.`}
+      aria-label={t.hubAria(joined, rank, rows.length)}
       icon="users"
-      eyebrow={`Rivals · Week ${weekNumber(state.weekKey)}`}
-      title={joined ? <span>You're <b class="rv-hubcard__rank lm-num">#{rank}</b> <span class="rv-dim">of {rows.length}</span></span> : 'Colleagues board'}
+      eyebrow={t.hubEyebrow(weekNumber(state.weekKey))}
+      title={joined ? <span>{t.hubYoure}<b class="rv-hubcard__rank lm-num" dir="ltr">{t.hash}{rank}</b> <span class="rv-dim">{t.hubOf(rows.length)}</span></span> : t.hubBoard}
     >
-      <Sparkline series={series} t0={weekStart(now)} t1={Math.max(now, weekStart(now) + 12 * 3_600_000)} height={46} label="This week's points" class={reduced ? 'is-static' : ''} />
+      <Sparkline series={series} t0={weekStart(now)} t1={Math.max(now, weekStart(now) + 12 * 3_600_000)} height={46} label={t.hubSpark} class={reduced ? 'is-static' : ''} />
       <ol class="rv-hubcard__list">
         {slice.map((r, i) => [
           i > 0 && r.rank - slice[i - 1]!.rank > 1 && <li key={`gap-${r.id}`} class="rv-hubrow rv-hubrow--gap" aria-hidden="true">⋯</li>,
           <li key={r.id} class={`rv-hubrow${r.id === PLAYER_ID ? ' is-you' : ''}`}>
             <span class="rv-hubrow__pos lm-num">{r.rank}</span>
             {r.rival ? <RivalPortrait rival={r.rival} size={28} /> : <PlayerPortrait name={settings.playerName} size={28} />}
-            <span class="rv-hubrow__name">{r.rival ? r.rival.short : 'You'}</span>
+            <span class="rv-hubrow__name">{r.rival ? rivalText(r.rival, services.locale).short : t.you}</span>
             <span class="rv-hubrow__pts lm-num">{r.points.toLocaleString('en')}</span>
           </li>,
         ])}
@@ -66,12 +68,12 @@ export function HubCard({ services }: { services: GameServices }) {
       <footer class="rv-hubcard__foot">
         <span>
           {!joined
-            ? 'Finish a patient to join the race'
+            ? t.hubJoin
             : above?.rival
-              ? <>Pass {above.rival.short} with <b class="lm-num">{above.points - state.points}</b> pts</>
-              : <><Icon name="crown" size={14} /> Leading the ward</>}
+              ? <Rich text={t.hubPass(rivalText(above.rival, services.locale).short, above.points - state.points)} />
+              : <><Icon name="crown" size={14} /> {t.hubLeading}</>}
         </span>
-        <span class="rv-dim"><Icon name="clock" size={13} /> {timeLeftLabel(now)}</span>
+        <span class="rv-dim"><Icon name="clock" size={13} /> {timeLeftLabel(now, services.locale)}</span>
       </footer>
     </GlassPanel>
   );

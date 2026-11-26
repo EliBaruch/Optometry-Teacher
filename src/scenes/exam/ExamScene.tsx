@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
-  abandonRun,
+  abandonRun, modeText, pickStrings,
   type ClinicalCase, type Confidence, type MiniGameModule, type MiniGameResult, type SceneProps, type Urgency,
 } from '@core';
 import {
@@ -8,6 +8,7 @@ import {
 } from '@ui-kit';
 import { ChartPanel } from './ChartPanel';
 import { DiagnosisBoard } from './DiagnosisBoard';
+import { localizeFinding } from './chartHe';
 import { findChartTarget, flyChips } from './fly';
 import { HistoryPanel, type LogEntry } from './HistoryPanel';
 import { useMedia, useTick } from './hooks';
@@ -19,6 +20,7 @@ import {
 import { PatientPanel, type Utterance } from './PatientPanel';
 import { Suspects } from './Suspects';
 import { TestStage } from './TestStage';
+import { S } from './strings';
 import './exam.css';
 
 type Tab = 'patient' | 'tests' | 'chart';
@@ -35,6 +37,8 @@ export function ExamScene({ services, params }: SceneProps) {
   const minigames = useRegistry(services.registries.minigames);
   const diagnoses = useRegistry(services.registries.diagnoses);
   const narrow = useMedia('(max-width: 1023px)');
+  const locale = services.locale;
+  const t = pickStrings(S, locale);
 
   /* ── Resolve the case; start a session only when none is active for it ── */
   const kase: ClinicalCase | undefined = useMemo(() => {
@@ -147,12 +151,12 @@ export function ExamScene({ services, params }: SceneProps) {
   const asked = session?.askedQuestions ?? [];
   const testsDone = session?.testsDone ?? {};
   const chart = session?.chart ?? [];
-  const groups = useMemo(() => (kase ? groupHistory(kase) : []), [kase]);
+  const groups = useMemo(() => (kase ? groupHistory(kase, locale) : []), [kase, locale]);
   const instruments = useMemo(() => orderInstruments(minigames), [minigames]);
   const available = useMemo(() => new Set(instruments.map((m) => m.id)), [instruments]);
   const techOk = techAllowed(mode);
   const hintsOk = mode?.rules.hints !== false;
-  const hintLeft = kase && session ? nextHint({ kase, testsDone, asked, available, given: hintsGiven }) : null;
+  const hintLeft = kase && session ? nextHint({ kase, testsDone, asked, available, given: hintsGiven, locale }) : null;
   const progress = runProgress(run, mode);
   const expression = kase ? expressionFor(kase, relieved) : 'neutral';
 
@@ -225,7 +229,7 @@ export function ExamScene({ services, params }: SceneProps) {
       play('reveal', { volume: 0.7 });
       setPulse((n) => n + 1);
       services.fx.burst(x, y, { kind: 'sparks', count: 16, color: colorOf(worst) });
-      services.fx.floatText('Chart updated', x, Math.max(y + 70, 190), { color: '#ffd27a', size: 18 });
+      services.fx.floatText(t.chartUpdated, x, Math.max(y + 70, 190), { color: '#ffd27a', size: 18 });
     };
     // Let the stage fade before the findings take flight.
     later(() => {
@@ -238,7 +242,10 @@ export function ExamScene({ services, params }: SceneProps) {
       held.cancel = flyChips(
         from,
         findChartTarget(),
-        rows.slice(0, 5).map((r) => ({ text: `${r.label} ${r.value}`, color: colorOf(r.flag) })),
+        rows.slice(0, 5).map((r) => {
+          const l = localizeFinding(r, locale);
+          return { text: locale === 'he' ? `${l.label} \u2066${l.value}\u2069` : `${l.label} ${l.value}`, color: colorOf(r.flag) };
+        }),
         (x, y) => {
           if (held.cancel) cancels.current.delete(held.cancel);
           arrive(x, y);
@@ -281,12 +288,12 @@ export function ExamScene({ services, params }: SceneProps) {
   /* ── Render ── */
   if (!kase) {
     return (
-      <Screen backdrop="exam" title="Exam room" onBack={() => services.router.go('hub')}>
+      <Screen backdrop="exam" title={t.screenTitle} onBack={() => services.router.go('hub')}>
         <div class="exm-missing">
           <Icon name="warning" size={40} />
-          <h2>No patient is waiting</h2>
-          <p class="lm-muted">That case is not in the clinic records. Head back to the lobby and call the next patient.</p>
-          <Button variant="primary" onClick={() => services.router.go('hub')}>Back to the lobby</Button>
+          <h2>{t.missingTitle}</h2>
+          <p class="lm-muted">{t.missingBody}</p>
+          <Button variant="primary" onClick={() => services.router.go('hub')}>{t.missingBtn}</Button>
         </div>
       </Screen>
     );
@@ -296,13 +303,13 @@ export function ExamScene({ services, params }: SceneProps) {
   const clinicMin = session?.clinicMinutes ?? 0;
   const urgentClock = remaining !== undefined;
   const tabItems = [
-    { id: 'patient', label: 'Patient', icon: 'user' as IconName, badge: asked.length || undefined },
-    { id: 'tests', label: 'Tests', icon: 'eye' as IconName, badge: testCount || undefined },
-    { id: 'chart', label: 'Chart', icon: 'chart' as IconName, badge: chart.length || undefined },
+    { id: 'patient', label: t.tabPatient, icon: 'user' as IconName, badge: asked.length || undefined },
+    { id: 'tests', label: t.tabTests, icon: 'eye' as IconName, badge: testCount || undefined },
+    { id: 'chart', label: t.tabChart, icon: 'chart' as IconName, badge: chart.length || undefined },
   ];
 
   const patientPanel = <PatientPanel kase={kase} expression={expression} utterance={utterance} reduced={reduced} />;
-  const history = <HistoryPanel groups={groups} asked={asked} log={log} patientName={kase.patient.name} onAsk={ask} />;
+  const history = <HistoryPanel groups={groups} asked={asked} log={log} patientName={kase.patient.name} sex={kase.patient.sex} onAsk={ask} />;
   const tray = (
     <InstrumentTray
       instruments={instruments}
@@ -325,23 +332,23 @@ export function ExamScene({ services, params }: SceneProps) {
 
   const barRight = (
     <div class="exm-bar">
-      <span class="exm-chip" title="Clinic time used">
+      <span class="exm-chip" title={t.clinicTime}>
         <Icon name="clock" size={15} />
         <b class="lm-num">{clinicMin}</b>
-        <span>min</span>
+        <span>{t.min}</span>
       </span>
       {urgentClock ? (
-        <span class={`exm-clock lm-num${pressure > 0.5 ? ' is-late' : ''}`} role="timer" aria-label="Time left">
+        <span class={`exm-clock lm-num${pressure > 0.5 ? ' is-late' : ''}`} role="timer" aria-label={t.timeLeft}>
           <Icon name="alert" size={15} />
           {fmtClock(remaining!)}
         </span>
       ) : (
-        <span class="exm-chip exm-chip--time lm-num" role="timer" aria-label="Time elapsed">{fmtClock(elapsed)}</span>
+        <span class="exm-chip exm-chip--time lm-num" role="timer" aria-label={t.timeElapsed}>{fmtClock(elapsed)}</span>
       )}
       {hintsOk && (
         <IconButton
           icon="sparkle"
-          label={hintLeft ? `Ask a colleague for a nudge${session?.hintsUsed ? ` (${session.hintsUsed} used)` : ''}` : 'No more nudges'}
+          label={hintLeft ? t.hintAsk(session?.hintsUsed ?? 0) : t.hintNone}
           badge={session?.hintsUsed || undefined}
           onClick={useHint}
           disabled={!hintLeft}
@@ -354,8 +361,7 @@ export function ExamScene({ services, params }: SceneProps) {
 
   const left = progress ? (
     <Badge tone="gold" variant="outline" size="sm" class="exm-progress">
-      Patient {progress.index}
-      {progress.total ? ` of ${progress.total}` : ''}
+      {t.progress(progress.index, progress.total)}
     </Badge>
   ) : undefined;
 
@@ -366,10 +372,10 @@ export function ExamScene({ services, params }: SceneProps) {
       fill
       hud={!narrow}
       backdrop="exam"
-      eyebrow={mode?.title ?? 'Single case'}
-      title="Exam room"
+      eyebrow={mode ? modeText(mode, locale).title : t.singleCase}
+      title={t.screenTitle}
       onBack={() => setLeave(true)}
-      backLabel="Leave the exam room"
+      backLabel={t.leaveBack}
       left={left}
       right={barRight}
     >
@@ -380,11 +386,11 @@ export function ExamScene({ services, params }: SceneProps) {
           <div class="exm-nudge" key={nudge.key} role="status">
             <Icon name="sparkle" size={18} />
             <p>{nudge.text}</p>
-            <IconButton icon="close" label="Dismiss" size="sm" variant="ghost" onClick={() => setNudge(null)} sfx="back" />
+            <IconButton icon="close" label={t.dismiss} size="sm" variant="ghost" onClick={() => setNudge(null)} sfx="back" />
           </div>
         )}
         {narrow && (
-          <Tabs id="exm-tabs" label="Exam room sections" items={tabItems} value={tab} onChange={(t) => setTab(t as Tab)} block class="exm-tabs" />
+          <Tabs id="exm-tabs" label={t.tabsLabel} items={tabItems} value={tab} onChange={(t) => setTab(t as Tab)} block class="exm-tabs" />
         )}
         {ready && (
           <div class={`exm-cols${narrow ? ' is-narrow' : ''}`}>
@@ -404,13 +410,13 @@ export function ExamScene({ services, params }: SceneProps) {
         )}
         <footer class="exm-dock">
           <p class="exm-dock__status lm-num">
-            <span>{asked.length} asked</span>
-            <span>{testCount} tests</span>
-            <span>{chart.length} findings</span>
-            {pinned.length > 0 && <span>{pinned.length}/{MAX_SUSPECTS} suspects</span>}
+            <span>{t.dockAsked(asked.length)}</span>
+            <span>{t.dockTests(testCount)}</span>
+            <span>{t.dockFindings(chart.length)}</span>
+            {pinned.length > 0 && <span>{t.dockSuspects(pinned.length, MAX_SUSPECTS)}</span>}
           </p>
           <Button variant="primary" size="lg" icon="target" onClick={() => { play('drumroll', { volume: 0.5 }); setBoard(true); }} disabled={!ready} sfx={false} class="exm-dock__go">
-            Diagnose
+            {t.diagnose}
           </Button>
         </footer>
       </div>
@@ -444,15 +450,15 @@ export function ExamScene({ services, params }: SceneProps) {
         onClose={() => setLeave(false)}
         size="sm"
         icon="warning"
-        title="Leave the exam room?"
+        title={t.leaveTitle}
         footer={
           <>
-            <Button variant="glass" onClick={() => setLeave(false)}>Stay with the patient</Button>
-            <Button variant="danger" onClick={leaveRoom}>Leave</Button>
+            <Button variant="glass" onClick={() => setLeave(false)}>{t.leaveStay}</Button>
+            <Button variant="danger" onClick={leaveRoom}>{t.leaveGo}</Button>
           </>
         }
       >
-        <p>{kase.patient.name.split(' ')[0]} will be sent away undiagnosed{run ? ' and this shift ends' : ''}. Nothing from this visit is saved.</p>
+        <p>{t.leaveBody(kase.patient.name.split(' ')[0] ?? kase.patient.name, kase.patient.sex, !!run)}</p>
       </Modal>
     </Screen>
   );

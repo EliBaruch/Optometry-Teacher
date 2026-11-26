@@ -5,11 +5,15 @@
  */
 import {
   buildFindings, EYES, otherEye,
-  type DeepPartial, type Eye, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
+  type DeepPartial, type Eye, type Locale, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { isSwollen } from './model';
 import { summarise } from './report';
+import { fix, strs } from './strings';
+
+/** The edition's language, as set on <html> at boot (practice() has no locale parameter; English when unset). */
+const editionLocale = (): Locale => (typeof document !== 'undefined' && document.documentElement.lang === 'he' ? 'he' : 'en');
 
 export type PictureKey =
   | 'healthy' | 'glaucoma' | 'dr' | 'pdr' | 'htn' | 'papilloedema' | 'dry-amd' | 'wet-amd' | 'crao' | 'brao' | 'crvo'
@@ -45,6 +49,11 @@ export const PICTURES: Record<PictureKey, Picture> = {
   'macular-hole': { key: 'macular-hole', name: 'Macular hole / epiretinal membrane', teach: 'A round punched-out defect at the fovea, or a cellophane sheen with striae. Distortion and reduced central vision; OCT confirms and surgery can restore function.', confuse: ['wet-amd', 'dry-amd', 'dr'] },
   'nevus': { key: 'nevus', name: 'Choroidal naevus', teach: 'A flat, slate-grey, well-defined lesion under the retina. Document size and colour; thickness above 2 mm, orange pigment, fluid or growth point to melanoma — photograph and monitor.', confuse: ['myopic', 'dry-amd', 'healthy'] },
 };
+
+/** A picture's name and teaching line in the edition's language. */
+export function pictureText(key: PictureKey, locale: Locale = 'en'): { name: string; teach: string } {
+  return strs(locale).pictures[key];
+}
 
 /** Pick the named picture the findings best match. */
 export function classify(f: PatientFindings): PictureKey {
@@ -241,6 +250,15 @@ const ARCHES: Arch[] = [
   { key: 'nevus', age: [30, 78], weight: (d) => 0.1 + 0.2 * d, build: (rng, _d, eye) => post(eye, { fundusTone: rng.chance(0.4) ? 'dark' : 'medium', lesions: [{ type: 'nevus', zone: rng.pick(['inferotemporal', 'superotemporal', 'superonasal'] as const), density: 2 }] }) },
 ];
 
+/** Hebrew practice patients: the same slots as the English lists (so the seeded draw is identical), written for Israel. */
+const NAMES_F_HE = ['רבקה אזולאי', 'תמר שפירא', 'נסרין חוריה', 'אלנה קוגן', 'רוזה מזרחי', 'שירה בן־עמי', 'אמל חלבי', 'לינוי אביטן', 'ג׳ולייט סלומון', 'פאטמה דאהר'];
+const NAMES_M_HE = ['יעקב לביא', 'אריק גולדשטיין', 'סלים זועבי', 'רביד כהן', 'אבנר הרשקוביץ', 'יובל פרידמן', 'עומר אבו־עטא', 'אלי דהן', 'ויקטור בלוך', 'מוסא נאצר'];
+/** [feminine, masculine] */
+const JOBS_HE: [string, string][] = [
+  ['מורה בגמלאות', 'מורה בגמלאות'], ['שענית', 'שען'], ['רואת חשבון', 'רואה חשבון'], ['מוכרת פרחים', 'מוכר פרחים'], ['טייסת', 'טייס'],
+  ['מתרגמת', 'מתרגם'], ['אדריכלית', 'אדריכל'], ['אופה', 'אופה'], ['כנרת', 'כנר'], ['חקלאית', 'חקלאי'],
+];
+
 const FIRST_F = ['Margot', 'Ines', 'Priya', 'Hannah', 'Rosa', 'Yuki', 'Amara', 'Lena', 'Odile', 'Farah'];
 const FIRST_M = ['Arthur', 'Tomas', 'Kofi', 'Ravi', 'Henrik', 'Mateo', 'Jun', 'Elias', 'Omar', 'Felix'];
 const LAST = ['Okafor', 'Lindqvist', 'Moreau', 'Haddad', 'Tanaka', 'Reyes', 'Novak', 'Brennan', 'Sato', 'Varga', 'Whitcombe', 'Achebe'];
@@ -257,21 +275,28 @@ function pickWeighted(rng: Rng, d: number): Arch {
 }
 
 export function practiceScenario(rng: Rng, difficulty: number): PracticeScenario {
+  const locale = editionLocale();
   const d = Math.max(0, Math.min(1, Number.isFinite(difficulty) ? difficulty : 0.5));
   const arch = pickWeighted(rng, d);
   const age = rng.int(arch.age[0], arch.age[1]);
   const sex = rng.chance(0.5) ? 'F' : 'M';
   const eye: Eye = rng.chance(0.5) ? 'OD' : 'OS';
   const findings = buildFindings(age, arch.build(rng, d, eye));
+  const he = locale === 'he';
+  // The same draws happen in both editions, so a seed gives the same clinical picture either way.
+  const first = rng.pick(sex === 'F' ? (he ? NAMES_F_HE : FIRST_F) : (he ? NAMES_M_HE : FIRST_M));
+  const last = rng.pick(LAST);
+  const job = he ? rng.pick(JOBS_HE)[sex === 'F' ? 0 : 1] : rng.pick(JOBS);
   const patient: PatientProfile = {
-    name: `${rng.pick(sex === 'F' ? FIRST_F : FIRST_M)} ${rng.pick(LAST)}`,
+    name: he ? first : `${first} ${last}`,
     age, sex,
-    occupation: rng.pick(JOBS),
+    occupation: job,
     avatar: generateAvatar(rng, { age, sex }),
   };
-  const pic = PICTURES[classify(findings)];
-  const chart = EYES.map((e) => `${e}: ${summarise(findings, e)}`).join(' · ');
-  return { patient, findings, answer: `${pic.name}. ${chart}. ${pic.teach}` };
+  const key = classify(findings);
+  const pic = pictureText(key, locale);
+  const chart = EYES.map((e) => `${e}: ${summarise(findings, e, locale)}`).join(' · ');
+  return { patient, findings, answer: fix(locale, `${pic.name}. ${chart}. ${pic.teach}`) };
 }
 
 // ───────────────────────── recognition challenge
@@ -289,17 +314,17 @@ export interface Challenge {
   key: PictureKey;
 }
 
-export function buildChallenge(findings: PatientFindings, rng: Rng): Challenge {
+export function buildChallenge(findings: PatientFindings, rng: Rng, locale: Locale = 'en'): Challenge {
   const key = classify(findings);
-  const pic = PICTURES[key];
+  const pic = pictureText(key, locale);
   const names = new Set<PictureKey>([key]);
-  for (const k of rng.shuffle(pic.confuse)) if (names.size < 4) names.add(k);
+  for (const k of rng.shuffle(PICTURES[key].confuse)) if (names.size < 4) names.add(k);
   for (const k of rng.shuffle(Object.keys(PICTURES) as PictureKey[])) if (names.size < 4) names.add(k);
-  const options = rng.shuffle([...names]).map((k, i) => ({ id: `opt${i}`, label: PICTURES[k].name, correct: k === key }));
+  const options = rng.shuffle([...names]).map((k, i) => ({ id: `opt${i}`, label: fix(locale, pictureText(k, locale).name), correct: k === key }));
   return {
     key,
-    question: 'Which picture best fits what you saw?',
+    question: strs(locale).quizQuestion,
     options,
-    explanation: `${pic.name}. ${pic.teach}`,
+    explanation: fix(locale, `${pic.name}. ${pic.teach}`),
   };
 }

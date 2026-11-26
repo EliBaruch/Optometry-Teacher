@@ -60,3 +60,21 @@ export function HudSlot(props: { slot: HudSlotId; class?: string }) {
     </div>
   );
 }
+
+/** The edition's language (fixed per build). */
+export function useLocale(): import('@core').Locale {
+  return useServices().locale;
+}
+
+/**
+ * Pick this module's strings for the current edition:
+ *   const S = defineStrings({ en: { title: 'Exam room' }, he: { title: 'חדר הבדיקה' } });
+ *   const t = useStrings(S);  // t.title
+ */
+export function useStrings<T>(table: import('@core').Strings<T>): T {
+  return pickStringsFor(table, useServices().locale);
+}
+
+function pickStringsFor<T>(table: import('@core').Strings<T>, locale: import('@core').Locale): T {
+  return table[locale] ?? table.en;
+}

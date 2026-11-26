@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { EYES, formatDiopters, formatRx, type Eye, type MiniGameContext, type MiniGameDone } from '@core';
+import { EYES, formatDiopters, formatRx, pickStrings, type Eye, type MiniGameContext, type MiniGameDone } from '@core';
 import { AvatarBust } from '@render';
 import { Button, Icon, Kbd, SpeechBubble } from '@ui-kit';
 import { ChartView } from './ChartView';
@@ -20,6 +20,7 @@ import {
   type Battery, type SessionState,
 } from './session';
 import { Tutorial } from './Tutorial';
+import { LocaleCtx, S } from './strings';
 
 type DeckTab = 'sph' | 'cyl' | 'axis' | 'tools' | 'bal';
 type Present = { kind: 'lens' | 'jcc'; phase: 1 | 2 } | { kind: 'think' };
@@ -39,6 +40,8 @@ function markTutorialSeen(): void {
 const lensRx = (l: Lens) => formatRx({ sphere: l.sphere, cylinder: l.cyl, axis: l.axis });
 
 export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
+  const loc = ctx.locale;
+  const t = pickStrings(S, loc);
   const f = ctx.findings;
   const models = useMemo<Record<Eye, EyeModel>>(() => ({
     OD: makeEyeModel(f.refraction.OD, f.va.OD.bestCorrected, f.accommodation.amplitudeD.OD, f.va.OD.uncorrected),
@@ -49,8 +52,8 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const r = ctx.rng.fork('autorefraction');
     return { OD: autorefraction(truths.OD, ctx.patient.age, ctx.difficulty, r), OS: autorefraction(truths.OS, ctx.patient.age, ctx.difficulty, r) };
   }, []);
-  const listener = useMemo<Listener>(() => ({ rng: ctx.rng.fork('patient'), difficulty: ctx.difficulty }), []);
-  const challenge = useMemo<Challenge | null>(() => (ctx.mode === 'practice' ? makeChallenge(f, ctx.rng.fork('challenge')) : null), []);
+  const listener = useMemo<Listener>(() => ({ rng: ctx.rng.fork('patient'), difficulty: ctx.difficulty, locale: loc }), []);
+  const challenge = useMemo<Challenge | null>(() => (ctx.mode === 'practice' ? makeChallenge(f, ctx.rng.fork('challenge'), loc) : null), []);
   const first = ctx.patient.name.split(' ')[0] ?? ctx.patient.name;
   /** Spectacles come off behind the refractor. */
   const avatarSpec = useMemo(() => ({ ...ctx.patient.avatar, glasses: 'none' as const }), []);
@@ -60,7 +63,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   live.current = s;
   const [present, setPresent] = useState<Present | null>(null);
   const [flipKey, setFlipKey] = useState(0);
-  const [speech, setSpeech] = useState({ id: 0, text: `Hi, I’m ${first}. Ready when you are — tell me what to look at.` });
+  const [speech, setSpeech] = useState({ id: 0, text: t.greeting(first) });
   const [note, setNote] = useState<string | null>(null);
   const [tab, setTab] = useState<DeckTab>('sph');
   const [tutorial, setTutorial] = useState(() => !tutorialSeen());
@@ -104,7 +107,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const r = stepCyl(live.current, n, models);
     setS(r.state);
     ctx.audio.play('lens-click', { pitch: 1.2, volume: 0.6 });
-    if (r.seShift) flash(`Sphere ${formatDiopters(r.seShift)} to hold the spherical equivalent`);
+    if (r.seShift) flash(t.flashSphere(formatDiopters(r.seShift)));
   };
   const onAxis = (n: number, fine: boolean) => {
     if (busy || !single) return;
@@ -180,7 +183,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       return;
     }
     if (!changedSinceAsk(st)) {
-      flash('Change the lens first — then ask “one or two?”');
+      flash(t.flashChange);
       ctx.audio.play('error', { volume: 0.4 });
       return;
     }
@@ -204,7 +207,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const st = live.current;
     setS((p) => recordAsk(p, 'read'));
     const va = single ? perceivedVA(models[single], st.lenses[single]) : Math.min(perceivedVA(models.OD, st.lenses.OD), perceivedVA(models.OS, st.lenses.OS)) - 0.02;
-    answerLater(() => say(readChart(va, listener.rng).text), ctx.reducedMotion ? 200 : 600);
+    answerLater(() => say(readChart(va, listener.rng, loc).text), ctx.reducedMotion ? 200 : 600);
   };
 
   // ── recording
@@ -221,7 +224,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const r = recordBtn.current?.getBoundingClientRect();
     if (r) {
       ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#ffd27a' });
-      if (a.perfect) ctx.fx.floatText('Perfect refraction', r.left + r.width / 2, r.top - 10, { color: '#ffd27a' });
+      if (a.perfect) ctx.fx.floatText(t.perfectFloat, r.left + r.width / 2, r.top - 10, { color: '#ffd27a' });
     }
     // Case mode has no recognition check: the findings go straight to the chart.
     if (ctx.mode === 'case') finish(a, null);
@@ -236,7 +239,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       testId: ctx.testId,
       accuracy: Math.round(accuracy * 1000) / 1000,
       timeMs: Math.round(performance.now() - t0.current),
-      findings: report(ctx.findings, ctx.patient),
+      findings: report(ctx.findings, ctx.patient, loc),
       perfect: a.perfect && challengeCorrect !== false,
     });
   };
@@ -286,19 +289,20 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const expression = present ? 'neutral' : vaNow > 0.55 ? 'squint' : vaNow < 0.05 ? 'happy' : 'neutral';
   const badge = present && present.kind !== 'think' ? (present.phase === 1 ? '1' : '2') : null;
   const jccRed = single && s.jcc ? jccRedAxis(s.jcc, s.lenses[single].axis, present?.kind === 'jcc' ? present.phase : 1) : null;
-  const askLabel = single && s.duo ? 'Red or green?' : !single && s.prism ? 'Top or bottom?' : single && s.jcc ? 'Flip — one or two?' : 'One or two?';
+  const askLabel = single && s.duo ? t.askDuo : !single && s.prism ? t.askBalance : single && s.jcc ? t.askJcc : t.askLens;
   const lens = single ? s.lenses[single] : s.lenses.OD;
   const steps = s.proto.OD.asks + s.proto.OS.asks;
-  const tabs: [DeckTab, string][] = single ? [['sph', 'Sphere'], ['cyl', 'Cylinder'], ['axis', 'Axis'], ['tools', 'JCC · Duo']] : [['sph', 'Sphere'], ['bal', 'Balance']];
+  const tabs: [DeckTab, string][] = single ? [['sph', t.sphere], ['cyl', t.cylinder], ['axis', t.axis], ['tools', t.toolsTab]] : [['sph', t.sphere], ['bal', t.balanceTab]];
   const activeTab: DeckTab = tabs.some(([k]) => k === tab) ? tab : 'sph';
   const pickTab = (k: DeckTab) => { setTab(k); ctx.audio.play('click', { volume: 0.4, pitch: 1.2 }); };
 
   return (
+    <LocaleCtx.Provider value={loc}>
     <div ref={rootRef} class={`php-root${ctx.reducedMotion ? ' is-reduced' : ''}`} tabIndex={-1} onKeyDown={onKey} data-busy={busy || undefined}>
       <header class="php-head">
-        <div class="php-head__title"><Icon name="phoropter" /><span>Subjective refraction</span></div>
-        <p class="php-head__hint" aria-live="polite">{note ?? hint(s)}</p>
-        <div class="php-seg" role="group" aria-label="Eye under test">
+        <div class="php-head__title"><Icon name="phoropter" /><span>{t.title}</span></div>
+        <p class="php-head__hint" aria-live="polite">{note ?? hint(s, loc)}</p>
+        <div class="php-seg" dir="ltr" role="group" aria-label={t.eyeUnderTest}>
           {(['OD', 'OS', 'OU'] as const).map((b) => (
             <button key={b} type="button" class={`php-seg__b${s.active === b ? ' is-on' : ''}`} aria-pressed={s.active === b} onClick={() => setBattery(b)} disabled={busy && s.active !== b}>
               {b}
@@ -309,10 +313,10 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       </header>
 
       <main class="php-stage">
-        <section class="php-instr" aria-label="Refractor">
+        <section class="php-instr" aria-label={t.refractor}>
           <div class="php-instr__head">
-            <div class="php-slip" title="Autorefraction starting point">
-              <span class="php-slip__k">Autorefraction</span>
+            <div class="php-slip" title={t.slipTitle}>
+              <span class="php-slip__k">{t.slipLabel}</span>
               {EYES.map((e) => <span key={e} class="php-slip__v"><b>{e}</b> {lensRx(s.start[e])}</span>)}
             </div>
           </div>
@@ -327,10 +331,10 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
               prism={s.prism && s.active === 'OU'}
               badge={badge}
             />
-            <div class="php-readout" aria-hidden="true">
+            <div class="php-readout" dir="ltr" aria-hidden="true">
               {EYES.map((e) => (
                 <div key={e} class={`php-readout__eye${s.active === e || s.active === 'OU' ? ' is-on' : ''}`}>
-                  <span class="php-readout__k">{e} trial lens</span>
+                  <span class="php-readout__k" dir="auto">{t.trialLens(e)}</span>
                   <span class="php-readout__v php-num">{lensRx(s.lenses[e])}</span>
                   <span class="php-readout__va php-num">VA {snellen(perceivedVA(models[e], s.lenses[e]))}</span>
                 </div>
@@ -338,44 +342,44 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             </div>
           </div>
           <div class={`php-deck${single ? '' : ' php-deck--ou'}`} data-tab={activeTab}>
-            <div class="php-tabs" role="tablist" aria-label="Controls">
+            <div class="php-tabs" role="tablist" aria-label={t.controls}>
               {tabs.map(([k, l]) => (
                 <button key={k} type="button" role="tab" aria-selected={activeTab === k} class={`php-tab${activeTab === k ? ' is-on' : ''}`} onClick={() => pickTab(k)}>{l}</button>
               ))}
             </div>
             {single ? (
               <>
-                <Dial id="php-sph" pane="sph" label="Sphere" size="lg" value={lens.sphere} min={-20} max={20} rotation={lens.sphere * 4 * 15} display={formatDiopters(lens.sphere)} onStep={(n) => onSphere(n)} disabled={busy} sub="0.25 D clicks" />
-                <Dial id="php-cyl" pane="cyl" label="Cylinder" value={lens.cyl} min={-8} max={0} rotation={lens.cyl * 4 * 20} display={lens.cyl < 0 ? formatDiopters(lens.cyl) : '0.00'} onStep={(n) => onCyl(-n)} disabled={busy} sub="minus cyl" accent="#c4b5fd" />
-                <Dial id="php-axis" pane="axis" fine label="Axis" value={lens.axis} min={1} max={180} rotation={90 - lens.axis} dragSign={-1} mark="line" display={`${String(lens.axis).padStart(3, '0')}°`} onStep={onAxis} disabled={busy || lens.cyl === 0} sub="Shift = 1°" accent="#7dd3fc" />
+                <Dial id="php-sph" pane="sph" label={t.sphere} size="lg" value={lens.sphere} min={-20} max={20} rotation={lens.sphere * 4 * 15} display={formatDiopters(lens.sphere)} onStep={(n) => onSphere(n)} disabled={busy} sub={t.sphereSub} />
+                <Dial id="php-cyl" pane="cyl" label={t.cylinder} value={lens.cyl} min={-8} max={0} rotation={lens.cyl * 4 * 20} display={lens.cyl < 0 ? formatDiopters(lens.cyl) : '0.00'} onStep={(n) => onCyl(-n)} disabled={busy} sub={t.cylSub} accent="#c4b5fd" />
+                <Dial id="php-axis" pane="axis" fine label={t.axis} value={lens.axis} min={1} max={180} rotation={90 - lens.axis} dragSign={-1} mark="line" display={`${String(lens.axis).padStart(3, '0')}°`} onStep={onAxis} disabled={busy || lens.cyl === 0} sub={t.axisSub} accent="#7dd3fc" />
                 <div class="php-tools" data-pane="tools">
-                  <div class="php-seg php-seg--sm" role="group" aria-label="Cross-cylinder">
+                  <div class="php-seg php-seg--sm" role="group" aria-label={t.crossCyl}>
                     <span class="php-seg__k">JCC</span>
-                    {([[null, 'Off'], ['axis', 'Axis'], ['power', 'Power']] as const).map(([m, l]) => (
+                    {([[null, t.off], ['axis', t.axisBtn], ['power', t.power]] as const).map(([m, l]) => (
                       <button key={l} type="button" class={`php-seg__b${s.jcc === m ? ' is-on' : ''}`} aria-pressed={s.jcc === m} onClick={() => setJcc(m)} disabled={busy}>{l}</button>
                     ))}
                   </div>
                   <button type="button" class={`php-toggle php-toggle--duo${s.duo ? ' is-on' : ''}`} aria-pressed={s.duo} onClick={toggleDuo} disabled={busy}>
-                    <span class="php-duo-swatch" aria-hidden="true" /> Duochrome <Kbd>D</Kbd>
+                    <span class="php-duo-swatch" aria-hidden="true" /> {t.duochrome} <Kbd>D</Kbd>
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <Dial id="php-sph-ou" pane="sph" label="Sphere OU" size="lg" value={s.lenses.OD.sphere} min={-20} max={20} rotation={s.lenses.OD.sphere * 60} display="both eyes" onStep={(n) => onSphere(n)} disabled={busy} sub="fog / unfog together" />
+                <Dial id="php-sph-ou" pane="sph" label={t.sphereOu} size="lg" value={s.lenses.OD.sphere} min={-20} max={20} rotation={s.lenses.OD.sphere * 60} display={t.bothEyes} onStep={(n) => onSphere(n)} disabled={busy} sub={t.fogTogether} />
                 <div class="php-nudges" data-pane="sph">
                   {EYES.map((e) => (
                     <div class="php-nudge" key={e}>
                       <span class="php-nudge__eye">{e}</span>
-                      <button type="button" onClick={() => nudge(e, -1)} disabled={busy} aria-label={`${e} minus 0.25`}>−0.25</button>
+                      <button type="button" onClick={() => nudge(e, -1)} disabled={busy} aria-label={t.nudgeMinus(e)}>−0.25</button>
                       <output class="php-num">{formatDiopters(s.lenses[e].sphere)}</output>
-                      <button type="button" onClick={() => nudge(e, 1)} disabled={busy} aria-label={`${e} plus 0.25`}>+0.25</button>
+                      <button type="button" onClick={() => nudge(e, 1)} disabled={busy} aria-label={t.nudgePlus(e)}>+0.25</button>
                     </div>
                   ))}
                 </div>
                 <div class="php-tools" data-pane="bal">
                   <button type="button" class={`php-toggle${s.prism ? ' is-on' : ''}`} aria-pressed={s.prism} onClick={togglePrism} disabled={busy}>
-                    Prism dissociation 3Δ <Kbd>P</Kbd>
+                    {t.prism} <Kbd>P</Kbd>
                   </button>
                 </div>
               </>
@@ -383,25 +387,25 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
           </div>
         </section>
 
-        <section class="php-view" aria-label="Patient">
+        <section class="php-view" aria-label={t.patientSection}>
           <div class="php-patient">
             <div class="php-patient__avatar">
-              <AvatarBust spec={avatarSpec} age={ctx.patient.age} sex={ctx.patient.sex} expression={expression} size={64} animated reducedMotion={ctx.reducedMotion} external={{ squinting: expression === 'squint' }} label={`${ctx.patient.name}, behind the refractor`} />
+              <AvatarBust spec={avatarSpec} age={ctx.patient.age} sex={ctx.patient.sex} expression={expression} size={64} animated reducedMotion={ctx.reducedMotion} external={{ squinting: expression === 'squint' }} label={t.patientAria(ctx.patient.name)} />
             </div>
             <div class="php-patient__say" aria-live="polite">
               {present?.kind === 'think' ? (
-                <div class="php-thinking" aria-label="Patient is looking"><span /><span /><span /></div>
+                <div class="php-thinking" aria-label={t.looking}><span /><span /><span /></div>
               ) : present ? (
-                <p class="php-you">{present.phase === 1 ? 'You: “Number one…”' : 'You: “…or number two?”'}</p>
+                <p class="php-you">{present.phase === 1 ? t.youOne : t.youTwo}</p>
               ) : (
-                <SpeechBubble key={speech.id} text={speech.text} speaker={first} tail="left" voice={false} speed={ctx.reducedMotion ? 400 : 130} />
+                <SpeechBubble key={speech.id} text={speech.text} speaker={first} tail={loc === 'he' ? 'right' : 'left'} voice={false} speed={ctx.reducedMotion ? 400 : 130} />
               )}
             </div>
           </div>
           <div class="php-view__label">
-            <span class="php-eyebrow">Patient&rsquo;s view · {s.active}{s.duo ? ' · duochrome' : s.prism ? ' · dissociated' : ''}</span>
-            <span class="php-view__va" title="What the patient can currently resolve">
-              <span class="php-view__q php-num">{steps} Q · </span>sees ≈ <b class="php-num">{vaNow >= 1.25 ? '<20/200' : snellen(vaNow)}</b>
+            <span class="php-eyebrow">{t.viewLabel(s.active, s.duo, s.prism)}</span>
+            <span class="php-view__va" title={t.seesTitle}>
+              <span class="php-view__q php-num">{steps} {t.qShort} · </span>{t.seesWord} <b class="php-num" dir="ltr">{vaNow >= 1.25 ? '<20/200' : snellen(vaNow)}</b>
             </span>
           </div>
           <ChartView frame={frame} reducedMotion={ctx.reducedMotion} badge={badge} caption={`≈ ${vaNow >= 1.25 ? '<20/200' : snellen(vaNow)}`} />
@@ -410,22 +414,23 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
               <span class="php-ask__n">1·2</span> {askLabel} <Kbd>A</Kbd>
             </Button>
             <Button variant="ghost" size="md" sfx={false} onClick={read} disabled={busy} icon="eye">
-              Read <Kbd>R</Kbd>
+              {t.read} <Kbd>R</Kbd>
             </Button>
           </div>
         </section>
       </main>
 
       <footer class="php-foot">
-        <div class={`php-progress${single ? '' : ' php-progress--ou'}`} aria-label="Protocol progress">
+        <div class={`php-progress${single ? '' : ' php-progress--ou'}`} aria-label={t.protocolProgress}>
           {EYES.map((e) => {
             const st = stages(s, e);
-            const items: [string, string, boolean][] = [['Fog', 'Fog', st.fog], ['Sphere', 'Sph', st.sphere], ['Axis', 'Axis', st.axis], ['Power', 'Pwr', st.power], ['Duo', 'Duo', st.duo]];
+            const okList = [st.fog, st.sphere, st.axis, st.power, st.duo];
+            const items: [string, string, boolean][] = t.stages.map(([l, sh], i) => [l, sh, okList[i]!]);
             return (
-              <div class={`php-pips${s.active === e ? ' is-active' : ''}`} key={e} role="list" aria-label={`${e} protocol stages`}>
+              <div class={`php-pips${s.active === e ? ' is-active' : ''}`} key={e} role="list" aria-label={t.stagesAria(e)}>
                 <span class="php-pips__eye">{e}</span>
                 {items.map(([l, short, ok]) => (
-                  <span key={l} role="listitem" class={`php-pip${ok ? ' is-done' : ''}`} title={l} aria-label={`${e} ${l}: ${ok ? 'done' : 'not yet'}`}>
+                  <span key={l} role="listitem" class={`php-pip${ok ? ' is-done' : ''}`} title={l} aria-label={t.stageAria(e, l, ok)}>
                     <i aria-hidden="true" /><span class="php-long" aria-hidden="true">{l}</span><span class="php-short" aria-hidden="true">{short}</span>
                   </span>
                 ))}
@@ -433,14 +438,14 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             );
           })}
         </div>
-        <span class="php-steps php-num" title="Questions asked">{steps} Q</span>
+        <span class="php-steps php-num" title={t.qTitle}>{steps} {t.qShort}</span>
         <div ref={recordBtn}>
-          <Button variant="primary" size="md" sfx={false} icon="chart" onClick={record} disabled={busy} aria-label="Record findings"><span class="php-long">Record findings</span><span class="php-short">Record</span></Button>
+          <Button variant="primary" size="md" sfx={false} icon="chart" onClick={record} disabled={busy} aria-label={t.recordLong}><span class="php-long">{t.recordLong}</span><span class="php-short">{t.recordShort}</span></Button>
         </div>
       </footer>
 
       {result && ctx.mode === 'case' && (
-        <div class="php-recorded" role="status"><span><Icon name="check" /> Findings recorded to the chart</span></div>
+        <div class="php-recorded" role="status"><span><Icon name="check" /> {t.recordedToChart}</span></div>
       )}
       {tutorial && <Tutorial onClose={() => { markTutorialSeen(); setTutorial(false); ctx.audio.play('select'); }} />}
       {result && ctx.mode === 'practice' && (
@@ -457,6 +462,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
         />
       )}
     </div>
+    </LocaleCtx.Provider>
   );
 }
 

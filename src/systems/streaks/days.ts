@@ -2,7 +2,8 @@
  * Local-calendar day maths on 'YYYY-MM-DD' keys (the same format as core's dayKey).
  * Dates are built at local noon so DST shifts never move a day.
  */
-import { dayKey } from '@core';
+import { dayKey, type Locale } from '@core';
+import { MONTHS_HE } from './strings';
 
 const DAY_MS = 86_400_000;
 
@@ -39,11 +40,16 @@ export function weekdayMon(key: string): number {
   return (parseDay(key).getDay() + 6) % 7;
 }
 
+/** 0 = Sunday … 6 = Saturday (the Israeli week). */
+export function weekdaySun(key: string): number {
+  return parseDay(key).getDay();
+}
+
 export const WEEKDAY_INITIALS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as const;
 
 /** `weeks` rows of Monday-first day keys, the last row containing `today`. */
-export function calendarWeeks(today: string, weeks = 5): string[][] {
-  const lastMonday = addDays(today, -weekdayMon(today));
+export function calendarWeeks(today: string, weeks = 5, startOn: 'mon' | 'sun' = 'mon'): string[][] {
+  const lastMonday = addDays(today, -(startOn === 'sun' ? weekdaySun(today) : weekdayMon(today)));
   const first = addDays(lastMonday, -7 * (weeks - 1));
   const rows: string[][] = [];
   for (let w = 0; w < weeks; w++) {
@@ -55,7 +61,7 @@ export function calendarWeeks(today: string, weeks = 5): string[][] {
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-export function shortDate(key: string): string {
+export function shortDate(key: string, locale: Locale = 'en'): string {
   const d = parseDay(key);
-  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  return `${d.getDate()} ${(locale === 'he' ? MONTHS_HE : MONTHS)[d.getMonth()]}`;
 }

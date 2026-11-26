@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { EYES, formatDiopters, formatRx, type AudioPort, type Eye } from '@core';
+import { EYES, formatDiopters, formatRx, pickStrings, type AudioPort, type Eye, type Locale } from '@core';
 import { Button, CountUp, Icon, RingMeter } from '@ui-kit';
 import { perceivedVA, snellen, type EyeModel, type Lens } from './optics';
 import type { Challenge } from './practice';
 import type { Assessment, EyeProtocol } from './scoring';
+import { S, useLoc, useT } from './strings';
 
 export interface DebriefProps {
   mode: 'case' | 'practice';
@@ -20,22 +21,25 @@ export interface DebriefProps {
 const rx = (l: Lens) => formatRx({ sphere: l.sphere, cylinder: l.cyl, axis: l.axis });
 const signed = (v: number) => (Math.abs(v) < 0.005 ? '0.00' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(2));
 
-function lessons(p: DebriefProps): string[] {
+function lessons(p: DebriefProps, locale: Locale): string[] {
+  const t = pickStrings(S, locale);
   const out: string[] = [];
   for (const e of EYES) {
     const err = p.assessment.perEye[e].error;
-    if (p.protocol[e].asks === 0) out.push(`${e} was never checked with the patient — an Rx nobody looked through is only a guess.`);
-    if (err.dM <= -0.24) out.push(`${e} is over-minused by ${formatDiopters(-err.dM).replace('+', '')} D. A young eye accommodates through it — push plus; treat minus like money.`);
-    else if (err.dM >= 0.24) out.push(`${e} is under-minused by ${err.dM.toFixed(2)} D: letters were still gaining clarity with more minus.`);
-    if (err.dCyl > 0.3) out.push(`${e} cylinder is off by ${err.dCyl.toFixed(2)} D (vector). Refine the axis first, then the power, with the cross-cylinder.`);
-    if (!p.protocol[e].fogged) out.push(`${e} was never fogged — without fog, accommodation can hide plus and you drift into over-minus.`);
-    if (!p.protocol[e].duochrome && p.models[e].best <= 0.3) out.push(`${e}: finish with the duochrome — red blacker add minus, green blacker add plus.`);
+    if (p.protocol[e].asks === 0) out.push(t.lessonNever(e));
+    if (err.dM <= -0.24) out.push(t.lessonOver(e, formatDiopters(-err.dM).replace('+', '')));
+    else if (err.dM >= 0.24) out.push(t.lessonUnder(e, err.dM.toFixed(2)));
+    if (err.dCyl > 0.3) out.push(t.lessonCyl(e, err.dCyl.toFixed(2)));
+    if (!p.protocol[e].fogged) out.push(t.lessonFog(e));
+    if (!p.protocol[e].duochrome && p.models[e].best <= 0.3) out.push(t.lessonDuo(e));
   }
-  if (!out.length) out.push('Clean technique: fogged, bracketed, refined the cylinder and confirmed on the duochrome.');
+  if (!out.length) out.push(t.lessonClean);
   return out.slice(0, 4);
 }
 
 export function Debrief(p: DebriefProps) {
+  const t = useT();
+  const loc = useLoc();
   const [picked, setPicked] = useState<number | null>(null);
   // Technique first: the player sees how their own refraction compares, then the recognition check.
   const [stage, setStage] = useState<'result' | 'challenge'>('result');
@@ -58,12 +62,12 @@ export function Debrief(p: DebriefProps) {
           <section class="php-result">
             <div class="php-scroll">
             <header class="php-result__head">
-              <RingMeter value={p.assessment.accuracy} size={96} accent={p.assessment.perfect ? 'var(--lm-gold)' : 'var(--lm-normal)'} ariaLabel="Technique score">
-                <span class="php-result__pct"><CountUp value={Math.round(p.assessment.accuracy * 100)} />%</span>
+              <RingMeter value={p.assessment.accuracy} size={96} accent={p.assessment.perfect ? 'var(--lm-gold)' : 'var(--lm-normal)'} ariaLabel={t.scoreAria}>
+                <span class="php-result__pct"><bdi dir="ltr"><CountUp value={Math.round(p.assessment.accuracy * 100)} />%</bdi></span>
               </RingMeter>
               <div>
-                <p class="php-eyebrow">{p.assessment.perfect ? 'Flawless refraction' : 'Refraction recorded'}</p>
-                <h2 id="php-debrief-title" class="php-result__title">{p.assessment.perfect ? 'Every quarter-dioptre in its place.' : 'Your prescription vs the endpoint'}</h2>
+                <p class="php-eyebrow">{p.assessment.perfect ? t.flawless : t.recorded}</p>
+                <h2 id="php-debrief-title" class="php-result__title">{p.assessment.perfect ? t.flawlessTitle : t.vsEndpoint}</h2>
               </div>
             </header>
             <div class="php-result__eyes">
@@ -74,9 +78,9 @@ export function Debrief(p: DebriefProps) {
                   <div class={`php-rx${err.exact ? ' is-exact' : ''}`} key={e}>
                     <div class="php-rx__eye">{e}</div>
                     <dl>
-                      <dt>Yours</dt><dd class="php-num">{rx(p.finals[e])}</dd>
-                      <dt>Endpoint</dt><dd class="php-num">{rx(p.truths[e])}</dd>
-                      <dt>VA with yours</dt><dd class="php-num">{va}</dd>
+                      <dt>{t.yours}</dt><dd class="php-num" dir="ltr">{rx(p.finals[e])}</dd>
+                      <dt>{t.endpoint}</dt><dd class="php-num" dir="ltr">{rx(p.truths[e])}</dd>
+                      <dt>{t.vaWithYours}</dt><dd class="php-num" dir="ltr">{va}</dd>
                     </dl>
                     <div class="php-rx__err">
                       <span class={Math.abs(err.dM) <= 0.13 ? 'ok' : 'off'}>SE {signed(err.dM)}</span>
@@ -87,16 +91,16 @@ export function Debrief(p: DebriefProps) {
               })}
             </div>
             <ul class="php-lessons">
-              {lessons(p).map((l) => <li key={l}>{l}</li>)}
+              {lessons(p, loc).map((l) => <li key={l}>{l}</li>)}
             </ul>
             </div>
             <div class="php-result__foot">
               {ch ? (
                 <Button variant="primary" size="lg" icon="arrow-right" sfx={false} onClick={() => { p.audio.play('select'); setStage('challenge'); }} autoFocus>
-                  Recognition check
+                  {t.recognitionCheck}
                 </Button>
               ) : (
-                <Button variant="primary" size="lg" icon="chart" sfx={false} onClick={() => { p.audio.play('stamp'); p.onFinish(null); }} autoFocus>Finish</Button>
+                <Button variant="primary" size="lg" icon="chart" sfx={false} onClick={() => { p.audio.play('stamp'); p.onFinish(null); }} autoFocus>{t.finish}</Button>
               )}
             </div>
           </section>
@@ -105,7 +109,7 @@ export function Debrief(p: DebriefProps) {
         {stage === 'challenge' && ch && (
           <section class="php-challenge" aria-live="polite">
             <div class="php-scroll">
-            <p class="php-eyebrow">Recognition check</p>
+            <p class="php-eyebrow">{t.recognitionCheck}</p>
             <h3 id="php-debrief-title" class="php-challenge__q">{ch.question}</h3>
             <div class="php-challenge__opts">
               {ch.options.map((o, i) => (
@@ -123,13 +127,13 @@ export function Debrief(p: DebriefProps) {
             </div>
             {picked !== null && (
               <p ref={explain} class={`php-challenge__explain${correct ? ' is-right' : ''}`}>
-                <Icon name={correct ? 'check' : 'info'} /> {correct ? 'Correct. ' : `It's ${ch.options[ch.correct]}. `}{ch.explain}
+                <Icon name={correct ? 'check' : 'info'} /> {correct ? t.correctPrefix : t.itsPrefix(ch.options[ch.correct]!)}{ch.explain}
               </p>
             )}
             </div>
             {picked !== null && (
               <div class="php-result__foot">
-                <Button variant="primary" size="lg" icon="chart" sfx={false} onClick={() => { p.audio.play('stamp'); p.onFinish(correct); }} autoFocus>Finish</Button>
+                <Button variant="primary" size="lg" icon="chart" sfx={false} onClick={() => { p.audio.play('stamp'); p.onFinish(correct); }} autoFocus>{t.finish}</Button>
               </div>
             )}
           </section>

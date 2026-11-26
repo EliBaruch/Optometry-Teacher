@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { JSX } from 'preact';
-import { EYES, otherEye, type Eye, type MiniGameContext, type MiniGameDone, type RetinoscopyReflex } from '@core';
+import { EYES, otherEye, pickStrings, type Eye, type MiniGameContext, type MiniGameDone, type RetinoscopyReflex } from '@core';
 import { Button, Icon } from '@ui-kit';
 import { MeridianDial } from './Dial';
 import { LensDrum } from './LensDrum';
@@ -10,7 +10,8 @@ import {
 } from './optics';
 import type { EyeLook, ScopeScene } from './painter';
 import { makeChallenge, pickWd, type Challenge } from './practice';
-import { REFLEX_SHORT, report } from './report';
+import { report } from './report';
+import { LocaleCtx, S, useT } from './strings';
 import { ChallengeCard, Debrief } from './Results';
 import { assess, type Assessment, type EyeEntry } from './scoring';
 import { Scope } from './Scope';
@@ -49,6 +50,8 @@ type Phase = 'measure' | 'challenge' | 'debrief';
 const TOL: Record<RetinoscopyReflex, number> = { normal: 0.125, dull: 0.125, scissors: 0.375, irregular: 0.375, absent: -1 };
 
 export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
+  const loc = ctx.locale;
+  const t = pickStrings(S, loc);
   const f = ctx.findings;
   const d = clamp(ctx.difficulty, 0, 1);
   const reduced = ctx.reducedMotion;
@@ -61,7 +64,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const start = (): number => (d < 0.3 ? 180 : r.pick([180, 90, 45, 135, 165, 120]));
     return { OD: r.int(1, 99999), OS: r.int(1, 99999), startOD: start(), startOS: start() };
   }, []);
-  const challenge = useMemo<Challenge | null>(() => (ctx.mode === 'practice' ? makeChallenge(f, wdCm, ctx.rng.fork('challenge')) : null), []);
+  const challenge = useMemo<Challenge | null>(() => (ctx.mode === 'practice' ? makeChallenge(f, wdCm, ctx.rng.fork('challenge'), loc) : null), []);
 
   const fresh = (eye: Eye): EyeSession => ({
     phi: eye === 'OD' ? seeds.startOD : seeds.startOS, lens: 0, step: 'm1', m1: null, m2: null, wd: 0, reflex: null, net: null, noReflex: false,
@@ -229,8 +232,8 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     if (guide && d >= 0.5) assisted.current = true;
     const lock: MeridianLock = { phi: s.phi, gross: s.lens };
     setNote(neutral
-      ? { text: `Neutral at ${fmtGross(s.lens)} — locked.`, tone: 'ok' }
-      : { text: g.motion === 'with' ? 'Still WITH motion — that was not quite neutral.' : g.motion === 'against' ? 'Still AGAINST motion — that was not quite neutral.' : 'The reflex was still broken — check the meridian.', tone: 'warn' });
+      ? { text: t.noteNeutral(fmtGross(s.lens)), tone: 'ok' }
+      : { text: g.motion === 'with' ? t.noteWith : g.motion === 'against' ? t.noteAgainst : t.noteBroken, tone: 'warn' });
     ctx.audio.play(neutral ? 'success' : 'select', { pitch: neutral ? 1.25 : 1, volume: 0.6 });
     burstAt(lockRef.current);
     if (s.step === 'm1') update((x) => ({ ...x, m1: lock, step: 'm2', phi: wrapPhi(lock.phi + 90) }));
@@ -282,7 +285,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const r = recordRef.current?.getBoundingClientRect();
     if (r) {
       ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#ffd27a' });
-      if (a.perfect) ctx.fx.floatText('Perfect neutrality', r.left + r.width / 2, r.top - 12, { color: '#ffd27a' });
+      if (a.perfect) ctx.fx.floatText(t.perfectFloat, r.left + r.width / 2, r.top - 12, { color: '#ffd27a' });
     }
     setPhase(challenge ? 'challenge' : 'debrief');
   };
@@ -300,7 +303,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       testId: ctx.testId,
       accuracy: Math.round(accuracy * 1000) / 1000,
       timeMs: Math.round(performance.now() - t0.current),
-      findings: report(ctx.findings, ctx.patient),
+      findings: report(ctx.findings, ctx.patient, loc),
       perfect: result.perfect && answer !== false,
     });
   };
@@ -351,32 +354,32 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const m1 = cur.m1;
   const m2 = cur.m2;
   const nextMeridian = cur.step === 'm1' ? 1 : 2;
-  const wdNote = d <= 0.5 ? ` Net = gross − ${wdTrue.toFixed(2)} D (${wdCm} cm).` : '';
+  const wdNote = d <= 0.5 ? t.wdNote(wdTrue.toFixed(2), wdCm) : '';
   const hint = tutorial
-    ? 'Neutralise the reflex on each principal meridian, then subtract the working distance.'
+    ? t.hintTutorial
     : cur.step === 'done'
-      ? EYES.every((e) => eyes[e].step === 'done') ? 'Both eyes measured — record your findings.' : `${eye} done. Switch to ${otherE} (E).`
+      ? EYES.every((e) => eyes[e].step === 'done') ? t.hintBoth : t.hintSwitch(eye, otherE)
       : cur.reflex === 'absent'
-        ? 'No red reflex at all? Confirm it — you cannot neutralise what you cannot see.'
+        ? t.hintAbsent
         : cur.step === 'wd'
-          ? `Both meridians neutral (gross ${fmtGross(m1!.gross)} and ${fmtGross(m2!.gross)}). Now subtract the working-distance lens.${wdNote}`
+          ? t.hintWd(fmtGross(m1!.gross), fmtGross(m2!.gross), wdNote)
           : cur.step === 'm2'
-            ? `Second meridian, 90° away. Neutralise it with the lens, then lock it.`
+            ? t.hintM2
             : ui.neutral && d < 0.6
-              ? 'The pupil floods at once — neutral! Lock this meridian.'
+              ? t.hintFlood
               : !cur.touched.sweep && !auto
-                ? 'Drag across the pupil (or use ← →) to sweep the streak.'
+                ? t.hintDrag
                 : !cur.touched.lens
-                  ? 'Does the reflex move WITH or AGAINST the streak? With → add plus, against → add minus.'
+                  ? t.hintWithAgainst
                   : !cur.touched.rot && Math.abs(tr.cylinder) >= 0.5
-                    ? 'The reflex looks broken or tilted? Turn the sleeve to find the principal meridian.'
-                    : `Neutralise meridian 1 — the reflex should flood the whole pupil. Then lock it (Enter).`;
+                    ? t.hintTurn
+                    : t.hintM1;
 
-  const primaryLabel = cur.step === 'done' ? `Re-measure ${eye}`
-    : cur.reflex === 'absent' ? 'Confirm: no reflex obtained'
-      : cur.step === 'm1' ? `Lock meridian 1 · ${fmtAxis(Math.round(cur.phi) || 180)}°`
-        : cur.step === 'm2' ? `Lock meridian 2 · ${fmtAxis(Math.round(cur.phi) || 180)}°`
-          : !cur.reflex ? 'Describe the reflex to continue' : 'Confirm net Rx';
+  const primaryLabel = cur.step === 'done' ? t.reMeasure(eye)
+    : cur.reflex === 'absent' ? t.confirmNoReflex
+      : cur.step === 'm1' ? t.lockM(1, fmtAxis(Math.round(cur.phi) || 180))
+        : cur.step === 'm2' ? t.lockM(2, fmtAxis(Math.round(cur.phi) || 180))
+          : !cur.reflex ? t.describeReflex : t.confirmNet;
   const primaryDisabled = busy || (cur.step === 'wd' && !cur.reflex && true);
 
   const net = m1 && m2 ? netFromLocks(m1, m2, cur.wd) : null;
@@ -384,16 +387,17 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const dark = f.pupils?.sizeDarkMm?.[eye] ?? 6;
     return { skin: ctx.patient.avatar.skin, iris: ctx.patient.avatar.irisColor, seed: eye === 'OD' ? seeds.OD : seeds.OS, pupilFrac: clamp(dark / 11.8, 0.5, 0.6) };
   }, [eye]);
-  const guideText = ui.motion === 'with' ? 'WITH' : ui.motion === 'against' ? 'AGAINST' : ui.motion === 'skew' ? 'BROKEN' : 'NEUTRAL';
+  const guideText = ui.motion === 'with' ? t.guideWith : ui.motion === 'against' ? t.guideAgainst : ui.motion === 'skew' ? t.guideBroken : t.guideNeutral;
   const sweepMeridian = fmtAxis(Math.round(cur.phi) || 180);
   const streakAxis = fmtAxis(Math.round(wrapPhi(cur.phi + 90)) || 180);
 
   return (
+    <LocaleCtx.Provider value={loc}>
     <div class="rt-root" ref={rootRef} tabIndex={-1} onKeyDown={onKey}>
       <header class="rt-head">
-        <div class="rt-head__title"><Icon name="retinoscopy" /> <span>Retinoscope</span></div>
+        <div class="rt-head__title"><Icon name="retinoscopy" /> <span>{t.title}</span></div>
         <p class="rt-head__hint" key={hint} aria-live="polite">{hint}</p>
-        <div class="rt-seg" role="radiogroup" aria-label="Eye">
+        <div class="rt-seg" role="radiogroup" aria-label={t.eyeGroup}>
           {EYES.map((e) => (
             <button key={e} type="button" role="radio" aria-checked={eye === e} class={`rt-seg__b${eye === e ? ' is-on' : ''}`} onClick={() => switchEye(e)} disabled={busy}>
               {e}
@@ -404,64 +408,64 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       </header>
 
       <main class="rt-stage">
-        <section class={`rt-scope${switching ? ' is-switching' : ''}`} key={`scope-${switching}`} aria-label={`Retinoscopy view, ${eye}`}>
+        <section class={`rt-scope${switching ? ' is-switching' : ''}`} key={`scope-${switching}`} aria-label={t.scopeAria(eye)}>
           <div class="rt-bezel">
-            <Scope look={look} frame={frameRef} onGeo={geoCb} onDrag={onDrag} disabled={busy} label={`Pupil of the ${eye} with the retinoscope streak and red reflex`} />
+            <Scope look={look} frame={frameRef} onGeo={geoCb} onDrag={onDrag} disabled={busy} label={t.pupilAria(eye)} />
             <div class="rt-ring" ref={ringRef} aria-hidden="true" data-on={d < 0.6 || guide ? '1' : '0'} />
           </div>
           <span class="rt-scope__eye" aria-hidden="true">{eye}</span>
-          <span class="rt-scope__wd" title="Working distance"><Icon name="target" /> {wdCm} cm</span>
+          <span class="rt-scope__wd" title={t.wdTitle}><Icon name="target" /> {t.cm(wdCm)}</span>
           {guide && cur.step !== 'done' && quality[eye] !== 'absent' && (
             <span class={`rt-guide rt-guide--${ui.motion}`} aria-live="off">
               <i aria-hidden="true">{ui.motion === 'with' ? '▸▸' : ui.motion === 'against' ? '◂▸' : ui.motion === 'skew' ? '✕' : '●'}</i> {guideText}
             </span>
           )}
-          {cur.step === 'done' && <span class="rt-scope__lock"><Icon name="lock" /> Done</span>}
-          {!cur.touched.sweep && !auto && cur.step === 'm1' && !tutorial && <span class="rt-scope__tip">Drag to sweep the streak</span>}
+          {cur.step === 'done' && <span class="rt-scope__lock"><Icon name="lock" /> {t.done}</span>}
+          {!cur.touched.sweep && !auto && cur.step === 'm1' && !tutorial && <span class="rt-scope__tip">{t.dragTip}</span>}
         </section>
 
-        <section class="rt-panel" aria-label="Instrument controls">
+        <section class="rt-panel" aria-label={t.controls}>
           <div class="rt-row rt-row--dial">
             <MeridianDial value={cur.phi} onChange={onRotate} disabled={busy || cur.step !== 'm1'} />
             <div class="rt-dialinfo">
-              <p class="rt-k">Sweep meridian</p>
+              <p class="rt-k">{t.sweepMeridian}</p>
               <p class="rt-big rt-num">{sweepMeridian}°</p>
-              <p class="rt-sub">streak axis {streakAxis}°</p>
+              <p class="rt-sub">{t.streakAxis(streakAxis)}</p>
               <div class="rt-toggles">
-                <button type="button" class={`rt-toggle${auto ? ' is-on' : ''}`} onClick={() => setAuto((v) => !v)} aria-pressed={auto} disabled={busy} title="Auto-sweep (Space)">
-                  <Icon name={auto ? 'pause' : 'play'} /> Auto-sweep
+                <button type="button" class={`rt-toggle${auto ? ' is-on' : ''}`} onClick={() => setAuto((v) => !v)} aria-pressed={auto} disabled={busy} title={t.autoSweepTitle}>
+                  <Icon name={auto ? 'pause' : 'play'} /> {t.autoSweep}
                 </button>
-                <button type="button" class={`rt-toggle${guide ? ' is-on' : ''}`} onClick={() => setGuide((v) => !v)} aria-pressed={guide} disabled={busy} title="Motion guide (G)">
-                  <Icon name="eye" /> Guide
+                <button type="button" class={`rt-toggle${guide ? ' is-on' : ''}`} onClick={() => setGuide((v) => !v)} aria-pressed={guide} disabled={busy} title={t.guideTitle}>
+                  <Icon name="eye" /> {t.guide}
                 </button>
               </div>
-              {cur.step !== 'm1' && cur.step !== 'done' && <p class="rt-lockednote"><Icon name="lock" /> 2nd meridian is 90° from the 1st</p>}
+              {cur.step !== 'm1' && cur.step !== 'done' && <p class="rt-lockednote"><Icon name="lock" /> {t.secondMeridian}</p>}
             </div>
           </div>
 
           <div class="rt-lens">
             <div class="rt-lens__meta">
-              <span class="rt-k">Trial lens (gross)</span>
+              <span class="rt-k">{t.trialLens}</span>
               <output class="rt-big rt-num rt-lens__v">{fmtGross(cur.lens)}</output>
             </div>
             <LensDrum value={cur.lens} min={LENS_MIN} max={LENS_MAX} onStep={onLens} disabled={busy || cur.step === 'done'} />
-            <div class="rt-rack" role="group" aria-label="Lens rack">
+            <div class="rt-rack" dir="ltr" role="group" aria-label={t.lensRack}>
               {[-1, -0.25, 0.25, 1].map((v) => (
-                <button key={v} type="button" class={`rt-jewel rt-jewel--${v < 0 ? 'minus' : 'plus'}`} onClick={() => onLens(v > 0 ? 1 : -1, Math.abs(v) === 1)} disabled={busy || cur.step === 'done'} aria-label={`${fmtSigned(v)} dioptres`}>
+                <button key={v} type="button" class={`rt-jewel rt-jewel--${v < 0 ? 'minus' : 'plus'}`} onClick={() => onLens(v > 0 ? 1 : -1, Math.abs(v) === 1)} disabled={busy || cur.step === 'done'} aria-label={t.dioptres(fmtSigned(v))}>
                   {fmtSigned(v).replace('0.', '.').replace('1.00', '1')}
                 </button>
               ))}
-              <button type="button" class="rt-jewel rt-jewel--zero" onClick={() => onLens(-cur.lens / 0.25, false)} disabled={busy || cur.step === 'done' || cur.lens === 0} aria-label="Reset lens to plano">0</button>
-              <span class="rt-rack__spam" aria-hidden="true"><b>S</b>ame <b>P</b>lus · <b>A</b>gainst <b>M</b>inus</span>
+              <button type="button" class="rt-jewel rt-jewel--zero" onClick={() => onLens(-cur.lens / 0.25, false)} disabled={busy || cur.step === 'done' || cur.lens === 0} aria-label={t.resetLens}>0</button>
+              <span class="rt-rack__spam" dir="auto" aria-hidden="true">{t.spam.map((x) => <span key={x.b}><b>{x.b}</b>{x.t}{x.sep}</span>)}</span>
             </div>
           </div>
 
           <div class="rt-reflex">
-            <span class="rt-k" id="rt-reflex-k">Reflex quality</span>
+            <span class="rt-k" id="rt-reflex-k">{t.reflexQuality}</span>
             <div class="rt-chips" role="radiogroup" aria-labelledby="rt-reflex-k">
               {REFLEXES.map((r) => (
                 <button key={r} type="button" role="radio" aria-checked={cur.reflex === r} class={`rt-chip${cur.reflex === r ? ' is-on' : ''}`} onClick={() => pickReflex(r)} disabled={busy || cur.step === 'done'}>
-                  {REFLEX_SHORT[r]}
+                  {t.reflexShort[r]}
                 </button>
               ))}
             </div>
@@ -471,18 +475,18 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             <PowerCross cur={cur} wd={cur.wd} />
             <div class="rt-cross__txt">
               {cur.step === 'wd' && (
-                <div class="rt-wd" role="group" aria-label="Working-distance lens to subtract">
-                  <span class="rt-k">Subtract WD lens</span>
+                <div class="rt-wd" role="group" aria-label={t.wdGroup}>
+                  <span class="rt-k">{t.subtractWd}</span>
                   <div class="rt-chips">
                     {WD_CHOICES.map((w) => (
                       <button key={w} type="button" class={`rt-chip${cur.wd === w ? ' is-on' : ''}`} onClick={() => { update((x) => ({ ...x, wd: w })); sfx('dial', 1.2, 0.4); }} disabled={busy}>
-                        {w === 0 ? 'None' : `+${w.toFixed(2)}`}
+                        {w === 0 ? t.none : <bdi dir="ltr">{`+${w.toFixed(2)}`}</bdi>}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
-              <p class="rt-net"><span class="rt-k">Net Rx</span><b class="rt-num">{cur.step === 'done' && cur.noReflex ? 'No reflex' : net && (cur.step === 'wd' || cur.step === 'done') ? fmtRx(cur.net ?? net) : '—'}</b></p>
+              <p class="rt-net"><span class="rt-k">{t.netRx}</span><b class="rt-num"><bdi>{cur.step === 'done' && cur.noReflex ? t.noReflex : net && (cur.step === 'wd' || cur.step === 'done') ? fmtRx(cur.net ?? net) : '—'}</bdi></b></p>
               {note && <p class={`rt-note rt-note--${note.tone}`} key={note.text}>{note.text}</p>}
             </div>
           </div>
@@ -492,7 +496,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
               {primaryLabel}
             </Button>
             {cur.step !== 'm1' && cur.step !== 'done' && (
-              <button type="button" class="rt-redo" onClick={redo} disabled={busy}>Start this eye again</button>
+              <button type="button" class="rt-redo" onClick={redo} disabled={busy}>{t.startAgain}</button>
             )}
           </div>
         </section>
@@ -505,13 +509,13 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             return (
               <span key={e} class={`rt-progress__e${s.step === 'done' ? ' is-done' : ''}${e === eye ? ' is-cur' : ''}`}>
                 <b>{e}</b>
-                <span class="rt-num">{s.step === 'done' ? (s.noReflex ? 'no reflex' : fmtRx(s.net!)) : s.m1 ? `meridian ${nextMeridian === 2 || s.step !== 'm1' ? '2' : '1'}…` : 'not measured'}</span>
+                <span class="rt-num"><bdi>{s.step === 'done' ? (s.noReflex ? t.noReflexLower : fmtRx(s.net!)) : s.m1 ? t.meridianN(nextMeridian === 2 || s.step !== 'm1' ? '2' : '1') : t.notMeasured}</bdi></span>
               </span>
             );
           })}
         </div>
         <div ref={recordRef}>
-          <Button variant="primary" icon="check" onClick={record} disabled={busy || !anyDone} sfx={false}>Record findings</Button>
+          <Button variant="primary" icon="check" onClick={record} disabled={busy || !anyDone} sfx={false}>{t.recordFindings}</Button>
         </div>
       </footer>
 
@@ -521,11 +525,13 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
         <Debrief assessment={result} practice={ctx.mode === 'practice'} challengeCorrect={answer} onDone={finish} />
       )}
     </div>
+    </LocaleCtx.Provider>
   );
 }
 
 /** Power cross: the two locked meridians drawn at their real angles with gross (or net) values. */
 function PowerCross({ cur, wd }: { cur: EyeSession; wd: number }) {
+  const tx = useT();
   const arm = (lock: MeridianLock | null, idx: number): JSX.Element | null => {
     if (!lock) return null;
     const t = (lock.phi * Math.PI) / 180;
@@ -543,7 +549,7 @@ function PowerCross({ cur, wd }: { cur: EyeSession; wd: number }) {
   };
   const t = (cur.phi * Math.PI) / 180;
   return (
-    <svg class="rt-crossv" viewBox="0 0 120 120" role="img" aria-label="Power cross of the locked meridians">
+    <svg class="rt-crossv" dir="ltr" viewBox="0 0 120 120" role="img" aria-label={tx.crossAria}>
       <circle cx="60" cy="60" r="46" class="rt-cross__ring" />
       {cur.step !== 'done' && cur.step !== 'wd' && <line class="rt-cross__live" x1={60 - Math.cos(t) * 36} y1={60 + Math.sin(t) * 36} x2={60 + Math.cos(t) * 36} y2={60 - Math.sin(t) * 36} />}
       {arm(cur.m1, 1)}

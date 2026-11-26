@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import type { AudioPort, Eye, PatientFindings } from '@core';
+import type { AudioPort, Eye, Locale, PatientFindings } from '@core';
+import { T } from './strings';
 import { Button } from '@ui-kit';
 import { redSaturationPct } from './clinical';
 import { Dial } from './Dial';
@@ -20,17 +21,19 @@ export function desaturatedRed(pct: number): string {
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
-export function capRemark(pct: number): string {
-  if (pct >= 95) return 'A rich, bright red.';
-  if (pct >= 65) return 'Red… but a little faded.';
-  if (pct >= 40) return 'Duller — more like a rusty orange.';
-  return 'Washed out. Almost a brownish grey.';
+export function capRemark(pct: number, locale: Locale = 'en'): string {
+  const r = T(locale).capRemarks;
+  if (pct >= 95) return r[0]!;
+  if (pct >= 65) return r[1]!;
+  if (pct >= 40) return r[2]!;
+  return r[3]!;
 }
 
-export function matchRemark(dial: number, target: number): { text: string; matched: boolean } {
-  if (Math.abs(dial - target) <= 7) return { text: 'Yes — that’s exactly how it looks.', matched: true };
-  if (dial > target) return { text: 'Still too red — it’s duller than that.', matched: false };
-  return { text: 'Too grey now — a bit more red.', matched: false };
+export function matchRemark(dial: number, target: number, locale: Locale = 'en'): { text: string; matched: boolean } {
+  const r = T(locale).matchRemarks;
+  if (Math.abs(dial - target) <= 7) return { text: r[0]!, matched: true };
+  if (dial > target) return { text: r[1]!, matched: false };
+  return { text: r[2]!, matched: false };
 }
 
 function Cap(props: { tint: string; lifted: boolean }) {
@@ -77,10 +80,12 @@ export interface RedCapProps {
   initial: RedCapResult & { shown: Eye[] };
   onClose: (r: RedCapResult & { shown: Eye[] }) => void;
   say: (text: string) => void;
+  locale?: Locale;
 }
 
 /** Red-cap desaturation comparison + saturation-matching dial. */
-export function RedCap({ findings, audio, initial, onClose, say }: RedCapProps) {
+export function RedCap({ findings, audio, initial, onClose, say, locale = 'en' }: RedCapProps) {
+  const t = T(locale);
   const [shown, setShown] = useState<Eye[]>(initial.shown);
   const [active, setActive] = useState<Eye | null>(null);
   const [dial, setDial] = useState(initial.match ?? 100);
@@ -98,10 +103,10 @@ export function RedCap({ findings, audio, initial, onClose, say }: RedCapProps) 
     setActive(eye);
     const next = shown.includes(eye) ? shown : [...shown, eye];
     setShown(next);
-    let text = `${eye === 'OD' ? 'Right' : 'Left'} eye: ${capRemark(pct[eye])}`;
+    let text = t.capEye(eye, capRemark(pct[eye], locale));
     if (next.length === 2) {
-      if (pct.OD === pct.OS) text += ' Both eyes look the same to me.';
-      else text += ` It’s definitely duller through my ${pct.OD < pct.OS ? 'right' : 'left'} eye.`;
+      if (pct.OD === pct.OS) text += t.capBothSame;
+      else text += t.capDuller(pct.OD < pct.OS);
     }
     say(text);
   };
@@ -110,7 +115,7 @@ export function RedCap({ findings, audio, initial, onClose, say }: RedCapProps) 
     setDial(v);
     audio.play('dial', { volume: 0.3, pitch: 0.8 + v / 250 });
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setFeedback(matchRemark(v, target).text), 380);
+    timer.current = setTimeout(() => setFeedback(matchRemark(v, target, locale).text), 380);
   };
 
   const record = () => {
@@ -124,9 +129,9 @@ export function RedCap({ findings, audio, initial, onClose, say }: RedCapProps) 
     <div class="cv-overlay" role="dialog" aria-modal="true" aria-labelledby="cv-cap-title">
       <div class="cv-sheetpanel cv-capstep">
         <header class="cv-sheetpanel__head">
-          <div class="cv-eyebrow">Red saturation</div>
-          <h3 id="cv-cap-title" class="cv-sheetpanel__title">Red-cap comparison</h3>
-          <p class="cv-sheetpanel__sub">Show the red cap to each eye in turn. If one eye sees it duller, turn the dial until the swatch matches what that eye sees.</p>
+          <div class="cv-eyebrow">{t.capEyebrow}</div>
+          <h3 id="cv-cap-title" class="cv-sheetpanel__title">{t.capTitle}</h3>
+          <p class="cv-sheetpanel__sub">{t.capSub}</p>
         </header>
         <div class="cv-capstep__body">
           <div class="cv-capstep__stage">
@@ -135,33 +140,33 @@ export function RedCap({ findings, audio, initial, onClose, say }: RedCapProps) 
             <div class="cv-capstep__eyes">
               {(['OD', 'OS'] as Eye[]).map((e) => (
                 <Button key={e} variant={active === e ? 'primary' : 'glass'} size="sm" sfx={false} icon={shown.includes(e) ? 'check' : 'eye'} onClick={() => present(e)}>
-                  Show to {e}
+                  {t.showTo(e)}
                 </Button>
               ))}
             </div>
           </div>
           <div class={`cv-capstep__match ${both ? '' : 'is-locked'}`} aria-disabled={!both}>
-            <div class="cv-capstep__swatches">
+            <div class="cv-capstep__swatches" dir="ltr">
               <figure>
                 <span class="cv-swatch" style={{ background: desaturatedRed(100) }} />
-                <figcaption>Reference</figcaption>
+                <figcaption>{t.reference}</figcaption>
               </figure>
               <figure>
                 <span class="cv-swatch" style={{ background: desaturatedRed(dial) }} />
-                <figcaption>Duller eye · <b>{dial}%</b></figcaption>
+                <figcaption>{t.dullerEye} <b dir="ltr">{dial}%</b></figcaption>
               </figure>
             </div>
             <div class="cv-capstep__dial">
-              <Dial value={dial} min={0} max={100} step={5} degPerStep={13.5} onChange={both ? turn : () => {}} label="Red saturation of the duller eye" valueText={`${dial} percent`} size={84} />
-              <div class="cv-capstep__feedback" aria-live="polite">{both ? feedback || 'Turn the dial — the patient will guide you.' : 'Show the cap to both eyes first.'}</div>
+              <Dial value={dial} min={0} max={100} step={5} degPerStep={13.5} onChange={both ? turn : () => {}} label={t.dialLabel} valueText={t.percent(dial)} size={84} />
+              <div class="cv-capstep__feedback" aria-live="polite">{both ? feedback || t.dialHint : t.showBothFirst}</div>
             </div>
             <Button variant="glass" size="sm" sfx={false} icon="check" disabled={!both} onClick={record}>
-              {recorded !== undefined ? `Recorded ${recorded}%` : 'Record match'}
+              {recorded !== undefined ? t.recorded(recorded) : t.recordMatch}
             </Button>
           </div>
         </div>
         <footer class="cv-sheetpanel__foot">
-          <Button variant="primary" sfx={false} trailingIcon="arrow-right" onClick={close}>Back to plates</Button>
+          <Button variant="primary" sfx={false} trailingIcon="arrow-right" onClick={close}>{t.backToPlates}</Button>
         </footer>
       </div>
     </div>

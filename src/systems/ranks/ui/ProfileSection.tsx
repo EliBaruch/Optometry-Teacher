@@ -1,6 +1,8 @@
 import { useMemo } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { Button, CountUp, GlassPanel, Icon, IconOrText, ProgressBar, type IconName } from '@ui-kit';
+import { Button, CountUp, GlassPanel, Icon, IconOrText, ProgressBar, useStrings, useLocale, type IconName } from '@ui-kit';
+import { achText } from '../model/locale';
+import { S } from '../strings';
 import { ACHIEVEMENTS } from '../model/achievements';
 import { CAREER_COLOR, buildEnv } from '../engine';
 import type { RanksState } from '../model/state';
@@ -8,15 +10,15 @@ import { Crest } from './Crest';
 import { ACTIVE, useRanks } from './hooks';
 import { XpProgress } from './XpProgress';
 
-export function careerStats(s: RanksState, mastered: number) {
+export function careerStats(s: RanksState, mastered: number, t: { stats: Record<string, string> }) {
   const unlocked = Object.keys(s.achievements).length;
   return [
-    { icon: 'chart' as IconName, label: 'Cases', value: s.cases },
-    { icon: 'target' as IconName, label: 'Accuracy', value: s.cases ? Math.round((100 * s.correct) / s.cases) : 0, suffix: '%' },
-    { icon: 'star' as IconName, label: 'S grades', value: s.sGrades },
-    { icon: 'gem' as IconName, label: 'Perfect', value: s.perfect },
-    { icon: 'sparkle' as IconName, label: 'Mastered', value: mastered },
-    { icon: 'trophy' as IconName, label: 'Trophies', value: unlocked, suffix: ` / ${ACHIEVEMENTS.length}` },
+    { icon: 'chart' as IconName, label: t.stats.cases, value: s.cases },
+    { icon: 'target' as IconName, label: t.stats.accuracy, value: s.cases ? Math.round((100 * s.correct) / s.cases) : 0, suffix: '%' },
+    { icon: 'star' as IconName, label: t.stats.sGrades, value: s.sGrades },
+    { icon: 'gem' as IconName, label: t.stats.perfect, value: s.perfect },
+    { icon: 'sparkle' as IconName, label: t.stats.mastered, value: mastered },
+    { icon: 'trophy' as IconName, label: t.stats.trophies, value: unlocked, suffix: ` / ${ACHIEVEMENTS.length}` },
   ];
 }
 
@@ -28,12 +30,13 @@ export function ProfileSection({ services }: { services: GameServices }) {
 
 function ProfileInner({ services }: { services: GameServices }) {
   const { s, info } = useRanks(services);
+  const t = useStrings(S);
   const mastered = useMemo(() => {
     const env = buildEnv(services, s);
     return env.diagnoses.filter((d) => env.stars(d.id) >= 3).length;
   }, [s]);
   return (
-    <GlassPanel class="rk-profile" accent={CAREER_COLOR} eyebrow="Career" title="Rank & mastery" icon="crown">
+    <GlassPanel class="rk-profile" accent={CAREER_COLOR} eyebrow={t.career} title={t.rankMastery} icon="crown">
       <div class="rk-profile__head">
         <Crest rankIndex={info.rankIndex} tier={info.tier} size={84} animate />
         <div class="rk-profile__rank">
@@ -43,20 +46,20 @@ function ProfileInner({ services }: { services: GameServices }) {
         </div>
       </div>
       <dl class="rk-stats">
-        {careerStats(s, mastered).map((st) => (
+        {careerStats(s, mastered, t).map((st) => (
           <div key={st.label} class="rk-stat">
             <dt>
               <Icon name={st.icon} size={14} /> {st.label}
             </dt>
             <dd>
-              <CountUp value={st.value} suffix={st.suffix} />
+              <bdi dir="ltr"><CountUp value={st.value} suffix={st.suffix} /></bdi>
             </dd>
           </div>
         ))}
       </dl>
       <div class="rk-profile__foot">
         <Button variant="glass" size="sm" trailingIcon="arrow-right" onClick={() => services.router.go('career')}>
-          Open Career
+          {t.openCareer}
         </Button>
       </div>
     </GlassPanel>
@@ -71,6 +74,8 @@ export function NextTrophyCard({ services }: { services: GameServices }) {
 
 function NextTrophyInner({ services }: { services: GameServices }) {
   const { s } = useRanks(services);
+  const t = useStrings(S);
+  const locale = useLocale();
   const next = useMemo(() => {
     const env = buildEnv(services, s);
     let best: { def: (typeof ACHIEVEMENTS)[number]; cur: number; max: number; ratio: number } | null = null;
@@ -84,6 +89,7 @@ function NextTrophyInner({ services }: { services: GameServices }) {
     return best;
   }, [s]);
   if (!next) return null;
+  const txt = achText(next.def, locale);
   return (
     <GlassPanel
       class="rk-next"
@@ -98,19 +104,19 @@ function NextTrophyInner({ services }: { services: GameServices }) {
         }
       }}
       role="button"
-      aria-label={`Next trophy: ${next.def.title}. ${next.def.description} Open Career.`}
+      aria-label={t.nextTrophyLabel(txt.title, txt.description)}
     >
       <div class="rk-next__row">
         <span class="rk-next__medal">
           <IconOrText icon={next.def.icon} size={18} />
         </span>
         <div class="rk-next__text">
-          <div class="lm-eyebrow">Next trophy</div>
-          <div class="rk-next__title">{next.def.title}</div>
+          <div class="lm-eyebrow">{t.nextTrophy}</div>
+          <div class="rk-next__title">{txt.title}</div>
         </div>
       </div>
-      <p class="rk-next__desc">{next.def.description}</p>
-      {next.max > 1 && <ProgressBar value={next.cur} max={next.max} size="sm" accent={CAREER_COLOR} valueText={`${next.cur} / ${next.max}`} />}
+      <p class="rk-next__desc">{txt.description}</p>
+      {next.max > 1 && <ProgressBar value={next.cur} max={next.max} size="sm" accent={CAREER_COLOR} valueText={`\u2066${next.cur} / ${next.max}\u2069`} />}
     </GlassPanel>
   );
 }

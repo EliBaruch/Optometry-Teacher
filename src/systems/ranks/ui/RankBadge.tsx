@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { formatNumber, useReducedMotion, useSfx } from '@ui-kit';
+import { formatNumber, useReducedMotion, useSfx, useStrings } from '@ui-kit';
+import { S } from '../strings';
 import { Crest } from './Crest';
 import { ACTIVE, useRanks } from './hooks';
 
@@ -15,6 +16,7 @@ export function RankBadge({ services }: { services: GameServices }) {
 
 function RankBadgeInner({ services }: { services: GameServices }) {
   const { info } = useRanks(services);
+  const t = useStrings(S);
   const reduced = useReducedMotion();
   const play = useSfx();
   const ref = useRef<HTMLButtonElement>(null);
@@ -38,7 +40,7 @@ function RankBadgeInner({ services }: { services: GameServices }) {
     return () => clearTimeout(t);
   }, [info.xp]);
 
-  const label = `${info.title}, level ${info.number}. ${formatNumber(info.into)} of ${formatNumber(info.span)} XP to ${info.nextTitle}. Open Career.`;
+  const label = t.badgeLabel(info.title, String(info.number), formatNumber(info.into), formatNumber(info.span), info.nextTitle);
   return (
     <button
       ref={ref}
@@ -70,7 +72,7 @@ function RankBadgeInner({ services }: { services: GameServices }) {
       </span>
       <span class="rk-badge__text" aria-hidden="true">
         <span class="rk-badge__title">{info.title}</span>
-        <span class="rk-badge__xp lm-num">
+        <span class="rk-badge__xp lm-num" dir="ltr">
           {formatNumber(info.into)}
           <span class="rk-badge__sep">/</span>
           {formatNumber(info.span)} XP

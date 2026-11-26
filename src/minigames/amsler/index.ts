@@ -3,6 +3,7 @@ import type { MiniGameModule, MiniGameResult } from '@core';
 import { AmslerGame } from './AmslerGame';
 import { practiceScenario } from './practice';
 import { report } from './report';
+import { AMSLER_TEXT } from './strings';
 import './amsler.css';
 
 const amsler: MiniGameModule = {
@@ -16,6 +17,7 @@ const amsler: MiniGameModule = {
     'Charting defects in field terms: temporal versus nasal flips between eyes',
     'New distortion in an older patient warrants urgent retina review',
   ],
+  text: { he: AMSLER_TEXT },
   mount(host, ctx, done) {
     let called = false;
     const finish = (r: MiniGameResult) => {

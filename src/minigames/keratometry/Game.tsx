@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { EYES, otherEye, type Eye, type MiniGameContext, type MiniGameDone } from '@core';
 import { Button, Icon } from '@ui-kit';
+import { pickStrings } from '@core';
+import { fix, S } from './strings';
+import { LocaleContext } from './locale';
 import { Drum } from './Drum';
 import { Eyepiece } from './Eyepiece';
 import {
@@ -10,7 +13,7 @@ import {
 import type { ViewScene } from './painter';
 import { makeChallenge, type Challenge } from './practice';
 import { ChallengeCard, Debrief } from './Results';
-import { report } from './report';
+import { reportFor } from './report';
 import { assess, type Assessment, type EyeReading } from './scoring';
 import { Tutorial } from './Tutorial';
 
@@ -31,10 +34,8 @@ interface EyeSession {
 
 type Phase = 'measure' | 'challenge' | 'debrief';
 
-const MIRE_LABEL: Record<MireGrade, string> = { regular: 'Regular', irregular: 'Irregular', distorted: 'Distorted' };
-
 /** Rule category from the steep-meridian axis (with-the-rule: steep near 90). */
-function ruleOf(steepAxis: number): string {
+function ruleOf(steepAxis: number): 'with-the-rule' | 'against-the-rule' | 'oblique' {
   const a = ((steepAxis % 180) + 180) % 180;
   const fromVert = Math.abs(a - 90);
   return fromVert <= 20 ? 'with-the-rule' : fromVert >= 70 ? 'against-the-rule' : 'oblique';
@@ -42,6 +43,7 @@ function ruleOf(steepAxis: number): string {
 
 export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
   const f = ctx.findings;
+  const t = pickStrings(S, ctx.locale);
   const d = clamp(ctx.difficulty, 0, 1);
   const truth = useMemo(() => ({ OD: normalizeK(f.keratometry.OD), OS: normalizeK(f.keratometry.OS) }), []);
   const hidden = useMemo(() => {
@@ -54,7 +56,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       startK: d < 0.4 ? 43 : eighth(r.float(40, 46)),
     };
   }, []);
-  const challenge = useMemo<Challenge | null>(() => (ctx.mode === 'practice' ? makeChallenge(f, ctx.rng.fork('challenge')) : null), []);
+  const challenge = useMemo<Challenge | null>(() => (ctx.mode === 'practice' ? makeChallenge(f, ctx.rng.fork('challenge'), ctx.locale) : null), []);
 
   const fresh = (): EyeSession => ({
     ins: { focus: 0, theta: 0, pH: hidden.startK, pV: hidden.startK },
@@ -188,7 +190,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const r = recordRef.current?.getBoundingClientRect();
     if (r) {
       ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#ffd27a' });
-      if (a.perfect) ctx.fx.floatText('Perfect alignment', r.left + r.width / 2, r.top - 12, { color: '#ffd27a' });
+      if (a.perfect) ctx.fx.floatText(t.perfect, r.left + r.width / 2, r.top - 12, { color: '#ffd27a' });
     }
     setPhase(challenge ? 'challenge' : 'debrief');
   };
@@ -208,7 +210,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       testId: ctx.testId,
       accuracy: Math.round(accuracy * 1000) / 1000,
       timeMs: Math.round(performance.now() - t0.current),
-      findings: report(ctx.findings),
+      findings: reportFor(ctx.findings, ctx.locale),
       perfect: result.perfect && answer !== false,
     });
   };
@@ -260,23 +262,24 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const axisV = String(wrapAxis(cur.ins.theta + 90)).padStart(3, '0');
   const other = otherEye(eye);
   const hint = tutorial
-    ? 'Measure the curvature of the front of the cornea.'
+    ? t.hintTut
     : locked
-      ? eyes[other].locked ? 'Both eyes measured — record your findings.' : `${eye} locked. Switch to ${other} (E).`
-      : !cur.touched.focus ? 'Turn Focus until the lower-right ring stops doubling and its edge is crisp.'
-        : !cur.touched.rot ? 'Rotate the bezel until the plus-sign bars run in one unbroken line.'
-          : !cur.touched.h ? 'Turn the horizontal drum to superimpose the gold plus signs.'
-            : !cur.touched.v ? 'Turn the vertical drum to superimpose the blue minus signs.'
-              : !cur.mires ? 'Judge the mires — round and crisp, wavy, or broken?'
-                : `Happy with the alignment? Lock the ${eye} reading (L).`;
+      ? eyes[other].locked ? t.hintBoth : fix(ctx.locale, t.hintLocked(eye, other))
+      : !cur.touched.focus ? t.hintFocus
+        : !cur.touched.rot ? t.hintRotate
+          : !cur.touched.h ? t.hintH
+            : !cur.touched.v ? t.hintV
+              : !cur.mires ? t.hintMires
+                : fix(ctx.locale, t.hintLock(eye));
   const pupil = f.pupils?.sizeLightMm?.[eye] ?? 3.5;
 
   return (
+    <LocaleContext.Provider value={ctx.locale}>
     <div class="kr-root" ref={rootRef} tabIndex={-1} onKeyDown={onKey}>
       <header class="kr-head">
-        <div class="kr-head__title"><Icon name="keratometry" /> <span>Keratometer</span></div>
+        <div class="kr-head__title"><Icon name="keratometry" /> <span>{t.keratometer}</span></div>
         <p class="kr-head__hint" key={hint} aria-live="polite">{hint}</p>
-        <div class="kr-seg" role="radiogroup" aria-label="Eye">
+        <div class="kr-seg" dir="ltr" role="radiogroup" aria-label={t.eyeGroup}>
           {EYES.map((e) => (
             <button key={e} type="button" role="radio" aria-checked={eye === e} class={`kr-seg__b${eye === e ? ' is-on' : ''}`} onClick={() => switchEye(e)} disabled={busy}>
               {e}
@@ -287,11 +290,14 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       </header>
 
       <main class="kr-stage">
-        <section class={`kr-scope${switching ? ' is-switching' : ''}`} key={`scope-${switching}`} aria-label={`Eyepiece view, ${eye}`}>
+        <section dir="ltr" class={`kr-scope${switching ? ' is-switching' : ''}`} key={`scope-${switching}`} aria-label={t.eyepieceView(eye)}>
           <Eyepiece
             scene={scene}
             theta={cur.ins.theta}
             axisLabel={axis}
+            axisValueText={t.axisValueText(axis)}
+            axisWord={t.axisWord}
+            rotationLabel={t.rotationLabel}
             onRotate={(n) => onRotate(n)}
             disabled={busy || locked}
             reduced={ctx.reducedMotion}
@@ -299,63 +305,63 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             version={0}
           />
           <span class="kr-scope__eye" aria-hidden="true">{eye}</span>
-          <span class="kr-scope__legend" aria-hidden="true"><i class="is-h" />plus signs<i class="is-v" />minus signs</span>
+          <span class="kr-scope__legend" dir="auto" aria-hidden="true"><i class="is-h" />{t.plusSigns}<i class="is-v" />{t.minusSigns}</span>
           <div class="kr-mini kr-num" aria-hidden="true">
             <div><span>K1</span><b>{rd.k1.toFixed(2)}</b></div>
             <div><span>K2</span><b>{rd.k2.toFixed(2)}</b></div>
-            <div class="is-cyl"><span>Cyl</span><b>{cylNow.toFixed(2)}</b></div>
+            <div class="is-cyl"><span>{t.cyl}</span><b>{cylNow.toFixed(2)}</b></div>
           </div>
-          {locked && <span class="kr-scope__lock"><Icon name="lock" /> Locked</span>}
+          {locked && <span class="kr-scope__lock"><Icon name="lock" /> {t.locked}</span>}
         </section>
 
-        <section class="kr-panel" aria-label="Instrument controls">
+        <section class="kr-panel" aria-label={t.controls}>
           <Drum
-            id="kr-focus" label="Focus" kind="knurl" accent="violet"
+            id="kr-focus" label={t.focus} kind="knurl" accent="violet"
             display={`${cur.ins.focus >= 0 ? '+' : '−'}${Math.abs(cur.ins.focus).toFixed(2)} mm`}
             value={cur.ins.focus} min={FOCUS.min} max={FOCUS.max} step={FOCUS.step} ppu={60}
             onStep={onFocus} disabled={busy || locked}
           />
           <Drum
-            id="kr-h" label={`Horizontal · ${axis}°`} shortLabel={`Horiz ${axis}°`} kind="scale" accent="gold"
-            display={`${cur.ins.pH.toFixed(2)} D`} sub={`r ${radiusMm(cur.ins.pH).toFixed(2)} mm`}
+            id="kr-h" label={t.horizLong(axis)} shortLabel={t.horizShort(axis)} kind="scale" accent="gold"
+            display={`${cur.ins.pH.toFixed(2)} D`} sub={`${t.radius} ${radiusMm(cur.ins.pH).toFixed(2)} mm`}
             value={cur.ins.pH} min={DRUM.min} max={DRUM.max} step={DRUM.step} ppu={44}
             onStep={onDrum('pH')} disabled={busy || locked}
           />
           <Drum
-            id="kr-v" label={`Vertical · ${axisV}°`} shortLabel={`Vert ${axisV}°`} kind="scale" accent="ice"
-            display={`${cur.ins.pV.toFixed(2)} D`} sub={`r ${radiusMm(cur.ins.pV).toFixed(2)} mm`}
+            id="kr-v" label={t.vertLong(axisV)} shortLabel={t.vertShort(axisV)} kind="scale" accent="ice"
+            display={`${cur.ins.pV.toFixed(2)} D`} sub={`${t.radius} ${radiusMm(cur.ins.pV).toFixed(2)} mm`}
             value={cur.ins.pV} min={DRUM.min} max={DRUM.max} step={DRUM.step} ppu={44}
             onStep={onDrum('pV')} disabled={busy || locked}
           />
 
           <div class="kr-readout" aria-live="off">
-            <div><span>K1 flat</span><b class="kr-num">{rd.k1.toFixed(2)}</b><em class="kr-num">@ {String(rd.axisK1).padStart(3, '0')}</em></div>
-            <div><span>K2 steep</span><b class="kr-num">{rd.k2.toFixed(2)}</b><em class="kr-num">@ {String(wrapAxis(rd.axisK1 + 90)).padStart(3, '0')}</em></div>
-            <div class="kr-readout__cyl"><span>Cyl = K2 − K1</span><b class="kr-num">{cylNow.toFixed(2)}</b><em>D</em></div>
+            <div><span>{t.k1flat}</span><b class="kr-num">{rd.k1.toFixed(2)}</b><em class="kr-num">@ {String(rd.axisK1).padStart(3, '0')}</em></div>
+            <div><span>{t.k2steep}</span><b class="kr-num">{rd.k2.toFixed(2)}</b><em class="kr-num">@ {String(wrapAxis(rd.axisK1 + 90)).padStart(3, '0')}</em></div>
+            <div class="kr-readout__cyl"><span>{t.cylEq}</span><b class="kr-num">{cylNow.toFixed(2)}</b><em>D</em></div>
           </div>
 
-          <div class="kr-cylbar" aria-hidden="true" title="Corneal cylinder">
+          <div class="kr-cylbar" dir="ltr" aria-hidden="true" title={t.cylBarTitle}>
             <i style={{ width: `${Math.min(100, (cylNow / 6) * 100)}%` }} />
             <span style={{ left: `${(1 / 6) * 100}%` }} /><span style={{ left: `${(3 / 6) * 100}%` }} />
             <em>0</em><em style={{ left: '16.7%' }}>1 D</em><em style={{ left: '50%' }}>3 D</em><em style={{ right: 0 }}>6 D</em>
           </div>
 
           <div class="kr-note" aria-live="off">
-            <span class="kr-eyebrow">Reading the keratometer</span>
+            <span class="kr-eyebrow">{t.readingTitle}</span>
             <p>
               {cylNow < 0.25
-                ? 'Both meridians read almost the same: a nearly spherical cornea.'
-                : `${cylNow.toFixed(2)} D of corneal cylinder, ${ruleOf(rd.axisK1 + 90)}: the steeper meridian (K2) lies near ${String(wrapAxis(rd.axisK1 + 90)).padStart(3, '0')}°.`}
+                ? t.sphericalNote
+                : fix(ctx.locale, t.cylNote(cylNow.toFixed(2), t.rule[ruleOf(rd.axisK1 + 90)], String(wrapAxis(rd.axisK1 + 90)).padStart(3, '0')))}
             </p>
-            <p class="kr-note__sub">Corneal cylinder is K2 minus K1. Steep K above 47 D, or wavy mires, deserves a closer look.</p>
+            <p class="kr-note__sub">{fix(ctx.locale, t.cylSub)}</p>
           </div>
 
           <div class="kr-mires">
-            <span class="kr-mires__k" id="kr-mires-k">Mires</span>
+            <span class="kr-mires__k" id="kr-mires-k">{t.miresLabel}</span>
             <div class="kr-chips" role="radiogroup" aria-labelledby="kr-mires-k">
               {MIRE_GRADES.map((m, i) => (
-                <button key={m} type="button" role="radio" aria-checked={cur.mires === m} class={`kr-chip${cur.mires === m ? ' is-on' : ''}`} onClick={() => setMires(m)} disabled={busy || locked} title={`${MIRE_LABEL[m]} (${i + 1})`}>
-                  {MIRE_LABEL[m]}
+                <button key={m} type="button" role="radio" aria-checked={cur.mires === m} class={`kr-chip${cur.mires === m ? ' is-on' : ''}`} onClick={() => setMires(m)} disabled={busy || locked} title={`${t.mireWord[m]} (${i + 1})`}>
+                  {t.mireWord[m]}
                 </button>
               ))}
             </div>
@@ -365,9 +371,9 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             <Button
               variant={locked ? 'ghost' : 'glass'} size="sm" icon={locked ? 'unlock' : 'lock'} block
               onClick={lock} disabled={busy || (!locked && !cur.mires)} sfx={false}
-              title={!locked && !cur.mires ? 'Grade the mires first' : undefined}
+              title={!locked && !cur.mires ? t.gradeFirst : undefined}
             >
-              {locked ? `Re-measure ${eye}` : cur.mires ? <><span class="kr-lk-l">Lock {eye} reading</span><span class="kr-lk-s">Lock {eye}</span></> : <><span class="kr-lk-l">Grade the mires to lock</span><span class="kr-lk-s">Grade mires</span></>}
+              {locked ? t.remeasure(eye) : cur.mires ? <><span class="kr-lk-l">{t.lockFull(eye)}</span><span class="kr-lk-s">{t.lockShort(eye)}</span></> : <><span class="kr-lk-l">{t.gradeFull}</span><span class="kr-lk-s">{t.gradeShort}</span></>}
             </Button>
           </div>
         </section>
@@ -380,13 +386,13 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             return (
               <span key={e} class={`kr-progress__e${l ? ' is-done' : ''}${e === eye ? ' is-cur' : ''}`}>
                 <b>{e}</b>
-                <span class={`kr-num${l ? '' : ' kr-progress__nm'}`}>{l ? <>{readingOf(l.ins).k1.toFixed(2)} / {readingOf(l.ins).k2.toFixed(2)}<small class="kr-ax"> @ {String(readingOf(l.ins).axisK1).padStart(3, '0')}</small></> : 'not measured'}</span>
+                <span class={`kr-num${l ? '' : ' kr-progress__nm'}`} dir={l ? 'ltr' : undefined}>{l ? <>{readingOf(l.ins).k1.toFixed(2)} / {readingOf(l.ins).k2.toFixed(2)}<small class="kr-ax"> @ {String(readingOf(l.ins).axisK1).padStart(3, '0')}</small></> : t.notMeasured}</span>
               </span>
             );
           })}
         </div>
         <div ref={recordRef}>
-          <Button variant="primary" icon="check" onClick={record} disabled={busy || !anyLocked} sfx={false}>Record findings</Button>
+          <Button variant="primary" icon="check" onClick={record} disabled={busy || !anyLocked} sfx={false}>{t.record}</Button>
         </div>
       </footer>
 
@@ -396,5 +402,6 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
         <Debrief assessment={result} truth={truth} practice={ctx.mode === 'practice'} challengeCorrect={answer} onDone={finish} />
       )}
     </div>
+    </LocaleContext.Provider>
   );
 }

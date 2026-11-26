@@ -2,12 +2,13 @@ import { useRef } from 'preact/hooks';
 import { Icon } from '@ui-kit';
 import { MAX_PRISM, type Base, type Prism } from './model';
 import type { Eye } from '@core';
+import { useT } from './locale';
 
-const BASES: { id: Base; label: string; arrow: string }[] = [
-  { id: 'BO', label: 'Base out', arrow: '→' },
-  { id: 'BI', label: 'Base in', arrow: '←' },
-  { id: 'BU', label: 'Base up', arrow: '↑' },
-  { id: 'BD', label: 'Base down', arrow: '↓' },
+const BASES: { id: Base; arrow: string }[] = [
+  { id: 'BO', arrow: '→' },
+  { id: 'BI', arrow: '←' },
+  { id: 'BU', arrow: '↑' },
+  { id: 'BD', arrow: '↓' },
 ];
 const TICKS = [0, 5, 10, 15, 20, 25, 30, 35, 40];
 
@@ -19,6 +20,7 @@ export interface PrismBarProps {
 
 /** Graduated prism bar: drag, wheel, or arrow keys on the thumb. */
 export function PrismBar({ prism, onChange, sound }: PrismBarProps) {
+  const t = useT();
   const track = useRef<HTMLDivElement>(null);
   const setMag = (m: number) => {
     const v = Math.max(0, Math.min(MAX_PRISM, Math.round(m)));
@@ -46,9 +48,9 @@ export function PrismBar({ prism, onChange, sound }: PrismBarProps) {
   const setBase = (b: Base) => { sound(1.2); onChange({ ...prism, base: b }); };
   const setEye = (eye: Eye) => { sound(1.1); onChange({ ...prism, eye }); };
   return (
-    <div class="cvt-prism">
+    <div class="cvt-prism" dir="ltr">
       <div class="cvt-prism__top">
-        <span class="cvt-eyebrow">Prism bar</span>
+        <span class="cvt-eyebrow">{t.prismBar}</span>
         <span class="cvt-prism__read cvt-num" aria-live="off">{prism.mag}<small>Δ</small></span>
       </div>
       <div class="cvt-prism__track" ref={track} onPointerDown={down} onPointerMove={move} onWheel={wheel}>
@@ -56,19 +58,19 @@ export function PrismBar({ prism, onChange, sound }: PrismBarProps) {
         <div class="cvt-prism__fill" style={{ width: `${pct}%` }} />
         {TICKS.map((t) => <span key={t} class="cvt-prism__tick" style={{ left: `${(t / MAX_PRISM) * 100}%` }}><i />{t % 10 === 0 && <b>{t}</b>}</span>)}
         <div
-          class="cvt-prism__thumb" style={{ left: `${pct}%` }} tabIndex={0} role="slider" aria-label="Prism power in prism dioptres"
-          aria-valuemin={0} aria-valuemax={MAX_PRISM} aria-valuenow={prism.mag} aria-valuetext={`${prism.mag} prism dioptres`} onKeyDown={key}
+          class="cvt-prism__thumb" style={{ left: `${pct}%` }} tabIndex={0} role="slider" aria-label={t.prismPower}
+          aria-valuemin={0} aria-valuemax={MAX_PRISM} aria-valuenow={prism.mag} aria-valuetext={t.prismPowerText(prism.mag)} onKeyDown={key}
         />
       </div>
-      <div class="cvt-prism__row cvt-prism__row--bases" role="radiogroup" aria-label="Prism base direction">
+      <div class="cvt-prism__row cvt-prism__row--bases" role="radiogroup" aria-label={t.baseGroup}>
         {BASES.map((b) => (
-          <button key={b.id} type="button" role="radio" aria-checked={prism.base === b.id} class={`cvt-chip${prism.base === b.id ? ' is-on' : ''}`} onClick={() => setBase(b.id)} title={b.label}>
-            <span class="cvt-chip__arrow" aria-hidden="true">{b.arrow}</span>{b.label.replace('Base ','Base-')}
+          <button key={b.id} type="button" role="radio" aria-checked={prism.base === b.id} class={`cvt-chip${prism.base === b.id ? ' is-on' : ''}`} onClick={() => setBase(b.id)} title={t.baseTitles[b.id]}>
+            <span class="cvt-chip__arrow" aria-hidden="true">{b.arrow}</span>{t.bases[b.id]}
           </button>
         ))}
       </div>
-      <div class="cvt-prism__row" role="radiogroup" aria-label="Eye the prism is held in front of">
-        <span class="cvt-prism__lab"><Icon name="eye" size={13} /> <span class="cvt-lab-t">Prism held over</span></span>
+      <div class="cvt-prism__row" role="radiogroup" aria-label={t.prismEyeGroup}>
+        <span class="cvt-prism__lab"><Icon name="eye" size={13} /> <span class="cvt-lab-t">{t.prismHeldOver}</span></span>
         {(['OD', 'OS'] as Eye[]).map((e) => (
           <button key={e} type="button" role="radio" aria-checked={prism.eye === e} class={`cvt-chip${prism.eye === e ? ' is-on' : ''}`} onClick={() => setEye(e)}>{e}</button>
         ))}

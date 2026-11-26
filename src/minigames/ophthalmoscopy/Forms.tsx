@@ -3,8 +3,9 @@ import type { ComponentChildren } from 'preact';
 import type { Eye } from '@core';
 import { DiscPreview as DiscCanvas } from './DiscPreview';
 import { Button, Icon } from '@ui-kit';
+import { useT } from './locale';
 import {
-  BUCKETS, BUCKET_LABEL, VITREOUS_CHOICES, VITREOUS_LABEL,
+  BUCKETS, VITREOUS_CHOICES,
   type DiscCall, type DiscColor, type DiscMargins, type Rim, type VesselBucket, type VesselCall, type VitreousCall,
 } from './model';
 
@@ -38,6 +39,7 @@ function Toggle({ label, hint, on, onChange, testid }: { label: string; hint: st
 export function Sheet({ title, icon, onCancel, onSave, saveLabel, children, testid }: {
   title: string; icon: 'target' | 'eye' | 'info'; onCancel: () => void; onSave: () => void; saveLabel: string; children: ComponentChildren; testid: string;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     ref.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus({ preventScroll: true });
@@ -64,7 +66,7 @@ export function Sheet({ title, icon, onCancel, onSave, saveLabel, children, test
         <header><Icon name={icon} size={18} /><h3>{title}</h3></header>
         <div class="oph-sheet__body">{children}</div>
         <footer>
-          <Button variant="ghost" sfx={false} onClick={onCancel}>Cancel</Button>
+          <Button variant="ghost" sfx={false} onClick={onCancel}>{t.cancel}</Button>
           <Button variant="primary" sfx={false} onClick={onSave} data-testid={`${testid}-save`}>{saveLabel}</Button>
         </footer>
       </div>
@@ -101,6 +103,7 @@ function DiscSketch({ call }: { call: DiscCall }) {
 }
 
 export function DiscForm({ eye, initial, onSave, onCancel, onTick }: { eye: Eye; initial: DiscCall | null; onSave: (c: DiscCall) => void; onCancel: () => void; onTick: (v: number) => void }) {
+  const t = useT();
   const [c, setC] = useState<DiscCall>(initial ?? { cdr: 0.4, color: 'pink', margins: 'sharp', rim: 'none' });
   const set = (p: Partial<DiscCall>) => setC((o) => ({ ...o, ...p }));
   const setCdr = (v: number) => {
@@ -111,29 +114,29 @@ export function DiscForm({ eye, initial, onSave, onCancel, onTick }: { eye: Eye;
     }
   };
   return (
-    <Sheet title="Optic disc" icon="target" onCancel={onCancel} onSave={() => onSave(c)} saveLabel="Save disc" testid="oph-discform">
+    <Sheet title={t.discTitle} icon="target" onCancel={onCancel} onSave={() => onSave(c)} saveLabel={t.discSave} testid="oph-discform">
       <div class="oph-disc">
-        <div class="oph-disc__view" onWheel={(e) => { e.preventDefault(); setCdr(c.cdr + (e.deltaY < 0 ? 0.05 : -0.05)); }}>
+        <div class="oph-disc__view" dir="ltr" onWheel={(e) => { e.preventDefault(); setCdr(c.cdr + (e.deltaY < 0 ? 0.05 : -0.05)); }}>
           <DiscCanvas call={c} eye={eye} fallback={() => <DiscSketch call={c} />} />
-          <span class="oph-disc__note">Your estimate, drawn</span>
+          <span class="oph-disc__note">{t.discNote}</span>
         </div>
         <div class="oph-disc__ctl">
-          <label class="oph-cdr">
-            <span class="oph-seg__label">Vertical cup-to-disc ratio</span>
+          <label class="oph-cdr" dir="ltr">
+            <span class="oph-seg__label" dir="auto">{t.cdrLabel}</span>
             <strong class="oph-cdr__val" data-testid="oph-cdr-value">{c.cdr.toFixed(2)}</strong>
             <input
               type="range" min="0.1" max="0.9" step="0.05" value={c.cdr} data-autofocus data-testid="oph-cdr"
-              aria-label="Vertical cup to disc ratio"
+              aria-label={t.cdrAria}
               onInput={(e) => setCdr(Number((e.target as HTMLInputElement).value))}
             />
             <span class="oph-cdr__scale"><i>0.1</i><i>0.3</i><i>0.5</i><i>0.7</i><i>0.9</i></span>
           </label>
-          <Seg<DiscColor> label="Colour" value={c.color} onChange={(v) => set({ color: v })} testid="oph-color"
-            options={[{ id: 'pink', text: 'Pink' }, { id: 'pale', text: 'Pale' }, { id: 'hyperemic', text: 'Hyperaemic' }, { id: 'pale-sectoral', text: 'Sectoral pallor' }]} />
-          <Seg<DiscMargins> label="Margins" value={c.margins} onChange={(v) => set({ margins: v })} testid="oph-margins"
-            options={[{ id: 'sharp', text: 'Sharp' }, { id: 'blurred', text: 'Blurred' }, { id: 'elevated', text: 'Swollen / elevated' }]} />
-          <Seg<Rim> label="Rim (ISNT)" value={c.rim} onChange={(v) => set({ rim: v })} testid="oph-rim"
-            options={[{ id: 'none', text: 'Follows ISNT' }, { id: 'inferior', text: 'Inferior thin' }, { id: 'superior', text: 'Superior thin' }, { id: 'diffuse', text: 'Diffuse thin' }]} />
+          <Seg<DiscColor> label={t.colour} value={c.color} onChange={(v) => set({ color: v })} testid="oph-color"
+            options={(['pink', 'pale', 'hyperemic', 'pale-sectoral'] as const).map((id) => ({ id, text: t.colours[id] }))} />
+          <Seg<DiscMargins> label={t.margins} value={c.margins} onChange={(v) => set({ margins: v })} testid="oph-margins"
+            options={(['sharp', 'blurred', 'elevated'] as const).map((id) => ({ id, text: t.marginOpts[id] }))} />
+          <Seg<Rim> label={t.rimLabel} value={c.rim} onChange={(v) => set({ rim: v })} testid="oph-rim"
+            options={(['none', 'inferior', 'superior', 'diffuse'] as const).map((id) => ({ id, text: t.rimOpts[id] }))} />
         </div>
       </div>
     </Sheet>
@@ -141,29 +144,31 @@ export function DiscForm({ eye, initial, onSave, onCancel, onTick }: { eye: Eye;
 }
 
 export function VesselForm({ initial, onSave, onCancel }: { initial: VesselCall | null; onSave: (c: VesselCall) => void; onCancel: () => void }) {
+  const t = useT();
   const [c, setC] = useState<VesselCall>(initial ?? { bucket: 'normal', nicking: false, copper: false, venous: false, segmentation: false });
   const set = (p: Partial<VesselCall>) => setC((o) => ({ ...o, ...p }));
   return (
-    <Sheet title="Retinal vessels" icon="eye" onCancel={onCancel} onSave={() => onSave(c)} saveLabel="Save vessels" testid="oph-vesselform">
-      <Seg<VesselBucket> label="Artery : vein ratio" value={c.bucket} onChange={(v) => set({ bucket: v })} testid="oph-av"
-        options={BUCKETS.map((b) => ({ id: b, text: BUCKET_LABEL[b] }))} />
+    <Sheet title={t.vesselsTitle} icon="eye" onCancel={onCancel} onSave={() => onSave(c)} saveLabel={t.vesselsSave} testid="oph-vesselform">
+      <Seg<VesselBucket> label={t.avLabel} value={c.bucket} onChange={(v) => set({ bucket: v })} testid="oph-av"
+        options={BUCKETS.map((b) => ({ id: b, text: t.bucket[b] }))} />
       <div class="oph-toggles">
-        <Toggle label="AV nicking" hint="Vein pinched where an artery crosses" on={c.nicking} onChange={(v) => set({ nicking: v })} testid="oph-nicking" />
-        <Toggle label="Copper wiring" hint="Arterioles with a broadened light reflex" on={c.copper} onChange={(v) => set({ copper: v })} testid="oph-copper" />
-        <Toggle label="Dilated / tortuous veins" hint="Engorged, winding veins" on={c.venous} onChange={(v) => set({ venous: v })} testid="oph-venous" />
-        <Toggle label="Boxcarring" hint="Segmented, thread-like arterioles" on={c.segmentation} onChange={(v) => set({ segmentation: v })} testid="oph-boxcar" />
+        <Toggle label={t.nicking} hint={t.nickingHint} on={c.nicking} onChange={(v) => set({ nicking: v })} testid="oph-nicking" />
+        <Toggle label={t.copper} hint={t.copperHint} on={c.copper} onChange={(v) => set({ copper: v })} testid="oph-copper" />
+        <Toggle label={t.venous} hint={t.venousHint} on={c.venous} onChange={(v) => set({ venous: v })} testid="oph-venous" />
+        <Toggle label={t.boxcar} hint={t.boxcarHint} on={c.segmentation} onChange={(v) => set({ segmentation: v })} testid="oph-boxcar" />
       </div>
     </Sheet>
   );
 }
 
 export function VitreousForm({ initial, onSave, onCancel }: { initial: VitreousCall | null; onSave: (c: VitreousCall) => void; onCancel: () => void }) {
+  const t = useT();
   const [c, setC] = useState<VitreousCall>(initial ?? 'clear');
   return (
-    <Sheet title="Vitreous & media" icon="info" onCancel={onCancel} onSave={() => onSave(c)} saveLabel="Save vitreous" testid="oph-vitform">
-      <Seg<VitreousCall> label="What is in the vitreous?" value={c} onChange={setC} testid="oph-vit"
-        options={VITREOUS_CHOICES.map((v) => ({ id: v, text: VITREOUS_LABEL[v] }))} />
-      <p class="oph-sheet__tip">Haemorrhage turns the view red and hazy; a Weiss ring floats as a translucent circle in front of the disc.</p>
+    <Sheet title={t.vitTitle} icon="info" onCancel={onCancel} onSave={() => onSave(c)} saveLabel={t.vitSave} testid="oph-vitform">
+      <Seg<VitreousCall> label={t.vitQ} value={c} onChange={setC} testid="oph-vit"
+        options={VITREOUS_CHOICES.map((v) => ({ id: v, text: t.vitreousLabel[v] }))} />
+      <p class="oph-sheet__tip">{t.vitTip}</p>
     </Sheet>
   );
 }

@@ -177,6 +177,11 @@ export function divisionName(scale: number): string {
   return 'Aurora Division';
 }
 
+/** 0 = Lantern, 1 = Prism, 2 = Aurora (for per-edition names). */
+export function divisionIndex(scale: number): 0 | 1 | 2 {
+  return scale < 0.75 ? 0 : scale < 1.05 ? 1 : 2;
+}
+
 /**
  * Close the old week if the calendar moved FORWARD into a later week. Returns the same object
  * when nothing changed. A clock that moves backwards (timezone change, corrected clock) never

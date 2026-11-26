@@ -9,6 +9,7 @@ import { MiniStanding } from './MiniStanding';
 import { ProfileSection } from './ProfileSection';
 import { ResultsPanel } from './ResultsPanel';
 import { RivalsScene } from './RivalsScene';
+import { text } from '../strings';
 
 type Active = (s: GameServices) => boolean;
 
@@ -25,8 +26,8 @@ export function registerRivalsUi(services: GameServices, isActive: Active): void
 
   add(r.hub, {
     id: 'rivals',
-    title: 'Rivals',
-    subtitle: 'Your colleagues, this week’s board',
+    title: text(services.locale).hubTitle,
+    subtitle: text(services.locale).hubSubtitle,
     icon: 'users',
     accent: ACCENT,
     order: 30,
@@ -34,7 +35,7 @@ export function registerRivalsUi(services: GameServices, isActive: Active): void
     sceneId: SYSTEM_ID,
     badge: (s: GameServices) => {
       const st = rivalsFor(s).state.get();
-      if (st.cases === 0) return 'NEW WEEK';
+      if (st.cases === 0) return text(s.locale).badgeNew;
       return `#${playerRank(standings(st, s.clock.now()))}`;
     },
   });

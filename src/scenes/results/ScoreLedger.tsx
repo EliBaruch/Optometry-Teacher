@@ -1,7 +1,8 @@
 import { useEffect } from 'preact/hooks';
 import type { ScoreBreakdown, ScorePart } from '@core';
-import { CountUp, GRADE_COLOR, GRADE_WORD, Icon, cx, useSfx, type IconName } from '@ui-kit';
+import { CountUp, GRADE_COLOR, GRADE_WORD, Icon, cx, useLocale, useSfx, useStrings, type IconName } from '@ui-kit';
 import { clockText } from './model';
+import { S } from './strings';
 
 const PART_ICON: Record<ScorePart['id'], IconName> = {
   diagnosis: 'eye',
@@ -29,6 +30,8 @@ export interface ScoreLedgerProps {
 /** Score parts count up one by one, then the total. */
 export function ScoreLedger({ score, started, totalShown, step, instant, runPoints }: ScoreLedgerProps) {
   const play = useSfx();
+  const t = useStrings(S);
+  const he = useLocale() !== 'en';
 
   useEffect(() => {
     if (!started || instant) return;
@@ -57,11 +60,11 @@ export function ScoreLedger({ score, started, totalShown, step, instant, runPoin
               <span class="rs-ledger__icon">
                 <Icon name={PART_ICON[p.id]} />
               </span>
-              <span class="rs-ledger__label">{p.label}</span>
+              <span class="rs-ledger__label">{he ? t.partLabel[p.id] ?? p.label : p.label}</span>
               <span class="rs-ledger__bar" aria-hidden="true">
                 <span />
               </span>
-              <span class="rs-ledger__pts">
+              <span class="rs-ledger__pts" dir="ltr">
                 {started ? (
                   <CountUp key={instant ? 'i' : 'a'} value={p.points} from={instant ? p.points : 0} delay={instant ? 0 : i * step} duration={instant ? 1 : 520} />
                 ) : (
@@ -75,10 +78,10 @@ export function ScoreLedger({ score, started, totalShown, step, instant, runPoin
       </ol>
       <div class={cx('rs-ledger__total', totalShown && 'is-shown')} style={{ '--grade-c': GRADE_COLOR[score.grade] }}>
         <div>
-          <span class="lm-eyebrow">Case score</span>
-          <span class="rs-ledger__grade-word">{GRADE_WORD[score.grade]}</span>
+          <span class="lm-eyebrow">{t.caseScore}</span>
+          <span class="rs-ledger__grade-word">{he ? t.gradeWord[score.grade] : GRADE_WORD[score.grade]}</span>
         </div>
-        <div class="rs-ledger__total-num">
+        <div class="rs-ledger__total-num" dir="ltr">
           {totalShown ? (
             <CountUp key={instant ? 'i' : 'a'} value={score.total} from={instant ? score.total : 0} duration={instant ? 1 : 1100} />
           ) : (
@@ -89,14 +92,14 @@ export function ScoreLedger({ score, started, totalShown, step, instant, runPoin
       </div>
       <div class={cx('rs-ledger__foot', totalShown && 'is-shown')}>
         <span>
-          <Icon name="clock" /> {clockText(score.elapsedSec)} <span class="lm-muted">· par {clockText(score.parSec)}</span>
+          <Icon name="clock" /> <bdi>{clockText(score.elapsedSec)}</bdi> <span class="lm-muted">· {t.par} <bdi>{clockText(score.parSec)}</bdi></span>
         </span>
         <span>
-          <Icon name="book" /> {score.keyQuestionsAsked}/{score.keyQuestionsTotal} key questions
+          <Icon name="book" /> {t.keyQuestions(score.keyQuestionsAsked, score.keyQuestionsTotal)}
         </span>
         {runPoints !== undefined && runPoints !== score.total && (
           <span class="rs-ledger__run">
-            <Icon name="lightning" /> +{runPoints} to the run
+            <Icon name="lightning" /> <bdi dir="ltr">+{runPoints}</bdi> {t.toRunSuffix}
           </span>
         )}
       </div>

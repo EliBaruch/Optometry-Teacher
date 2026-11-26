@@ -3,19 +3,26 @@
  * recognition challenge shown after practice. Pure: rng in, data out.
  */
 import {
-  buildFindings, EYES, type DeepPartial, type Eye, type PatientFindings, type PatientProfile, type PerEye,
+  buildFindings, EYES, pickStrings, type DeepPartial, type Eye, type Locale, type PatientFindings, type PatientProfile, type PerEye,
   type PracticeScenario, type RetinoscopyReflex, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { ametropia, fmtRx, fmtSigned, principalMeridians, quarter, reflexGeo, sphericalEquivalent, wdPower, wrapAxis, WD_CM, type Rx } from './optics';
-import { REFLEX_SHORT, trueRx } from './report';
+import { reflexShort, trueRx } from './report';
+import { NAMES, S } from './strings';
+
+/** Practice scenarios are generated before mount, so they read the edition from the document. */
+export function docLocale(): Locale {
+  try {
+    return document.documentElement.lang === 'he' ? 'he' : 'en';
+  } catch {
+    return 'en';
+  }
+}
 
 export type Kind =
   | 'emmetrope' | 'myope' | 'hyperope' | 'wtr' | 'atr' | 'oblique' | 'mixed' | 'keratoconus' | 'cataract' | 'dense-opacity';
 
-const NAMES_F = ['Amara Okafor', 'Lena Fischer', 'Priya Raman', 'Sofia Marquez', 'Hana Sato', 'Noor Haddad', 'Chloé Martin', 'Ines Duarte'];
-const NAMES_M = ['Theo Laurent', 'Kwame Mensah', 'Arjun Mehta', 'Mateo Rossi', 'Yusuf Demir', 'Owen Gallagher', 'Kenji Mori', 'Samir Aziz'];
-const JOBS = ['Student', 'Graphic designer', 'Bus driver', 'Violinist', 'Barista', 'Engineer', 'Pilot', 'Librarian', 'Nurse', 'Gardener'];
 
 export function pickKind(rng: Rng, difficulty: number): Kind {
   const d = Math.max(0, Math.min(1, difficulty));
@@ -125,7 +132,10 @@ function gen(kind: Kind, rng: Rng, d: number): Gen {
   }
 }
 
-export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
+export function makeScenario(rng: Rng, difficulty: number, locale: Locale = docLocale()): PracticeScenario {
+  const t = pickStrings(S, locale);
+  const roster = pickStrings(NAMES, locale);
+  const gendered = (v: string | [string, string], sex: 'F' | 'M') => (typeof v === 'string' ? v : v[sex === 'F' ? 1 : 0]);
   const kind = pickKind(rng, difficulty);
   const g = gen(kind, rng, difficulty);
   const patch: DeepPartial<PatientFindings> = {
@@ -141,15 +151,15 @@ export function makeScenario(rng: Rng, difficulty: number): PracticeScenario {
   const findings = buildFindings(g.age, patch);
   const sex = rng.chance(0.5) ? 'F' : 'M';
   const patient: PatientProfile = {
-    name: rng.pick(sex === 'F' ? NAMES_F : NAMES_M),
+    name: rng.pick(sex === 'F' ? roster.F : roster.M),
     age: g.age,
     sex,
-    occupation: rng.pick(JOBS),
-    personality: rng.pick(['Sits very still.', 'Keeps glancing at the light.', 'Chatty and curious.', 'A little anxious about the bright streak.']),
+    occupation: gendered(rng.pick(roster.jobs), sex),
+    personality: gendered(rng.pick(roster.personality), sex),
     avatar: { ...generateAvatar(rng, { age: g.age, sex }), glasses: 'none' },
   };
-  const line = (e: Eye) => (g.reflex[e] === 'absent' ? `${e} no reflex` : `${e} ${fmtRx(g.rx[e])}`);
-  return { patient, findings, answer: `${g.label}: ${line("OD")} \u00b7 ${line("OS")} (net Rx)` };
+  const line = (e: Eye) => (g.reflex[e] === 'absent' ? t.eyeNoReflex(e) : `${e} ${fmtRx(g.rx[e])}`);
+  return { patient, findings, answer: t.answer(t.kinds[kind] ?? g.label, line('OD'), line('OS')) };
 }
 
 /** Working distance for a mini-game run (case mode is always the classic 67 cm). */
@@ -168,25 +178,20 @@ export interface Challenge {
   explain: string;
 }
 
-const MEANING: Record<RetinoscopyReflex, string> = {
-  normal: 'Normal — a clean, evenly moving reflex',
-  scissors: 'Irregular corneal surface — think keratoconus',
-  dull: 'Media opacity — cataract or corneal haze',
-  irregular: 'Irregular astigmatism — corneal scar or distortion',
-  absent: 'Dense media opacity — e.g. vitreous haemorrhage, dense cataract or corneal scar',
-};
-
-export function explainNet(eye: Eye, truth: Rx, wd: number, wdCm: number): string {
+export function explainNet(eye: Eye, truth: Rx, wd: number, wdCm: number, locale: Locale = 'en'): string {
+  const t = pickStrings(S, locale);
   const p = principalMeridians(truth);
   const g1 = p.pA + wd;
   const g2 = p.pB + wd;
   const gross = Math.abs(truth.cylinder) < 0.125
-    ? `Neutrality came at ${fmtSigned(g1)} D gross.`
-    : `Neutrality came at ${fmtSigned(g1)} D along ${Math.round(p.phiA) || 180}° and ${fmtSigned(g2)} D along ${Math.round(p.phiB) || 180}° (gross).`;
-  return `${eye}: ${gross} Subtract the working-distance lens (${wdCm} cm = +${wd.toFixed(2)} D) from each meridian and write it in minus-cylinder form: ${fmtRx(truth)}. Forgetting the subtraction leaves the Rx ${wd.toFixed(2)} D too plus.`;
+    ? t.netGrossOne(fmtSigned(g1))
+    : t.netGrossTwo(fmtSigned(g1), Math.round(p.phiA) || 180, fmtSigned(g2), Math.round(p.phiB) || 180);
+  return t.explainNet(eye, gross, wdCm, wd.toFixed(2), fmtRx(truth));
 }
 
-export function makeChallenge(findings: PatientFindings, wdCm: number, rng: Rng): Challenge {
+export function makeChallenge(findings: PatientFindings, wdCm: number, rng: Rng, locale: Locale = 'en'): Challenge {
+  const t = pickStrings(S, locale);
+  const MEANING = t.meaning;
   const wd = wdPower(wdCm);
   const abn = EYES.find((e) => (findings.retinoscopyReflex?.[e] ?? 'normal') !== 'normal');
   const measurable = EYES.filter((e) => (findings.retinoscopyReflex?.[e] ?? 'normal') !== 'absent');
@@ -197,13 +202,8 @@ export function makeChallenge(findings: PatientFindings, wdCm: number, rng: Rng)
     const right = MEANING[truth];
     const others = rng.shuffle((Object.keys(MEANING) as RetinoscopyReflex[]).filter((k) => k !== truth && k !== 'irregular').map((k) => MEANING[k])).slice(0, 3);
     const options = rng.shuffle([right, ...others]);
-    const why: Record<string, string> = {
-      scissors: 'Two bands that open and close like scissor blades mean the corneal surface has different powers across the pupil — the classic sign of keratoconus. Confirm with keratometry/topography.',
-      dull: 'A dim, hazy reflex that still moves means light is being scattered by a media opacity (cataract, corneal haze). Neutrality is still findable, just harder.',
-      irregular: 'A broken, shifting reflex with no clean neutral point means irregular astigmatism — look for a corneal scar or distortion.',
-      absent: 'No red reflex at all means the light cannot reach the retina — a dense opacity such as vitreous haemorrhage, a mature cataract or a corneal scar. This needs a proper work-up.',
-    };
-    return { eye: abn, question: `The ${abn} reflex looked ${REFLEX_SHORT[truth].toLowerCase()}. What does it point to?`, options, correct: options.indexOf(right), explain: `${why[truth] ?? ''}` };
+    const why = t.why;
+    return { eye: abn, question: t.qQuality(abn, reflexShort(truth, locale)), options, correct: options.indexOf(right), explain: `${why[truth] ?? ''}` };
   }
 
   const eye = measurable.length ? (rng.pick(measurable) as Eye) : 'OD';
@@ -211,16 +211,16 @@ export function makeChallenge(findings: PatientFindings, wdCm: number, rng: Rng)
   if (kind === 'motion') {
     const e = ametropia(truth, 0, wd);
     const g = reflexGeo(e.e1, e.e2, truth.axis, truth.axis);
-    const right = g.motion === 'against' ? 'AGAINST motion' : g.motion === 'with' ? 'WITH motion' : 'No motion — neutral';
-    const options = ['WITH motion', 'AGAINST motion', 'No motion — neutral'];
+    const right = g.motion === 'against' ? t.motionAgainst : g.motion === 'with' ? t.motionWith : t.motionNone;
+    const options = [t.motionWith, t.motionAgainst, t.motionNone];
     const whyMotion = g.motion === 'against'
-      ? `The eye is more myopic than the +${wd.toFixed(2)} D working-distance vergence, so its far point lies between you and the patient and the reflex runs against the streak: add minus (SPAM).`
+      ? t.whyAgainst(wd.toFixed(2))
       : g.motion === 'with'
-        ? `Hyperopia, emmetropia and myopia of less than ${wd.toFixed(2)} D all give with motion at ${wdCm} cm because the far point lies behind you: add plus until it neutralises.`
-        : `At exactly ${wd.toFixed(2)} D of myopia the far point sits at the retinoscope — the reflex fills the pupil.`;
+        ? t.whyWith(wd.toFixed(2), wdCm)
+        : t.whyNone(wd.toFixed(2));
     return {
       eye,
-      question: `Plano lens, ${wdCm} cm. Along the ${Math.abs(truth.cylinder) < 0.125 ? '' : 'sphere '}meridian of the ${eye} (${fmtSigned(truth.sphere)} D), what does the reflex do?`,
+      question: t.qMotion(wdCm, Math.abs(truth.cylinder) >= 0.125, eye, fmtSigned(truth.sphere)),
       options, correct: options.indexOf(right), explain: whyMotion,
     };
   }
@@ -233,5 +233,5 @@ export function makeChallenge(findings: PatientFindings, wdCm: number, rng: Rng)
     fmtRx({ ...truth, sphere: truth.sphere + 0.75 }),
   ].filter((c) => c !== right);
   const options = rng.shuffle([right, ...[...new Set(cand)].slice(0, 3)]);
-  return { eye, question: `What is the net Rx of the ${eye}?`, options, correct: options.indexOf(right), explain: explainNet(eye, truth, wd, wdCm) };
+  return { eye, question: t.qNet(eye), options, correct: options.indexOf(right), explain: explainNet(eye, truth, wd, wdCm, locale) };
 }

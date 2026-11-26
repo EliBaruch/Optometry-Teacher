@@ -1,7 +1,8 @@
 import type { JSX } from 'preact';
 import { useId, useMemo } from 'preact/hooks';
-import { createRng } from '@core';
-import { cx } from '@ui-kit';
+import { createRng, pickStrings } from '@core';
+import { cx, useOptionalServices } from '@ui-kit';
+import { S } from '../strings';
 import { centerOf } from './hooks';
 
 export interface LoungeArtProps {
@@ -56,6 +57,7 @@ export function act(fn: (p: { x: number; y: number }) => void) {
  */
 export function LoungeArt(p: LoungeArtProps) {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const t = pickStrings(S, useOptionalServices()?.locale ?? 'en');
   const u = (n: string) => `url(#${id}-${n})`;
 
   const scene = useMemo(() => {
@@ -112,7 +114,7 @@ export function LoungeArt(p: LoungeArtProps) {
       viewBox="-300 0 1500 520"
       preserveAspectRatio={p.align === 'right' ? 'xMaxYMid slice' : 'xMidYMid slice'}
       role="group"
-      aria-label="The Lounge: a rainy arched window, a warm lamp, a sleeping cat in an armchair and a steaming coffee"
+      aria-label={t.artAria}
     >
       <defs>
         <linearGradient id={`${id}-wall`} x1="0" y1="0" x2="0" y2="1">
@@ -371,7 +373,7 @@ export function LoungeArt(p: LoungeArtProps) {
         <rect x="698" y="341" width="46" height="9" rx="2" fill="#7c2d4f" />
         <rect x="692" y="332" width="50" height="9" rx="2" fill="#a16207" />
         <path d="M696 336 h40 M700 345 h38 M698 354 h42" stroke="#ffd27a" stroke-opacity="0.35" stroke-width="0.8" />
-        <g class="cf-art__coffee" {...act(p.onCoffee)} aria-label="Sip your coffee">
+        <g class="cf-art__coffee" {...act(p.onCoffee)} aria-label={t.sip}>
           <rect x="740" y="262" width="96" height="108" fill="transparent" />
           <ellipse cx="784" cy="362" rx="22" ry="5" fill="#efe6d8" />
           <path d="M768 336 H800 L797 358 C796 362 772 362 771 358 Z" fill="#f6efe4" />
@@ -401,7 +403,7 @@ export function LoungeArt(p: LoungeArtProps) {
         <rect x="826" y="396" width="228" height="20" rx="6" fill="#2a1640" />
         <path d="M842 416 l-4 26 M1038 416 l4 26" stroke={u('brass')} stroke-width="5" stroke-linecap="round" />
 
-        <g class="cf-art__cat" {...act(p.onCat)} aria-label="Pet the clinic cat">
+        <g class="cf-art__cat" {...act(p.onCat)} aria-label={t.petCat}>
           <rect x="866" y="272" width="152" height="96" fill="transparent" />
           <g class="cf-art__cat-body">
             <path d="M884 352 C878 322 914 306 952 308 C990 310 1004 330 998 352 Z" fill={u('cat')} />
@@ -433,7 +435,7 @@ export function LoungeArt(p: LoungeArtProps) {
         <path d="M1110 170 V436" stroke={u('brass')} stroke-width="5" />
         <ellipse cx="1110" cy="440" rx="34" ry="7" fill="#7a4d10" />
         <ellipse cx="1110" cy="438" rx="30" ry="5" fill="#d9962a" />
-        <g class="cf-art__lampshade" {...act(() => p.onLamp())} aria-label={p.lampOn ? 'Dim the lamp' : 'Light the lamp'} aria-pressed={p.lampOn}>
+        <g class="cf-art__lampshade" {...act(() => p.onLamp())} aria-label={p.lampOn ? t.dimLamp : t.lightLamp} aria-pressed={p.lampOn}>
           <rect x="1046" y="96" width="128" height="128" fill="transparent" />
           <path d="M1062 168 L1078 104 H1142 L1158 168 Z" fill={u('shade')} />
           <path d="M1062 168 H1158" stroke="#a86d17" stroke-width="3" />

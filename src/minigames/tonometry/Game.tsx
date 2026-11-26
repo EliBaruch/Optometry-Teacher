@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { EYES, type Eye, type MiniGameContext, type MiniGameDone } from '@core';
+import { EYES, pickStrings, type Eye, type MiniGameContext, type MiniGameDone } from '@core';
 import { Button, Icon } from '@ui-kit';
 import { Drum } from './Drum';
 import { Stick } from './Stick';
@@ -9,11 +9,13 @@ import { Debrief } from './Debrief';
 import { FieldPainter } from './painter';
 import {
   alignQuality, apparentOffset, CENTRE_TOL, centreError, clamp, CONTACT_LIMIT_S, CONTACT_WARN_S, DIAL_MAX, DIAL_MIN, DIAL_PRESET, drift,
-  dyeBias, dyeState, endpointOf, fmtGrams, ICARE_SHOTS, icareMean, icareSd, icareShot, METHOD_LABEL, pulse, pulseAmp, type IcareShot, type Method,
+  dyeBias, dyeState, endpointOf, fmtGrams, ICARE_SHOTS, icareMean, icareSd, icareShot, pulse, pulseAmp, type IcareShot, type Method,
 } from './optics';
 import { assess, type EyeMeasure } from './scoring';
 import { makeChallenge } from './practice';
 import { buildReport, clockTime } from './report';
+import { fix, S as STR } from './strings';
+import { LocaleContext } from './locale';
 
 interface Sim {
   t: number;
@@ -35,6 +37,8 @@ const gauss = (rng: { next(): number }) => Math.sqrt(-2 * Math.log(1 - rng.next(
 export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }) {
   const { audio, fx } = ctx;
   const reduced = ctx.reducedMotion;
+  const loc = ctx.locale ?? 'en';
+  const t = pickStrings(STR, loc);
   const rng = useMemo(() => ctx.rng.fork('tonometry'), []);
   const [method, setMethod] = useState<Method>('goldmann');
   const [eye, setEye] = useState<Eye>('OD');
@@ -289,7 +293,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   // ───────────── finishing
   const both = EYES.every((e) => measures[e]);
   const assessment = useMemo(() => assess(measures, S.active * 1000), [measures, phase]);
-  const challenge = useMemo(() => (ctx.mode === 'practice' && phase === 'debrief' ? makeChallenge(ctx.findings, rng.fork('quiz'), method) : null), [phase]);
+  const challenge = useMemo(() => (ctx.mode === 'practice' && phase === 'debrief' ? makeChallenge(ctx.findings, rng.fork('quiz'), method, loc) : null), [phase]);
 
   const record = () => { play('stamp'); setPhase('debrief'); };
   const finish = (quizCorrect: boolean | null) => {
@@ -303,7 +307,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       testId: 'tonometry',
       accuracy: clamp(accuracy, 0, 1),
       timeMs: Math.round(S.active * 1000),
-      findings: buildReport(ctx.findings, method, clockTime()),
+      findings: buildReport(ctx.findings, method, clockTime(), loc),
       perfect,
     });
   };
@@ -313,27 +317,28 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const ds = dyeState(ui.dye);
   const iShots = shots[eye];
   const accepted = iShots.filter((x) => x.accepted);
-  const hint = tutorial ? 'Learn the instrument, then begin.'
-    : phase === 'prep' ? 'Instil anaesthetic, then touch a fluorescein strip to the lower lid.'
-    : method === 'icare' ? (centred ? 'Centred. Press Shoot: six accepted shots are averaged.' : 'Centre the cornea in the dashed ring with the joystick, then shoot.')
-    : !centred ? 'Push the joystick to bring the ring into the gold target: the two arcs must be equal.'
-    : ds !== 'good' ? (ds === 'thick' ? 'Mires too thick: they over-read. Blot a little dye.' : 'Mires too thin: they under-read. Add dye.')
-    : 'Turn the drum until the inner edges of the arcs just touch, at mid-pulse. Then lock.';
+  const hint = tutorial ? t.hintTutorial
+    : phase === 'prep' ? t.hintPrep
+    : method === 'icare' ? (centred ? t.hintIcareCentred : t.hintIcareOff)
+    : !centred ? t.hintOff
+    : ds !== 'good' ? (ds === 'thick' ? t.hintThick : t.hintThin)
+    : t.hintTurn;
   const longContact = ui.contact > CONTACT_WARN_S;
 
   return (
+    <LocaleContext.Provider value={loc}>
     <div class="tn-root" ref={rootRef} tabIndex={-1} data-phase={phase} data-centre-err={ui.err.toFixed(2)} data-endpoint={ui.ep} data-cx={ui.cx.toFixed(2)} data-cy={ui.cy.toFixed(2)}>
       <header class="tn-head">
-        <div class="tn-head__title"><Icon name="tonometry" /> Tonometry</div>
+        <div class="tn-head__title"><Icon name="tonometry" /> {t.title}</div>
         <p class="tn-head__hint" key={hint} aria-live="polite">{hint}</p>
-        <div class="tn-seg" role="group" aria-label="Method">
+        <div class="tn-seg" role="group" aria-label={t.method}>
           {(['goldmann', 'icare'] as Method[]).map((m) => (
             <button key={m} type="button" class={`tn-seg__b${method === m ? ' is-on' : ''}`} aria-pressed={method === m} disabled={Object.keys(measures).length > 0 && method !== m} onClick={() => chooseMethod(m)}>
-              {m === 'goldmann' ? 'Goldmann' : 'iCare'}
+              {t.methodShort[m]}
             </button>
           ))}
         </div>
-        <div class="tn-seg" role="group" aria-label="Eye">
+        <div class="tn-seg" role="group" aria-label={t.eyeGroup} dir="ltr">
           {EYES.map((e) => (
             <button key={e} type="button" class={`tn-seg__b${eye === e ? ' is-on' : ''}`} aria-pressed={eye === e} disabled={phase === 'prep'} onClick={() => switchEye(e)}>
               {e}{measures[e] && <Icon name="check" />}
@@ -348,31 +353,31 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             onNumb={() => setNumbed(true)} onDye={(v) => { S.dye = v; setDyeUi(v); }} onDone={enterMeasure} play={play} />
         ) : (
           <>
-            <section ref={scopeRef} class="tn-scope" aria-label={`${eye} slit-lamp field`}>
-              <canvas ref={canvasRef} class="tn-canvas" role="img" aria-label={method === 'goldmann' ? 'Fluorescein semicircles in the biprism' : 'Cornea with iCare probe'} />
+            <section ref={scopeRef} class="tn-scope" dir="ltr" aria-label={t.scopeLabel(eye)}>
+              <canvas ref={canvasRef} class="tn-canvas" role="img" aria-label={method === 'goldmann' ? t.canvasGoldmann : t.canvasIcare} />
               <span class="tn-scope__eye">{eye}</span>
               <span class="tn-vignette" aria-hidden="true" />
               {method === 'goldmann' && (
                 <span class={`tn-chip tn-chip--contact${longContact ? ' is-warn' : ''}${ui.contact > CONTACT_LIMIT_S ? ' is-bad' : ''}`}>
-                  <Icon name="clock" /> {ui.contact.toFixed(0)}s contact
+                  <Icon name="clock" /> {t.contact(ui.contact.toFixed(0))}
                 </span>
               )}
-              {!centred && <span class="tn-chip tn-chip--centre">Off-centre</span>}
+              {!centred && <span class="tn-chip tn-chip--centre">{t.offCentre}</span>}
             </section>
             <aside class="tn-panel">
               <div class="tn-lcd">
                 {method === 'goldmann' ? (
                   <>
-                    <span class="tn-lcd__big tn-num">{Math.round(ui.dial)}<small> mmHg</small></span>
-                    <span class="tn-lcd__sub">{fmtGrams(ui.dial)} on the drum</span>
-                    <span class="tn-ep">Read at mid-pulse</span>
-                    <span class="tn-keys">Drum: drag, wheel or arrow keys</span>
+                    <span class="tn-lcd__big tn-num" dir="ltr">{Math.round(ui.dial)}<small> mmHg</small></span>
+                    <span class="tn-lcd__sub">{fix(loc, t.onDrum(fmtGrams(ui.dial)))}</span>
+                    <span class="tn-ep">{t.midPulse}</span>
+                    <span class="tn-keys">{t.drumKeys}</span>
                   </>
                 ) : (
                   <>
-                    <span class="tn-lcd__big tn-num">{lastShot ? (lastShot.accepted ? lastShot.reading : 'Err') : '--'}<small> mmHg</small></span>
-                    <span class="tn-lcd__sub">{accepted.length ? `mean ${icareMean(iShots)} · sd ${icareSd(iShots).toFixed(1)}` : 'no readings yet'}</span>
-                    <span class="tn-dots tn-dots--shots" aria-label={`${accepted.length} of ${ICARE_SHOTS} shots`}>
+                    <span class="tn-lcd__big tn-num" dir="ltr">{lastShot ? (lastShot.accepted ? lastShot.reading : t.err) : '--'}<small> mmHg</small></span>
+                    <span class="tn-lcd__sub">{accepted.length ? fix(loc, t.meanSd(icareMean(iShots), icareSd(iShots).toFixed(1))) : t.noReadings}</span>
+                    <span class="tn-dots tn-dots--shots" aria-label={t.shotsAria(accepted.length, ICARE_SHOTS)}>
                       {Array.from({ length: ICARE_SHOTS }, (_, i) => <span key={i} class={i < accepted.length ? 'is-on' : ''} />)}
                     </span>
                   </>
@@ -383,41 +388,44 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
                 {method === 'goldmann' ? (
                   <Drum value={ui.dial} onChange={setDial} />
                 ) : (
-                  <Button variant="primary" size="lg" class="tn-shoot" sfx={false} disabled={!!measures[eye]} onClick={shoot}>Shoot</Button>
+                  <Button variant="primary" size="lg" class="tn-shoot" sfx={false} disabled={!!measures[eye]} onClick={shoot}>{t.shoot}</Button>
                 )}
               </div>
               {method === 'goldmann' && (
                 <div class="tn-actions">
-                <div class="tn-dye">
-                  <span class="tn-dye__label">Dye</span>
-                  <Button variant="ghost" size="sm" sfx={false} icon="minus" onClick={() => addDye(-0.12)} aria-label="Blot excess dye" />
+                <div class="tn-dye" dir="ltr">
+                  <span class="tn-dye__label" dir="auto">{t.dye}</span>
+                  <Button variant="ghost" size="sm" sfx={false} icon="minus" onClick={() => addDye(-0.12)} aria-label={t.blotDye} />
                   <div class="tn-gauge tn-gauge--sm" aria-hidden="true">
                     <span class="tn-gauge__band" style={{ left: '36%', width: '28%' }} />
                     <span class="tn-gauge__fill" style={{ width: `${ui.dye * 100}%` }} />
                   </div>
-                  <Button variant="ghost" size="sm" sfx={false} icon="plus" onClick={() => addDye(0.12)} aria-label="Add fluorescein" />
+                  <Button variant="ghost" size="sm" sfx={false} icon="plus" onClick={() => addDye(0.12)} aria-label={t.addDye} />
                 </div>
                 <Button variant="glass" size="md" icon="lock" sfx={false} onClick={lock} class="tn-lock">
-                  {measures[eye] ? `Re-lock ${eye} (${measures[eye]!.reading})` : `Lock ${eye}`}
+                  {measures[eye] ? t.relock(eye, measures[eye]!.reading) : t.lock(eye)}
                 </Button>
                 </div>
               )}
-              {method === 'icare' && measures[eye] && <p class="tn-note">{eye} measured: {measures[eye]!.reading} mmHg (mean of {ICARE_SHOTS}).</p>}
+              {method === 'icare' && measures[eye] && <p class="tn-note">{fix(loc, t.icareNote(eye, measures[eye]!.reading, ICARE_SHOTS))}</p>}
             </aside>
           </>
         )}
       </main>
 
       <footer class="tn-foot">
-        <div class="tn-prog" aria-label="Progress">
-          {EYES.map((e) => <span key={e} class={`tn-prog__eye${measures[e] ? ' is-done' : ''}`}>{e} {measures[e] ? `${measures[e]!.reading} mmHg` : '...'}</span>)}
-          <span class="tn-prog__method">{METHOD_LABEL[method]}</span>
+        <div class="tn-prog" aria-label={t.progress}>
+          <span class="tn-prog__eyes" dir="ltr">
+            {EYES.map((e) => <span key={e} class={`tn-prog__eye${measures[e] ? ' is-done' : ''}`}>{e} {measures[e] ? `${measures[e]!.reading} mmHg` : '...'}</span>)}
+          </span>
+          <span class="tn-prog__method">{t.methodLabel[method]}</span>
         </div>
-        <Button variant="primary" size="md" trailingIcon="check" sfx={false} disabled={!both || phase === 'debrief'} onClick={record}>Record findings</Button>
+        <Button variant="primary" size="md" trailingIcon="check" sfx={false} disabled={!both || phase === 'debrief'} onClick={record}>{t.recordFindings}</Button>
       </footer>
 
       {tutorial && <Tutorial onClose={() => { play('lens-click'); setTutorial(false); rootRef.current?.focus(); }} />}
       {phase === 'debrief' && <Debrief assessment={assessment} measures={measures} challenge={challenge} onFinish={finish} />}
     </div>
+    </LocaleContext.Provider>
   );
 }

@@ -3,6 +3,7 @@ import type { MiniGameModule, MiniGameResult } from '@core';
 import { report } from './clinical';
 import { ColorVisionGame } from './Game';
 import { practiceScenario } from './practice';
+import { COLOR_VISION_TEXT } from './strings';
 
 const colorVision: MiniGameModule = {
   id: 'color-vision',
@@ -15,6 +16,7 @@ const colorVision: MiniGameModule = {
     'Congenital (symmetric, stable) vs acquired (asymmetric) colour loss — Köllner’s rule',
     'Red-cap desaturation as a sign of optic neuropathy',
   ],
+  text: { he: COLOR_VISION_TEXT },
   mount(host, ctx, done) {
     let called = false;
     const finish = (r: MiniGameResult) => {

@@ -9,7 +9,9 @@ import { usePrintSize } from './usePrintSize';
 import { localise, patternOf, type Localisation, type Pattern } from './interpret';
 import { grid242, pointKey, type FieldPoint } from './model';
 import { makeResponder, MAX_DB, type PointResult, type Responder, type TestMode } from './patient';
-import { report, fieldOf } from './report';
+import { reportFor, fieldOf } from './report';
+import { iso, vfT } from './strings';
+import { VfLocale } from './useVf';
 import { FAST_POINT_MS, Runner } from './runner';
 import { classifyScore, localisationScore, MIN_POINTS, scoreExam, techniqueScore, type ExamScore, type TechniqueScore } from './scoring';
 
@@ -21,14 +23,14 @@ interface EyeWork {
   stimuli: number;
 }
 
-const EYE_NAME: Record<Eye, string> = { OD: 'right eye', OS: 'left eye' };
-
 export interface GameProps {
   ctx: MiniGameContext;
   finish: (r: MiniGameResult) => void;
 }
 
 export function Game({ ctx, finish }: GameProps) {
+  const locale = ctx.locale;
+  const t = vfT(locale);
   const t0 = useRef(performance.now());
   const finished = useRef(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -250,7 +252,7 @@ export function Game({ ctx, finish }: GameProps) {
     }
     if (practice && r) {
       const ok = loc === truthLoc;
-      ctx.fx.floatText(ok ? 'Correct' : 'Not quite', r.left + r.width / 2, r.top - 10, { color: ok ? '#5eead4' : '#f43f5e' });
+      ctx.fx.floatText(ok ? t.floatOk : t.floatNo, r.left + r.width / 2, r.top - 10, { color: ok ? '#5eead4' : '#f43f5e' });
     }
   };
 
@@ -262,7 +264,7 @@ export function Game({ ctx, finish }: GameProps) {
       testId: 'visual-fields',
       accuracy: Math.round(scores.exam.accuracy * 1000) / 1000,
       timeMs: Math.round(examTime),
-      findings: report(ctx.findings, ctx.patient),
+      findings: reportFor(ctx.findings, locale),
       perfect: scores.exam.perfect,
     });
   };
@@ -301,22 +303,22 @@ export function Game({ ctx, finish }: GameProps) {
   const statusText = (() => {
     if (phase === 'interpret') {
       const missing = EYES.filter((e) => !picks[e]);
-      if (missing.length) return `Name the pattern for ${missing.map((m) => m).join(' and ')}`;
-      return loc ? 'Ready to record' : 'Where is the lesion?';
+      if (missing.length) return t.stNamePattern(missing.join(locale === 'he' ? ' · ' : ' and '));
+      return loc ? t.stReady : t.stWhere;
     }
-    if (phase === 'debrief') return 'Debrief';
-    if (sweeping) return `Auto sweep — ${runner.queued().length} left`;
-    if (!enoughFor(eye)) return `Test at least ${MIN_POINTS} points (${w.results.size}/${MIN_POINTS}) in the ${EYE_NAME[eye]}`;
-    if (!enoughFor(otherEye(eye))) return `Good — now test the ${EYE_NAME[otherEye(eye)]}`;
-    return 'Both eyes plotted — refine or interpret';
+    if (phase === 'debrief') return t.stDebrief;
+    if (sweeping) return t.stSweep(runner.queued().length);
+    if (!enoughFor(eye)) return t.stNeed(MIN_POINTS, w.results.size, t.eyeName[eye]);
+    if (!enoughFor(otherEye(eye))) return t.stNext(t.eyeName[otherEye(eye)]);
+    return t.stBoth;
   })();
 
   const instruction =
     phase === 'test'
-      ? `${EYE_NAME[otherEye(eye)].replace(/^\w/, (c) => c.toUpperCase())} patched, eye on the amber light — click the bowl to flash a stimulus.`
+      ? t.instrTest(t.eyeName[otherEye(eye)])
       : phase === 'interpret'
-        ? 'Name each eye’s pattern, then decide where along the pathway the lesion sits.'
-        : 'Your plots against the true fields.';
+        ? t.instrInterpret
+        : t.instrDebrief;
 
   const printout = (e: Eye, big: boolean) => (
       <Printout
@@ -337,16 +339,17 @@ export function Game({ ctx, finish }: GameProps) {
   );
 
   return (
+    <VfLocale.Provider value={locale}>
     <div class={`vf vf--${phase}${ctx.reducedMotion ? ' is-reduced' : ''}`} ref={rootRef}>
       <header class="vf__head">
         <div class="vf__title">
           <Icon name="visual-fields" size={20} class="vf__title-icon" />
           <div>
-            <h2>Visual Fields</h2>
+            <h2>{t.title}</h2>
             <p>{instruction}</p>
           </div>
         </div>
-        <div class="vf-eyes" role="tablist" aria-label="Eye">
+        <div class="vf-eyes" role="tablist" aria-label={t.eyeAria} dir="ltr">
           {EYES.map((e) => {
             const done = phase === 'test' ? enoughFor(e) : !!picks[e];
             return (
@@ -360,7 +363,7 @@ export function Game({ ctx, finish }: GameProps) {
                 data-testid={`vf-eye-${e}`}
               >
                 <span class="vf-eyes__code">{e}</span>
-                <span class="vf-eyes__name">{e === 'OD' ? 'Right' : 'Left'}</span>
+                <span class="vf-eyes__name">{e === 'OD' ? t.eyeRight : t.eyeLeft}</span>
                 {done && <Icon name="check" size={13} class="vf-eyes__check" />}
               </button>
             );
@@ -370,10 +373,10 @@ export function Game({ ctx, finish }: GameProps) {
 
       <p class="vf__line" data-testid="vf-line">{instruction}</p>
       {phase === 'test' && (
-        <div class="vf-tabs" role="tablist" aria-label="View">
-          {(['bowl', 'plot'] as const).map((t) => (
-            <button key={t} type="button" role="tab" aria-selected={tab === t} class={tab === t ? 'is-on' : ''} data-testid={`vf-tab-${t}`} onClick={() => { setTab(t); play('click'); requestAnimationFrame(() => { const b = rootRef.current?.querySelector('.vf__body'); if (b) b.scrollTop = 0; }); }}>
-              {t === 'bowl' ? 'Bowl' : `Plot & controls · ${counts[eye]} pts`}
+        <div class="vf-tabs" role="tablist" aria-label={t.viewAria}>
+          {(['bowl', 'plot'] as const).map((tb) => (
+            <button key={tb} type="button" role="tab" aria-selected={tab === tb} class={tab === tb ? 'is-on' : ''} data-testid={`vf-tab-${tb}`} onClick={() => { setTab(tb); play('click'); requestAnimationFrame(() => { const b = rootRef.current?.querySelector('.vf__body'); if (b) b.scrollTop = 0; }); }}>
+              {tb === 'bowl' ? t.tabBowl : t.tabPlot(counts[eye])}
             </button>
           ))}
         </div>
@@ -392,8 +395,8 @@ export function Game({ ctx, finish }: GameProps) {
       ) : (
         <div class="vf__body vf__body--read">
           <section class="vf__plots" ref={plotsRef}>
-            <div class="vf__plots-row">{printout('OS', true)}{printout('OD', true)}</div>
-            <p class="vf__plots-note">Plotted as the patient sees: left eye on the left, right eye on the right · <Kbd>G</Kbd> greyscale / dB</p>
+            <div class="vf__plots-row" dir="ltr">{printout('OS', true)}{printout('OD', true)}</div>
+            <p class="vf__plots-note">{t.plotsNote} · <bdi class="vf__plots-key"><Kbd>G</Kbd> {t.plotsKey}</bdi></p>
           </section>
           <aside class="vf__side vf__side--read">
             {phase === 'interpret' && (
@@ -413,26 +416,26 @@ export function Game({ ctx, finish }: GameProps) {
             const done = phase === 'test' ? n >= MIN_POINTS : !!picks[e];
             return (
               <span key={e} class={`vf-progress__pip${done ? ' is-done' : ''}${eye === e ? ' is-cur' : ''}`}>
-                <i />{e} <b>{n}</b>
+                <i /><bdi>{e}</bdi> <b>{n}</b>
               </span>
             );
           })}
-          <span class="vf-progress__txt" aria-live="polite">{statusText}</span>
+          <span class="vf-progress__txt" aria-live="polite">{iso(locale, statusText)}</span>
         </div>
         <div ref={recordRef}>
           {phase === 'test' && (
             <Button variant="primary" icon="arrow-right" sfx={false} disabled={!canInterpret} onClick={toInterpret} data-testid="vf-interpret">
-              Interpret fields
+              {t.btnInterpret}
             </Button>
           )}
           {phase === 'interpret' && (
             <Button variant="primary" icon="check" sfx={false} disabled={!interpretDone} onClick={record} data-testid="vf-record">
-              Record findings
+              {t.btnRecord}
             </Button>
           )}
           {phase === 'debrief' && (
             <Button variant="primary" icon="arrow-right" sfx={false} onClick={complete} data-testid="vf-finish">
-              {practice ? 'Finish' : 'Add to chart'}
+              {practice ? t.btnFinish : t.btnAdd}
             </Button>
           )}
         </div>
@@ -440,5 +443,6 @@ export function Game({ ctx, finish }: GameProps) {
 
       {tutorial && <Tutorial reducedMotion={ctx.reducedMotion} onClose={() => { setTutorial(false); play('click'); }} />}
     </div>
+    </VfLocale.Provider>
   );
 }

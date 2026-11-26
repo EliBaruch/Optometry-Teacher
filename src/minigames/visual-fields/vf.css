@@ -51,9 +51,9 @@
 
 /* ── body ───────────────────────────────────────────────────────────────── */
 .vf__body { display: grid; grid-template-columns: minmax(0, 1fr) 344px; min-height: 0; }
-.vf__stage { position: relative; min-height: 0; min-width: 0; padding: 12px 8px 12px 14px; }
+.vf__stage { position: relative; min-height: 0; min-width: 0; padding-block: 12px; padding-inline: 14px 8px; }
 .vf__side {
-  min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; padding: 14px 16px 14px 6px; display: flex; flex-direction: column; gap: 12px;
+  min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; padding-block: 14px; padding-inline: 6px 16px; display: flex; flex-direction: column; gap: 12px;
   scrollbar-width: thin;
 }
 
@@ -114,7 +114,7 @@
 .vf-printwrap { display: flex; flex-direction: column; align-items: center; gap: 8px; animation: vf-rise 420ms var(--lm-ease-out) both; }
 .vf-print {
   position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 10px 12px 9px;
-  border: 0; border-radius: 6px; color: var(--vf-ink); text-align: left;
+  border: 0; border-radius: 6px; color: var(--vf-ink); text-align: start;
   background:
     radial-gradient(120% 90% at 20% 0%, rgba(255, 255, 255, 0.55), transparent 60%),
     linear-gradient(170deg, #f8f1e1, var(--vf-paper) 60%, #e9dcc2);
@@ -217,7 +217,7 @@
 .vf-picker { display: flex; flex-direction: column; gap: 10px; }
 .vf-picker__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
 .vf-chip {
-  min-width: 0; display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; border-radius: 11px; cursor: pointer; text-align: left;
+  min-width: 0; display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; border-radius: 11px; cursor: pointer; text-align: start;
   border: 0; background: rgba(8, 4, 16, 0.45); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.08);
   transition: transform 160ms var(--lm-ease-out), box-shadow 220ms var(--lm-ease-out), background 220ms var(--lm-ease-out);
 }
@@ -236,7 +236,7 @@
   background: rgba(8, 4, 16, 0.5); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1); font-size: var(--lm-fs-xs);
   transition: box-shadow 200ms var(--lm-ease-out), background 200ms var(--lm-ease-out);
 }
-.vf-side span { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+.vf-side span { display: flex; flex-direction: column; line-height: 1.15; text-align: start; }
 .vf-side small { font-size: 10px; color: var(--lm-muted); }
 .vf-side.is-on { background: rgba(255, 210, 122, 0.14); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.6); color: var(--lm-gold-200); }
 .vf-next {
@@ -267,7 +267,7 @@
 
 .vf-path__opts { display: flex; flex-direction: column; gap: 4px; }
 .vf-loc {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 7px 10px; border-radius: 10px; cursor: pointer; text-align: left;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 7px 10px; border-radius: 10px; cursor: pointer; text-align: start;
   border: 0; background: rgba(8, 4, 16, 0.45); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.08);
   transition: background 200ms var(--lm-ease-out), box-shadow 200ms var(--lm-ease-out), transform 160ms var(--lm-ease-out);
 }
@@ -302,7 +302,7 @@
 .vf-debrief .meh { color: var(--lm-abnormal, #fbbf24); }
 .vf-debrief .bad { color: #fb7185; }
 .vf-debrief__score { display: flex; justify-content: space-between; gap: 6px; font-size: 11px; color: var(--lm-muted); padding: 0 4px; }
-.vf-debrief__score b { font-family: var(--lm-font-num); color: var(--lm-ivory); font-size: var(--lm-fs-sm); margin-left: 3px; }
+.vf-debrief__score b { font-family: var(--lm-font-num); color: var(--lm-ivory); font-size: var(--lm-fs-sm); margin-inline-start: 3px; }
 .vf-debrief__legend { margin: 0; font-size: 11px; color: var(--lm-muted); display: flex; align-items: center; gap: 6px; padding: 0 4px; }
 .vf-debrief__legend i { width: 12px; height: 12px; border-radius: 3px; background: rgba(214, 52, 96, 0.55); }
 
@@ -411,3 +411,12 @@
   .vf__foot { padding: 8px 12px; }
   .vf-progress__txt { display: none; }
 }
+
+/* directional icons flip in the RTL edition via the global ui-kit rule */
+/* the printout paper is a spatial chart: N/T letters stay on their physical sides */
+.vf-print__paper { direction: ltr; }
+.vf-meter__track { direction: ltr; }
+/* Hebrew has no case; tracked-out letters read badly, so drop the tracking there */
+.vf:lang(he) :is(h2, h3, .vf-monitor__label, .vf-buzzer span, .vf-dial__label, .vf-meter__label, .vf-tutorial__step, .vf-print__head, .vf-eyes__name),
+.vf-tutorial:lang(he) :is(.vf-tutorial__step) { letter-spacing: 0; text-transform: none; }
+.vf__plots-key { white-space: nowrap; }

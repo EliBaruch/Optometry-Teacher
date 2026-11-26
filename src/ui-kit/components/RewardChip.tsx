@@ -4,9 +4,10 @@ import { useInView } from '../hooks/useInView';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useSfx } from '../hooks/useSfx';
 import { IconOrText } from '../icons/Icon';
-import { RARITY_COLOR, RARITY_LABEL, type Rarity } from '../lib/palette';
+import { RARITY_COLOR, type Rarity } from '../lib/palette';
 import { cx } from '../lib/cx';
 import './RewardChip.css';
+import { useUiStrings } from '../strings';
 
 export interface RewardChipProps {
   grant: RewardGrant;
@@ -24,6 +25,7 @@ const RARITY_SFX: Record<Rarity, SfxId> = { common: 'coin', rare: 'rare', epic: 
 
 /** A reward as granted by any engagement system, with a rarity glow. */
 export function RewardChip({ grant, index = 0, stagger = 140, animate = true, sfx = true, class: klass }: RewardChipProps) {
+  const ui = useUiStrings();
   const reduced = useReducedMotion();
   const play = useSfx();
   const rarity: Rarity = grant.rarity ?? 'common';
@@ -46,18 +48,18 @@ export function RewardChip({ grant, index = 0, stagger = 140, animate = true, sf
       class={cx('lm-reward', `lm-reward--${rarity}`, anim && 'is-anim', loops && !inView && 'is-idle', klass)}
       style={{ '--rw-c': accent, '--rw-r': RARITY_COLOR[rarity], '--d': `${delay}ms` }}
       role="group"
-      aria-label={`${grant.label}: ${grant.value}${rarity !== 'common' ? ` (${RARITY_LABEL[rarity]})` : ''}`}
+      aria-label={`${grant.label}: ${grant.value}${rarity !== 'common' ? ` (${ui.rarity[rarity]})` : ''}`}
     >
       <span class="lm-reward__icon" aria-hidden="true">
         <IconOrText icon={grant.icon ?? 'sparkle'} />
       </span>
       <span class="lm-reward__text" aria-hidden="true">
-        <span class="lm-reward__value lm-num">{grant.value}</span>
+        <span class="lm-reward__value lm-num"><bdi dir={/[\u0590-\u05FF]/.test(String(grant.value)) ? 'auto' : 'ltr'}>{grant.value}</bdi></span>
         <span class="lm-reward__label">{grant.label}</span>
       </span>
       {rarity !== 'common' && (
         <span class="lm-reward__rarity" aria-hidden="true">
-          {RARITY_LABEL[rarity]}
+          {ui.rarity[rarity]}
         </span>
       )}
       {(rarity === 'epic' || rarity === 'legendary') && <span class="lm-reward__shine" aria-hidden="true" />}

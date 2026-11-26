@@ -3,13 +3,7 @@
  * fingers, a waving hand, or a pen-light — the low-vision ladder.
  */
 import { LOW_VISION } from './notation';
-
-const DIST: Record<string, string> = {
-  CF: 'held at 1 m (3 ft)',
-  HM: 'waved at 1 m',
-  LP: 'pen-light, room dimmed',
-  NLP: 'brightest light, room dark',
-};
+import { useT } from './strings';
 
 function Hand(props: { fingers: number; waving: boolean }) {
   // Five finger capsules fanned over a palm; folded fingers drop into the fist.
@@ -68,9 +62,12 @@ function Light(props: { lit: boolean }) {
 }
 
 export function LowVisionCard(props: { level: number; fingers: number }) {
+  const t = useT();
   const lv = LOW_VISION[-1 - props.level]!;
+  const name = t.lowVision[lv.code];
+  const dist = t.lvDist[lv.code];
   return (
-    <div class="va-lv" aria-label={`${lv.name}: ${DIST[lv.code]}`}>
+    <div class="va-lv" aria-label={`${name}: ${dist}`}>
       <svg viewBox="-120 -130 240 240" class="va-lv__art" aria-hidden="true">
         <defs>
           <linearGradient id="va-lv-skin" x1="0" x2="1" y1="0" y2="1">
@@ -93,8 +90,8 @@ export function LowVisionCard(props: { level: number; fingers: number }) {
         {(lv.code === 'LP' || lv.code === 'NLP') && <Light lit />}
       </svg>
       <div class="va-lv__label">
-        <b>{lv.name}</b>
-        <span>{DIST[lv.code]}</span>
+        <b>{name}</b>
+        <span>{dist}</span>
       </div>
     </div>
   );

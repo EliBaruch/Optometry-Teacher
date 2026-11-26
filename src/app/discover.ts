@@ -1,4 +1,5 @@
-import type { ClinicalCase, Diagnosis, GameServices, MiniGameModule, ModeModule, SceneModule, SystemModule } from '@core';
+import type { CaseText, ClinicalCase, Diagnosis, DiagnosisText, GameServices, Locale, MiniGameModule, ModeModule, SceneModule, SystemModule } from '@core';
+import { applyCaseText, applyDiagnosisText } from '@core';
 import { DISABLED_PLUGINS } from './plugins.config';
 
 type Mod = Record<string, unknown>;
@@ -9,9 +10,26 @@ type Loader = () => Promise<Mod>;
  * a plugin that fails to load or register is logged and skipped — it can
  * never take the rest of the game down with it.
  */
+/** Localised content overlays: src/content/<locale>/{cases,diagnoses}/**. English needs none. */
+const TEXT_GLOBS: Partial<Record<Locale, { cases: Record<string, () => Promise<Mod>>; diagnoses: Record<string, () => Promise<Mod>> }>> = {
+  he: {
+    cases: import.meta.glob<Mod>(['../content/he/cases/**/*.ts', '!**/*.test.ts']),
+    diagnoses: import.meta.glob<Mod>(['../content/he/diagnoses/**/*.ts', '!**/*.test.ts']),
+  },
+};
+
+async function loadText<T>(globs: Record<string, () => Promise<Mod>>): Promise<T[]> {
+  const settled = await Promise.allSettled(Object.values(globs).map((l) => l()));
+  return settled.flatMap((r) => {
+    if (r.status === 'rejected') { console.error('[discover] text overlay failed to load', r.reason); return []; }
+    const exp = r.value.default;
+    return exp === undefined ? [] : ((Array.isArray(exp) ? exp : [exp]) as T[]);
+  });
+}
+
 const GLOBS = {
-  diagnoses: import.meta.glob<Mod>('../content/diagnoses/**/*.ts'),
-  cases: import.meta.glob<Mod>('../content/cases/**/*.ts'),
+  diagnoses: import.meta.glob<Mod>(['../content/diagnoses/**/*.ts', '!**/*.test.ts']),
+  cases: import.meta.glob<Mod>(['../content/cases/**/*.ts', '!**/*.test.ts']),
   minigames: import.meta.glob<Mod>(['../minigames/*/index.ts', '../minigames/*/index.tsx']),
   scenes: import.meta.glob<Mod>(['../scenes/*/index.ts', '../scenes/*/index.tsx']),
   modes: import.meta.glob<Mod>('../modes/*/index.ts'),
@@ -83,8 +101,17 @@ export async function discoverPlugins(services: GameServices, opts: DiscoverOpti
     load<ModeModule>('modes', f.modes),
     load<SystemModule>('systems', f.systems),
   ]);
-  dx.forEach(({ key, item }) => safely(key, () => r.diagnoses.register(item)));
-  cs.forEach(({ key, item }) => safely(key, () => r.cases.register(item)));
+  // Localised editions rewrite the words of each case/diagnosis by id; clinical data stays shared.
+  const text = TEXT_GLOBS[services.locale];
+  const caseText = new Map<string, CaseText>();
+  const dxText = new Map<string, DiagnosisText>();
+  if (text) {
+    const [ct, dt] = await Promise.all([loadText<CaseText>(text.cases), loadText<DiagnosisText>(text.diagnoses)]);
+    ct.forEach((t) => caseText.set(t.id, t));
+    dt.forEach((t) => dxText.set(t.id, t));
+  }
+  dx.forEach(({ key, item }) => safely(key, () => r.diagnoses.register(dxText.has(item.id) ? applyDiagnosisText(item, dxText.get(item.id)!) : item)));
+  cs.forEach(({ key, item }) => safely(key, () => r.cases.register(caseText.has(item.id) ? applyCaseText(item, caseText.get(item.id)!) : item)));
   mg.forEach(({ key, item }) => safely(key, () => r.minigames.register(item)));
   sc.forEach(({ key, item }) => safely(key, () => r.scenes.register(item)));
   const uninstalls: (() => void)[] = [];

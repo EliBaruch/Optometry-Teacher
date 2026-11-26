@@ -5,6 +5,7 @@
  * Axes follow TABO: 0° at the examiner's right, counter-clockwise to 180°.
  */
 import type { Eye } from '@core';
+import { useT } from './strings';
 import { formatDiopters } from '@core';
 import type { JccMode, Lens } from './optics';
 
@@ -161,10 +162,11 @@ function Battery(props: { eye: Eye; lens: Lens; on: boolean; occluded: boolean; 
 }
 
 export function Phoropter(p: PhoropterProps) {
+  const t = useT();
   const on = (e: Eye) => p.active === 'OU' || p.active === e;
   const jccEye = p.active === 'OU' ? null : p.active;
   return (
-    <svg class="php-phoropter" viewBox="0 0 640 404" role="img" aria-label={`Refractor head. OD ${fmt(p.lenses.OD)}, OS ${fmt(p.lenses.OS)}.`}>
+    <svg class="php-phoropter" dir="ltr" viewBox="0 0 640 404" role="img" aria-label={t.phoropterAria(fmt(p.lenses.OD), fmt(p.lenses.OS))}>
       <defs>
         <linearGradient id="php-brass" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#fff0c2" />

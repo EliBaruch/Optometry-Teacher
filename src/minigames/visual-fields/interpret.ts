@@ -8,7 +8,8 @@
  * temporal halves of both eyes = chiasm; same side in both eyes = retrochiasmal
  * on the OPPOSITE side of the brain; anything else = pre-chiasmal (retina / nerve).
  */
-import type { Eye, FieldDefect, RevealedFinding } from '@core';
+import type { Eye, FieldDefect, Locale, RevealedFinding } from '@core';
+import { iso, S, vfT, type AnatKey, type ChiasmWhat, type RetroWhat, type RetroWhere } from './strings';
 
 export type Family =
   | 'full' | 'constricted' | 'central' | 'cecocentral' | 'blind-spot'
@@ -29,35 +30,9 @@ export const FAMILIES: readonly Family[] = [
   'nasal-step', 'altitudinal', 'hemianopia', 'quadrantanopia', 'curtain', 'island',
 ];
 
-export const FAMILY_LABEL: Record<Family, string> = {
-  full: 'Full field',
-  constricted: 'Constriction',
-  central: 'Central scotoma',
-  cecocentral: 'Cecocentral scotoma',
-  'blind-spot': 'Enlarged blind spot',
-  arcuate: 'Arcuate',
-  'nasal-step': 'Nasal step',
-  altitudinal: 'Altitudinal',
-  hemianopia: 'Hemianopia',
-  quadrantanopia: 'Quadrantanopia',
-  curtain: 'Peripheral curtain',
-  island: 'Temporal island',
-};
+export const FAMILY_LABEL: Record<Family, string> = S.en.famLabel;
 
-export const FAMILY_SUB: Record<Family, string> = {
-  full: 'Only the physiological blind spot',
-  constricted: 'Tunnel — periphery lost all round',
-  central: 'Fixation lost',
-  cecocentral: 'Fixation to blind spot',
-  'blind-spot': 'Grown around the disc',
-  arcuate: 'Arc from the blind spot',
-  'nasal-step': 'Step at the nasal meridian',
-  altitudinal: 'Upper or lower half',
-  hemianopia: 'Half — respects vertical',
-  quadrantanopia: 'One quarter',
-  curtain: 'Edge loss, fixation spared',
-  island: 'Almost all lost',
-};
+export const FAMILY_SUB: Record<Family, string> = S.en.famSub;
 
 export const FAMILY_SIDES: Record<Family, readonly Side[]> = {
   full: [], constricted: [], central: [], cecocentral: [], 'blind-spot': [], 'nasal-step': [], island: [],
@@ -72,25 +47,23 @@ const temporalSide = (eye: Eye): 'left' | 'right' => (eye === 'OD' ? 'right' : '
 const nasalSide = (eye: Eye): 'left' | 'right' => (eye === 'OD' ? 'left' : 'right');
 
 /** Field terms for a geometric side in this eye ("right" in OD = temporal). */
-export function anatomicalSide(side: Side, eye: Eye): string {
+export function anatomicalSide(side: Side, eye: Eye, locale: Locale = 'en'): string {
   const lr = (s: 'left' | 'right') => (s === temporalSide(eye) ? 'temporal' : 'nasal');
+  let key: AnatKey;
   switch (side) {
-    case 'superior': return 'superior';
-    case 'inferior': return 'inferior';
-    case 'left': return lr('left');
-    case 'right': return lr('right');
-    case 'superior-left': return `supero${lr('left')}`;
-    case 'superior-right': return `supero${lr('right')}`;
-    case 'inferior-left': return `infero${lr('left')}`;
-    case 'inferior-right': return `infero${lr('right')}`;
+    case 'superior': key = 'superior'; break;
+    case 'inferior': key = 'inferior'; break;
+    case 'left': key = lr('left'); break;
+    case 'right': key = lr('right'); break;
+    case 'superior-left': key = `supero${lr('left')}`; break;
+    case 'superior-right': key = `supero${lr('right')}`; break;
+    case 'inferior-left': key = `infero${lr('left')}`; break;
+    case 'inferior-right': key = `infero${lr('right')}`; break;
   }
+  return vfT(locale).anat[key];
 }
 
-export const SIDE_LABEL: Record<Side, string> = {
-  superior: 'Upper', inferior: 'Lower', left: 'Left', right: 'Right',
-  'superior-left': 'Upper left', 'superior-right': 'Upper right',
-  'inferior-left': 'Lower left', 'inferior-right': 'Lower right',
-};
+export const SIDE_LABEL: Record<Side, string> = S.en.sideLabel;
 
 /** Canonical geometric pattern of a FieldDefect in a given eye. */
 export function patternOf(defect: FieldDefect, eye: Eye): Pattern {
@@ -161,21 +134,9 @@ export type Localisation = 'none' | 'prechiasmal' | 'chiasm' | 'retro-right' | '
 
 export const LOCALISATIONS: readonly Localisation[] = ['none', 'prechiasmal', 'chiasm', 'retro-right', 'retro-left'];
 
-export const LOCALISATION_LABEL: Record<Localisation, string> = {
-  none: 'No pathway defect',
-  prechiasmal: 'Retina / optic nerve (pre-chiasmal)',
-  chiasm: 'Optic chiasm',
-  'retro-right': 'Right retrochiasmal pathway',
-  'retro-left': 'Left retrochiasmal pathway',
-};
+export const LOCALISATION_LABEL: Record<Localisation, string> = S.en.locLabel;
 
-export const LOCALISATION_SUB: Record<Localisation, string> = {
-  none: 'Both fields full',
-  prechiasmal: 'One eye’s own pattern',
-  chiasm: 'Crossing nasal fibres',
-  'retro-right': 'Tract · radiation · occipital',
-  'retro-left': 'Tract · radiation · occipital',
-};
+export const LOCALISATION_SUB: Record<Localisation, string> = S.en.locSub;
 
 /** Where along the visual pathway is the lesion? */
 export function localise(od: Pattern, os: Pattern): Localisation {
@@ -197,26 +158,28 @@ export function localise(od: Pattern, os: Pattern): Localisation {
 // ───────────────────────── chart text
 
 /** e.g. "Superior arcuate — respects the horizontal meridian". */
-export function describeEye(defect: FieldDefect, eye: Eye): string {
+export function describeEye(defect: FieldDefect, eye: Eye, locale: Locale = 'en'): string {
+  const t = vfT(locale);
   const p = patternOf(defect, eye);
-  const anat = p.side ? anatomicalSide(p.side, eye) : '';
-  switch (p.family) {
-    case 'full': return 'Full — physiological blind spot only';
-    case 'constricted': return 'Constricted — central island of ~12° only';
-    case 'central': return 'Central scotoma — fixation involved';
-    case 'cecocentral': return 'Cecocentral scotoma — fixation to blind spot';
-    case 'blind-spot': return 'Enlarged blind spot';
-    case 'arcuate': return `${cap(anat)} arcuate — respects the horizontal meridian`;
-    case 'nasal-step': return 'Superior nasal step';
-    case 'altitudinal': return `${cap(anat)} altitudinal — respects the horizontal meridian`;
-    case 'hemianopia': return `${p.side === 'left' ? 'Left' : 'Right'} (${anat}) hemianopia — respects the vertical meridian`;
-    case 'quadrantanopia': return `${SIDE_LABEL[p.side!]} (${anat}) quadrantanopia`;
-    case 'curtain': return `${cap(anat)} peripheral loss — fixation spared`;
-    case 'island': return 'Near-total loss — small temporal island only';
-  }
+  const anat = p.side ? anatomicalSide(p.side, eye, locale) : '';
+  const out = ((): string => {
+    switch (p.family) {
+      case 'full': return t.dFull;
+      case 'constricted': return t.dConstricted;
+      case 'central': return t.dCentral;
+      case 'cecocentral': return t.dCecocentral;
+      case 'blind-spot': return t.dBlindSpot;
+      case 'arcuate': return t.dArcuate(anat);
+      case 'nasal-step': return t.dNasalStep;
+      case 'altitudinal': return t.dAltitudinal(anat);
+      case 'hemianopia': return t.dHemianopia(p.side === 'left' ? 'left' : 'right', anat);
+      case 'quadrantanopia': return t.dQuadrant(t.sideLabel[p.side!], anat);
+      case 'curtain': return t.dCurtain(anat);
+      case 'island': return t.dIsland;
+    }
+  })();
+  return iso(locale, out);
 }
-
-const cap = (s: string) => (s ? s[0]!.toUpperCase() + s.slice(1) : s);
 
 export function flagOf(defect: FieldDefect): RevealedFinding['flag'] {
   const f = patternOf(defect, 'OD').family;
@@ -226,65 +189,54 @@ export function flagOf(defect: FieldDefect): RevealedFinding['flag'] {
 }
 
 /** What a monocular pattern points to (pre-chiasmal hint). */
-export function monocularHint(f: Family): string {
-  switch (f) {
-    case 'arcuate':
-    case 'nasal-step': return 'nerve fibre layer at the disc (glaucomatous pattern; or a branch vein occlusion)';
-    case 'central': return 'macula or optic nerve (e.g. optic neuritis)';
-    case 'cecocentral': return 'papillomacular bundle (toxic, nutritional or hereditary optic neuropathy)';
-    case 'blind-spot': return 'optic disc swelling';
-    case 'altitudinal': return 'optic nerve head ischaemia (exclude giant cell arteritis) or branch artery occlusion';
-    case 'constricted': return 'diffuse — retinitis pigmentosa, end-stage glaucoma or non-organic';
-    case 'curtain': return 'retina — detachment in the opposite part of the fundus';
-    case 'island': return 'central retinal artery occlusion';
-    case 'hemianopia':
-    case 'quadrantanopia': return 'respects the vertical midline';
-    case 'full': return 'none';
-  }
+export function monocularHint(f: Family, locale: Locale = 'en'): string {
+  return vfT(locale).hints[f];
 }
 
 /** One-line localisation for the chart, with a hint where the lesion sits. */
-export function localisationLine(od: FieldDefect, os: FieldDefect): { value: string; flag: RevealedFinding['flag'] } {
+export function localisationLine(od: FieldDefect, os: FieldDefect, locale: Locale = 'en'): { value: string; flag: RevealedFinding['flag'] } {
+  const t = vfT(locale);
+  const r = (value: string, flag: RevealedFinding['flag']) => ({ value: iso(locale, value), flag });
   const pOD = patternOf(od, 'OD');
   const pOS = patternOf(os, 'OS');
   const loc = localise(pOD, pOS);
   switch (loc) {
     case 'none':
-      return { value: 'Full fields OU — no pathway defect', flag: 'normal' };
+      return r(t.lineNone, 'normal');
     case 'chiasm': {
       const both = pOD.family !== 'full' && pOS.family !== 'full';
       const quad = [pOD, pOS].find((p) => p.family === 'quadrantanopia');
-      const what = !both
-        ? 'junctional temporal hemianopia'
-        : quad ? `bitemporal ${quad.side?.startsWith('inferior') ? 'inferior' : 'superior'} quadrantanopia` : 'bitemporal hemianopia';
-      return { value: `Chiasm — ${what}; image the pituitary region`, flag: 'critical' };
+      const key: ChiasmWhat = !both
+        ? 'junctional'
+        : quad ? (quad.side?.startsWith('inferior') ? 'bitemporal-inferior' : 'bitemporal-superior') : 'bitemporal';
+      return r(t.lineChiasm(t.chiasmWhat[key]), 'critical');
     }
     case 'retro-right':
     case 'retro-left': {
-      const field = loc === 'retro-right' ? 'Left' : 'Right';
-      const brain = loc === 'retro-right' ? 'Right' : 'Left';
+      const field = loc === 'retro-right' ? 'left' : 'right';
+      const brain = loc === 'retro-right' ? 'right' : 'left';
       const quads = [pOD, pOS].filter((p) => p.family === 'quadrantanopia');
-      let where = 'optic tract, radiation or occipital cortex';
-      let what = 'homonymous hemianopia';
+      let where: RetroWhere = 'general';
+      let what: RetroWhat = 'hemi';
       if (quads.length === 2) {
         const sup = quads.every((p) => p.side?.startsWith('superior'));
         const inf = quads.every((p) => p.side?.startsWith('inferior'));
-        if (sup) { what = 'superior homonymous quadrantanopia'; where = 'temporal lobe (Meyer’s loop)'; }
-        else if (inf) { what = 'inferior homonymous quadrantanopia'; where = 'parietal lobe radiation'; }
+        if (sup) { what = 'superior'; where = 'temporal'; }
+        else if (inf) { what = 'inferior'; where = 'parietal'; }
       }
-      return { value: `${brain} retrochiasmal — ${field.toLowerCase()} ${what} (${where})`, flag: 'critical' };
+      return r(t.lineRetro(brain, field, t.retroWhat[what], t.retroWhere[where]), 'critical');
     }
     case 'prechiasmal': {
       const parts: string[] = [];
       const bilateral = pOD.family !== 'full' && pOS.family !== 'full';
       if (bilateral && pOD.family === 'blind-spot' && pOS.family === 'blind-spot') {
-        return { value: 'Pre-chiasmal OU — bilateral enlarged blind spots: check for disc swelling (papilloedema)', flag: 'critical' };
+        return r(t.linePapilloedema, 'critical');
       }
       for (const [eye, p] of [['OD', pOD], ['OS', pOS]] as const) {
-        if (p.family !== 'full') parts.push(`${eye}: ${monocularHint(p.family)}`);
+        if (p.family !== 'full') parts.push(t.linePrePart(eye, t.hints[p.family]));
       }
       const flag = [od, os].some((d) => flagOf(d) === 'critical') ? 'critical' : 'abnormal';
-      return { value: `Pre-chiasmal — ${parts.join('; ')}`, flag };
+      return r(t.linePre(parts.join('; ')), flag);
     }
   }
 }

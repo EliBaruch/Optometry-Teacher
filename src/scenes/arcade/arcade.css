@@ -1,5 +1,5 @@
 /* Practice Arcade — a cabinet of luminous instruments. */
-.arcade-content > :not(.lm-modal) { max-width: 1240px; margin-left: auto; margin-right: auto; }
+.arcade-content > :not(.lm-modal) { max-width: 1240px; margin-inline: auto; }
 
 .arcade-hero {
   display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, 1fr); gap: var(--lm-sp-7); align-items: end;
@@ -10,7 +10,7 @@
   max-width: 36ch; text-wrap: balance;
 }
 .arcade-hero__stats { display: flex; flex-wrap: wrap; gap: var(--lm-sp-2) var(--lm-sp-5); margin-top: var(--lm-sp-4); font-size: var(--lm-fs-sm); color: var(--lm-text-muted); }
-.arcade-hero__stats b { font-size: var(--lm-fs-xl); color: var(--lm-gold); margin-right: 4px; }
+.arcade-hero__stats b { font-size: var(--lm-fs-xl); color: var(--lm-gold); margin-inline-end: 4px; }
 .arcade-diff { display: flex; flex-direction: column; gap: var(--lm-sp-2); }
 .arcade-diff .lm-eyebrow { color: var(--d); transition: color var(--lm-dur-ui); }
 .arcade-diff__blurb { font-size: var(--lm-fs-sm); color: var(--lm-text-muted); min-height: 2.6em; animation: lm-fade-up var(--lm-dur-med) var(--lm-ease-out-expo) both; }
@@ -22,20 +22,20 @@
 .arcade-card {
   --acc: var(--lm-gold);
   position: relative; overflow: hidden; isolation: isolate; flex: 1; display: flex; flex-direction: column; gap: var(--lm-sp-3);
-  padding: var(--lm-sp-5); border-radius: var(--lm-r-lg); text-align: left; min-height: 270px;
+  padding: var(--lm-sp-5); border-radius: var(--lm-r-lg); text-align: start; min-height: 270px;
   background: var(--lm-glass-sheen), var(--lm-glass-bg); backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
   box-shadow: var(--lm-glass-highlight), inset 0 0 0 1px var(--lm-glass-border), var(--lm-shadow-2);
   animation: lm-fade-up var(--lm-dur-reveal) var(--lm-ease-out-expo) both; animation-delay: var(--lm-delay, 0ms);
   transition: transform var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-med) var(--lm-ease-out);
 }
 .arcade-card::before {
-  content: ''; position: absolute; left: 14%; right: 14%; top: 0; height: 1px;
+  content: ''; position: absolute; inset-inline: 14%; top: 0; height: 1px;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--acc) 80%, white), transparent); opacity: 0.6;
 }
 .arcade-card:hover { transform: translateY(-5px); box-shadow: var(--lm-glass-highlight), inset 0 0 0 1px color-mix(in srgb, var(--acc) 55%, transparent), 0 0 44px -8px color-mix(in srgb, var(--acc) 55%, transparent), var(--lm-shadow-3); }
 .arcade-card:active { transform: translateY(-2px) scale(0.985); transition-duration: var(--lm-dur-instant); }
 .arcade-card__flare {
-  position: absolute; z-index: -1; top: -40%; left: -30%; width: 120%; height: 90%; pointer-events: none;
+  position: absolute; z-index: -1; top: -40%; inset-inline-start: -30%; width: 120%; height: 90%; pointer-events: none;
   background: radial-gradient(closest-side, color-mix(in srgb, var(--acc) 26%, transparent), transparent);
   opacity: 0.5; transition: opacity var(--lm-dur-med), transform var(--lm-dur-slow) var(--lm-ease-out);
 }
@@ -72,7 +72,7 @@
 }
 .arcade-card__medal svg { width: 14px; height: 14px; }
 .arcade-card__play {
-  margin-left: auto; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: var(--lm-text-on-gold);
+  margin-inline-start: auto; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: var(--lm-text-on-gold);
   background: linear-gradient(180deg, #fff0c9, #f5b942); box-shadow: 0 0 0 1px rgba(255, 214, 140, 0.7), 0 0 18px -4px rgba(255, 210, 122, 0.8);
   transition: transform var(--lm-dur-ui) var(--lm-ease-spring);
 }
@@ -205,3 +205,6 @@
   .arcade-card--pending .arcade-card__blurb { display: none; }
   .arcade-card--pending .arcade-card__foot { flex-basis: auto; border: 0; padding: 0; }
 }
+
+:lang(he) [class*="arcade-"] { font-style: normal; }
+.arcade-diff__blurb bdi { white-space: nowrap; }

@@ -5,8 +5,9 @@
  *   Add          OU  +2.00                normal (age-appropriate presbyopia)
  *   Anisometropia    ΔSE 2.50 D           abnormal
  */
-import { EYES, formatDiopters, formatRx, formatSnellen, sphericalEquivalent, type Eye, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
+import { EYES, formatDiopters, formatRx, formatSnellen, pickStrings, sphericalEquivalent, type Eye, type Locale, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
 import { lensFromRx, quarter } from './optics';
+import { S } from './strings';
 
 /** BCVA worse than 20/25 (logMAR > 0.1, allowing rounding) counts as reduced. */
 export const REDUCED_BCVA = 0.15;
@@ -23,24 +24,26 @@ export function irregular(f: PatientFindings, eye: Eye): boolean {
   return reflex === 'scissors' || reflex === 'irregular' || mires === 'irregular' || mires === 'distorted';
 }
 
-export function report(findings: PatientFindings, _patient?: PatientProfile): RevealedFinding[] {
+/** `locale` is optional so MiniGameModule.report(findings, patient) keeps its English output. */
+export function report(findings: PatientFindings, _patient?: PatientProfile, locale: Locale = 'en'): RevealedFinding[] {
+  const t = pickStrings(S, locale);
   const out: RevealedFinding[] = [];
   for (const eye of EYES) {
     const rx = normalisedRx(findings, eye);
     const best = findings.va[eye].bestCorrected;
     const reduced = best > REDUCED_BCVA;
-    out.push({ label: 'Manifest Rx', value: formatRx(rx), eye, flag: reduced ? 'abnormal' : 'normal' });
-    out.push({ label: 'BCVA', value: formatSnellen(best), eye, flag: reduced ? 'abnormal' : 'normal' });
-    if (irregular(findings, eye)) out.push({ label: 'Endpoint', value: 'Poorly defined — irregular astigmatism', eye, flag: 'abnormal' });
+    out.push({ label: t.lblRx, value: formatRx(rx), eye, flag: reduced ? 'abnormal' : 'normal' });
+    out.push({ label: t.lblBcva, value: formatSnellen(best), eye, flag: reduced ? 'abnormal' : 'normal' });
+    if (irregular(findings, eye)) out.push({ label: t.lblEndpoint, value: t.valEndpoint, eye, flag: 'abnormal' });
   }
 
   const addOD = findings.refraction.OD.add ?? 0;
   const addOS = findings.refraction.OS.add ?? 0;
   if (addOD > 0 || addOS > 0) {
-    if (Math.abs(addOD - addOS) < 0.125) out.push({ label: 'Add', value: formatDiopters(addOD), eye: 'OU', flag: 'normal' });
+    if (Math.abs(addOD - addOS) < 0.125) out.push({ label: t.lblAdd, value: formatDiopters(addOD), eye: 'OU', flag: 'normal' });
     else for (const eye of EYES) {
       const a = findings.refraction[eye].add ?? 0;
-      if (a > 0) out.push({ label: 'Add', value: formatDiopters(a), eye, flag: 'normal' });
+      if (a > 0) out.push({ label: t.lblAdd, value: formatDiopters(a), eye, flag: 'normal' });
     }
   }
 
@@ -50,7 +53,7 @@ export function report(findings: PatientFindings, _patient?: PatientProfile): Re
   const dCyl = Math.abs(od.cylinder - os.cylinder);
   if (dSE >= 1 || dCyl >= 1.5) {
     const v = dSE >= 1 ? `ΔSE ${dSE.toFixed(2)} D` : `Δcyl ${dCyl.toFixed(2)} D`;
-    out.push({ label: 'Anisometropia', value: v, eye: 'OU', flag: 'abnormal' });
+    out.push({ label: t.lblAniso, value: v, eye: 'OU', flag: 'abnormal' });
   }
   return out;
 }

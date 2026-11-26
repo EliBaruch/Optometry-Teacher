@@ -1,5 +1,7 @@
 import type { ComponentChildren } from 'preact';
 import { useSignal } from '@ui-kit';
+import { pickStrings } from '@core';
+import { S } from '../strings';
 import { unseenCount } from '../model';
 import { GALLERY_COLOR, SYSTEM_ID, type CollectionStore } from '../store';
 import { GalleryScene } from './GalleryScene';
@@ -15,6 +17,7 @@ function Active(props: { store: CollectionStore; children: () => ComponentChildr
 
 export function registerUi(store: CollectionStore): void {
   const { registries } = store.services;
+  const t = pickStrings(S, store.services.locale);
 
   registries.scenes.register({
     id: 'gallery',
@@ -24,8 +27,8 @@ export function registerUi(store: CollectionStore): void {
 
   registries.hub.register({
     id: 'gallery',
-    title: 'Gallery',
-    subtitle: 'Holographic iris cards',
+    title: t.hubTitle,
+    subtitle: t.hubSubtitle,
     icon: 'gem',
     accent: GALLERY_COLOR,
     order: 50,
@@ -34,7 +37,7 @@ export function registerUi(store: CollectionStore): void {
     badge: () => {
       if (!store.active.get()) return undefined;
       const n = unseenCount(store.state.get());
-      return n ? `${n} NEW` : undefined;
+      return n ? t.newBadge(n) : undefined;
     },
   });
 

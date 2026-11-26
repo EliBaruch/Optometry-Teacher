@@ -4,9 +4,10 @@ import { useInView } from '../hooks/useInView';
 import { useLiteRendering } from '../hooks/useLiteRendering';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useFx, useSfx } from '../hooks/useSfx';
-import { GRADE_COLOR, GRADE_WORD } from '../lib/palette';
+import { GRADE_COLOR } from '../lib/palette';
 import { cx } from '../lib/cx';
 import './GradeStamp.css';
+import { useUiStrings } from '../strings';
 
 export interface GradeStampProps {
   grade: Grade;
@@ -28,7 +29,8 @@ export const STAMP_IMPACT_MS = 300;
 const RIM_LEN = Math.round(2 * Math.PI * 77) - 6;
 
 /** Rubber-stamp grade that slams onto the page. S is iridescent gold. */
-export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake, rimText = 'LUMEN EYE CLINIC ✦ CASE REVIEW ✦ ', onImpact, class: klass }: GradeStampProps) {
+export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake, rimText, onImpact, class: klass }: GradeStampProps) {
+  const ui = useUiStrings();
   const reduced = useReducedMotion();
   const play = useSfx();
   const fx = useFx();
@@ -66,7 +68,7 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
       class={cx('lm-stamp', `lm-stamp--${grade}`, anim && 'is-anim', !inView && 'is-idle', klass)}
       style={{ width: size, '--stamp-c': GRADE_COLOR[grade], '--d': `${delay}ms` }}
       role="img"
-      aria-label={`Grade ${grade}: ${GRADE_WORD[grade]}`}
+      aria-label={ui.grade(grade, ui.gradeWord[grade])}
     >
       {isS && <span class="lm-stamp__rays" aria-hidden="true" />}
       <span class="lm-stamp__shock" aria-hidden="true" />
@@ -103,7 +105,7 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
           <circle cx="100" cy="100" r="92" stroke-width="6" />
           <circle cx="100" cy="100" r="64" stroke-width="2" />
           <text class="lm-stamp__rim" fill={ink} stroke="none">
-            <textPath href={`#${uid}-rim`} startOffset="0" textLength={RIM_LEN} lengthAdjust="spacing">{rimText}</textPath>
+            <textPath href={`#${uid}-rim`} startOffset="0" textLength={RIM_LEN} lengthAdjust="spacing">{rimText ?? ui.stampRim}</textPath>
           </text>
           <text class="lm-stamp__letter" x="100" y="100" text-anchor="middle" dominant-baseline="central" fill={ink} stroke="none">
             {grade}

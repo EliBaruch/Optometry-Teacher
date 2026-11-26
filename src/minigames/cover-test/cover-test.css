@@ -19,7 +19,7 @@
   border-bottom: 1px solid var(--lm-hairline, rgba(255, 236, 210, 0.09)); background: linear-gradient(180deg, rgba(30, 18, 54, 0.8), rgba(16, 9, 30, 0.35)); }
 .cvt-head__title { display: flex; align-items: center; gap: 8px; flex: none; font: 560 1.05rem/1.1 var(--lm-font-display, Georgia, serif); }
 .cvt-head__title svg { color: var(--lm-gold, #ffd27a); filter: drop-shadow(0 0 6px rgba(255, 210, 122, 0.5)); }
-.cvt-head__hint { flex: 1 1 260px; min-width: 0; margin: 0; padding-left: 14px; border-left: 1px solid var(--lm-hairline); font-size: var(--lm-fs-sm, 13.5px); line-height: 1.35;
+.cvt-head__hint { flex: 1 1 260px; min-width: 0; margin: 0; padding-inline-start: 14px; border-inline-start: 1px solid var(--lm-hairline); font-size: var(--lm-fs-sm, 13.5px); line-height: 1.35;
   color: var(--lm-ivory-dim, #ddd3c4); animation: cvt-fade 380ms ease-out both; }
 .cvt-seg { display: flex; gap: 3px; padding: 3px; border-radius: 12px; flex: none; background: rgba(8, 4, 16, 0.62); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1), inset 0 2px 6px rgba(0, 0, 0, 0.4); }
 .cvt-seg__b { display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 0 13px; border: 0; border-radius: 9px; background: transparent; cursor: pointer;
@@ -107,7 +107,7 @@
 .cvt-prism__tick i { width: 1px; height: 6px; background: rgba(255, 236, 210, 0.4); }
 .cvt-prism__thumb { position: absolute; top: 3px; width: 22px; height: 22px; margin-left: -11px; border-radius: 7px; cursor: grab;
   background: linear-gradient(135deg, rgba(210, 250, 255, 0.95), rgba(120, 200, 230, 0.8)); box-shadow: 0 0 14px rgba(120, 220, 255, 0.7), inset 0 0 0 1px #fff, 0 3px 8px rgba(0, 0, 0, 0.5); transition: left 70ms linear; }
-.cvt-prism__lab { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--lm-muted); margin-right: 2px; }
+.cvt-prism__lab { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--lm-muted); margin-inline-end: 2px; }
 
 /* footer */
 .cvt-foot { display: flex; align-items: center; gap: 14px; padding: 10px 16px; flex-wrap: wrap; border-top: 1px solid var(--lm-hairline);
@@ -117,7 +117,7 @@
 .cvt-step i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 236, 210, 0.25); }
 .cvt-step.is-done { color: var(--lm-normal, #5eead4); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.4); background: rgba(94, 234, 212, 0.08); }
 .cvt-foot__bar { display: none; }
-.cvt-foot__go { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.cvt-foot__go { display: flex; align-items: center; gap: 12px; margin-inline-start: auto; }
 .cvt-foot__note { font-size: 0.74rem; color: var(--lm-muted); }
 
 /* overlays */
@@ -145,7 +145,7 @@
 .cvt-stars { display: inline-flex; gap: 2px; color: rgba(255, 236, 210, 0.2); } .cvt-stars .is-on { color: var(--cvt-gold); filter: drop-shadow(0 0 5px rgba(255, 210, 122, 0.7)); }
 .cvt-quiz h4 { margin: 8px 0; font: 560 1.02rem var(--lm-font-display, serif); }
 .cvt-quiz__opts { display: grid; gap: 8px; }
-.cvt-opt { text-align: left; padding: 10px 14px; border-radius: 12px; border: 0; cursor: pointer; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px var(--lm-hairline); font-size: 0.9rem; transition: background 160ms, box-shadow 160ms; }
+.cvt-opt { text-align: start; padding: 10px 14px; border-radius: 12px; border: 0; cursor: pointer; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px var(--lm-hairline); font-size: 0.9rem; transition: background 160ms, box-shadow 160ms; }
 .cvt-opt:hover:not(:disabled) { background: rgba(255, 210, 122, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.5); }
 .cvt-opt.is-right { background: rgba(111, 224, 90, 0.2); box-shadow: inset 0 0 0 1px #6fe05a; }
 .cvt-opt.is-wrong { background: rgba(255, 100, 100, 0.16); box-shadow: inset 0 0 0 1px #ff7a7a; }
@@ -170,7 +170,7 @@
   .cvt-head { padding: 7px 12px; gap: 6px; }
   .cvt-head__title { display: none; }
   .cvt-seg { flex: 1 1 100%; } .cvt-seg__b { flex: 1; justify-content: center; min-height: 40px; padding: 0 8px; font-size: 0.78rem; }
-  .cvt-head__hint { padding-left: 0; border-left: 0; flex-basis: 100%; order: 3; font-size: 0.8rem; line-height: 1.3; }
+  .cvt-head__hint { padding-inline-start: 0; border-inline-start: 0; flex-basis: 100%; order: 3; font-size: 0.8rem; line-height: 1.3; }
   .cvt-hint-long { display: none; } .cvt-hint-short { display: inline; }
   .cvt-main { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px; overflow: hidden; }
   .cvt-wrap { gap: 8px; }
@@ -209,3 +209,10 @@
 @media (prefers-reduced-motion: reduce) {
   .cvt-root *, .cvt-overlay, .cvt-card { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
+
+/* Hebrew edition: the patient's face, the occluder and the prism bar are spatial and never mirror. */
+.cvt-stage, .cvt-tools { direction: ltr; }
+[dir='rtl'] .cvt-tools .lm-icon[data-icon='chevron-left'], [dir='rtl'] .cvt-tools .lm-icon[data-icon='chevron-right'] { scale: none; }
+.cvt-num { unicode-bidi: isolate; }
+:lang(he) .cvt-eyebrow, :lang(he) .cvt-step, :lang(he) .cvt-chip { letter-spacing: 0; }
+:lang(he) .cvt-fix__lab, :lang(he) .cvt-eyelab { direction: rtl; }

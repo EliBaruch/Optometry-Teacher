@@ -230,7 +230,7 @@
 .cv-sheet__cell.is-eye { background: rgba(255, 210, 122, 0.035); }
 .cv-sheet__empty { color: var(--lm-faint); }
 .cv-sheet__read { color: var(--lm-ivory); font-weight: 600; }
-.cv-sheet__mark { margin-left: 5px; font-size: 0.85em; }
+.cv-sheet__mark { margin-inline-start: 5px; font-size: 0.85em; }
 .cv-sheet__cell.is-ok .cv-sheet__mark { color: var(--lm-normal); }
 .cv-sheet__cell.is-miss .cv-sheet__mark { color: var(--lm-critical); }
 .cv-sheet__cell.is-miss .cv-sheet__read { color: #ffc2cc; }
@@ -284,7 +284,7 @@
 
 /* tutorial */
 .cv-tut {
-  width: min(420px, 100%); padding: 22px 24px 18px; border-radius: var(--lm-r-lg); text-align: left;
+  width: min(420px, 100%); padding: 22px 24px 18px; border-radius: var(--lm-r-lg); text-align: start;
   background: var(--lm-glass-bg-strong); box-shadow: inset 0 0 0 1px var(--lm-glass-border-hi), var(--lm-glow-soft), var(--lm-shadow-3);
   animation: cv-rise 380ms var(--lm-ease-out-expo) both;
 }
@@ -320,7 +320,7 @@
 .cv-choice__hint { font-size: 0.68rem; color: var(--lm-muted); line-height: 1.25; }
 .cv-eyegroup { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; transition: opacity var(--lm-dur-ui); }
 .cv-eyegroup.is-off { opacity: 0.35; }
-.cv-eyegroup__label { font-size: var(--lm-fs-xs); color: var(--lm-muted); margin-right: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+.cv-eyegroup__label { font-size: var(--lm-fs-xs); color: var(--lm-muted); margin-inline-end: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
 .cv-pill {
   min-height: 40px; padding: 8px 16px; border: 0; border-radius: var(--lm-r-pill); cursor: pointer;
   font-family: var(--lm-font-num); font-weight: 600; font-size: var(--lm-fs-sm);
@@ -394,15 +394,15 @@
 .cv-reveal__rows li.is-miss b { color: var(--lm-abnormal); }
 .cv-reveal__teach { margin: 0; font-size: var(--lm-fs-sm); line-height: 1.5; color: var(--lm-ivory-dim); }
 .cv-reveal__chart { list-style: none; margin: 14px 0 0; padding: 10px 12px; border-radius: var(--lm-r-md); background: rgba(6, 3, 13, 0.45); box-shadow: inset 0 0 0 1px var(--lm-hairline); display: grid; gap: 4px; }
-.cv-reveal__chart li { display: flex; justify-content: space-between; gap: 12px; font-size: var(--lm-fs-xs); padding: 3px 0 3px 10px; border-left: 3px solid var(--lm-normal); animation: cv-rise 420ms var(--lm-ease-out-expo) both; }
+.cv-reveal__chart li { display: flex; justify-content: space-between; gap: 12px; font-size: var(--lm-fs-xs); padding: 3px 0 3px 10px; padding-inline: 10px 0; border-inline-start: 3px solid var(--lm-normal); animation: cv-rise 420ms var(--lm-ease-out-expo) both; }
 .cv-reveal__chart li:nth-child(2) { animation-delay: 60ms; }
 .cv-reveal__chart li:nth-child(3) { animation-delay: 120ms; }
 .cv-reveal__chart li:nth-child(4) { animation-delay: 180ms; }
 .cv-reveal__chart li:nth-child(5) { animation-delay: 240ms; }
 .cv-reveal__chart li span { color: var(--lm-muted); }
-.cv-reveal__chart li b { font-family: var(--lm-font-num); font-weight: 600; text-align: right; }
-.cv-reveal__chart li.is-abnormal { border-left-color: var(--lm-abnormal); }
-.cv-reveal__chart li.is-critical { border-left-color: var(--lm-critical); }
+.cv-reveal__chart li b { font-family: var(--lm-font-num); font-weight: 600; text-align: end; }
+.cv-reveal__chart li.is-abnormal { border-inline-start-color: var(--lm-abnormal); }
+.cv-reveal__chart li.is-critical { border-inline-start-color: var(--lm-critical); }
 .cv-reveal__chart li.is-critical b { color: #ffb4c1; }
 .cv-reveal__note { margin: 10px 0 0; font-size: var(--lm-fs-2xs); color: var(--lm-muted-2); }
 
@@ -457,3 +457,9 @@
   .cv-plate--mini { width: 118px; height: 118px; }
   .cv-foot__actions :first-child { padding-inline: 12px; }
 }
+
+/* the plate book is a physical object: its page-turn controls never mirror */
+.cv-turn .lm-icon[data-icon='chevron-left'], .cv-turn .lm-icon[data-icon='chevron-right'] { scale: none; }
+
+/* Hebrew has no true italic: avoid synthetic slant */
+:lang(he) .cv-page__folio span:first-child, :lang(he) .cv-capstep__feedback, :lang(he) .cv-capstep__feedback *, :lang(he) .cv-cap__hint, :lang(he) [class*="hint"] { font-style: normal; }

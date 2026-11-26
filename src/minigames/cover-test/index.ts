@@ -3,6 +3,7 @@ import type { MiniGameModule } from '@core';
 import { Game } from './Game';
 import { makeScenario } from './practice';
 import { report } from './report';
+import { S } from './strings';
 import './cover-test.css';
 
 const coverTest: MiniGameModule = {
@@ -18,6 +19,7 @@ const coverTest: MiniGameModule = {
     'Neutralise with prism: base-out for eso, base-in for exo, base-down over the higher eye',
     'Test at distance (6 m) and near (33 cm): the pattern of difference helps classify the deviation',
   ],
+  text: { he: { title: S.he.title, instructions: S.he.instructions, teaches: S.he.teaches } },
   mount(host, ctx, done) {
     let called = false;
     const once: typeof done = (r) => { if (called) return; called = true; done(r); };

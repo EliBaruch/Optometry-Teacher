@@ -5,9 +5,11 @@
  */
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
+import { pickStrings } from '@core';
 import { AvatarBust } from '@render';
 import type { ArrivalInfo, SavedInfo, Stage } from '../engine';
 import { formatClock, formatDuration } from '../logic';
+import { S } from '../strings';
 import { EyeJewel } from './EyeJewel';
 import './stage.css';
 
@@ -34,6 +36,7 @@ function useLifecycle(total: number, onDone: () => void, cut = false) {
 
 export function ArrivalBanner({ info, onDone, cut }: { info: ArrivalInfo; onDone: () => void; cut?: boolean }) {
   const leaving = useLifecycle(ARRIVAL_MS, onDone, cut);
+  const tx = pickStrings(S, info.locale ?? 'en');
   const p = info.kase?.patient;
   return (
     <div class={`cr-arrival${leaving ? ' is-leaving' : ''}${info.reduced ? ' is-still' : ''}`} role="alert">
@@ -44,11 +47,11 @@ export function ArrivalBanner({ info, onDone, cut }: { info: ArrivalInfo; onDone
         <div class="cr-arrival__core">
           <span class="cr-arrival__eyebrow">
             <span class="cr-arrival__dot" aria-hidden="true" />
-            {info.grandRounds ? 'Grand Rounds · Emergency' : 'Emergency · Sight at risk'}
+            {info.grandRounds ? tx.arrivalGrand : tx.arrivalNormal}
           </span>
           <h2 class="cr-arrival__title">
             <span class="cr-arrival__glyph" aria-hidden="true">✚</span>
-            Code Red
+            {tx.codeRed}
             <span class="cr-arrival__glyph" aria-hidden="true">✚</span>
           </h2>
           <p class="cr-arrival__sub">
@@ -58,7 +61,7 @@ export function ArrivalBanner({ info, onDone, cut }: { info: ArrivalInfo; onDone
                 <span class="cr-arrival__sep" aria-hidden="true">·</span>
               </>
             )}
-            <span class="lm-num">{formatClock(info.limitSec)}</span>&nbsp;on the clock
+            <span class="lm-num">{formatClock(info.limitSec)}</span>{tx.onClock.replace(/^ /, '\u00a0')}
           </p>
         </div>
       </div>
@@ -90,6 +93,8 @@ function Rays() {
 export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => void }) {
   const { reward } = info;
   const leaving = useLifecycle(reward.thin ? THIN_MS : SAVED_MS, onDone);
+  const loc = info.locale ?? 'en';
+  const tx = pickStrings(S, loc);
   const p = info.kase?.patient;
   return (
     <div
@@ -102,7 +107,7 @@ export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => vo
         <Rays />
       </div>
       <div class="cr-saved__card">
-        <span class="cr-saved__eyebrow">{reward.rarity === 'legendary' ? 'Code Red · Flawless work-up' : 'Code Red · Resolved'}</span>
+        <span class="cr-saved__eyebrow">{reward.rarity === 'legendary' ? tx.savedFlawless : tx.savedResolved}</span>
         <div class="cr-saved__emblem">
           <EyeJewel uid="saved" size={180} class="cr-eye" />
           {p && (
@@ -111,14 +116,14 @@ export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => vo
             </span>
           )}
         </div>
-        <h2 class="cr-saved__title">Sight saved</h2>
+        <h2 class="cr-saved__title">{tx.sightSaved}</h2>
         <p class="cr-saved__dx">
-          {info.dxName} <span aria-hidden="true">·</span> called in <span class="lm-num">{info.sec < 1 ? "under a second" : formatDuration(info.sec)}</span>
+          {info.dxName} <span aria-hidden="true">·</span> {tx.calledIn}<span class="lm-num">{info.sec < 1 ? tx.underSecond : formatDuration(info.sec, loc)}</span>
         </p>
         <div class="cr-saved__chips">
-          <span class="cr-saved__chip cr-saved__chip--gold" style={{ '--i': 0 }}>+{reward.coins} ✦</span>
-          <span class="cr-saved__chip" style={{ '--i': 1 }}>+{reward.xp} XP</span>
-          {reward.grandCoins > 0 && <span class="cr-saved__chip cr-saved__chip--grand" style={{ '--i': 2 }}>Grand Rounds +{reward.grandCoins} ✦</span>}
+          <span class="cr-saved__chip cr-saved__chip--gold" style={{ '--i': 0 }} dir="ltr">+{reward.coins} ✦</span>
+          <span class="cr-saved__chip" style={{ '--i': 1 }} dir="ltr">+{reward.xp} XP</span>
+          {reward.grandCoins > 0 && <span class="cr-saved__chip cr-saved__chip--grand" style={{ '--i': 2 }}>{tx.grandRounds} <bdi dir="ltr">+{reward.grandCoins} ✦</bdi></span>}
         </div>
         {info.note && <p class="cr-saved__note">{info.note}</p>}
       </div>

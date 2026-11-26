@@ -51,6 +51,20 @@ export const visualAcuity: MiniGameModule = {
     'Age-appropriate optotypes: LEA symbols and tumbling E for young children',
     'Worse than 20/40 is abnormal; 20/200 or worse is critical',
   ],
+  text: {
+    he: {
+      title: 'חדות ראייה',
+      instructions: 'עין אחת בכל פעם: מצביעים על שורות בלוח המקרן ומחפשים את השורה הקטנה ביותר שהמטופל קורא.',
+      teaches: [
+        'בדיקה מונוקולרית: קודם OD כשה־OS מכוסה, ואז OS — בלי הצצות',
+        'הסף הוא השורה הקטנה ביותר שיותר ממחצית האותיות בה נקראו נכון (סימון Snellen עם −/+ אותיות)',
+        'Snellen 20/x ↔ מטרי 6/x ↔ logMAR (כל שורה 0.1, כל אות ב־ETDRS 0.02)',
+        'מחוץ ללוח: ספירת אצבעות ← תנועת יד ← תפיסת אור ← NLP',
+        'סימנים לפי גיל: סמלי LEA וה־E המסתובבת לילדים קטנים',
+        'גרוע מ־20/40 אינו תקין; 20/200 ומטה — קריטי',
+      ],
+    },
+  },
   mount: mountWith('acuity'),
   report: reportAcuity,
   practice: acuityPractice,
@@ -67,6 +81,18 @@ export const pinhole: MiniGameModule = {
     'No improvement (NI) points to media, macular or optic-nerve disease',
     'Pinhole is only informative when acuity is reduced (worse than 20/25)',
   ],
+  text: {
+    he: {
+      title: 'חריר',
+      instructions: 'הפכו את המכסה לחריר ומדדו שוב: האם החדות משתפרת, או לא?',
+      teaches: [
+        'החריר מעביר רק קרניים מרכזיות ומצמצם את עיגול הטשטוש',
+        'שיפור של שתי שורות לפחות מצביע על ליקוי שברי שלא תוקן',
+        'אין שיפור (NI) מצביע על מחלה — מדיה, מקולה או עצב הראייה',
+        'החריר מועיל רק כשהחדות ירודה (גרועה מ־20/25)',
+      ],
+    },
+  },
   mount: mountWith('pinhole'),
   report: reportPinhole,
   practice: pinholePractice,

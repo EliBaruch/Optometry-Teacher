@@ -6,6 +6,7 @@ import { Icon, IconOrText, type IconName } from '../icons/Icon';
 import { TONE_COLOR } from '../lib/palette';
 import { cx } from '../lib/cx';
 import './ToastHost.css';
+import { useUiStrings } from '../strings';
 
 type ToastPayload = GameEvents['toast'];
 type ToastTone = NonNullable<ToastPayload['tone']>;
@@ -31,6 +32,7 @@ export interface ToastHostProps {
 
 /** Stacks `toast` events from the bus; auto-dismiss, click to dismiss, tone colours. Mount once per app/scene. */
 export function ToastHost({ bus, position = 'auto', max = 4, duration = 3600 }: ToastHostProps) {
+  const ui = useUiStrings();
   const services = useOptionalServices();
   const source = bus ?? services?.bus;
   const play = useSfx();
@@ -140,7 +142,7 @@ export function ToastHost({ bus, position = 'auto', max = 4, duration = 3600 }: 
             class={cx('lm-toast', `lm-toast--${tone}`, t.leaving && 'is-leaving')}
             style={{ '--toast-c': TONE_TINT[tone] }}
             onClick={() => dismiss(t.id)}
-            aria-label={`${t.message} (dismiss)`}
+            aria-label={ui.dismiss(t.message)}
           >
             <span class="lm-toast__icon">{t.icon ? <IconOrText icon={t.icon} /> : <Icon name={TONE_ICON[tone]} />}</span>
             <span class="lm-toast__msg">{t.message}</span>

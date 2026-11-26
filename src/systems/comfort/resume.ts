@@ -1,4 +1,5 @@
-import { advanceRun, beginRun, dayKey, type GameServices, type ModeModule } from '@core';
+import { advanceRun, beginRun, dayKey, modeText, pickStrings, type GameServices, type ModeModule } from '@core';
+import { S } from './strings';
 
 /** What the one-tap "Continue" button will do. */
 export type ResumePlan =
@@ -26,32 +27,34 @@ function lockReason(services: GameServices, m: ModeModule | undefined): string |
  *  5. otherwise the first open mode.
  */
 export function planResume(services: GameServices, dailyDoneDay: string | null): ResumePlan | null {
+  const t = pickStrings(S, services.locale);
+  const mt = (m: ModeModule) => modeText(m, services.locale);
   const run = services.run.state.get();
   const runMode = services.run.mode();
   if (run && runMode) {
     const s = services.session.state.get();
     const accent = runMode.accent || FALLBACK_ACCENT;
     if (s && !s.submitted && !s.failed) {
-      return { kind: 'exam', modeId: runMode.id, caseId: s.caseId, title: 'Back to your patient', detail: runMode.title, accent };
+      return { kind: 'exam', modeId: runMode.id, caseId: s.caseId, title: t.backToPatient, detail: mt(runMode).title, accent };
     }
     const seen = run.completed.length + run.failed.length;
-    return { kind: 'next', modeId: runMode.id, title: 'Next patient', detail: `${runMode.title} · ${seen} seen`, accent };
+    return { kind: 'next', modeId: runMode.id, title: t.nextPatient, detail: t.seenSuffix(mt(runMode).title, seen), accent };
   }
   const modes = services.registries.modes;
   const daily = modes.get('daily');
   const today = dayKey(services.clock.now());
   if (daily && !lockReason(services, daily) && dailyDoneDay !== today) {
-    return { kind: 'mode', modeId: 'daily', title: daily.title, detail: 'Today’s patients are waiting', accent: daily.accent || FALLBACK_ACCENT };
+    return { kind: 'mode', modeId: 'daily', title: mt(daily).title, detail: t.dailyWaiting, accent: daily.accent || FALLBACK_ACCENT };
   }
   const shift = modes.get('shift');
   if (shift && !lockReason(services, shift)) {
-    return { kind: 'mode', modeId: 'shift', title: shift.title, detail: 'Your next shift is ready', accent: shift.accent || FALLBACK_ACCENT };
+    return { kind: 'mode', modeId: 'shift', title: mt(shift).title, detail: t.shiftReady, accent: shift.accent || FALLBACK_ACCENT };
   }
   const open = modes
     .all()
     .filter((m) => !lockReason(services, m))
     .sort((a, b) => a.order - b.order)[0];
-  return open ? { kind: 'mode', modeId: open.id, title: open.title, detail: open.tagline, accent: open.accent || FALLBACK_ACCENT } : null;
+  return open ? { kind: 'mode', modeId: open.id, title: mt(open).title, detail: mt(open).tagline, accent: open.accent || FALLBACK_ACCENT } : null;
 }
 
 /** Execute a plan. Returns false when nothing could be started. */

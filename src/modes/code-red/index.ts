@@ -1,5 +1,6 @@
-import { createRng, pickCase, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
+import { createRng, pickStrings, pickCase, type ClinicalCase, type GameServices, type ModeModule, type RunSnapshot } from '@core';
 import { casesCompleted, ensureTracking } from './experience';
+import { S } from './strings';
 
 export const CODE_RED_LENGTH = 4;
 export const CODE_RED_UNLOCK = 3;
@@ -78,6 +79,7 @@ const codeRed: ModeModule = {
   id: 'code-red',
   title: 'Code Red',
   tagline: 'Sight on the line. Spot the red flags and make the call before the clock runs out.',
+  text: { he: { title: 'קוד אדום', tagline: 'הראייה על הכף. זהו את הדגלים האדומים וקבלו החלטה לפני שהשעון נגמר.' } },
   icon: '🚨',
   accent: '#ef4444',
   order: 40,
@@ -97,9 +99,9 @@ const codeRed: ModeModule = {
     const done = casesCompleted(services);
     if (done < CODE_RED_UNLOCK) {
       const left = CODE_RED_UNLOCK - done;
-      return `See ${left} more patient${left === 1 ? '' : 's'} to join the emergency rota.`;
+      return pickStrings(S, services.locale).codeRedLocked(left);
     }
-    if (!services.registries.cases.all().some(isCodeRed)) return 'The emergency board is quiet tonight. Check back soon.';
+    if (!services.registries.cases.all().some(isCodeRed)) return pickStrings(S, services.locale).codeRedQuiet;
     return undefined;
   },
 };

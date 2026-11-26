@@ -4,9 +4,10 @@
  * actually asked to read that line, and whether the next line down was tried
  * (the threshold is only proven by a failed line beneath it). Pure.
  */
-import type { Eye } from '@core';
+import { pickStrings, type Eye, type Locale } from '@core';
 import { expectedLevel, type ChartKind, type ChartLine } from './charts';
 import type { OpenEyes } from './optics';
+import { S } from './strings';
 
 export type Slot = Eye | 'OU';
 
@@ -43,13 +44,14 @@ export function occlusionCorrect(slot: Slot, open: OpenEyes): boolean {
   return slot === 'OD' ? open.OD && !open.OS : open.OS && !open.OD;
 }
 
-export function scoreRecord(rec: AcuityRecord, trueLogmar: number, lines: readonly ChartLine[]): RecordScore {
+export function scoreRecord(rec: AcuityRecord, trueLogmar: number, lines: readonly ChartLine[], locale: Locale = 'en'): RecordScore {
+  const t = pickStrings(S, locale);
   const expected = expectedLevel(lines, trueLogmar);
   const steps = Math.abs(rec.level - expected);
   const notes: string[] = [];
   let score = stepScore(steps);
-  if (steps === 0) notes.push('Exact threshold line.');
-  else notes.push(`${steps} step${steps > 1 ? 's' : ''} ${rec.level > expected ? 'better' : 'worse'} than the true threshold.`);
+  if (steps === 0) notes.push(t.noteExact);
+  else notes.push(t.noteSteps(steps, rec.level > expected));
 
   const occlusionOk = occlusionCorrect(rec.slot, rec.open);
   if (!occlusionOk && rec.slot !== 'OU') {
@@ -57,19 +59,19 @@ export function scoreRecord(rec: AcuityRecord, trueLogmar: number, lines: readon
     const fellow: Eye = tested === 'OD' ? 'OS' : 'OD';
     if (!rec.open[tested]) {
       score *= 0.25;
-      notes.push(`${tested} was covered — that reading belonged to the other eye.`);
+      notes.push(t.noteCovered(tested));
     } else if (rec.open[fellow]) {
       score *= 0.45;
-      notes.push(`${fellow} was not occluded, so the reading was binocular.`);
+      notes.push(t.noteBinocular(fellow));
     }
   }
   if (!rec.read) {
     score -= 0.15;
-    notes.push('Recorded a line the patient was never seen to pass.');
+    notes.push(t.noteNeverPassed);
   }
   if (!rec.belowChecked && steps === 0 && rec.level >= 0) {
     score -= 0.05;
-    notes.push('Tip: confirm the threshold by trying the next line down.');
+    notes.push(t.noteTip);
   }
   return { slot: rec.slot, expected, steps, occlusionOk, score: Math.max(0, Math.min(1, score)), notes };
 }

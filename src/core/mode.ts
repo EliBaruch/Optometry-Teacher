@@ -40,6 +40,8 @@ export interface ModeModule {
   rules: ModeRules;
   /** Pick the next case, or null to end the run. Must not repeat within a run unless pool exhausted. */
   pickNext(services: GameServices, run: RunSnapshot): ClinicalCase | null;
+  /** Title/tagline written natively for other editions (see modeText). */
+  text?: Partial<Record<import('./i18n').Locale, import('./i18n').ModeText>>;
   /** Optional gate: return a reason string when locked */
   locked?(services: GameServices): string | undefined;
   /** Optional: subscribe to events / set up state once at boot. Returns uninstall. */

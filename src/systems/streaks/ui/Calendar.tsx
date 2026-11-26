@@ -1,5 +1,6 @@
 /** Five-week streak calendar and the milestone track. */
-import { cx } from '@ui-kit';
+import { cx, useLocale, useStrings } from '@ui-kit';
+import { S, WEEKDAYS_HE_SUN, text } from '../strings';
 import { addDays, calendarWeeks, daysBetween, parseDay, shortDate, WEEKDAY_INITIALS } from '../days';
 import { MILESTONES, nextMilestone, type DailyState, type DailyView } from '../daily';
 import { Flame, FreezeGlyph } from './Flame';
@@ -7,10 +8,13 @@ import { Flame, FreezeGlyph } from './Flame';
 type CellKind = 'played' | 'frozen' | 'pending' | 'today' | 'future' | 'empty';
 
 export function StreakCalendar({ daily, view, today, weeks = 5 }: { daily: DailyState; view: DailyView; today: string; weeks?: number }) {
+  const locale = useLocale();
+  const t = text(locale);
+  const he = locale === 'he';
   const played = new Set(daily.played);
   const frozen = new Set(daily.frozen);
   const pending = new Set(view.pendingFrozen);
-  const rows = calendarWeeks(today, weeks);
+  const rows = calendarWeeks(today, weeks, he ? 'sun' : 'mon');
   const kind = (k: string): CellKind => {
     if (played.has(k)) return 'played';
     if (frozen.has(k)) return 'frozen';
@@ -20,12 +24,12 @@ export function StreakCalendar({ daily, view, today, weeks = 5 }: { daily: Daily
     return d > 0 ? 'future' : 'empty';
   };
   const label: Record<CellKind, string> = {
-    played: 'patient seen', frozen: 'covered by a freeze', pending: 'a freeze will cover this day', today: 'today', future: '', empty: 'no patients',
+    played: t.calPlayed, frozen: t.calFrozen, pending: t.calPending, today: t.calToday, future: '', empty: t.calEmpty,
   };
   return (
-    <div class="sk-cal" role="table" aria-label="Streak calendar, last five weeks">
+    <div class="sk-cal" role="table" aria-label={t.calAria}>
       <div class="sk-cal__row sk-cal__row--head" role="row">
-        {WEEKDAY_INITIALS.map((d, i) => (
+        {(he ? WEEKDAYS_HE_SUN : WEEKDAY_INITIALS).map((d, i) => (
           <span key={i} class="sk-cal__wd" role="columnheader">{d}</span>
         ))}
       </div>
@@ -41,8 +45,8 @@ export function StreakCalendar({ daily, view, today, weeks = 5 }: { daily: Daily
                 role="cell"
                 class={cx('sk-cal__cell', `is-${kd}`, isToday && 'is-now', run)}
                 style={{ '--sk-i': r * 7 + c }}
-                title={`${shortDate(k)}${label[kd] ? ` — ${label[kd]}` : ''}`}
-                aria-label={`${shortDate(k)}${label[kd] ? `: ${label[kd]}` : ''}`}
+                title={`${shortDate(k, locale)}${label[kd] ? ` — ${label[kd]}` : ''}`}
+                aria-label={`${shortDate(k, locale)}${label[kd] ? `: ${label[kd]}` : ''}`}
               >
                 <span class="sk-cal__num lm-num">{parseDay(k).getDate()}</span>
                 {(kd === 'frozen' || kd === 'pending') && <FreezeGlyph size={10} />}
@@ -57,16 +61,17 @@ export function StreakCalendar({ daily, view, today, weeks = 5 }: { daily: Daily
 
 /** 3 · 7 · 14 · 30 with a glowing fill up to the current streak. */
 export function MilestoneTrack({ streak }: { streak: number }) {
+  const t = useStrings(S);
   const marks = streak >= 30 ? [...MILESTONES.map((m) => m.days).slice(1), nextMilestone(streak).days] : MILESTONES.map((m) => m.days);
   const top = marks[marks.length - 1];
   const pct = Math.min(100, (streak / top) * 100);
   return (
-    <div class="sk-track" role="img" aria-label={`Streak ${streak} days. Milestones at ${marks.join(', ')} days.`}>
+    <div class="sk-track" role="img" aria-label={t.trackAria(streak, marks.join(', '))}>
       <div class="sk-track__rail">
         <span class="sk-track__fill" style={{ width: `${pct}%` }} />
       </div>
       {marks.map((d) => (
-        <span key={d} class={cx('sk-track__mark', streak >= d && 'is-hit')} style={{ left: `${(d / top) * 100}%` }}>
+        <span key={d} class={cx('sk-track__mark', streak >= d && 'is-hit')} style={{ insetInlineStart: `${(d / top) * 100}%` }}>
           <span class="sk-track__gem">{streak >= d ? <Flame size={12} intensity={1} embers={false} /> : null}</span>
           <span class="sk-track__label lm-num">{d}</span>
         </span>

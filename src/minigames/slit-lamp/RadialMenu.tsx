@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { JSX } from 'preact';
-import type { MenuNode } from './vocab';
+import type { Locale } from '@core';
+import { slT } from './strings';
+import { menuLabel, type MenuNode } from './vocab';
 
 export interface RadialMenuProps {
   roots: MenuNode[];
@@ -8,6 +10,7 @@ export interface RadialMenuProps {
   anchor: { x: number; y: number };
   stage: { w: number; h: number };
   title?: string;
+  locale?: Locale;
   onPick: (leafPath: string) => void;
   onClose: () => void;
   sfx?: (id: 'pop' | 'select' | 'back') => void;
@@ -25,6 +28,9 @@ const H = 36;
  */
 export function RadialMenu(p: RadialMenuProps) {
   const [stack, setStack] = useState<MenuNode[]>([]);
+  const locale = p.locale ?? 'en';
+  const t = slT(locale);
+  const lab = (n: MenuNode) => menuLabel(n, locale);
   const root = useRef<HTMLDivElement>(null);
   const items = stack.length ? stack[stack.length - 1]!.children ?? [] : p.roots;
   const narrow = p.stage.w < 560;
@@ -55,20 +61,20 @@ export function RadialMenu(p: RadialMenuProps) {
     else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); btns[(i + 1) % btns.length]?.focus(); }
     else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); btns[(i - 1 + btns.length) % btns.length]?.focus(); }
   };
-  const crumb = stack.map((s) => s.label).join(' › ');
+  const crumb = stack.map(lab).join(' › ');
 
   if (narrow) {
     return (
       <div class="sl-menu-scrim" onPointerDown={(e) => e.target === e.currentTarget && p.onClose()}>
-        <div class="sl-sheet" ref={root} role="menu" aria-label="Name this sign" onKeyDown={onKey} style={{ '--sl-tint': tint } as JSX.CSSProperties}>
+        <div class="sl-sheet" ref={root} role="menu" aria-label={t.menuAria} onKeyDown={onKey} style={{ '--sl-tint': tint } as JSX.CSSProperties}>
           <div class="sl-sheet__head">
-            <button type="button" class="sl-hub sl-hub--sm" onClick={back} aria-label={stack.length ? 'Back' : 'Close'}>{stack.length ? '‹' : '✕'}</button>
-            <span>{crumb || p.title || 'What is this?'}</span>
+            <button type="button" class="sl-hub sl-hub--sm" onClick={back} aria-label={stack.length ? t.back : t.close}>{stack.length ? '‹' : '✕'}</button>
+            <span>{crumb || p.title || t.whatIsThis}</span>
           </div>
           <div class="sl-sheet__grid" key={stack.length}>
             {items.map((n, i) => (
               <button key={n.path} type="button" role="menuitem" class="sl-petal sl-petal--chip" style={{ '--i': i } as JSX.CSSProperties} onClick={() => pick(n)}>
-                {n.label}{n.children?.length && !n.graded ? <b aria-hidden="true">›</b> : n.graded ? <b aria-hidden="true">#</b> : null}
+                {lab(n)}{n.children?.length && !n.graded ? <b aria-hidden="true">›</b> : n.graded ? <b aria-hidden="true">#</b> : null}
               </button>
             ))}
           </div>
@@ -96,15 +102,15 @@ export function RadialMenu(p: RadialMenuProps) {
 
   return (
     <div class="sl-menu-scrim" onPointerDown={(e) => e.target === e.currentTarget && p.onClose()}>
-      <div class="sl-menu" ref={root} role="menu" aria-label="Name this sign" onKeyDown={onKey}
+      <div class="sl-menu" dir="ltr" ref={root} role="menu" aria-label={t.menuAria} onKeyDown={onKey}
         style={{ left: `${cx}px`, top: `${cy}px`, '--sl-tint': tint } as JSX.CSSProperties}>
         <svg class="sl-menu__lines" width="1" height="1" overflow="visible" aria-hidden="true">
           {spots.map((s) => (
             <path key={s.node.path} d={`M0 0 Q ${s.x * 0.45} ${s.y * 0.2} ${s.x - s.side * 4} ${s.y}`} />
           ))}
         </svg>
-        <button type="button" class="sl-hub" onClick={back} aria-label={stack.length ? 'Back' : 'Close menu'}>{stack.length ? '‹' : '✕'}</button>
-        {crumb && <span class="sl-menu__crumb">{crumb}</span>}
+        <button type="button" class="sl-hub" onClick={back} aria-label={stack.length ? t.back : t.closeMenu}>{stack.length ? '‹' : '✕'}</button>
+        {crumb && <span class="sl-menu__crumb" dir="auto">{crumb}</span>}
         {spots.map((s) => (
           <button
             key={s.node.path}
@@ -114,7 +120,7 @@ export function RadialMenu(p: RadialMenuProps) {
             style={{ '--x': `${s.x}px`, '--y': `${s.y}px`, '--i': s.idx, width: `${W}px`, height: `${H}px` } as JSX.CSSProperties}
             onClick={() => pick(s.node)}
           >
-            <span>{s.node.label}</span>
+            <span dir="auto">{lab(s.node)}</span>
             {s.node.children?.length && !s.node.graded ? <b aria-hidden="true">›</b> : s.node.graded ? <b aria-hidden="true">#</b> : null}
           </button>
         ))}

@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { beginRun, type GameServices, type RunSnapshot, type SceneProps } from '@core';
+import { modeText, beginRun, type GameServices, type RunSnapshot, type SceneProps } from '@core';
 import { AvatarBust } from '@render';
 import {
-  Button, CountUp, Divider, GRADE_COLOR, GlassPanel, HudSlot, Icon, Ornament, RingMeter, Screen, cx, palette, useReducedMotion, useRegistry,
+  Button, CountUp, Divider, GRADE_COLOR, GlassPanel, HudSlot, Icon, Ornament, RingMeter, Screen, cx, palette, useLocale, useReducedMotion, useRegistry, useStrings,
 } from '@ui-kit';
 import { demoRun } from './demo';
 import { prettyId } from './model';
 import { accuracy, bestCase, checkBest, comboPeak, findRun, missedDiagnoses, runLogSlot, type BestResult, type RunLogEntry } from './run-log';
 import { Safe } from './Safe';
+import { S } from './strings';
 import './summary.css';
 
 interface Row extends RunLogEntry {
@@ -40,19 +41,20 @@ export function RunSummaryScene({ services, params }: SceneProps) {
 }
 
 function NoRun({ services, modeId }: { services: GameServices; modeId?: string }) {
+  const t = useStrings(S);
   return (
-    <Screen backdrop="results" title="Shift report" onBack={() => services.router.go('hub')} backLabel="Back to clinic">
+    <Screen backdrop="results" title={t.shiftReport} onBack={() => services.router.go('hub')} backLabel={t.backToClinic}>
       <div class="sm-empty">
-        <GlassPanel strong padding="lg" icon="info" title="No patients seen">
-          <p class="lm-muted">This run ended before any patient was reviewed.</p>
+        <GlassPanel strong padding="lg" icon="info" title={t.noPatientsTitle}>
+          <p class="lm-muted">{t.noPatientsBody}</p>
           <div class="sm-empty__btns">
             {modeId && services.registries.modes.has(modeId) && (
               <Button variant="primary" icon="play" onClick={() => beginRun(services, modeId) || services.router.go('hub')}>
-                Try again
+                {t.tryAgain}
               </Button>
             )}
             <Button variant="glass" icon="home" onClick={() => services.router.go('hub')}>
-              Back to clinic
+              {t.backToClinic}
             </Button>
           </div>
         </GlassPanel>
@@ -63,6 +65,8 @@ function NoRun({ services, modeId }: { services: GameServices; modeId?: string }
 
 function Summary({ services, snapshot, entries, demo }: { services: GameServices; snapshot: RunSnapshot; entries: RunLogEntry[]; demo: boolean }) {
   const reduced = useReducedMotion();
+  const t = useStrings(S);
+  const locale = useLocale();
   const mode = services.registries.modes.get(snapshot.modeId);
   const widgets = useRegistry(services.registries.hud).filter((w) => w.slot === 'results-extra');
   const totalRef = useRef<HTMLDivElement>(null);
@@ -75,7 +79,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
         return {
           ...e,
           diagnosisId: dxId,
-          name: kase?.patient.name ?? 'Patient',
+          name: kase?.patient.name ?? t.patientFallback,
           dxName: dxId ? services.registries.diagnoses.get(dxId)?.name ?? prettyId(dxId) : '',
           avatar: kase?.patient,
         };
@@ -121,41 +125,39 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
   };
 
   return (
-    <Screen backdrop="results" eyebrow="Run complete" title={mode?.title ?? 'Shift report'} class={cx('sm-screen', reduced && 'is-instant')} contentClass="sm-content">
+    <Screen backdrop="results" eyebrow={t.runComplete} title={mode ? modeText(mode, locale).title : t.shiftReport} class={cx('sm-screen', reduced && 'is-instant')} contentClass="sm-content">
       <div class="sm-page">
         <header class="sm-hero" ref={totalRef}>
-          <span class="lm-eyebrow">Shift report</span>
+          <span class="lm-eyebrow">{t.shiftReport}</span>
           <div class="sm-total">
             <CountUp value={snapshot.totalScore} duration={reduced ? 1 : 1900} delay={reduced ? 0 : 500} onDone={onTotal} tickSfx="tick" />
           </div>
-          <span class="sm-total__label">total score</span>
+          <span class="sm-total__label">{t.totalScore}</span>
           <div class={cx('sm-pb', landed && 'is-shown', pb?.isBest && 'is-best')}>
             {pb?.isBest ? (
               <>
                 <Icon name="crown" />
-                <span>{pb.first ? 'First record set' : 'New personal best'}</span>
-                {pb.previous !== undefined && <span class="sm-pb__prev">previous {pb.previous.toLocaleString('en-US')}</span>}
+                <span>{pb.first ? t.firstRecord : t.newBest}</span>
+                {pb.previous !== undefined && <span class="sm-pb__prev">{t.previous(pb.previous.toLocaleString('en-US'))}</span>}
               </>
             ) : pb?.previous !== undefined ? (
               <>
                 <Icon name="trophy" />
-                <span>Personal best {pb.previous.toLocaleString('en-US')}</span>
+                <span>{t.personalBest(pb.previous.toLocaleString('en-US'))}</span>
               </>
             ) : null}
           </div>
           <Ornament width={160} class="sm-hero__orn" />
         </header>
 
-        <section class="sm-stats" aria-label="Run statistics">
+        <section class="sm-stats" aria-label={t.runStats}>
           <GlassPanel class="sm-stat" style={{ '--n': 0 }} strong>
-            <RingMeter value={acc} size={92} thickness={7} accent={palette.normal} ariaLabel={`Accuracy ${Math.round(acc * 100)}%`}>
-              <span class="sm-stat__ring lm-num">{Math.round(acc * 100)}%</span>
+            <RingMeter value={acc} size={92} thickness={7} accent={palette.normal} ariaLabel={`${t.accuracy} ${Math.round(acc * 100)}%`}>
+              <span class="sm-stat__ring lm-num" dir="ltr">{Math.round(acc * 100)}%</span>
             </RingMeter>
             <div class="sm-stat__text">
-              <span class="lm-eyebrow">Accuracy</span>
-              <strong>
-                {correctN} of {entries.length} correct
-              </strong>
+              <span class="lm-eyebrow">{t.accuracy}</span>
+              <strong>{t.correctOf(correctN, entries.length)}</strong>
             </div>
           </GlassPanel>
           <GlassPanel class="sm-stat" style={{ '--n': 1 }} strong accent={palette.streaks}>
@@ -164,8 +166,8 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               <span class="lm-num">{peak}</span>
             </span>
             <div class="sm-stat__text">
-              <span class="lm-eyebrow">Combo peak</span>
-              <strong>{peak >= 3 ? 'On fire' : peak >= 1 ? 'In a row' : 'Keep at it'}</strong>
+              <span class="lm-eyebrow">{t.comboPeak}</span>
+              <strong>{peak >= 3 ? t.comboHigh : peak >= 1 ? t.comboSome : t.comboNone}</strong>
             </div>
           </GlassPanel>
           <GlassPanel class="sm-stat sm-stat--best" style={{ '--n': 2 }} strong accent={best?.grade ? GRADE_COLOR[best.grade] : undefined}>
@@ -179,18 +181,20 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               </span>
             )}
             <div class="sm-stat__text">
-              <span class="lm-eyebrow">Best case</span>
+              <span class="lm-eyebrow">{t.bestCase}</span>
               <strong>{best ? best.dxName || best.name : '—'}</strong>
               {best?.grade && (
                 <span class="sm-stat__sub">
-                  Grade <b style={{ color: GRADE_COLOR[best.grade] }}>{best.grade}</b> · case score {best.total.toLocaleString('en-US')}
+                  {t.bestGradePrefix}
+                  <b style={{ color: GRADE_COLOR[best.grade] }}>{best.grade}</b>
+                  {t.bestSub(best.total.toLocaleString('en-US'))}
                 </span>
               )}
             </div>
           </GlassPanel>
         </section>
 
-        <Divider label="Patients" />
+        <Divider label={t.patients} />
         <ol class="sm-table" role="list">
           {rows.map((r, i) => (
             <li key={r.caseId + i} class={cx('sm-row', r.correct ? 'is-correct' : 'is-wrong', best === r && 'is-best')} style={{ '--n': i }}>
@@ -206,15 +210,15 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
                 <strong>{r.name}</strong>
                 <span>{r.dxName}</span>
               </span>
-              <span class="sm-row__res" title={r.correct ? 'Correct diagnosis' : r.timeout ? 'Out of time' : 'Missed diagnosis'}>
-                <Icon name={r.correct ? 'check' : r.timeout ? 'clock' : 'x'} label={r.correct ? 'Correct' : r.timeout ? 'Out of time' : 'Missed'} />
+              <span class="sm-row__res" title={r.correct ? t.rowCorrect : r.timeout ? t.rowTimeout : t.rowMissed}>
+                <Icon name={r.correct ? 'check' : r.timeout ? 'clock' : 'x'} label={r.correct ? t.rowCorrectShort : r.timeout ? t.rowTimeout : t.rowMissedShort} />
               </span>
               <span class="sm-row__grade" style={{ '--g': r.grade ? GRADE_COLOR[r.grade] : '#54486b' }}>
                 {r.grade ?? '–'}
               </span>
-              <span class="sm-row__pts lm-num">{r.points ? `+${r.points.toLocaleString('en-US')}` : '—'}</span>
+              <span class="sm-row__pts lm-num">{r.points ? <bdi dir="ltr">{`+${r.points.toLocaleString('en-US')}`}</bdi> : '—'}</span>
               {best === r && (
-                <span class="sm-row__crown" aria-label="Best case">
+                <span class="sm-row__crown" aria-label={t.bestCase}>
                   <Icon name="crown" />
                 </span>
               )}
@@ -229,9 +233,9 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
                 <Icon name="refresh" />
               </span>
               <div>
-                <span class="lm-eyebrow">Study list</span>
-                <h3 id="sm-study-title">Worth a second look</h3>
-                <p class="lm-muted">{study.length === 1 ? 'This diagnosis' : 'These diagnoses'} will come back for review. Five minutes in the codex now makes the next one stick.</p>
+                <span class="lm-eyebrow">{t.studyList}</span>
+                <h3 id="sm-study-title">{t.secondLook}</h3>
+                <p class="lm-muted">{t.studyBody(study.length)}</p>
               </div>
             </div>
             <ul class="sm-study__list" role="list">
@@ -261,13 +265,13 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
       </div>
 
       <footer class="sm-actions">
-        <Button variant="ghost" icon="home" sfx="back" class="sm-back" aria-label="Back to clinic" onClick={() => services.router.go('hub')}>
-          <span class="rs-lbl">Back to clinic</span>
+        <Button variant="ghost" icon="home" sfx="back" class="sm-back" aria-label={t.backToClinic} onClick={() => services.router.go('hub')}>
+          <span class="rs-lbl">{t.backToClinic}</span>
         </Button>
         {mode && (
           <div class="sm-again">
             <Button variant="primary" size="lg" icon="refresh" onClick={playAgain} sfx="whoosh">
-              Play again
+              {t.playAgain}
             </Button>
           </div>
         )}

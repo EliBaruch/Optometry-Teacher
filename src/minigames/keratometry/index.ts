@@ -3,6 +3,7 @@ import type { MiniGameModule } from '@core';
 import { Game } from './Game';
 import { makeScenario } from './practice';
 import { report } from './report';
+import { S } from './strings';
 import './keratometry.css';
 
 const keratometry: MiniGameModule = {
@@ -17,6 +18,7 @@ const keratometry: MiniGameModule = {
     'With-the-rule (steep vertical), against-the-rule (steep horizontal) and oblique corneas',
     'Steep K above 47 D with irregular, wavy mires points to keratoconus — refer for topography',
   ],
+  text: { he: { title: S.he.title, instructions: S.he.instructions, teaches: S.he.teaches } },
   mount(host, ctx, done) {
     let called = false;
     const once: typeof done = (r) => {

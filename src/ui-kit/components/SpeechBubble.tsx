@@ -5,6 +5,7 @@ import { useSfx } from '../hooks/useSfx';
 import { buildSchedule, totalDuration, visibleChars } from '../lib/typewriter';
 import { cx } from '../lib/cx';
 import './SpeechBubble.css';
+import { useUiStrings } from '../strings';
 
 export interface SpeechBubbleProps {
   text: string;
@@ -15,7 +16,7 @@ export interface SpeechBubbleProps {
   /** ms before typing starts */
   delay?: number;
   /** Which side the tail points to. */
-  tail?: 'left' | 'right' | 'bottom' | 'top' | 'none';
+  tail?: 'left' | 'right' | 'start' | 'end' | 'bottom' | 'top' | 'none';
   /** Soft voice blips while typing. */
   voice?: boolean;
   /** Accent colour for the speaker plate. */
@@ -29,7 +30,8 @@ export interface SpeechBubbleProps {
  * end. The full text is laid out invisibly from the start, so the bubble
  * never jumps in size while typing; screen readers get the full sentence.
  */
-export function SpeechBubble({ text, speaker, speed = 48, delay = 0, tail = 'left', voice = true, accent, onDone, class: klass }: SpeechBubbleProps) {
+export function SpeechBubble({ text, speaker, speed = 48, delay = 0, tail: tailProp = 'left', voice = true, accent, onDone, class: klass }: SpeechBubbleProps) {
+  const ui = useUiStrings();
   const reduced = useReducedMotion();
   const play = useSfx();
   const schedule = useMemo(() => buildSchedule(text, speed), [text, speed]);
@@ -81,6 +83,9 @@ export function SpeechBubble({ text, speaker, speed = 48, delay = 0, tail = 'lef
     setCount(text.length);
   };
 
+  // 'start'/'end' are logical: they mirror under dir=rtl.
+  const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
+  const tail = tailProp === 'start' ? (rtl ? 'right' : 'left') : tailProp === 'end' ? (rtl ? 'left' : 'right') : tailProp;
   return (
     <div
       class={cx('lm-speech', `lm-speech--tail-${tail}`, typing && 'is-typing', klass)}
@@ -96,7 +101,7 @@ export function SpeechBubble({ text, speaker, speed = 48, delay = 0, tail = 'lef
       // leaves the tab order but keeps focus if it had it (tabIndex -1).
       role={typing ? 'button' : undefined}
       tabIndex={typing ? 0 : -1}
-      aria-label={typing ? 'Show the whole line' : undefined}
+      aria-label={typing ? ui.showWholeLine : undefined}
       aria-describedby={typing ? textId : undefined}
     >
       {speaker && <div class="lm-speech__speaker">{speaker}</div>}

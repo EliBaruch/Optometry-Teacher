@@ -1,26 +1,27 @@
-import { Modal } from '@ui-kit';
-import { BASE_ODDS, CARD_RARITIES, FRAME_LABEL, FRAME_THRESHOLDS, FRAME_TIERS, FRAME_XP, PERFECT_LEGENDARY_BONUS, ZEBRA_EPIC_BONUS, setReward } from '../model';
-import { GALLERY_COLOR, RARITY_HEX, RARITY_NAME } from '../store';
+import { Modal, useStrings } from '@ui-kit';
+import { BASE_ODDS, CARD_RARITIES, FRAME_THRESHOLDS, FRAME_TIERS, FRAME_XP, PERFECT_LEGENDARY_BONUS, ZEBRA_EPIC_BONUS, setReward } from '../model';
+import { GALLERY_COLOR, RARITY_HEX } from '../store';
+import { S } from '../strings';
 
 const GRADES = [['S', 'S'], ['A', 'A'], ['B', 'B'], ['C', 'C'], ['D', 'D–F']] as const;
 const pct = (v: number) => (v ? `${Math.round(v * 100)}%` : '—');
 
 /** Transparent drop odds: how cards, rarities and frames are earned. */
 export function OddsModal(props: { open: boolean; onClose: () => void }) {
+  const t = useStrings(S);
   const ex = setReward(6);
   return (
-    <Modal open={props.open} onClose={props.onClose} size="lg" icon="info" accent={GALLERY_COLOR} eyebrow="Gallery" title="How cards are earned">
+    <Modal open={props.open} onClose={props.onClose} size="lg" icon="info" accent={GALLERY_COLOR} eyebrow={t.hubTitle} title={t.oddsTitle}>
       <div class="go">
         <p>
-          Only a <strong>correct diagnosis</strong> collects a card — the better your work-up, the rarer the painting. Missing a diagnosis never costs you anything:
-          the condition simply appears as a named silhouette you can collect next time.
+          {t.oddsP1a}<strong>{t.oddsP1b}</strong>{t.oddsP1c}
         </p>
-        <h4 class="go-caption" id="gallery-odds-caption">Rarity odds by case grade</h4>
+        <h4 class="go-caption" id="gallery-odds-caption">{t.oddsCaption}</h4>
         <table class="go-table" aria-labelledby="gallery-odds-caption">
           <thead>
             <tr>
-              <th scope="col">Grade</th>
-              {CARD_RARITIES.map((r) => <th key={r} scope="col" style={{ color: RARITY_HEX[r] }}>{RARITY_NAME[r]}</th>)}
+              <th scope="col">{t.grade}</th>
+              {CARD_RARITIES.map((r) => <th key={r} scope="col" style={{ color: RARITY_HEX[r] }}>{t.rarity[r]}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -33,16 +34,16 @@ export function OddsModal(props: { open: boolean; onClose: () => void }) {
           </tbody>
         </table>
         <ul class="go-list">
-          <li>A perfect case (S grade, nothing missed, nothing wasted) adds <strong>+{pct(PERFECT_LEGENDARY_BONUS)}</strong> Legendary.</li>
-          <li>Clinically rare conditions add <strong>+{pct(ZEBRA_EPIC_BONUS)}</strong> Epic.</li>
+          <li>{t.perfect(pct(PERFECT_LEGENDARY_BONUS))}</li>
+          <li>{t.zebra(pct(ZEBRA_EPIC_BONUS))}</li>
           <li>
-            Diagnosing a condition again adds shine (S +3, A +2, other +1) and polishes the frame:{' '}
-            {FRAME_TIERS.slice(1).map((t, i) => (
-              <span key={t}>{i ? ', ' : ''}{FRAME_LABEL[t]} at {FRAME_THRESHOLDS[t]} (+{FRAME_XP[t]} XP)</span>
+            {t.oddsShine}
+            {FRAME_TIERS.slice(1).map((f, i) => (
+              <span key={f}>{i ? ', ' : ''}{t.oddsFrameAt(t.frame[f], FRAME_THRESHOLDS[f], FRAME_XP[f])}</span>
             ))}
             .
           </li>
-          <li>Completing every card in a wing pays XP and coins — e.g. a 6-card wing gives +{ex.xp} XP and +{ex.coins} coins.</li>
+          <li>{t.oddsWing(6, ex.xp, ex.coins)}</li>
         </ul>
       </div>
     </Modal>

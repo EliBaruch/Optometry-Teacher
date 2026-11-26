@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { BlurKernel } from './optics';
 import { ChartPainter, type ChartFrame } from './chart';
+import { useT } from './strings';
 
 export interface ChartViewProps {
   frame: ChartFrame;
@@ -35,6 +36,7 @@ function lerpFrame(a: ChartFrame, b: ChartFrame, t: number): ChartFrame {
 
 /** The patient's view of the projected chart, with eased focus changes. */
 export function ChartView({ frame, reducedMotion, badge, caption }: ChartViewProps) {
+  const t = useT();
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const painter = useRef<ChartPainter | null>(null);
@@ -106,7 +108,7 @@ export function ChartView({ frame, reducedMotion, badge, caption }: ChartViewPro
   }, [frame]);
 
   return (
-    <div class="php-chart" ref={wrap}>
+    <div class="php-chart" ref={wrap} dir="ltr">
       <canvas ref={canvas} class="php-chart__canvas" aria-hidden="true" />
       {!frame.dark && frame.layout !== 'balance' && (
         <div class="php-chart__labels" aria-hidden="true">
@@ -118,11 +120,11 @@ export function ChartView({ frame, reducedMotion, badge, caption }: ChartViewPro
       {!frame.dark && frame.layout === 'balance' && (
         <div class="php-chart__labels php-chart__labels--balance" aria-hidden="true">
           {labels.map((l) => (
-            <span key={l.denom} style={{ top: `${Math.max(10, l.y - 12)}px` }}>{l.denom === -1 ? 'Top · left eye (OS)' : 'Bottom · right eye (OD)'}</span>
+            <span key={l.denom} dir="auto" style={{ top: `${Math.max(10, l.y - 12)}px` }}>{l.denom === -1 ? t.chartTop : t.chartBottom}</span>
           ))}
         </div>
       )}
-      {frame.dark && <div class="php-chart__dark">Occluded</div>}
+      {frame.dark && <div class="php-chart__dark" dir="auto">{t.occluded}</div>}
       {caption && <div class="php-chart__cap php-num" aria-hidden="true">{caption}</div>}
       {badge && <div class="php-chart__badge" key={badge}>{badge}</div>}
       <div class="php-chart__vignette" aria-hidden="true" />

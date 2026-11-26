@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks';
-import { GlassPanel, Icon, useReducedMotion, useSfx } from '@ui-kit';
+import { GlassPanel, Icon, useReducedMotion, useSfx, useStrings } from '@ui-kit';
+import { S } from './strings';
 import type { HistoryGroup } from './logic';
 
 export type LogEntry = { kind: 'qa'; id: string; q: string; a: string } | { kind: 'hint'; id: string; text: string };
@@ -9,9 +10,11 @@ export function HistoryPanel(props: {
   asked: readonly string[];
   log: readonly LogEntry[];
   patientName: string;
+  sex: 'F' | 'M' | 'X';
   onAsk: (id: string) => void;
 }) {
-  const { groups, asked, log, patientName, onAsk } = props;
+  const { groups, asked, log, patientName, sex, onAsk } = props;
+  const t = useStrings(S);
   const total = groups.reduce((n, g) => n + g.questions.length, 0);
   const play = useSfx();
   const reduced = useReducedMotion();
@@ -25,11 +28,11 @@ export function HistoryPanel(props: {
   return (
     <GlassPanel
       class="exm-history"
-      title="History"
-      eyebrow="Talk to the patient"
+      title={t.historyTitle}
+      eyebrow={t.historyEyebrow}
       icon="book"
       padding="md"
-      actions={<span class="exm-count lm-num" aria-label={`${asked.length} of ${total} questions asked`}>{asked.length}/{total}</span>}
+      actions={<span class="exm-count lm-num" aria-label={t.historyCount(asked.length, total)}>{asked.length}/{total}</span>}
     >
       <div class="exm-history__body">
       <div class="exm-history__groups">
@@ -45,7 +48,7 @@ export function HistoryPanel(props: {
                     type="button"
                     class={`exm-q${done ? ' is-asked' : ''}`}
                     aria-disabled={done}
-                    aria-label={done ? `${q.q} (already asked)` : q.q}
+                    aria-label={done ? t.alreadyAsked(q.q) : q.q}
                     onClick={() => (done ? play('error', { volume: 0.2 }) : onAsk(q.id))}
                   >
                     {done && <Icon name="check" size={13} />}
@@ -56,12 +59,12 @@ export function HistoryPanel(props: {
             </div>
           </div>
         ))}
-        {groups.length === 0 && <p class="lm-muted">This patient has nothing more to tell you.</p>}
+        {groups.length === 0 && <p class="lm-muted">{t.historyNone}</p>}
       </div>
-      <div class="exm-log" role="log" aria-live="polite" aria-label="Conversation">
-        <h3 class="exm-qgroup__title">Conversation</h3>
+      <div class="exm-log" role="log" aria-live="polite" aria-label={t.conversation}>
+        <h3 class="exm-qgroup__title">{t.conversation}</h3>
         {log.length === 0 ? (
-          <p class="exm-log__empty lm-muted">Choose a question above. The answer comes in {first}'s own words.</p>
+          <p class="exm-log__empty lm-muted">{t.conversationEmpty(first, sex)}</p>
         ) : (
           <ol ref={logRef} class="exm-log__list">
             {log.map((e) =>

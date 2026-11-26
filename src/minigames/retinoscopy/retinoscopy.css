@@ -31,7 +31,7 @@
 .rt-head__title { display: flex; align-items: center; gap: 8px; flex: none; font: 560 1.05rem/1.1 var(--lm-font-display, Georgia, serif); }
 .rt-head__title svg { color: var(--lm-gold); filter: drop-shadow(0 0 6px rgba(255, 210, 122, 0.5)); }
 .rt-head__hint {
-  flex: 1; min-width: 0; margin: 0; padding-left: 14px; border-left: 1px solid var(--lm-hairline);
+  flex: 1; min-width: 0; margin: 0; padding-inline-start: 14px; border-inline-start: 1px solid var(--lm-hairline);
   font-size: var(--lm-fs-sm, 13.5px); line-height: 1.35; color: var(--lm-ivory-dim, #ddd3c4);
   animation: rt-fade-in var(--lm-dur-med, 380ms) var(--lm-ease-out) both;
 }
@@ -205,7 +205,7 @@
 .rt-jewel:active:not(:disabled) { transform: scale(0.92); }
 .rt-jewel:disabled { opacity: 0.4; cursor: default; }
 .rt-jewel:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
-.rt-rack__spam { margin-left: auto; font-size: 0.68rem; color: var(--lm-muted); letter-spacing: 0.04em; }
+.rt-rack__spam { margin-inline-start: auto; font-size: 0.68rem; color: var(--lm-muted); letter-spacing: 0.04em; }
 .rt-rack__spam b { color: var(--lm-gold); }
 
 /* chips */
@@ -284,7 +284,7 @@
 
 .rt-options { display: grid; gap: 8px; margin-top: 6px; }
 .rt-option {
-  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 14px; text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 14px; text-align: start; cursor: pointer;
   font-size: 0.92rem !important; background: rgba(255, 245, 230, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.14);
   transition: background var(--lm-dur-ui), box-shadow var(--lm-dur-ui), opacity var(--lm-dur-ui), transform var(--lm-dur-fast);
 }
@@ -292,7 +292,7 @@
 .rt-option:active:not(:disabled) { transform: scale(0.985); }
 .rt-option:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
 .rt-option__k { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 8px; font: 700 0.72rem var(--lm-font-num); color: var(--lm-gold); background: rgba(255, 210, 122, 0.1); }
-.rt-option__ic { margin-left: auto; width: 18px; height: 18px; }
+.rt-option__ic { margin-inline-start: auto; width: 18px; height: 18px; }
 .rt-option:disabled { cursor: default; }
 .rt-option.is-right { background: rgba(94, 234, 212, 0.12); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.6), 0 0 18px -4px rgba(94, 234, 212, 0.5); animation: rt-pop 320ms var(--lm-ease-spring) both; }
 .rt-option.is-right .rt-option__ic { color: var(--lm-normal); }
@@ -342,8 +342,8 @@
 /* ── responsive ─────────────────────────────────────────────────────────── */
 @container rt (max-width: 760px) {
   .rt-head { flex-wrap: wrap; gap: 6px 10px; padding: 8px 12px; }
-  .rt-head__hint { order: 3; flex-basis: 100%; padding-left: 0; border-left: 0; font-size: 0.8rem; }
-  .rt-head__title { margin-right: auto; }
+  .rt-head__hint { order: 3; flex-basis: 100%; padding-inline-start: 0; border-inline-start: 0; font-size: 0.8rem; }
+  .rt-head__title { margin-inline-end: auto; }
   .rt-stage { grid-template-columns: 1fr; grid-template-rows: auto auto; gap: 10px; padding: 8px 10px; overflow-y: auto; align-content: start; }
   .rt-scope { position: sticky; top: 0; z-index: 3; height: min(80cqw, 38vh); background-color: #0b0716; }
   .rt-bezel { width: min(100cqw - 16px, 100cqh - 16px); }
@@ -358,3 +358,8 @@
   .rt-scope__eye { font-size: 1.1rem; top: 8px; left: 10px; }
   .rt-rack__spam { display: none; }
 }
+
+/* Hebrew edition: tracked capitals look wrong on Hebrew letters; Rx strings stay left-to-right */
+:lang(he) .rt-root, :lang(he) .rt-root * { letter-spacing: 0; }
+/* Signed numbers, Rx strings and the instrument faces are Latin/LTR content: keep minus signs and × on the right side. */
+.rt-root .rt-jewel, .rt-root .rt-lens__v, .rt-root .rt-crossv, .rt-root .rt-dial, .rt-root .rt-drum { direction: ltr; unicode-bidi: isolate; }

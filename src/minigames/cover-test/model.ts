@@ -7,7 +7,8 @@
  * Eye positions inside the simulator are per-eye turn angles in prism
  * dioptres relative to the fixation target: h + = turned nasally (in), v + = up.
  */
-import type { Deviation, Eye, PatientFindings, Rng } from '@core';
+import { isolateLtrRuns, pickStrings, type Deviation, type Eye, type Locale, type PatientFindings, type Rng } from '@core';
+import { kindLabelHe, S } from './strings';
 import { prismToGaze, nasalSign } from '@render';
 
 export type Target = 'distance' | 'near';
@@ -57,7 +58,8 @@ const DIR_TROPIA: Record<Exclude<Dir, 'none'>, string> = { eso: 'esotropia', exo
 const DIR_PHORIA: Record<Exclude<Dir, 'none'>, string> = { eso: 'esophoria', exo: 'exophoria', hyperR: 'R hyperphoria', hyperL: 'L hyperphoria' };
 
 /** Name of the finding without the prism number: "Constant L esotropia". */
-export function kindLabel(k: Kind, dir: Dir, eye?: Eye | 'alternating'): string {
+export function kindLabel(k: Kind, dir: Dir, eye?: Eye | 'alternating', locale: Locale = 'en'): string {
+  if (locale === 'he') return kindLabelHe(k, dir, eye);
   if (k === 'ortho' || dir === 'none') return 'Orthophoria';
   if (k === 'phoria') return cap(DIR_PHORIA[dir]);
   const who = eye === 'alternating' ? 'alternating' : eye ? side(eye) : '';
@@ -68,7 +70,8 @@ export function kindLabel(k: Kind, dir: Dir, eye?: Eye | 'alternating'): string 
 }
 
 /** Lower-case only the leading word of a label ("Constant L esotropia" -> "constant L esotropia"). */
-export function lowerLabel(label: string): string {
+export function lowerLabel(label: string, locale: Locale = 'en'): string {
+  if (locale === 'he') return label;
   return label.replace(/^(Constant|Intermittent|[A-Z](?=[a-z]+phoria))/, (x) => x.toLowerCase());
 }
 
@@ -77,16 +80,21 @@ export function cap(s: string): string {
 }
 
 /** Chart wording with the magnitude: "12Δ constant L esotropia". */
-export function describe(t: Truth): string {
-  if (t.kind === 'ortho') return 'Orthophoria (no deviation)';
-  const label = kindLabel(t.kind, t.dir, t.eye);
-  let out = `${t.mag}Δ ${lowerLabel(label)}`;
+export function describe(t: Truth, locale: Locale = 'en'): string {
+  const w = pickStrings(S, locale);
+  if (t.kind === 'ortho') return w.orthoDesc;
+  const label = kindLabel(t.kind, t.dir, t.eye, locale);
+  let out = `${t.mag}Δ ${lowerLabel(label, locale)}`;
   const sec = t.dir === 'eso' || t.dir === 'exo' ? t.v : t.h;
   if (Math.abs(sec) >= 2) {
-    const w = t.dir === 'eso' || t.dir === 'exo' ? `${Math.round(Math.abs(sec))}Δ ${sec > 0 ? 'R' : 'L'} hyper` : `${Math.round(Math.abs(sec))}Δ ${sec > 0 ? 'eso' : 'exo'}`;
-    out += ` with ${w}`;
+    const horiz = t.dir === 'eso' || t.dir === 'exo';
+    const n = Math.round(Math.abs(sec));
+    const part = locale === 'he'
+      ? (horiz ? `${n}Δ היפר ${sec > 0 ? 'R' : 'L'}` : `${n}Δ ${sec > 0 ? 'אזו' : 'אקסו'}`)
+      : (horiz ? `${n}Δ ${sec > 0 ? 'R' : 'L'} hyper` : `${n}Δ ${sec > 0 ? 'eso' : 'exo'}`);
+    out += ` ${w.withSec} ${part}`;
   }
-  return out;
+  return locale === 'he' ? isolateLtrRuns(out) : out;
 }
 
 // ───────────────────────── prism
@@ -112,8 +120,8 @@ export function baseMatches(dir: Dir, p: Pick<Prism, 'base' | 'eye'>): boolean {
   }
 }
 
-export function baseWord(b: Base): string {
-  return { BO: 'base-out', BI: 'base-in', BU: 'base-up', BD: 'base-down' }[b];
+export function baseWord(b: Base, locale: Locale = 'en'): string {
+  return pickStrings(S, locale).baseWord[b];
 }
 
 // ───────────────────────── eye geometry helpers

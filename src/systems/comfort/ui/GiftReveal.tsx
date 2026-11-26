@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { Button, CountUp, Modal, RARITY_COLOR, RARITY_LABEL, useReducedMotion } from '@ui-kit';
+import { Button, CountUp, Modal, RARITY_COLOR, useReducedMotion, useStrings } from '@ui-kit';
 import { ACCENT } from '../controller';
 import { GIFT_CALENDAR, nextGift, satchelOdds, skillOf, type GiftResult } from '../logic';
+import { S } from '../strings';
 import { GiftBox, type GiftPhase } from './GiftBox';
 import { GiftCalendar } from './GiftCalendar';
 import { centerOf, safePlay, useComfort } from './hooks';
@@ -22,6 +23,7 @@ function below(sel: string, box: { x: number; y: number }, dy: number): { x: num
  */
 export function GiftReveal(props: { services: GameServices; open: boolean; onClose: () => void }) {
   const { services } = props;
+  const t = useStrings(S);
   const { ctl, state } = useComfort(services);
   const reduced = useReducedMotion();
   const [phase, setPhase] = useState<GiftPhase>('ready');
@@ -44,6 +46,7 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
   }, [phase]);
 
   const day = result?.day ?? nextGift(state);
+  const label = t.giftLabels[day.day - 1] ?? day.label;
   const odds = satchelOdds(skillOf(state), day.day === 7);
 
   const later = (ms: number, fn: () => void) => timers.current.push(setTimeout(fn, reduced ? 0 : ms));
@@ -87,8 +90,8 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
     <Modal
       open={props.open}
       onClose={props.onClose}
-      eyebrow={`Evening ${day.day} of ${GIFT_CALENDAR.length}`}
-      title={result ? (day.satchel ? day.label : 'Tonight’s gift') : 'A gift is waiting'}
+      eyebrow={t.eveningOf(day.day, GIFT_CALENDAR.length)}
+      title={result ? (day.satchel ? label : t.tonightGift) : t.giftWaiting}
       icon="gift"
       accent={ACCENT}
       size="sm"
@@ -97,17 +100,17 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
       footer={
         phase === 'open' ? (
           <Button variant="primary" block icon="check" onClick={props.onClose} sfx="select" class="cf-reveal__cta">
-            Lovely, thank you
+            {t.thanks}
           </Button>
         ) : (
           <Button variant="primary" block icon="gift" onClick={open} disabled={phase !== 'ready' || !ctl} sfx={false} class="cf-reveal__cta">
-            {phase === 'shaking' ? 'Opening…' : 'Open the gift'}
+            {phase === 'shaking' ? t.opening : t.openGift}
           </Button>
         )
       }
     >
       <div class="cf-reveal__stage">
-        <button ref={boxRef} type="button" class="cf-reveal__box" onClick={open} aria-label="Open the gift" disabled={phase !== 'ready'} tabIndex={-1}>
+        <button ref={boxRef} type="button" class="cf-reveal__box" onClick={open} aria-label={t.openGift} disabled={phase !== 'ready'} tabIndex={-1}>
           <GiftBox phase={phase} size={168} grand={day.day === 7} />
         </button>
         {result && phase === 'open' ? (
@@ -115,32 +118,32 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
             <div class="cf-reveal__coins">
               <span class="cf-reveal__glyph">✦</span>
               <CountUp value={result.total} from={0} delay={reduced ? 0 : 120} tickSfx="tick" class="cf-reveal__num" />
-              <span class="cf-reveal__unit">lumens</span>
+              <span class="cf-reveal__unit">{t.unit}</span>
             </div>
             {result.satchel && (
               <div class="cf-reveal__satchel" style={{ '--rc': RARITY_COLOR[result.satchel.rarity] }}>
-                <span>{RARITY_LABEL[result.satchel.rarity]} satchel</span>
-                <strong class="lm-num">+{result.satchel.coins}</strong>
+                <span>{t.satchelOf(t.rarity[result.satchel.rarity])}</span>
+                <strong class="lm-num"><bdi dir="ltr">+{result.satchel.coins}</bdi></strong>
               </div>
             )}
-            {!day.satchel && <p class="cf-reveal__flavour">{day.label}</p>}
-            <p class="cf-reveal__note">Your next gift arrives tomorrow. No rush — it will wait for you.</p>
+            {!day.satchel && <p class="cf-reveal__flavour">{label}</p>}
+            <p class="cf-reveal__note">{t.nextTomorrow}</p>
           </div>
         ) : (
           <div class="cf-reveal__preview">
             <p>
-              <strong class="lm-num">✦ {day.coins}</strong> lumens
-              {day.satchel && <> + a mystery satchel</>}
+              <strong class="lm-num">✦ {day.coins}</strong> {t.unit}
+              {day.satchel && <>{t.mystery}</>}
             </p>
-            {!day.satchel && <p class="cf-reveal__flavour">{day.label}</p>}
+            {!day.satchel && <p class="cf-reveal__flavour">{label}</p>}
             {day.satchel && (
-              <p class="cf-reveal__odds" aria-label="Satchel odds">
+              <p class="cf-reveal__odds" aria-label={t.oddsAria}>
                 {(['common', 'rare', 'epic', 'legendary'] as const).map((r) => (
                   <span key={r} style={{ color: RARITY_COLOR[r] }}>
-                    {RARITY_LABEL[r]} {Math.round(odds[r] * 100)}%
+                    {t.oddsPct(t.rarity[r], Math.round(odds[r] * 100))}
                   </span>
                 ))}
-                <em>Sharper case work tilts the odds.</em>
+                <em>{t.sharper}</em>
               </p>
             )}
           </div>

@@ -1,7 +1,9 @@
 import { useRef, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { Button, CountUp, GlassPanel, useReducedMotion, useSignal } from '@ui-kit';
+import { Button, CountUp, GlassPanel, useLocale, useReducedMotion, useSignal, useStrings } from '@ui-kit';
 import { COIN, CRATES, ECONOMY_COLOR } from '../catalog';
+import { S } from '../strings';
+import { crateText } from '../text';
 import { formatCoins } from '../logic';
 import type { Economy } from '../store';
 import { CoinGlyph } from './CoinGlyph';
@@ -21,6 +23,8 @@ function Receipt({ services, store }: { services: GameServices; store: Economy }
   const state = useSignal(store.state);
   const session = useSignal(services.session.state);
   const reduced = useReducedMotion();
+  const t = useStrings(S);
+  const locale = useLocale();
   const [opening, setOpening] = useState<string | null>(null);
   const cratesRef = useRef<HTMLDivElement>(null);
   const walletRef = useRef<HTMLParagraphElement>(null);
@@ -42,7 +46,7 @@ function Receipt({ services, store }: { services: GameServices; store: Economy }
   };
 
   return (
-    <GlassPanel class="eco-receipt" accent={ECONOMY_COLOR} glow strong eyebrow="Lumens earned" title="Consultation fee">
+    <GlassPanel class="eco-receipt" accent={ECONOMY_COLOR} glow strong eyebrow={t.receiptEyebrow} title={t.receiptTitle}>
       <div class="eco-receipt__hero">
         <CoinGlyph size={44} spin />
         <span class="eco-receipt__total">
@@ -62,11 +66,11 @@ function Receipt({ services, store }: { services: GameServices; store: Economy }
       </ul>
       {receipt.coveredHints > 0 && (
         <p class="eco-receipt__note">
-          {receipt.coveredHints} consult note{receipt.coveredHints > 1 ? 's' : ''} covered your hint{receipt.coveredHints > 1 ? 's' : ''}.
+          {t.coveredNote(receipt.coveredHints)}
         </p>
       )}
       {fee.lines.some((l) => l.id === 'late') && (
-        <p class="eco-receipt__note">You’ve had a big day — fees beyond today’s full rate are halved. Spaced practice sticks better; full fees return tomorrow.</p>
+        <p class="eco-receipt__note">{t.lateNote}</p>
       )}
 
       {receipt.crates.length > 0 && (
@@ -79,25 +83,25 @@ function Receipt({ services, store }: { services: GameServices; store: Economy }
                   <CrateArt kind={c.kind} size={84} class="eco-crate--idle" />
                 </div>
                 <div class="eco-receipt__crate-text">
-                  <b>{CRATES[c.kind].name}</b>
+                  <b>{crateText(c.kind, locale).name}</b>
                   <span>{c.reason}</span>
                 </div>
                 {unopened ? (
                   <Button variant="primary" size="sm" icon="crate" onClick={() => setOpening(c.id)}>
-                    Open now
+                    {t.openNow}
                   </Button>
                 ) : (
-                  <span class="eco-receipt__opened">Opened</span>
+                  <span class="eco-receipt__opened">{t.opened}</span>
                 )}
               </div>
             );
           })}
-          {waiting.length > 0 && <p class="eco-receipt__later">Or keep them for later — they wait in the Boutique.</p>}
+          {waiting.length > 0 && <p class="eco-receipt__later">{t.later}</p>}
         </div>
       )}
 
       <p class="eco-receipt__wallet" ref={walletRef} tabIndex={-1}>
-        Wallet <b class="lm-num">{formatCoins(state.balance)} {COIN}</b>
+        {t.wallet} <b class="lm-num">{formatCoins(state.balance)} {COIN}</b>
       </p>
       {opening && <CrateOpening services={services} store={store} crateId={opening} onClose={closeOpening} />}
     </GlassPanel>

@@ -5,11 +5,17 @@
  */
 import {
   buildFindings, otherEye,
-  type DeepPartial, type Eye, type FieldDefect, type PatientFindings, type PatientProfile,
+  type DeepPartial, type Eye, type FieldDefect, type Locale, type PatientFindings, type PatientProfile,
   type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
-import { describeEye, localise, LOCALISATION_LABEL, patternOf, type Localisation } from './interpret';
+import { describeEye, localise, patternOf, type Localisation } from './interpret';
+import { iso, PRACTICE_HE, S, vfT } from './strings';
+
+/** Practice scenarios are generated before mount (no ctx), so read the edition from the page. */
+const docLocale = (): Locale => {
+  try { return document.documentElement.lang === 'he' ? 'he' : 'en'; } catch { return 'en'; }
+};
 
 const FIRST_F = ['Celeste', 'Noor', 'Ingrid', 'Mei', 'Ada', 'Lucia', 'Zara', 'Freya', 'Esme', 'Rania'];
 const FIRST_M = ['Bruno', 'Idris', 'Kenji', 'Silas', 'Anders', 'Tobias', 'Dev', 'Mikhail', 'Rafael', 'Hugo'];
@@ -202,32 +208,28 @@ export function practiceScenario(rng: Rng, difficulty: number, forceKey?: string
   const sex: 'F' | 'M' = arch.sex ? (rng.chance(0.75) ? arch.sex : arch.sex === 'F' ? 'M' : 'F') : rng.chance(0.5) ? 'F' : 'M';
   const eye: Eye = rng.chance(0.5) ? 'OD' : 'OS';
   const findings = buildFindings(age, arch.build(rng, d, eye));
+  const he = docLocale() === 'he';
   const patient: PatientProfile = {
-    name: `${rng.pick(sex === 'F' ? FIRST_F : FIRST_M)} ${rng.pick(LAST)}`,
+    name: he
+      ? `${rng.pick(sex === 'F' ? PRACTICE_HE.firstF : PRACTICE_HE.firstM)} ${rng.pick(PRACTICE_HE.last)}`
+      : `${rng.pick(sex === 'F' ? FIRST_F : FIRST_M)} ${rng.pick(LAST)}`,
     age,
     sex,
-    occupation: rng.pick(JOBS),
+    occupation: he ? rng.pick(PRACTICE_HE.jobs)[sex === 'F' ? 1 : 0]! : rng.pick(JOBS),
     avatar: generateAvatar(rng, { age, sex }),
   };
   const od = findings.fields.OD;
   const os = findings.fields.OS;
   const loc = localise(patternOf(od, 'OD'), patternOf(os, 'OS'));
+  const locale: Locale = he ? 'he' : 'en';
+  const t = vfT(locale);
+  const cause = he ? (PRACTICE_HE.causes[arch.key] ?? arch.cause) : arch.cause;
   return {
     patient,
     findings,
-    answer: `OD: ${describeEye(od, 'OD')} · OS: ${describeEye(os, 'OS')}. Lesion: ${LOCALISATION_LABEL[loc]}. Likely cause: ${arch.cause}.`,
+    answer: iso(locale, t.answerWith(describeEye(od, 'OD', locale), describeEye(os, 'OS', locale), t.locLabel[loc], cause)),
   };
 }
 
 /** Teaching explanation for the localisation challenge. */
-export const LOCALISATION_TEACH: Record<Localisation, string> = {
-  none: 'Both fields are full: the only hole is the physiological blind spot, 15° temporal and just below the horizontal — where the optic disc has no photoreceptors.',
-  prechiasmal:
-    'A defect confined to one eye’s own anatomy — an arc from the blind spot, a central hole, an altitudinal half or a curtain — lies in front of the chiasm: retina or optic nerve. Arcuate and altitudinal defects respect the HORIZONTAL meridian because retinal nerve fibres never cross the horizontal raphe.',
-  chiasm:
-    'Temporal halves lost in both eyes means the crossing nasal fibres are hit where they decussate — the chiasm. From below (pituitary) the superotemporal quadrants go first. Image the sella urgently.',
-  'retro-right':
-    'The same (left) half missing in both eyes, respecting the VERTICAL meridian, means the lesion is behind the chiasm on the right: optic tract, radiations or occipital cortex. Superior quadrants = temporal lobe (Meyer’s loop); inferior = parietal.',
-  'retro-left':
-    'The same (right) half missing in both eyes, respecting the VERTICAL meridian, means the lesion is behind the chiasm on the left: optic tract, radiations or occipital cortex. Superior quadrants = temporal lobe (Meyer’s loop); inferior = parietal.',
-};
+export const LOCALISATION_TEACH: Record<Localisation, string> = S.en.locTeach;

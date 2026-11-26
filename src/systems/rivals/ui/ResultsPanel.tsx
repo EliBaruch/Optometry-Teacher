@@ -4,8 +4,9 @@
  * describe the last case there).
  */
 import { useState } from 'preact/hooks';
-import { TEST_CATALOG, type GameServices, type Grade, type TestId } from '@core';
-import { GRADE_COLOR, GlassPanel, Icon, isIconName, useSfx, useSignal } from '@ui-kit';
+import { testText, type GameServices, type Grade, type TestId } from '@core';
+import { GRADE_COLOR, GlassPanel, Icon, isIconName, useLocale, useSfx, useSignal, useStrings } from '@ui-kit';
+import { S, rivalText } from '../strings';
 import { ACCENT } from '../controller';
 import { RIVAL_BY_ID, type Rival } from '../roster';
 import { formatTime, inClinicalOrder, pickQuip, type RivalCaseResult } from '../sim';
@@ -32,6 +33,8 @@ export function ResultsPanel({ services }: { services: GameServices }) {
 
 function CasePanel({ services, routeId }: { services: GameServices; routeId: string }) {
   const { ctl, state } = useRivals(services);
+  const t = useStrings(S);
+  const locale = useLocale();
   const session = useSignal(services.session.state);
   const settings = useSignal(services.settings);
   const last = state.last;
@@ -56,14 +59,14 @@ function CasePanel({ services, routeId }: { services: GameServices; routeId: str
   const yourTests = session && session.caseId === last.caseId ? inClinicalOrder(Object.keys(session.testsDone) as TestId[]) : [];
 
   const headline = best
-    ? 'Best work-up on the ward'
+    ? t.headBest
     : beaten >= Math.ceil(last.rivals.length / 2)
-      ? `You out-scored ${beaten} of ${last.rivals.length} colleagues`
+      ? t.headMost(beaten, last.rivals.length)
       : beaten > 0
-        ? `You out-scored ${beaten} of ${last.rivals.length}. Their slips below are worth a look`
+        ? t.headSome(beaten, last.rivals.length)
         : lessons
-          ? 'A strong ward today. Their slips below are free lessons'
-          : 'A strong ward today. Compare your route with theirs';
+          ? t.headLessons
+          : t.headCompare;
 
   return (
     <GlassPanel
@@ -73,9 +76,9 @@ function CasePanel({ services, routeId }: { services: GameServices; routeId: str
       glow={best}
       strong
       icon="users"
-      eyebrow="Rivals"
-      title="How your colleagues did on this patient"
-      actions={<span class="rv-results__pts lm-num" title="Weekly board points">+{last.points} pts</span>}
+      eyebrow={t.resEyebrow}
+      title={t.resTitle}
+      actions={<span class="rv-results__pts lm-num" title={t.resPtsTitle}><bdi dir="ltr">+{last.points}</bdi> {locale === 'he' ? 'נק׳' : 'pts'}</span>}
     >
       <p class={`rv-results__headline${best ? ' is-best' : ''}`}>
         {best && <Icon name="star" size={16} />} {headline}
@@ -83,15 +86,16 @@ function CasePanel({ services, routeId }: { services: GameServices; routeId: str
       <ol class="rv-results__list">
         {rows.map((r, i) => {
           const ratio = r.max > 0 ? r.total / r.max : 0;
-          const quip = r.rival && r.result ? pickQuip(r.rival, r.result, p.total, last.caseId) : null;
-          const dx = r.correct ? 'Correct diagnosis' : r.chosen ? `Called it ${ctl.diagnosisName(r.chosen)}` : 'Missed the diagnosis';
+          const quip = r.rival && r.result ? pickQuip(r.rival, r.result, p.total, last.caseId, locale) : null;
+          const who = r.rival ? (r.rival.avatar.sex === 'F' ? 'f' : 'm') : 'you';
+          const dx = r.correct ? t.dxCorrect : r.chosen ? t.dxCalled(ctl.diagnosisName(r.chosen), who) : t.dxMissed(who);
           return (
             <li key={r.id} class={`rv-rrow${r.id === 'you' ? ' is-you' : ''}${r.correct ? '' : ' is-wrong'}`} style={{ '--rv-i': i, '--rv-c': r.rival?.color ?? '#ffd27a' }}>
               <div class="rv-rrow__main">
                 <span class="rv-rrow__place lm-num" aria-hidden="true">{i + 1}</span>
                 {r.rival ? <RivalPortrait rival={r.rival} size={40} /> : <PlayerPortrait name={settings.playerName} size={40} />}
                 <div class="rv-rrow__who">
-                  <b>{r.rival ? r.rival.short : 'You'}</b>
+                  <b>{r.rival ? rivalText(r.rival, locale).short : t.you}</b>
                   <span class={`rv-rrow__dx${r.correct ? ' is-ok' : ''}`}>
                     <Icon name={r.correct ? 'check' : 'close'} size={11} /> {dx}
                   </span>
@@ -99,11 +103,11 @@ function CasePanel({ services, routeId }: { services: GameServices; routeId: str
                 <div class="rv-rrow__bar" aria-hidden="true">
                   <span style={{ width: `${Math.round(ratio * 100)}%` }} />
                 </div>
-                <span class="rv-rrow__time lm-num" title="Time to diagnosis">
+                <span class="rv-rrow__time lm-num" title={t.timeTitle}>
                   {r.correct && r.timeSec === fastest && <Icon name="lightning" size={12} />} {formatTime(r.timeSec)}
                 </span>
-                <span class="rv-rrow__grade" style={{ '--rv-g': GRADE_COLOR[r.grade] }} aria-label={`Grade ${r.grade}`}>{r.grade}</span>
-                <span class="rv-rrow__score lm-num" aria-label={`${r.total} points`}>{r.total}</span>
+                <span class="rv-rrow__grade" style={{ '--rv-g': GRADE_COLOR[r.grade] }} aria-label={t.gradeAria(r.grade)}>{r.grade}</span>
+                <span class="rv-rrow__score lm-num" aria-label={t.pointsAria(r.total)}>{r.total}</span>
               </div>
               {!r.result && yourTests.length > 0 && (
                 <div class="rv-rrow__detail">
@@ -117,7 +121,7 @@ function CasePanel({ services, routeId }: { services: GameServices; routeId: str
                   {r.result.slip && (
                     <span class="rv-slip">
                       <span class="rv-slip__what">{r.result.slip.text}</span>
-                      <span class="rv-slip__pearl"><Icon name="info" size={13} /> <span><b>Teaching point</b> {r.result.slip.lesson}</span></span>
+                      <span class="rv-slip__pearl"><Icon name="info" size={13} /> <span><b>{t.teachingPoint}</b> {r.result.slip.lesson}</span></span>
                     </span>
                   )}
                 </div>
@@ -137,28 +141,31 @@ function CasePanel({ services, routeId }: { services: GameServices; routeId: str
 function TestPath({ tests, you }: { tests: TestId[]; you?: boolean }) {
   const [open, setOpen] = useState(false);
   const play = useSfx();
+  const t = useStrings(S);
+  const locale = useLocale();
   if (!tests.length) return null;
-  const names = tests.map((t) => TEST_CATALOG[t]?.name ?? t);
+  const nameOf = (id: TestId) => testText(id, locale).name;
+  const names = tests.map(nameOf);
   return (
     <span class={`rv-path${you ? ' rv-path--you' : ''}${open ? ' is-open' : ''}`}>
       <button
         type="button"
         class="rv-path__btn"
         aria-expanded={open}
-        aria-label={`${you ? 'Your work-up' : 'Tests run'}: ${tests.length} ${tests.length === 1 ? 'test' : 'tests'}. ${open ? 'Hide' : 'Show'} names.`}
+        aria-label={`${you ? t.pathYour : t.pathRun}: ${t.pathCount(tests.length)}. ${open ? t.pathHide : t.pathShow}`}
         onClick={() => {
           play('click');
           setOpen((o) => !o);
         }}
       >
         <span class="rv-path__steps" aria-hidden="true">
-          {tests.map((t) => (
-            <span key={t} class="rv-path__step" title={TEST_CATALOG[t]?.name ?? t}>
-              {isIconName(t) ? <Icon name={t} size={13} /> : t[0]}
+          {tests.map((id) => (
+            <span key={id} class="rv-path__step" title={nameOf(id)}>
+              {isIconName(id) ? <Icon name={id} size={13} /> : id[0]}
             </span>
           ))}
         </span>
-        <span class="rv-path__count">{you ? 'Your route · ' : ''}{tests.length} {tests.length === 1 ? 'test' : 'tests'}</span>
+        <span class="rv-path__count">{you ? t.pathYourRoute : ''}{t.pathCount(tests.length)}</span>
         <span class="rv-path__chev" aria-hidden="true"><Icon name="chevron-right" size={12} /></span>
       </button>
       {open && <span class="rv-path__names">{names.join(' → ')}</span>}

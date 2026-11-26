@@ -1,19 +1,22 @@
 /** Player-facing status copy. Warm, never guilt-tripping. */
 import type { FlameStatus, DailyView } from '../daily';
 import type { FlameVariant } from './Flame';
+import type { S } from '../strings';
 
-export function statusLine(view: DailyView, best: number): string {
+type T = typeof S.en;
+
+export function statusLine(view: DailyView, best: number, t: T): string {
   switch (view.status) {
     case 'new':
-      return 'See one patient to light your first flame.';
+      return t.statusNew;
     case 'lit':
-      return 'Lit for today.';
+      return t.statusLit;
     case 'waiting':
-      return 'One patient today keeps it glowing.';
+      return t.statusWaiting;
     case 'protected':
-      return view.pendingFrozen.length === 1 ? 'A freeze is keeping it warm.' : `Freezes are keeping it warm.`;
+      return view.pendingFrozen.length === 1 ? t.statusProtectedOne : t.statusProtectedMany;
     case 'resting':
-      return `Resting. Your best is ${best} ${best === 1 ? 'day' : 'days'} — one patient lights a new flame.`;
+      return t.statusResting(best);
   }
 }
 
@@ -28,4 +31,4 @@ export function dailyIntensity(streak: number): number {
   return streak >= 30 ? 3 : streak >= 14 ? 2 : streak >= 3 ? 1 : 0;
 }
 
-export const days = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
+export const days = (n: number, t: T) => t.days(n);

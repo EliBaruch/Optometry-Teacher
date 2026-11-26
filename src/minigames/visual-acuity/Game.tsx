@@ -4,7 +4,7 @@
  * both TestIds; `variant` switches the pinhole workflow on.
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { EYES, type Eye, type MiniGameContext, type MiniGameResult, type SfxId } from '@core';
+import { EYES, pickStrings, type Eye, type MiniGameContext, type MiniGameResult, type SfxId } from '@core';
 import { Button, Icon, Kbd, SpeechBubble } from '@ui-kit';
 import type { AvatarExpression } from '@render';
 import { canUseOptotype, chartLines, defaultOptotype, expectedLevel, lineSymbols, levelLabel, type ChartKind, type Optotype } from './charts';
@@ -21,7 +21,8 @@ import { ProjectorControls, Remote, type Verdict } from './Remote';
 import { pinholeExpected, reportAcuity, reportPinhole } from './report';
 import { combineAcuity, scorePinhole, scoreRecord, type AcuityRecord, type PinholeEyeResult, type RecordScore, type Slot } from './scoring';
 import { buildRecord, ladderRead, LADDER_MIN, logKey, openFor, recordFull, recordNotation, type LevelLog } from './session';
-import { markTutorialSeen, STEPS, tutorialSeen, type Variant } from './steps';
+import { markTutorialSeen, stepsFor, tutorialSeen, type Variant } from './steps';
+import { LocaleCtx, S } from './strings';
 
 export interface GameProps {
   ctx: MiniGameContext;
@@ -49,9 +50,11 @@ interface Outcome {
 
 const MOOD_FACE: Record<Mood, AvatarExpression> = { confident: 'neutral', hesitant: 'squint', struggling: 'squint', lost: 'worried' };
 const SLOT_SALT: Record<Slot, number> = { OD: 0, OS: 7919, OU: 104729 };
-const VERDICT_WORD: Record<Verdict, string> = { improves: 'improves', 'no-improvement': 'NI', 'not-needed': 'not needed' };
 
 export function Game({ ctx, variant, finish }: GameProps) {
+  const loc = ctx.locale;
+  const t = pickStrings(S, loc);
+  const VERDICT_WORD = t.verdictWord;
   const f = ctx.findings;
   const age = ctx.patient.age;
   const isPH = variant === 'pinhole';
@@ -72,7 +75,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
   const [records, setRecords] = useState<Partial<Record<Slot, SlotRecord>>>({});
   const [verdicts, setVerdicts] = useState<Partial<Record<Eye, Verdict>>>({});
   const [speech, setSpeech] = useState<{ text: string; mood: Mood; n: number }>(() => ({
-    text: isPH ? 'Paddle over my other eye — like this? Ready.' : 'Glasses off. Ready when you are!',
+    text: isPH ? t.startPinhole : t.startAcuity,
     mood: 'confident', n: 0,
   }));
   const [fingers, setFingers] = useState(2);
@@ -132,7 +135,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
       setOpen(openFor(s));
       setPinholeOn(false);
       setLevel(scLevel(s as Eye));
-      setSpeech({ text: 'Swapping the paddle over. Ready.', mood: 'confident', n: speech.n + 1 });
+      setSpeech({ text: t.swapPaddle, mood: 'confident', n: speech.n + 1 });
     }
   };
 
@@ -150,7 +153,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
     logs.current.set(condKey, log);
     const n = speech.n + 1;
     if (level < 0) {
-      const r = ladderRead(level, eff, rng);
+      const r = ladderRead(level, eff, rng, loc);
       if (eff !== null) log.set(level, { passed: r.passed, nCorrect: r.passed ? 1 : 0, n: 1 });
       if (r.fingers) setFingers(r.fingers);
       setSpeech({ text: r.text, mood: r.mood, n });
@@ -160,7 +163,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
     const symbols = lineSymbols(chart, optotype, level, symbolsSeed);
     const r = readLine({
       lines, index: level, symbols, trueLogmar: eff, optotype, age,
-      knowsOptotype: canUseOptotype(age, optotype), difficulty: ctx.difficulty, rng,
+      knowsOptotype: canUseOptotype(age, optotype), difficulty: ctx.difficulty, rng, locale: loc,
     });
     if (r.kind === 'read' || r.kind === 'cannot') {
       log.set(level, { passed: r.passed, nCorrect: r.nCorrect, n: symbols.length });
@@ -193,7 +196,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
   const record = () => {
     if (phase !== 'exam') return;
     if (!isPH && !occluderOkNow()) {
-      warn(slot === 'OU' ? 'Binocular acuity needs both eyes open — uncover the patient first.' : `Chart ${slot} only with ${slot === 'OD' ? 'OS' : 'OD'} covered and ${slot} open — set the occluder first.`);
+      warn(slot === 'OU' ? t.warnBinocular : t.warnOcclude(slot, slot === 'OD' ? 'OS' : 'OD'));
       return;
     }
     let entry: SlotRecord;
@@ -220,10 +223,10 @@ export function Game({ ctx, variant, finish }: GameProps) {
         setOpen(openFor(nextSlot));
         setPinholeOn(false);
         setLevel(scLevel(nextSlot as Eye));
-        setSpeech({ text: 'Other eye now? Paddle swapped.', mood: 'confident', n: speech.n + 1 });
+        setSpeech({ text: t.otherEyePaddle, mood: 'confident', n: speech.n + 1 });
       } else {
         setLevel(0);
-        setSpeech({ text: 'Okay — which eye next?', mood: 'confident', n: speech.n + 1 });
+        setSpeech({ text: t.whichNext, mood: 'confident', n: speech.n + 1 });
       }
     }
   };
@@ -253,14 +256,14 @@ export function Game({ ctx, variant, finish }: GameProps) {
     const timeMs = Math.round(performance.now() - t0.current);
     if (!isPH) {
       const recs = required.map((s) => records[s]!.rec!);
-      const scores: RecordScore[] = recs.map((r) => scoreRecord(r, truthFor(r.slot), chartLines(r.chart)));
+      const scores: RecordScore[] = recs.map((r) => scoreRecord(r, truthFor(r.slot), chartLines(r.chart), loc));
       const c = combineAcuity(scores, required, timeMs, recs);
       const extra = records.OU?.rec ? [records.OU] : [];
       return {
         accuracy: c.accuracy, perfect: c.perfect, timeMs,
         summary: [
-          ...required.map((s, i) => ({ label: `VA sc ${s}`, value: `${records[s]!.notation}  ·  true ${formatFeet(truthFor(s))}`, ok: scores[i]!.steps === 0 && scores[i]!.occlusionOk })),
-          ...extra.map((r) => ({ label: 'VA sc OU', value: r!.notation, ok: null })),
+          ...required.map((s, i) => ({ label: t.vaScLabel(s), value: `${records[s]!.notation}  ·  ${t.trueWord} ${formatFeet(truthFor(s))}`, ok: scores[i]!.steps === 0 && scores[i]!.occlusionOk })),
+          ...extra.map((r) => ({ label: t.vaScLabel('OU'), value: r!.notation, ok: null })),
         ],
         notes: scores.flatMap((s) => s.notes.map((n) => `${s.slot}: ${n}`)),
         stamp: required.map((s) => `${s}  ${records[s]!.full}`),
@@ -277,15 +280,15 @@ export function Game({ ctx, variant, finish }: GameProps) {
       if (truth === 'not-needed' && verdictCorrect) steps = 0;
       else if (r.rec && r.pinhole && r.rec.read) steps = Math.abs(r.rec.level - expectedLevel(chartLines(r.rec.chart), pinholeLogmar(f, eye)));
       results.push({ eye, verdictCorrect, steps });
-      const trueTxt = truth === 'not-needed' ? 'not needed' : `${formatFeet(pinholeLogmar(f, eye))} ${VERDICT_WORD[truth]}`;
-      summary.push({ label: `PH ${eye}`, value: `${r.verdict === 'not-needed' ? 'not needed' : `${r.notation} ${VERDICT_WORD[r.verdict!]}`}  ·  true ${trueTxt}`, ok: verdictCorrect && steps === 0 });
-      if (!verdictCorrect) notes.push(`${eye}: the right call was “${VERDICT_WORD[truth]}”.`);
-      if (r.rec && !r.pinhole) notes.push(`${eye}: that line was read without the pinhole in place.`);
-      else if (r.rec && !r.rec.read) notes.push(`${eye}: the charted line was never read through the pinhole.`);
-      else if (steps !== null && steps > 0) notes.push(`${eye}: pinhole line ${steps} step${steps > 1 ? 's' : ''} off.`);
+      const trueTxt = truth === 'not-needed' ? t.notNeeded : `${formatFeet(pinholeLogmar(f, eye))} ${VERDICT_WORD[truth]}`;
+      summary.push({ label: t.phLabel(eye), value: `${r.verdict === 'not-needed' ? t.notNeeded : `${r.notation} ${VERDICT_WORD[r.verdict!]}`}  ·  ${t.trueWord} ${trueTxt}`, ok: verdictCorrect && steps === 0 });
+      if (!verdictCorrect) notes.push(t.noteWrongCall(eye, VERDICT_WORD[truth]));
+      if (r.rec && !r.pinhole) notes.push(t.noteNoPinhole(eye));
+      else if (r.rec && !r.rec.read) notes.push(t.noteNotRead(eye));
+      else if (steps !== null && steps > 0) notes.push(t.noteOff(eye, steps));
     }
     const c = scorePinhole(results, timeMs);
-    return { accuracy: c.accuracy, perfect: c.perfect, timeMs, summary, notes, stamp: EYES.map((e) => `PH ${e}  ${records[e]!.verdict === 'not-needed' ? 'not needed' : `${records[e]!.full} ${VERDICT_WORD[records[e]!.verdict!]}`}`) };
+    return { accuracy: c.accuracy, perfect: c.perfect, timeMs, summary, notes, stamp: EYES.map((e) => `${t.phLabel(e)}  ${records[e]!.verdict === 'not-needed' ? t.notNeeded : `${records[e]!.full} ${VERDICT_WORD[records[e]!.verdict!]}`}`) };
   };
 
   const recordFindings = () => {
@@ -313,7 +316,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
       testId: isPH ? 'pinhole' : 'visual-acuity',
       accuracy: Math.round(Math.max(0, Math.min(1, accuracy)) * 1000) / 1000,
       timeMs: o.timeMs,
-      findings: isPH ? reportPinhole(f, ctx.patient) : reportAcuity(f, ctx.patient),
+      findings: isPH ? reportPinhole(f, ctx.patient, loc) : reportAcuity(f, ctx.patient, loc),
       perfect,
     });
   };
@@ -324,7 +327,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
     return () => clearTimeout(t);
   }, [phase, outcome]);
 
-  const challenge = useMemo(() => (outcome && practice ? (isPH ? pinholeChallenge(f) : acuityChallenge(f, quizRng)) : null), [outcome]);
+  const challenge = useMemo(() => (outcome && practice ? (isPH ? pinholeChallenge(f, loc) : acuityChallenge(f, quizRng, loc)) : null), [outcome]);
 
   // ── keyboard ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -375,25 +378,24 @@ export function Game({ ctx, variant, finish }: GameProps) {
   const slots: Slot[] = isPH ? ['OD', 'OS'] : ['OD', 'OS', 'OU'];
   const curMarks = marks.current.get(markKey) ?? new Map<number, boolean[]>();
   const occluderHint = isPH
-    ? `${slot === 'OD' ? 'OS' : 'OD'} occluded · pinhole ${ph ? 'on' : 'off'}`
-    : open.OD && open.OS ? 'Both open — tap an eye to cover' : !open.OD && !open.OS ? 'Both eyes covered!' : `${open.OD ? 'OS' : 'OD'} covered · ${open.OD ? 'OD' : 'OS'} reading`;
+    ? t.hintPinhole(slot === 'OD' ? 'OS' : 'OD', ph)
+    : open.OD && open.OS ? t.hintBothOpen : !open.OD && !open.OS ? t.hintBothCovered : t.hintOneCovered(open.OD ? 'OS' : 'OD', open.OD ? 'OD' : 'OS');
   const occluderOk = isPH || occluderOkNow();
-  const instruction = isPH
-    ? 'Pinhole over the tested eye: re-measure, then judge — improves, or no improvement?'
-    : 'Cover one eye, point to a line, chart the smallest line read — OD, then OS.';
+  const instruction = isPH ? t.instructionPinhole : t.instructionAcuity;
   const done = (s: Slot) => !!records[s];
 
   return (
+    <LocaleCtx.Provider value={loc}>
     <div class={`va${ctx.reducedMotion ? ' is-reduced' : ''}`} ref={rootRef} tabIndex={-1}>
       <header class="va__head">
         <div class="va__title">
           <Icon name={isPH ? 'pinhole' : 'visual-acuity'} size={22} class="va__title-icon" />
           <div>
-            <h2>{isPH ? 'Pinhole Acuity' : 'Visual Acuity'}</h2>
+            <h2>{isPH ? t.titlePinhole : t.titleAcuity}</h2>
             <p>{instruction}</p>
           </div>
         </div>
-        <div class="va-eyes" role="tablist" aria-label="Recording for">
+        <div class="va-eyes" role="tablist" aria-label={t.recordingFor}>
           {slots.map((s) => (
             <button
               key={s}
@@ -406,7 +408,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
               data-testid={`va-slot-${s}`}
             >
               <span class="va-eyes__code">{s}</span>
-              <span class="va-eyes__name">{s === 'OD' ? 'Right' : s === 'OS' ? 'Left' : 'Both'}</span>
+              <span class="va-eyes__name">{s === 'OD' ? t.eyeRight : s === 'OS' ? t.eyeLeft : t.eyeBoth}</span>
               {done(s) && <Icon name="check" size={13} class="va-eyes__check" />}
             </button>
           ))}
@@ -430,7 +432,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
               />
               {level < 0 && <LowVisionCard level={level} fingers={fingers} />}
             </div>
-            <div class="va-bezel__pov" aria-hidden="true">{ph ? 'Through the pinhole' : 'Patient’s view'}</div>
+            <div class="va-bezel__pov" aria-hidden="true">{ph ? t.throughPinhole : t.patientView}</div>
             <div class="va-bezel__plate">
               <ProjectorControls chart={chart} optotype={optotype} disabled={phase !== 'exam'} pinhole={isPH} onChart={changeChart} onOptotype={changeOptotype} />
             </div>
@@ -448,9 +450,9 @@ export function Game({ ctx, variant, finish }: GameProps) {
               onToggleEye={isPH ? null : toggleEye}
             />
             <div class="va-patient__talk">
-              <SpeechBubble key={speech.n} text={speech.text} speaker={ctx.patient.name.split(' ')[0]} tail="left" voice={false} speed={62} class="va-bubble" />
+              <SpeechBubble key={speech.n} text={speech.text} speaker={ctx.patient.name.split(' ')[0]} tail={loc === 'he' ? 'right' : 'left'} voice={false} speed={62} class="va-bubble" />
               <div class={`va-occhint${occluderOk ? '' : ' is-warn'}`}>
-                <Icon name={occluderOk ? 'eye' : 'warning'} size={14} /> {occluderHint}
+                <Icon name={occluderOk ? 'eye' : 'warning'} size={14} /> <bdi>{occluderHint}</bdi>
                 {!isPH && <Kbd>C</Kbd>}
               </div>
             </div>
@@ -461,7 +463,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
             chart={chart}
             slot={slot}
             disabled={phase !== 'exam'}
-            reference={isPH ? `sc ${formatFeet(f.va[slot as Eye].uncorrected)}` : undefined}
+            reference={isPH ? t.reference(formatFeet(f.va[slot as Eye].uncorrected)) : undefined}
             onLevel={changeLevel}
             onAsk={ask}
             onRecord={record}
@@ -481,18 +483,18 @@ export function Game({ ctx, variant, finish }: GameProps) {
       </div>
 
       <footer class="va__foot">
-        <ol class="va-progress" aria-label="Recorded">
+        <ol class="va-progress" aria-label={t.recorded}>
           {slots.map((s) => (
             <li key={s} class={`${done(s) ? 'is-done' : ''}${slot === s ? ' is-cur' : ''}${s === 'OU' ? ' is-opt' : ''}`}>
               <i aria-hidden="true" />
-              <span class="va-progress__code">{isPH ? `PH ${s}` : s}</span>
-              <b>{records[s] ? (isPH ? (records[s]!.verdict === 'not-needed' ? 'not needed' : `${records[s]!.notation} · ${VERDICT_WORD[records[s]!.verdict!]}`) : records[s]!.notation) : s === 'OU' ? 'optional' : '—'}</b>
+              <span class="va-progress__code">{isPH ? t.phLabel(s) : s}</span>
+              <b>{records[s] ? (isPH ? (records[s]!.verdict === 'not-needed' ? t.notNeeded : `${records[s]!.notation} · ${VERDICT_WORD[records[s]!.verdict!]}`) : records[s]!.notation) : s === 'OU' ? t.optional : '—'}</b>
             </li>
           ))}
         </ol>
         <div ref={recBtn}>
           <Button variant="primary" icon="check" sfx={false} disabled={!canFinish || phase !== 'exam'} onClick={recordFindings} data-testid="va-record">
-            Record findings
+            {t.recordFindings}
           </Button>
         </div>
       </footer>
@@ -521,7 +523,8 @@ export function Game({ ctx, variant, finish }: GameProps) {
         />
       )}
       {phase === 'stamp' && outcome && <ChartedStamp lines={outcome.stamp} />}
-      {tutorial && <Tutorial steps={STEPS[variant]} onClose={closeTutorial} />}
+      {tutorial && <Tutorial steps={stepsFor(variant, loc)} onClose={closeTutorial} />}
     </div>
+    </LocaleCtx.Provider>
   );
 }

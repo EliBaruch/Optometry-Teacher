@@ -1,18 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { TEST_CATALOG, type TestId, type MiniGameModule, type MiniGameResult, type PracticeScenario, type SceneProps } from '@core';
+import { TEST_CATALOG, miniGameText, testText, type TestId, type MiniGameModule, type MiniGameResult, type PracticeScenario, type SceneProps, type Locale } from '@core';
 import {
-  Icon, IconOrText, Modal, Screen, Tabs, cx, isIconName, useReducedMotion, useRegistry, useSignal,
+  Icon, IconOrText, Modal, Screen, Tabs, cx, isIconName, useReducedMotion, useRegistry, useSignal, useStrings,
 } from '@ui-kit';
 import {
-  ARCADE_INITIAL, CATEGORY_ACCENT, CATEGORY_LABEL, DIFFICULTIES, MEDAL_COLOR, difficultyById, medalFor, migrateArcade,
-  plural, practicable, recordResult, upcoming, type DifficultyId, type GameRecord,
+  ARCADE_INITIAL, CATEGORY_ACCENT, DIFFICULTIES, MEDAL_COLOR, difficultyById, medalFor, migrateArcade,
+  practicable, recordResult, upcoming, type DifficultyId, type GameRecord,
 } from './logic';
 import { ResultPanel, type PracticeOutcome } from './ResultPanel';
 import { Stage } from './Stage';
+import { S } from './strings';
 import { useNarrow } from './useNarrow';
 import './arcade.css';
 
 export function ArcadeScene({ services, params }: SceneProps) {
+  const t = useStrings(S);
+  const locale = services.locale;
   const reduced = useReducedMotion();
   const installed = useRegistry(services.registries.minigames);
   const games = practicable(installed);
@@ -88,46 +91,46 @@ export function ArcadeScene({ services, params }: SceneProps) {
   };
 
   return (
-    <Screen title={<><span class="arcade-title-pre">Practice </span>Arcade</>} eyebrow="Hone every instrument" onBack={() => services.router.back()} escToBack={!playing} hud={!narrow} backdrop="exam" class="arcade-scene" contentClass="arcade-content">
+    <Screen title={<><span class="arcade-title-pre">{t.titlePre}</span>{t.title}</>} eyebrow={t.eyebrow} onBack={() => services.router.back()} escToBack={!playing} hud={!narrow} backdrop="exam" class="arcade-scene" contentClass="arcade-content">
       <section class="arcade-hero">
         <div class="arcade-hero__copy lm-enter">
-          <p class="arcade-hero__lede">No patient waiting, no clock on the wall — just you and the instruments. Practise until your hands know the way.</p>
+          <p class="arcade-hero__lede">{t.lede}</p>
           <div class="arcade-hero__stats">
-            <span><b class="lm-num">{games.length}</b> {plural(games.length, 'instrument')}</span>
-            <span><b class="lm-num">{runs}</b> {plural(runs, 'run')}</span>
-            <span><b class="lm-num">{medals}</b> {plural(medals, 'medal')}</span>
+            <span><b class="lm-num">{games.length}</b> {t.instruments(games.length)}</span>
+            <span><b class="lm-num">{runs}</b> {t.runs(runs)}</span>
+            <span><b class="lm-num">{medals}</b> {t.medals(medals)}</span>
           </div>
         </div>
         <div class="arcade-diff lm-enter" style={{ '--lm-delay': '100ms', '--d': diff.accent }}>
-          <div class="lm-eyebrow">Difficulty</div>
-          <Tabs id="arcade-diff" label="Difficulty" items={DIFFICULTIES.map((d) => ({ id: d.id, label: d.label }))} value={diff.id} onChange={setDifficulty} accent={diff.accent} block />
-          <p class="arcade-diff__blurb" key={diff.id}>{diff.blurb} <span class="lm-num">×{diff.mult}</span> points.</p>
+          <div class="lm-eyebrow">{t.difficulty}</div>
+          <Tabs id="arcade-diff" label={t.difficulty} items={DIFFICULTIES.map((d) => ({ id: d.id, label: t.diffLabel[d.id] }))} value={diff.id} onChange={setDifficulty} accent={diff.accent} block />
+          <p class="arcade-diff__blurb" key={diff.id}>{t.diffBlurb[diff.id]} <bdi class="lm-num">{t.multiplier(diff.mult)}</bdi>.</p>
         </div>
       </section>
 
       {games.length === 0 && (
         <div class="arcade-empty lm-enter">
           <span class="arcade-empty__lens" aria-hidden="true"><Icon name="target" size={40} /></span>
-          <h2>The instrument cabinet is being stocked</h2>
-          <p>No practice instruments are installed yet. Every test will appear here as soon as it is calibrated.</p>
+          <h2>{t.emptyTitle}</h2>
+          <p>{t.emptyBody}</p>
         </div>
       )}
-      <div class="arcade-grid" role="list" aria-label="Instruments">
+      <div class="arcade-grid" role="list" aria-label={t.instrumentsLabel}>
         {games.map((g, i) => (
-          <GameCard key={g.id} mg={g} record={save.games[g.id]} diffId={diff.id} index={i} reduced={reduced} onPlay={() => start(g.id)}
+          <GameCard key={g.id} locale={locale} mg={g} record={save.games[g.id]} diffId={diff.id} index={i} reduced={reduced} onPlay={() => start(g.id)}
             onHover={() => services.audio.play('hover', { volume: 0.2 })} />
         ))}
-        {pending.map((t, i) => (
-          <PendingCard key={t.id} id={t.id} clinicOnly={t.clinicOnly} index={games.length + i} reduced={reduced} />
+        {pending.map((p, i) => (
+          <PendingCard key={p.id} locale={locale} id={p.id} clinicOnly={p.clinicOnly} index={games.length + i} reduced={reduced} />
         ))}
       </div>
 
       <Modal open={!!mg} onClose={exit} size="stage" flush class="arcade-modal"
-        eyebrow={mg ? `Practice · ${diff.label}` : undefined} title={mg?.title}
+        eyebrow={mg ? t.practiceEyebrow(t.diffLevel[diff.id]) : undefined} title={mg ? miniGameText(mg, locale).title : undefined}
         icon={mg && isIconName(mg.id) ? mg.id : undefined} accent={diff.accent}>
         {mg && (
           <div class="arcade-stage">
-            <p class="arcade-stage__instructions"><Icon name="info" /> {mg.instructions}</p>
+            <p class="arcade-stage__instructions"><Icon name="info" /> {miniGameText(mg, locale).instructions}</p>
             <Stage key={`${mg.id}:${run}:${diff.id}`} services={services} mg={mg} diff={diff} run={run} reducedMotion={reduced} onDone={onDone} />
             {outcome && (
               <ResultPanel outcome={outcome} diff={diff} harder={harder}
@@ -142,42 +145,45 @@ export function ArcadeScene({ services, params }: SceneProps) {
   );
 }
 
-function GameCard(props: { mg: MiniGameModule; record?: GameRecord; diffId: DifficultyId; index: number; reduced: boolean; onPlay: () => void; onHover: () => void }) {
+function GameCard(props: { locale: Locale; mg: MiniGameModule; record?: GameRecord; diffId: DifficultyId; index: number; reduced: boolean; onPlay: () => void; onHover: () => void }) {
   const { mg, record } = props;
+  const t = useStrings(S);
+  const text = miniGameText(mg, props.locale);
   const info = TEST_CATALOG[mg.id];
+  const infoText = info ? testText(mg.id as TestId, props.locale) : null;
   const accent = info ? CATEGORY_ACCENT[info.category] : '#ffd27a';
   const medal = record ? medalFor(record.bestAccuracy) : null;
   const tierBest = record?.bestByDifficulty[props.diffId];
   return (
     <div role="listitem" class="arcade-card-wrap">
       <button type="button" class={cx('arcade-card', record && 'is-played')} style={{ '--acc': accent, '--lm-delay': `${props.reduced ? 0 : 120 + Math.min(props.index, 12) * 55}ms` }}
-        onClick={props.onPlay} onPointerEnter={props.onHover} aria-label={`Practise ${mg.title}${record ? `, best ${record.best} points${tierBest ? `, ${tierBest} at this difficulty` : ''}` : ''}`}>
+        onClick={props.onPlay} onPointerEnter={props.onHover} aria-label={t.cardAria(text.title, record?.best, tierBest)}>
         <span class="arcade-card__flare" aria-hidden="true" />
         <span class="arcade-card__lens" aria-hidden="true">
           <span class="arcade-card__ring" />
           {isIconName(mg.id) ? <Icon name={mg.id} size={34} /> : <IconOrText icon={mg.icon} size={30} />}
         </span>
         <span class="arcade-card__body">
-          {info && <span class="arcade-card__cat">{CATEGORY_LABEL[info.category]}</span>}
-          <span class="arcade-card__title">{mg.title}</span>
-          <span class="arcade-card__blurb">{info?.blurb ?? mg.instructions}</span>
-          {mg.teaches[0] && <span class="arcade-card__teach"><Icon name="book" /> {mg.teaches[0]}</span>}
+          {info && <span class="arcade-card__cat">{t.category[info.category]}</span>}
+          <span class="arcade-card__title">{text.title}</span>
+          <span class="arcade-card__blurb">{infoText?.blurb ?? text.instructions}</span>
+          {text.teaches[0] && <span class="arcade-card__teach"><Icon name="book" /> {text.teaches[0]}</span>}
         </span>
         <span class="arcade-card__foot">
           {record ? (
             <>
-              <span class="arcade-card__best"><span class="lm-eyebrow">Best</span><b class="lm-num">{record.best.toLocaleString()}</b></span>
-              <span class="arcade-card__tiers" aria-label="Best by difficulty">
+              <span class="arcade-card__best"><span class="lm-eyebrow">{t.best}</span><b class="lm-num">{record.best.toLocaleString()}</b></span>
+              <span class="arcade-card__tiers" aria-label={t.bestByDifficulty}>
                 {DIFFICULTIES.map((d) => (
                   <span key={d.id} class={cx('arcade-card__tier', record.bestByDifficulty[d.id] && 'is-done', d.id === props.diffId && 'is-current')} style={{ '--t': d.accent }}
-                    title={`${d.label}: ${record.bestByDifficulty[d.id]?.toLocaleString() ?? 'not yet played'}`} />
+                    title={t.tierTitle(t.diffLabel[d.id], record.bestByDifficulty[d.id]?.toLocaleString())} />
                 ))}
               </span>
-              <span class="arcade-card__plays lm-num">{record.plays} run{record.plays === 1 ? '' : 's'}</span>
-              {medal && <span class={cx('arcade-card__medal', `is-${medal}`)} style={{ '--m': MEDAL_COLOR[medal] }} title={`${medal} medal`}><Icon name="star" /></span>}
+              <span class="arcade-card__plays lm-num">{t.plays(record.plays)}</span>
+              {medal && <span class={cx('arcade-card__medal', `is-${medal}`)} style={{ '--m': MEDAL_COLOR[medal] }} title={t.medalWord(t.medal[medal])}><Icon name="star" /></span>}
             </>
           ) : (
-            <span class="arcade-card__new">Not yet attempted</span>
+            <span class="arcade-card__new">{t.notYet}</span>
           )}
           <span class="arcade-card__play"><Icon name="play" /></span>
         </span>
@@ -187,23 +193,25 @@ function GameCard(props: { mg: MiniGameModule; record?: GameRecord; diffId: Diff
 }
 
 /** A catalogue test whose practice instrument is not installed (yet): an engraved, dimmed placeholder. */
-function PendingCard(props: { id: TestId; clinicOnly: boolean; index: number; reduced: boolean }) {
+function PendingCard(props: { locale: Locale; id: TestId; clinicOnly: boolean; index: number; reduced: boolean }) {
+  const t = useStrings(S);
   const info = TEST_CATALOG[props.id];
+  const infoText = testText(props.id, props.locale);
   const accent = CATEGORY_ACCENT[info.category];
   return (
-    <div role="listitem" class="arcade-card-wrap" aria-label={`${info.name}: ${props.clinicOnly ? 'available in clinic only' : 'being calibrated'}`}>
+    <div role="listitem" class="arcade-card-wrap" aria-label={t.pendingAria(infoText.name, props.clinicOnly)}>
       <div class="arcade-card arcade-card--pending" style={{ '--acc': accent, '--lm-delay': `${props.reduced ? 0 : 160 + Math.min(props.index, 16) * 40}ms` }} aria-hidden="true">
         <span class="arcade-card__lens">
           <span class="arcade-card__ring" />
           {isIconName(props.id) ? <Icon name={props.id} size={30} /> : <Icon name="lock" size={26} />}
         </span>
         <span class="arcade-card__body">
-          <span class="arcade-card__cat">{CATEGORY_LABEL[info.category]}</span>
-          <span class="arcade-card__title">{info.name}</span>
-          <span class="arcade-card__blurb">{info.blurb}</span>
+          <span class="arcade-card__cat">{t.category[info.category]}</span>
+          <span class="arcade-card__title">{infoText.name}</span>
+          <span class="arcade-card__blurb">{infoText.blurb}</span>
         </span>
         <span class="arcade-card__foot">
-          <span class="arcade-card__soon"><Icon name="lock" /> {props.clinicOnly ? 'In clinic only' : 'Being calibrated'}</span>
+          <span class="arcade-card__soon"><Icon name="lock" /> {props.clinicOnly ? t.clinicOnly : t.calibrating}</span>
         </span>
       </div>
     </div>

@@ -92,11 +92,11 @@
 .cf-pearl__tag--seen { color: var(--lm-normal); background: rgba(94, 234, 212, 0.08); }
 .cf-pearl__tag--discover { color: #7dd3fc; background: rgba(56, 189, 248, 0.08); }
 .cf-pearl__text {
-  margin: 0; position: relative; padding-left: 18px; font-family: var(--lm-font-display); font-size: var(--lm-fs-lg);
+  margin: 0; position: relative; padding-inline-start: 18px; font-family: var(--lm-font-display); font-size: var(--lm-fs-lg);
   line-height: 1.45; color: var(--lm-ivory); font-style: italic;
 }
 .cf-pearl__text::before {
-  content: '“'; position: absolute; left: -4px; top: -14px; font-size: 48px; color: var(--lm-career); opacity: 0.55; font-style: normal;
+  content: '“'; position: absolute; inset-inline-start: -4px; top: -14px; font-size: 48px; color: var(--lm-career); opacity: 0.55; font-style: normal;
 }
 
 @media (max-width: 1020px) {
@@ -191,3 +191,5 @@ html.reduced-motion .cf-art__zzz, .cf-art.is-reduced .cf-art__zzz { opacity: 0.6
   .cf-art__curtain, .cf-art__hush { transition: none; }
 }
 html.reduced-motion .cf-art__curtain, .cf-art.is-reduced .cf-art__curtain { transition: none; }
+
+:lang(he) .cf-pearl__text { font-style: normal; }

@@ -1,0 +1,312 @@
+/**
+ * Streaks copy, English (source of truth) and Hebrew (written natively, not translated).
+ * Warm, never guilt-tripping. Hebrew calls a combo "קומבו" (what Israeli players say) and
+ * "in a row" simply "ברצף".
+ */
+import { defineStrings, pickStrings, type Locale } from '@core';
+
+const heDays = (n: number) => (n === 1 ? 'יום אחד' : n === 2 ? 'יומיים' : `${n} ימים`);
+const enDays = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
+const heDiag = (n: number) => (n === 1 ? 'אבחנה נכונה אחת' : `${n} אבחנות נכונות`);
+const heCases = (n: number) => (n === 1 ? 'מקרה טוב אחד' : `${n} מקרים טובים`);
+
+export const S = defineStrings({
+  en: {
+    systemName: 'Streaks',
+    days: enDays,
+    unitDay: (n: number) => (n === 1 ? 'day' : 'days'),
+    // status line
+    statusNew: 'See one patient to light your first flame.',
+    statusLit: 'Lit for today.',
+    statusWaiting: 'One patient today keeps it glowing.',
+    statusProtectedOne: 'A freeze is keeping it warm.',
+    statusProtectedMany: 'Freezes are keeping it warm.',
+    statusResting: (best: number) => `Resting. Your best is ${best} ${best === 1 ? 'day' : 'days'} — one patient lights a new flame.`,
+    // flame chip
+    chipHint: (streak: number, status: string, freezes: number) =>
+      `Daily streak: ${enDays(streak)}. ${status}${freezes ? ` ${freezes} freeze${freezes > 1 ? 's' : ''} banked.` : ''}`,
+    // card
+    eyebrow: 'Streaks',
+    cardTitle: 'Clinic flame',
+    details: 'Details',
+    openDetails: 'Open streak details',
+    milestoneTitle: (days: number, coins: number) => `Next milestone: ${days} days (+${coins} lumens)`,
+    toGoPre: '',
+    toGoPost: (days: number) => ` to ${days}-day`,
+    freezeFull: 'Freeze bank full',
+    freezeNeed: (n: number) => `${n} more solid cases bank a freeze`,
+    freezesSr: (have: number, max: number) => `${have} of ${max} freezes`,
+    longest: 'Longest streak',
+    // modal
+    modalTitle: 'Streaks',
+    modalEyebrow: 'Your clinic flame',
+    // details
+    dayStreak: 'day streak',
+    heroNext: (toGo: number, milestone: number, coins: number) => `${enDays(toGo)} to the ${milestone}-day milestone · +${coins} lumens`,
+    statBestStreak: 'Best streak',
+    statDaysPractised: 'Days practised',
+    statBestCombo: 'Best combo',
+    statInARow: (n: number) => `${n} in a row`,
+    statFreezes: 'Freezes',
+    freezesBanked: (have: number, max: number) => `${have} of ${max} freezes banked`,
+    mendLead: (n: number, many: boolean) => `${n} more correct diagnos${many ? 'es' : 'is'}`,
+    mendRest: (lost: number) => ` by tomorrow rekindles your ${lost}-day streak. A Second Opinion review counts double.`,
+    lastWeeks: 'Last five weeks',
+    bests: 'Personal bests',
+    colMode: 'Mode',
+    colBestRun: 'Best run',
+    colBestPatient: 'Best patient',
+    colCombo: 'Combo',
+    firstBest: 'Finish a run to set your first personal best.',
+    howItWorks: 'How it works',
+    rule1: 'One finished patient a day keeps the flame lit.',
+    rule2: (every: number, max: number) =>
+      `Every ${every} solid cases (grade B or better) bank a freeze, up to ${max}. A freeze is used automatically on a day you rest.`,
+    rule3: (need: number) => `If the flame rests, ${need} correct diagnoses by the next day rekindle it.`,
+    rule4Pre: 'Consecutive correct diagnoses build a combo: ',
+    rule4At: (min: number) => ` at ${min}`,
+    rule4Post: '. The bonus grows with the quality of your work-up — never with time spent.',
+    rule5: 'Once per run, a miss after a complete essential work-up and correct triage keeps your combo.',
+    // calendar
+    calPlayed: 'patient seen',
+    calFrozen: 'covered by a freeze',
+    calPending: 'a freeze will cover this day',
+    calToday: 'today',
+    calEmpty: 'no patients',
+    calAria: 'Streak calendar, last five weeks',
+    trackAria: (streak: number, marks: string) => `Streak ${streak} days. Milestones at ${marks} days.`,
+    // combo meter
+    comboAria: (mult: string, count: number, needMore: number | null, nextMult: string, net: boolean) =>
+      `Combo ${mult}: ${count} correct in a row.${needMore ? ` ${needMore} more for ${nextMult}.` : ''}${net ? ' Safety net ready.' : ''}`,
+    // momentum
+    nextPatient: 'Next patient',
+    momentum: 'Momentum',
+    runMomentum: 'Run momentum',
+    comboWord: 'combo',
+    tierCombo: (name: string) => `${name} combo`,
+    peakCombo: 'peak combo',
+    peakComboN: (n: number) => `peak combo · ${n} in a row`,
+    runNewBestOver: (title: string, diff: number) => `New personal best in ${title} — ${diff} points past your old mark.`,
+    runFirst: (title: string, total: number) => `Your first ${title} on the books: ${total} points.`,
+    runBestStands: (title: string, best: number) => `Your best ${title} stands at ${best}.`,
+    runPoints: (total: number) => `${total} points this run.`,
+    outClimbed: (mult: string, n: number) => `Climbed to ${mult} — ${n} correct diagnoses in a row.`,
+    outFirst: 'First correct call — one more lights the combo.',
+    outBuilt: (n: number) => `${n} correct diagnoses in a row.`,
+    outSaved: 'Combo saved: your essential work-up was complete and triage was right. The safety net is spent for this run.',
+    outBanked: (n: number) => `Combo banked at ${n} in a row — every correct call relights it.`,
+    outFresh: 'A fresh start — the next correct call builds your combo.',
+    ladderAria: 'Combo tiers',
+    ladderStart: 'start',
+    ladderNeed: (n: number) => `${n} in a row`,
+    dayChipTitle: (days: number) => `Daily streak: ${enDays(days)}`,
+    dayChip: (n: number) => `Day ${n}`,
+    // controller: toasts, rewards, bus text
+    toastBest: (title: string, total: number) => `New personal best in ${title}: ${total} points`,
+    xpReason: (mult: string) => `Combo ${mult}`,
+    rewardCombo: (mult: string, n: number) => `Combo ${mult} · ${n} in a row`,
+    rewardSaved: 'Combo saved · thorough work-up, safe triage',
+    rewardBest: (title: string) => `Personal best · ${title} patient`,
+    rewardFreeze: 'Streak freeze banked',
+    rewardRekindled: 'Flame rekindled',
+    rewardDays: (n: number) => `${n} days`,
+    rewardMilestone: (days: number, title: string) => `${days}-day streak · ${title}`,
+    milestoneReason: (days: number) => `Streak milestone · ${days} days`,
+    floatCombo: (mult: string) => `${mult} combo`,
+    toastFirstFlame: 'Your clinic flame is lit — see a patient tomorrow to keep it glowing.',
+    toastFreshFlame: 'A fresh flame is lit — day 1.',
+    toastDayLit: (n: number) => `Day ${n} — flame lit for today.`,
+    toastFrozen: (freezes: number, n: number) => `A streak freeze covered the quiet ${freezes === 1 ? 'day' : 'days'} — day ${n}.`,
+    toastBrokenMend: (need: number, lost: number) => `A fresh flame — day 1. ${need} correct diagnoses by tomorrow rekindle your ${lost}-day streak.`,
+    toastRekindled: (n: number) => `Flame rekindled — ${n} days and counting.`,
+    modeSingle: 'single patient',
+    modeFallback: 'clinic',
+    // nudges
+    nPauseLead: (n: number) => `${n} patients today.`,
+    nPauseText: 'Spacing beats cramming — your flame is lit, and tomorrow’s session will stick better.',
+    nNextLead: (need: number) => (need === 1 ? 'One more' : `${need} more`),
+    nNextText: (need: number, mult: string) => `correct ${need === 1 ? 'diagnosis' : 'diagnoses'} for a ${mult} combo`,
+    nBankedLead: (n: number) => `${n} in a row`,
+    nBankedActive: 'banked. The next correct call lights a fresh combo.',
+    nBankedDone: 'was this run’s best stretch.',
+    nPastLead: (n: number) => `${n} points`,
+    nPastText: (title: string) => `past your best ${title}`,
+    nFromText: (title: string) => `from your best ${title}`,
+    nCaseNewLead: 'New best patient',
+    nCaseNewText: (title: string, score: number) => `in ${title} — ${score} points`,
+    nCaseShyText: (title: string) => `shy of your best ${title} patient`,
+    nMendLead: (n: number) => `${n} more correct ${n === 1 ? 'diagnosis' : 'diagnoses'}`,
+    nMendText: (lost: number) => `rekindles your ${lost}-day streak (a Second Opinion review counts double)`,
+    nFreezeLead: (n: number) => `${n} more solid ${n === 1 ? 'case' : 'cases'}`,
+    nFreezeText: '(grade B or better) bank a streak freeze',
+    nMilestoneLead: 'Tomorrow',
+    nMilestoneText: (n: number) => `your flame reaches the ${n}-day milestone`,
+    nDoneLead: 'A fine place to pause.',
+    nDoneLit: 'Your flame is lit for today.',
+    nDoneSpaced: 'Spaced sessions stick better than long ones.',
+  },
+  he: {
+    systemName: 'רצפים',
+    days: heDays,
+    unitDay: (n: number) => (n === 1 ? 'יום' : 'ימים'),
+    statusNew: 'מטופל אחד, והלהבה הראשונה שלכם נדלקת.',
+    statusLit: 'הלהבה דולקת להיום.',
+    statusWaiting: 'מטופל אחד היום, והיא ממשיכה לבעור.',
+    statusProtectedOne: 'הקפאה אחת שומרת עליה חמימה.',
+    statusProtectedMany: 'ההקפאות שומרות עליה חמימה.',
+    statusResting: (best: number) =>
+      `הלהבה נחה קצת. השיא שלכם: ${heDays(best)}. מטופל אחד ומדליקים אותה מחדש.`,
+    chipHint: (streak: number, status: string, freezes: number) =>
+      `רצף יומי: ${heDays(streak)}. ${status}${freezes ? ` ${freezes === 1 ? 'הקפאה אחת במאגר' : `${freezes} הקפאות במאגר`}.` : ''}`,
+    eyebrow: 'רצפים',
+    cardTitle: 'להבת המרפאה',
+    details: 'פרטים',
+    openDetails: 'פתחו את פרטי הרצף',
+    milestoneTitle: (days: number, coins: number) => `אבן הדרך הבאה: ${days} ימים (בונוס: ${coins} ניצוצות)`,
+    toGoPre: 'עוד ',
+    toGoPost: (days: number) => ` ל-${days} ימים`,
+    freezeFull: 'מאגר ההקפאות מלא',
+    freezeNeed: (n: number) => `עוד ${heCases(n)} (ציון B ומעלה) והקפאה נכנסת למאגר`,
+    freezesSr: (have: number, max: number) => `${have} מתוך ${max} הקפאות`,
+    longest: 'הרצף הארוך ביותר',
+    modalTitle: 'רצפים',
+    modalEyebrow: 'להבת המרפאה שלכם',
+    dayStreak: 'ימים ברצף',
+    heroNext: (toGo: number, milestone: number, coins: number) => `עוד ${heDays(toGo)} לאבן הדרך של ${milestone} ימים · בונוס: ${coins} ניצוצות`,
+    statBestStreak: 'הרצף הכי ארוך',
+    statDaysPractised: 'ימי תרגול',
+    statBestCombo: 'קומבו שיא',
+    statInARow: (n: number) => `${n} ברצף`,
+    statFreezes: 'הקפאות',
+    freezesBanked: (have: number, max: number) => `${have} מתוך ${max} הקפאות במאגר`,
+    mendLead: (n: number, _many: boolean) => `עוד ${heDiag(n)}`,
+    mendRest: (lost: number) => ` עד מחר, ומדליקים מחדש את הרצף בן ${lost} הימים. ביקורת ״חוות דעת שנייה״ נחשבת כפול.`,
+    lastWeeks: 'חמשת השבועות האחרונים',
+    bests: 'שיאים אישיים',
+    colMode: 'מצב',
+    colBestRun: 'הסבב הכי טוב',
+    colBestPatient: 'המטופל הכי טוב',
+    colCombo: 'קומבו',
+    firstBest: 'סיימו סבב אחד ותקבעו את השיא האישי הראשון.',
+    howItWorks: 'איך זה עובד',
+    rule1: 'מטופל אחד שסיימתם ביום, והלהבה ממשיכה לבעור.',
+    rule2: (every: number, max: number) =>
+      `כל ${every} מקרים טובים (ציון B ומעלה) מכניסים הקפאה למאגר, עד ${max}. ביום שלא התאמנתם ההקפאה נצרכת מעצמה.`,
+    rule3: (need: number) => `הלהבה דעכה? ${need} אבחנות נכונות עד מחר מדליקות אותה מחדש.`,
+    rule4Pre: 'אבחנות נכונות ברצף בונות קומבו: ',
+    rule4At: (min: number) => ` מ-${min} ברצף`,
+    rule4Post: '. הבונוס תלוי באיכות הבירור שעשיתם, לא בזמן שהשקעתם.',
+    rule5: 'פעם אחת בכל סבב, החמצה אחרי בירור חיוני מלא ומיון נכון לא שוברת את הקומבו.',
+    calPlayed: 'ראיתם מטופל',
+    calFrozen: 'מכוסה בהקפאה',
+    calPending: 'הקפאה תכסה את היום הזה',
+    calToday: 'היום',
+    calEmpty: 'בלי מטופלים',
+    calAria: 'לוח הרצף: חמשת השבועות האחרונים',
+    trackAria: (streak: number, marks: string) => `רצף של ${streak} ימים. אבני דרך: ${marks}.`,
+    comboAria: (mult: string, count: number, needMore: number | null, nextMult: string, net: boolean) =>
+      `קומבו \u2066${mult}\u2069: ${heDiag(count)} ברצף.${needMore ? ` עוד ${needMore} ל-\u2066${nextMult}\u2069.` : ''}${net ? ' רשת הביטחון מוכנה.' : ''}`,
+    nextPatient: 'המטופל הבא',
+    momentum: 'מומנטום',
+    runMomentum: 'המומנטום בסבב',
+    comboWord: 'קומבו',
+    tierCombo: (name: string) => `קומבו ${name}`,
+    peakCombo: 'שיא הקומבו',
+    peakComboN: (n: number) => `שיא הקומבו · ${n} ברצף`,
+    runNewBestOver: (title: string, diff: number) => `שיא אישי חדש במצב ${title}: ${diff} נקודות מעל הסימן הקודם.`,
+    runFirst: (title: string, total: number) => `הסבב הראשון שלכם במצב ${title} נרשם: ${total} נקודות.`,
+    runBestStands: (title: string, best: number) => `השיא שלכם במצב ${title} עומד על ${best}.`,
+    runPoints: (total: number) => `${total} נקודות בסבב הזה.`,
+    outClimbed: (mult: string, n: number) => `עליתם לקומבו \u2066${mult}\u2069: ${heDiag(n)} ברצף.`,
+    outFirst: 'אבחנה נכונה ראשונה. עוד אחת, והקומבו נדלק.',
+    outBuilt: (n: number) => `${heDiag(n)} ברצף.`,
+    outSaved: 'הקומבו ניצל: הבירור החיוני היה מלא והמיון נכון. רשת הביטחון נוצלה בסבב הזה.',
+    outBanked: (n: number) => `הקומבו נשמר על ${n} ברצף. כל אבחנה נכונה תדליק אותו מחדש.`,
+    outFresh: 'התחלה חדשה: האבחנה הנכונה הבאה בונה קומבו.',
+    ladderAria: 'דרגות הקומבו',
+    ladderStart: 'התחלה',
+    ladderNeed: (n: number) => `${n} ברצף`,
+    dayChipTitle: (days: number) => `רצף יומי: ${heDays(days)}`,
+    dayChip: (n: number) => `יום ${n}`,
+    toastBest: (title: string, total: number) => `שיא אישי חדש במצב ${title}: ${total} נקודות`,
+    xpReason: (mult: string) => `קומבו \u2066${mult}\u2069`,
+    rewardCombo: (mult: string, n: number) => `קומבו \u2066${mult}\u2069 · ${n} ברצף`,
+    rewardSaved: 'הקומבו ניצל · בירור יסודי, מיון בטוח',
+    rewardBest: (title: string) => `שיא אישי · מטופל במצב ${title}`,
+    rewardFreeze: 'הקפאה נוספה למאגר',
+    rewardRekindled: 'הלהבה נדלקה מחדש',
+    rewardDays: (n: number) => `${n} ימים`,
+    rewardMilestone: (days: number, title: string) => `רצף של ${days} ימים · ${title}`,
+    milestoneReason: (days: number) => `אבן דרך ברצף · ${days} ימים`,
+    floatCombo: (mult: string) => `קומבו \u2066${mult}\u2069`,
+    toastFirstFlame: 'להבת המרפאה נדלקה! מטופל אחד גם מחר, והיא ממשיכה לבעור.',
+    toastFreshFlame: 'להבה חדשה נדלקה: יום 1.',
+    toastDayLit: (n: number) => `יום ${n}: הלהבה דולקת להיום.`,
+    toastFrozen: (freezes: number, n: number) => `הקפאה כיסתה את ${freezes === 1 ? 'היום השקט' : 'הימים השקטים'}: יום ${n}.`,
+    toastBrokenMend: (need: number, lost: number) => `להבה חדשה: יום 1. ${need} אבחנות נכונות עד מחר, ומדליקים מחדש את הרצף בן ${lost} הימים.`,
+    toastRekindled: (n: number) => `הלהבה נדלקה מחדש: כבר ${n} ימים, וממשיכים.`,
+    modeSingle: 'מטופל בודד',
+    modeFallback: 'מרפאה',
+    nPauseLead: (n: number) => `${n} מטופלים היום.`,
+    nPauseText: 'תרגול מפוזר מנצח לימוד מרוכז: הלהבה דולקת, והמפגש של מחר יישאר בראש יותר.',
+    nNextLead: (need: number) => (need === 1 ? 'עוד אבחנה נכונה אחת' : `עוד ${need} אבחנות נכונות`),
+    nNextText: (_need: number, mult: string) => `לקומבו \u2066${mult}\u2069`,
+    nBankedLead: (n: number) => `${n} ברצף`,
+    nBankedActive: 'נשמרו. האבחנה הנכונה הבאה מדליקה קומבו חדש.',
+    nBankedDone: 'היו הרצף הטוב ביותר בסבב הזה.',
+    nPastLead: (n: number) => `${n} נקודות`,
+    nPastText: (title: string) => `מעל השיא שלכם במצב ${title}`,
+    nFromText: (title: string) => `מהשיא שלכם במצב ${title}`,
+    nCaseNewLead: 'שיא חדש למטופל',
+    nCaseNewText: (title: string, score: number) => `במצב ${title}: ${score} נקודות`,
+    nCaseShyText: (title: string) => `מתחת לשיא המטופל שלכם במצב ${title}`,
+    nMendLead: (n: number) => `עוד ${heDiag(n)}`,
+    nMendText: (lost: number) => `ומדליקים מחדש את הרצף בן ${lost} הימים (ביקורת ״חוות דעת שנייה״ נחשבת כפול)`,
+    nFreezeLead: (n: number) => `עוד ${heCases(n)}`,
+    nFreezeText: '(ציון B ומעלה) ונכנסת הקפאה למאגר',
+    nMilestoneLead: 'מחר',
+    nMilestoneText: (n: number) => `הלהבה שלכם מגיעה לאבן הדרך של ${n} ימים`,
+    nDoneLead: 'מקום טוב לעצור.',
+    nDoneLit: 'הלהבה דולקת להיום.',
+    nDoneSpaced: 'מפגשים מפוזרים נשארים בראש יותר ממפגשים ארוכים.',
+  },
+});
+
+export const text = (locale: Locale) => pickStrings(S, locale);
+
+/** Keep a Latin/number run ("+77 XP", "×2") reading left-to-right inside Hebrew text. */
+export const iso = (s: string, locale: Locale): string => (locale === 'he' ? `\u2066${s}\u2069` : s);
+
+// ── Data-table text keyed by id (tiers, milestones), kept out of the pure data modules ──
+const TIER_NAME_HE: Record<string, string> = {
+  steady: 'יציב',
+  kindled: 'מתלקח',
+  blazing: 'בוער',
+  'white-hot': 'לבן-לוהט',
+};
+export function tierName(key: string, en: string, locale: Locale): string {
+  return locale === 'he' ? TIER_NAME_HE[key] ?? en : en;
+}
+
+const MILESTONE_HE: Record<number, string> = {
+  3: 'שלושה ערבים ברצף',
+  7: 'שבוע לאור המנורה',
+  14: 'שבועיים של תרגול',
+  30: 'ירח מלא במרפאה',
+};
+export function milestoneTitle(days: number, en: string, locale: Locale): string {
+  if (locale !== 'he') return en;
+  return MILESTONE_HE[days] ?? `${days} ימי תרגול`;
+}
+
+const ACH_HE: Record<string, { title: string; description: string }> = {
+  'streaks-week': { title: 'שבוע לאור המנורה', description: 'ראיתם לפחות מטופל אחד בשבעה ימים רצופים.' },
+  'streaks-fortnight': { title: 'להבה של שבועיים', description: 'שמרתם על מנורת המרפאה דולקת ארבעה עשר יום.' },
+  'streaks-moon': { title: 'ירח התרגול', description: 'שלושים יום של תרגול קבוע ומפוזר.' },
+};
+export function achievementText<A extends { id: string; title: string; description: string }>(a: A, locale: Locale): A {
+  return locale === 'he' && ACH_HE[a.id] ? { ...a, ...ACH_HE[a.id] } : a;
+}
+
+export const WEEKDAYS_HE_SUN = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'] as const;
+export const MONTHS_HE = ['ינו׳', 'פבר׳', 'מרץ', 'אפר׳', 'מאי', 'יוני', 'יולי', 'אוג׳', 'ספט׳', 'אוק׳', 'נוב׳', 'דצמ׳'] as const;

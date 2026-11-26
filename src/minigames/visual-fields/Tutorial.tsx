@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Button, Icon, type IconName } from '@ui-kit';
+import { useVf } from './useVf';
 
 const KEY = 'lumen:visual-fields:tutorial-seen';
 
@@ -19,25 +20,9 @@ function markSeen() {
   }
 }
 
-const STEPS: { icon: IconName; title: string; body: string }[] = [
-  {
-    icon: 'visual-fields',
-    title: 'Eye on the amber light',
-    body: 'One eye patched, chin on the rest, gaze locked on the fixation light. Every point you choose flashes a tiny white stimulus; the patient presses the buzzer when they see it.',
-  },
-  {
-    icon: 'target',
-    title: 'Probe like a perimetrist',
-    body: 'Threshold runs a 4-2 dB staircase for a true sensitivity; Screen is one quick flash brighter than normal. Spread your probes across all four quadrants and chase the edges. Every eye has a blind spot 15° temporally.',
-  },
-  {
-    icon: 'eye',
-    title: 'Read the printout',
-    body: 'Dark squares are lost sensitivity. Name each eye’s pattern, then combine both eyes: which meridian does it respect, and where along the pathway is the lesion?',
-  },
-];
-
 export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; reducedMotion: boolean }) {
+  const t = useVf();
+  const STEPS = t.tutSteps;
   const [i, setI] = useState(0);
   const btn = useRef<HTMLDivElement>(null);
   const close = () => {
@@ -54,7 +39,7 @@ export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; redu
       class={`vf-tutorial${reducedMotion ? ' is-reduced' : ''}`}
       role="dialog"
       aria-modal="true"
-      aria-label="How the visual field test works"
+      aria-label={t.tutAria}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.stopPropagation();
@@ -63,8 +48,8 @@ export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; redu
       }}
     >
       <div class="vf-tutorial__card" key={i}>
-        <div class="vf-tutorial__icon"><Icon name={step.icon} size={26} /></div>
-        <p class="vf-tutorial__step">Step {i + 1} of {STEPS.length}</p>
+        <div class="vf-tutorial__icon"><Icon name={step.icon as IconName} size={26} /></div>
+        <p class="vf-tutorial__step">{t.tutStep(i + 1, STEPS.length)}</p>
         <h3>{step.title}</h3>
         <p class="vf-tutorial__body">{step.body}</p>
         <div class="vf-tutorial__dots" aria-hidden="true">
@@ -72,9 +57,9 @@ export function Tutorial({ onClose, reducedMotion }: { onClose: () => void; redu
         </div>
         <div class="vf-tutorial__actions" ref={btn}>
           <Button variant="primary" sfx={false} onClick={() => (last ? close() : setI(i + 1))} data-testid="vf-tutorial-next">
-            {last ? 'Begin' : 'Next'}
+            {last ? t.begin : t.next}
           </Button>
-          {!last && <Button variant="ghost" sfx={false} onClick={close} data-testid="vf-tutorial-skip">Skip</Button>}
+          {!last && <Button variant="ghost" sfx={false} onClick={close} data-testid="vf-tutorial-skip">{t.skip}</Button>}
         </div>
       </div>
     </div>

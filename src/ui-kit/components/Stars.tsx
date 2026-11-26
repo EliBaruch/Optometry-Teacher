@@ -3,6 +3,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useSfx } from '../hooks/useSfx';
 import { cx } from '../lib/cx';
 import './Stars.css';
+import { useUiStrings } from '../strings';
 
 export interface StarsProps {
   /** 0..max (integers) */
@@ -23,6 +24,7 @@ const STAR = 'M12 2.6l2.78 6.02 6.6.74-4.92 4.47 1.37 6.5L12 17.04l-5.83 3.29 1.
 
 /** Mastery stars (0–3). Earned stars pop in one by one with a glint. */
 export function Stars({ value, max = 3, size = 28, animate = true, delay = 150, stagger = 260, sfx = true, class: klass }: StarsProps) {
+  const ui = useUiStrings();
   const reduced = useReducedMotion();
   const play = useSfx();
   const anim = animate && !reduced;
@@ -38,7 +40,7 @@ export function Stars({ value, max = 3, size = 28, animate = true, delay = 150, 
   }, [filled, anim]);
 
   return (
-    <span class={cx('lm-stars', anim && 'is-anim', klass)} role="img" aria-label={`${filled} of ${max} stars`}>
+    <span class={cx('lm-stars', anim && 'is-anim', klass)} role="img" aria-label={ui.stars(filled, max)}>
       {Array.from({ length: max }, (_, i) => {
         const on = i < filled;
         return (

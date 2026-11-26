@@ -5,12 +5,25 @@
  */
 import {
   buildFindings, type AmslerFinding, type ColorVision, type CorneaSign, type DeepPartial, type Eye, type FieldDefect, type Keratometry,
-  type LensSign, type PatientFindings, type PatientProfile, type PracticeScenario, type RedReflex, type RetinalLesion, type RetinoscopyReflex, type Rng,
+  type LensSign, type Locale, type PatientFindings, type PatientProfile, type PracticeScenario, type RedReflex, type RetinalLesion, type RetinoscopyReflex, type Rng,
+  pickStrings,
 } from '@core';
 import { generateAvatar } from '@render';
 import { formatFeet, formatMetric } from './notation';
 import { pinholeLogmar } from './optics';
 import { pinholeVerdict } from './report';
+import { S, STORIES } from './strings';
+
+/** Practice scenarios are generated before mount, so they read the edition from the document. */
+export function docLocale(): Locale {
+  try {
+    return document.documentElement.lang === 'he' ? 'he' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+type StoryTable = (typeof STORIES)['en'];
 
 /** Uncorrected blur (dioptric blur strength) → logMAR, from clinical defocus tables. */
 const DEFOCUS_TABLE: [number, number][] = [
@@ -51,11 +64,36 @@ const LAST = ['Okafor', 'Lindqvist', 'Haddad', 'Moreau', 'Tanaka', 'Silva', 'Nov
 const JOBS_ADULT = ['Night-bus driver', 'Pastry chef', 'Court stenographer', 'Lighthouse keeper', 'Data analyst', 'Violin restorer', 'Forklift operator', 'Archivist', 'Nurse', 'Tattoo artist', 'Air-traffic assistant', 'Beekeeper'];
 const JOBS_OLD = ['Retired watchmaker', 'Retired teacher', 'Allotment champion', 'Crossword setter', 'Retired sea captain', 'Choir librarian'];
 
-function makePatient(rng: Rng, age: number): PatientProfile {
+// Hebrew edition: same list lengths so the seeded draws stay aligned. Jobs are [masculine, feminine].
+const FIRST_HE = {
+  F: ['נועה', 'תמר', 'סאמיה', 'אלנה', 'יעל', 'רוני', 'לילא', 'מיכל', 'נור', 'שירה', 'רבקה', 'דנה'],
+  M: ['איתי', 'עומר', 'תאמר', 'אורן', 'רפאל', 'יוסי', 'אריאל', 'אליאס', 'דמיטרי', 'מוחמד', 'תום', 'גיא'],
+};
+const LAST_HE = ['כהן', 'לוי', 'חדאד', 'מזרחי', 'אברהם', 'פרידמן', 'נוביק', 'אזולאי', 'שפירא', 'קוזלוב', 'בן־דוד', 'עאמר', 'ביטון', 'גולן'];
+const JOBS_ADULT_HE: [string, string][] = [
+  ['נהג אוטובוס לילה', 'נהגת אוטובוס לילה'], ['קונדיטור', 'קונדיטורית'], ['סטנוגרף בבית משפט', 'סטנוגרפית בבית משפט'],
+  ['שומר מגדלור', 'שומרת מגדלור'], ['אנליסט נתונים', 'אנליסטית נתונים'], ['מתקן כינורות', 'מתקנת כינורות'],
+  ['מפעיל מלגזה', 'מפעילת מלגזה'], ['ארכיונאי', 'ארכיונאית'], ['אח', 'אחות'], ['קעקען', 'קעקענית'],
+  ['עוזר בקרת טיסה', 'עוזרת בקרת טיסה'], ['כוורן', 'כוורנית'],
+];
+const JOBS_OLD_HE: [string, string][] = [
+  ['שען בגמלאות', 'שענית בגמלאות'], ['מורה בגמלאות', 'מורה בגמלאות'], ['אלוף גינות הקהילה', 'אלופת גינות הקהילה'],
+  ['פותר תשבצים', 'פותרת תשבצים'], ['רב־חובל בגמלאות', 'רב־חובלת בגמלאות'], ['ספרן המקהלה', 'ספרנית המקהלה'],
+];
+
+function makePatient(rng: Rng, age: number, locale: Locale = 'en'): PatientProfile {
+  const he = locale === 'he';
   const sex = rng.chance(0.5) ? 'F' : 'M';
-  const occupation = age < 5 ? 'Pre-schooler, crayon expert' : age < 18 ? `Year ${Math.max(1, age - 4)} student` : age >= 66 ? rng.pick(JOBS_OLD) : rng.pick(JOBS_ADULT);
+  const g = sex === 'F' ? 1 : 0;
+  const occupation = age < 5
+    ? (he ? (g ? 'ילדת גן, מומחית לצבעי עיפרון' : 'ילד גן, מומחה לצבעי עיפרון') : 'Pre-schooler, crayon expert')
+    : age < 18
+      ? (he ? `${g ? 'תלמידה' : 'תלמיד'} בכיתה ${['', 'א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ז׳', 'ח׳', 'ט׳', 'י׳', 'י״א', 'י״ב'][Math.min(12, Math.max(1, age - 5))]}` : `Year ${Math.max(1, age - 4)} student`)
+      : age >= 66
+        ? (he ? rng.pick(JOBS_OLD_HE)[g]! : rng.pick(JOBS_OLD))
+        : (he ? rng.pick(JOBS_ADULT_HE)[g]! : rng.pick(JOBS_ADULT));
   return {
-    name: `${rng.pick(FIRST[sex])} ${rng.pick(LAST)}`,
+    name: he ? `${rng.pick(FIRST_HE[sex])} ${rng.pick(LAST_HE)}` : `${rng.pick(FIRST[sex])} ${rng.pick(LAST)}`,
     age, sex, occupation,
     avatar: generateAvatar(rng, { age, sex }),
   };
@@ -68,7 +106,7 @@ export type Archetype =
 interface Built {
   age: number;
   patch: DeepPartial<PatientFindings>;
-  story: string;
+  story: (t: StoryTable) => string;
 }
 
 type Va = { uncorrected: number; bestCorrected: number; pinhole?: number };
@@ -96,7 +134,7 @@ function build(rng: Rng, kind: Archetype): Built {
     case 'normal': {
       const age = rng.int(18, 58);
       const v = rng.pick([-0.1, 0, 0]);
-      return { age, patch: { va: { OD: { uncorrected: v, bestCorrected: -0.1 }, OS: { uncorrected: rng.pick([v, 0]), bestCorrected: -0.1 } } }, story: 'healthy eyes — no refractive blur' };
+      return { age, patch: { va: { OD: { uncorrected: v, bestCorrected: -0.1 }, OS: { uncorrected: rng.pick([v, 0]), bestCorrected: -0.1 } } }, story: (t) => t.normal };
     }
     case 'myopia': {
       const age = rng.int(10, 38);
@@ -104,7 +142,7 @@ function build(rng: Rng, kind: Archetype): Built {
       const s = q(-rng.float(0.75, 4.5));
       const od = refractiveEye(rng, s, q(-rng.float(0, 0.75)), rng.pick([180, 175, 5, 90]), amp);
       const os = refractiveEye(rng, q(s + rng.float(-0.75, 0.75)), q(-rng.float(0, 0.75)), rng.pick([180, 170, 10]), amp);
-      return { age, patch: { refraction: { OD: od.rx, OS: os.rx }, va: { OD: od.va, OS: os.va }, posterior: s < -4 ? { OD: { fundusTone: 'tigroid' }, OS: { fundusTone: 'tigroid' } } : undefined }, story: 'myopia — distance blur that a pinhole clears' };
+      return { age, patch: { refraction: { OD: od.rx, OS: os.rx }, va: { OD: od.va, OS: os.va }, posterior: s < -4 ? { OD: { fundusTone: 'tigroid' }, OS: { fundusTone: 'tigroid' } } : undefined }, story: (t) => t.myopia };
     }
     case 'hyperopia': {
       const age = rng.int(52, 74);
@@ -112,7 +150,7 @@ function build(rng: Rng, kind: Archetype): Built {
       const s = q(rng.float(1.25, 3.25));
       const od = refractiveEye(rng, s, q(-rng.float(0, 0.5)), 90, amp, 0);
       const os = refractiveEye(rng, q(s + rng.float(-0.5, 0.5)), q(-rng.float(0, 0.5)), 90, amp, 0);
-      return { age, patch: { refraction: { OD: { ...od.rx, add: 2.25 }, OS: { ...os.rx, add: 2.25 } }, va: { OD: od.va, OS: os.va } }, story: 'latent hyperopia unmasked as accommodation fades' };
+      return { age, patch: { refraction: { OD: { ...od.rx, add: 2.25 }, OS: { ...os.rx, add: 2.25 } }, va: { OD: od.va, OS: os.va } }, story: (t) => t.hyperopia };
     }
     case 'astigmatism': {
       const age = rng.int(16, 48);
@@ -122,7 +160,7 @@ function build(rng: Rng, kind: Archetype): Built {
       const s = q(rng.float(-0.5, 0.25));
       const od = refractiveEye(rng, s, c, axis, amp);
       const os = refractiveEye(rng, s, q(c + rng.float(-0.5, 0.5)), axis === 45 ? 135 : axis === 135 ? 45 : axis, amp);
-      return { age, patch: { refraction: { OD: od.rx, OS: os.rx }, va: { OD: od.va, OS: os.va } }, story: 'regular astigmatism — the blur smears along one meridian' };
+      return { age, patch: { refraction: { OD: od.rx, OS: os.rx }, va: { OD: od.va, OS: os.va } }, story: (t) => t.astigmatism };
     }
     case 'amblyopia': {
       const age = rng.int(6, 10);
@@ -135,13 +173,13 @@ function build(rng: Rng, kind: Archetype): Built {
       return {
         age,
         patch: { refraction: pair(bad, amb.rx, good.rx), va: pair<Va>(bad, { ...amb.va, uncorrected: Math.max(amb.va.uncorrected, bc + 0.2) }, good.va) },
-        story: `anisometropic amblyopia ${bad} — the pinhole helps only partly`,
+        story: (t) => t.amblyopia(bad),
       };
     }
     case 'preschool': {
       const age = rng.int(3, 4);
       const v = rng.pick([0.2, 0.3]);
-      return { age, patch: { refraction: { OD: { sphere: 1.5, cylinder: 0, axis: 180 }, OS: { sphere: 1.5, cylinder: 0, axis: 180 } }, va: { OD: { uncorrected: v, bestCorrected: v }, OS: { uncorrected: v, bestCorrected: v } } }, story: 'normal for age — pre-schoolers are not yet 20/20' };
+      return { age, patch: { refraction: { OD: { sphere: 1.5, cylinder: 0, axis: 180 }, OS: { sphere: 1.5, cylinder: 0, axis: 180 } }, va: { OD: { uncorrected: v, bestCorrected: v }, OS: { uncorrected: v, bestCorrected: v } } }, story: (t) => t.preschool };
     }
     case 'cataract': {
       const age = rng.int(66, 86);
@@ -159,7 +197,7 @@ function build(rng: Rng, kind: Archetype): Built {
           anterior: at(eye, { lens: (psc ? ['nuclear-sclerosis', 'posterior-subcapsular'] : ['nuclear-sclerosis', 'cortical-cataract']) as LensSign[], lensGrade: grade }),
           redReflex: at<RedReflex>(eye, 'dull'),
         },
-        story: `cataract ${eye} — a cloudy lens is not refractive blur, so the pinhole barely helps`,
+        story: (t) => t.cataract(eye),
       };
     }
     case 'amd': {
@@ -175,7 +213,7 @@ function build(rng: Rng, kind: Archetype): Built {
           amsler: at<AmslerFinding>(eye, wet ? { result: 'metamorphopsia', center: { x: 0, y: 0 }, radius: 3 } : { result: 'central-scotoma', center: { x: 0, y: 0 }, radius: 2 }),
           posterior: at(eye, { lesions: (wet ? [{ type: 'subretinal-hemorrhage', zone: 'macula', density: 2 }, { type: 'drusen-large', zone: 'macula', density: 3 }] : [{ type: 'geographic-atrophy', zone: 'macula', density: 3 }, { type: 'drusen-large', zone: 'macula', density: 4 }]) as RetinalLesion[] }),
         },
-        story: `${wet ? 'wet' : 'dry'} macular degeneration ${eye} — macular blur does not pinhole`,
+        story: (t) => t.amd(wet, eye),
       };
     }
     case 'optic-neuritis': {
@@ -191,7 +229,7 @@ function build(rng: Rng, kind: Archetype): Built {
           fields: at<FieldDefect>(eye, 'central-scotoma'),
           motility: { painOnMovement: true },
         },
-        story: `optic neuritis ${eye} — a nerve problem: no pinhole improvement`,
+        story: (t) => t.opticNeuritis(eye),
       };
     }
     case 'keratoconus': {
@@ -207,7 +245,7 @@ function build(rng: Rng, kind: Archetype): Built {
           retinoscopyReflex: at<RetinoscopyReflex>(eye, 'scissors'),
           anterior: at(eye, { cornea: ['cone-thinning', 'vogt-striae'] as CorneaSign[] }),
         },
-        story: `keratoconus ${eye} — irregular astigmatism: glasses fall short, but the pinhole helps`,
+        story: (t) => t.keratoconus(eye),
       };
     }
   }
@@ -249,23 +287,27 @@ export function pickArchetype(rng: Rng, difficulty: number, pool: 'va' | 'ph'): 
   return list[0]!.k;
 }
 
-export function buildScenario(rng: Rng, kind: Archetype): { patient: PatientProfile; findings: PatientFindings; story: string } {
+export function buildScenario(rng: Rng, kind: Archetype, locale: Locale = 'en'): { patient: PatientProfile; findings: PatientFindings; story: string } {
   const b = build(rng, kind);
   const findings = buildFindings(b.age, b.patch);
-  return { patient: makePatient(rng, b.age), findings, story: b.story };
+  return { patient: makePatient(rng, b.age, locale), findings, story: b.story(pickStrings(STORIES, locale)) };
 }
 
 const fmt = (v: number) => `${formatFeet(v)} (${formatMetric(v)})`;
 
 export function acuityPractice(rng: Rng, difficulty: number): PracticeScenario {
-  const s = buildScenario(rng, pickArchetype(rng, difficulty, 'va'));
+  const locale = docLocale();
+  const t = pickStrings(S, locale);
+  const s = buildScenario(rng, pickArchetype(rng, difficulty, 'va'), locale);
   const f = s.findings;
-  return { patient: s.patient, findings: f, answer: `VA sc OD ${fmt(f.va.OD.uncorrected)}, OS ${fmt(f.va.OS.uncorrected)} — ${s.story}.` };
+  return { patient: s.patient, findings: f, answer: t.answerVa(fmt(f.va.OD.uncorrected), fmt(f.va.OS.uncorrected), s.story) };
 }
 
 export function pinholePractice(rng: Rng, difficulty: number): PracticeScenario {
-  const s = buildScenario(rng, pickArchetype(rng, difficulty, 'ph'));
+  const locale = docLocale();
+  const t = pickStrings(S, locale);
+  const s = buildScenario(rng, pickArchetype(rng, difficulty, 'ph'), locale);
   const f = s.findings;
-  const part = (e: Eye) => `${e} ${fmt(f.va[e].uncorrected)} → PH ${fmt(pinholeLogmar(f, e))} (${pinholeVerdict(f, e) === 'improves' ? 'improves' : 'NI'})`;
-  return { patient: s.patient, findings: f, answer: `${part('OD')}; ${part('OS')} — ${s.story}.` };
+  const part = (e: Eye) => t.answerPhPart(e, fmt(f.va[e].uncorrected), fmt(pinholeLogmar(f, e)), pinholeVerdict(f, e) === 'improves');
+  return { patient: s.patient, findings: f, answer: t.answerPh(part('OD'), part('OS'), s.story) };
 }

@@ -1,14 +1,25 @@
 /** Practice scenarios (clinically coherent pupil pictures) and the recognition challenge. */
 import {
-  buildFindings, type DeepPartial, type Eye, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
+  buildFindings, isolateLtrRuns, pickStrings, type DeepPartial, type Eye, type Locale, type PatientFindings, type PatientProfile, type PracticeScenario, type Rng,
 } from '@core';
 import { generateAvatar } from '@render';
 import { anisocoria } from './model';
+import { fix, P } from './strings';
 
 export type PupilKind = 'normal' | 'physiologic' | 'rapd' | 'horner' | 'adie' | 'cn3' | 'pharm' | 'lnd';
 
 const NAMES_F = ['Margit Hoffmann', 'Lucia Ferrari', 'Aaliyah Brooks', 'Ingrid Nilsen', 'Mei Tanaka', 'Rosa Delgado', 'Fatima Zahra', 'Ewa Kowal'];
 const NAMES_M = ['Walter Pryce', 'Dmitri Volkov', 'Hamza Qureshi', 'Luis Ortega', 'Tobias Brandt', 'Kofi Asante', 'Arvind Nair', 'Henrik Moller'];
+const NAMES_F_HE = ['מרים לוי', 'לוסי פרארי', 'עאלייה חאמד', 'אירינה וולקוב', 'רוזה בן־שושן', 'סיגלית אוחיון', 'פאטמה זועבי', 'נטע שפירא'];
+const NAMES_M_HE = ['אברהם כץ', 'דמיטרי וולקוב', 'חמזה סעדי', 'אסף פרץ', 'יורם ברנדט', 'דני מזרחי', 'מוחמד עיסא', 'יוסף בן־דוד'];
+const JOBS_HE: [string, string][] = [['מורה בגמלאות', 'מורה בגמלאות'], ['נהגת מונית', 'נהג מונית'], ['רואת חשבון', 'רואה חשבון'], ['אופה', 'אופה'], ['רוקחת', 'רוקח'], ['נגרית', 'נגר'], ['זמרת במקהלה', 'זמר במקהלה'], ['חקלאית', 'חקלאי'], ['בודקת תוכנה', 'בודק תוכנה']];
+const PERSONALITY_HE: [string, string][] = [
+  ['מסתכלת ישר קדימה ומנסה לא למצמץ.', 'מסתכל ישר קדימה ומנסה לא למצמץ.'],
+  ['מכווצת עיניים כשהאור מתקרב.', 'מכווץ עיניים כשהאור מתקרב.'],
+  ['פטפטנית, אבל יושבת בלי לזוז כשמבקשים.', 'פטפטן, אבל יושב בלי לזוז כשמבקשים.'],
+  ['קצת לחוצה מהאור החזק.', 'קצת לחוץ מהאור החזק.'],
+];
+const editionLocale = (): Locale => (typeof document !== 'undefined' && document.documentElement.lang === 'he' ? 'he' : 'en');
 const JOBS = ['Retired teacher', 'Taxi driver', 'Accountant', 'Baker', 'Pharmacist', 'Carpenter', 'Choir singer', 'Farmer', 'Software tester'];
 const other = (e: Eye): Eye => (e === 'OD' ? 'OS' : 'OD');
 
@@ -26,7 +37,7 @@ export function pickKind(rng: Rng, difficulty: number): PupilKind {
 const dim = (age: number) => (age > 60 ? 5 : 6);
 const lit = (age: number) => (age > 60 ? 2.5 : 3);
 
-interface Gen { age: number; patch: DeepPartial<PatientFindings>; story: string }
+interface Gen { age: number; patch: DeepPartial<PatientFindings>; story: string; storyHe: string }
 
 function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
   const age = kind === 'normal' || kind === 'physiologic' ? rng.int(18, 80) : rng.int(30, 78);
@@ -37,11 +48,11 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
   const brisk = { OD: 'brisk', OS: 'brisk' } as const;
   switch (kind) {
     case 'normal':
-      return { age, patch: { pupils: { sizeLightMm: { OD: L, OS: L }, sizeDarkMm: { OD: D, OS: D } } }, story: 'Equal, round, briskly reactive pupils: no RAPD, normal near response.' };
+      return { age, patch: { pupils: { sizeLightMm: { OD: L, OS: L }, sizeDarkMm: { OD: D, OS: D } } }, story: 'Equal, round, briskly reactive pupils: no RAPD, normal near response.', storyHe: 'אישונים שווים, עגולים ומגיבים מהר: אין RAPD ותגובת הקרוב תקינה.' };
     case 'physiologic': {
       const a = rng.pick([0.5, 0.8, 1.0]);
       return {
-        age, story: `Physiologic anisocoria: about ${a} mm, the same in light and dark, brisk reactions and no ptosis.`,
+        age, story: `Physiologic anisocoria: about ${a} mm, the same in light and dark, brisk reactions and no ptosis.`, storyHe: `אניסוקוריה פיזיולוגית: כ-${a} מ״מ, זהה באור ובחושך, תגובות מהירות וללא פטוזיס.`,
         patch: { pupils: { sizeLightMm: { [eye]: L + a, [ok]: L }, sizeDarkMm: { [eye]: D + a, [ok]: D } } } as DeepPartial<PatientFindings>,
       };
     }
@@ -49,7 +60,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
       const grade = (difficulty > 0.6 ? rng.pick([1, 1, 2, 3, 4]) : rng.pick([2, 2, 3, 3, 4, 1])) as 1 | 2 | 3 | 4;
       const sev = grade >= 3 ? { reactivity: { ...brisk }, } : {};
       return {
-        age, story: `RAPD ${eye} grade ${grade}+: the pupils are equal and brisk, but when the light swings onto the ${eye} both pupils dilate (optic nerve or extensive retinal disease in that eye).`,
+        age, story: `RAPD ${eye} grade ${grade}+: the pupils are equal and brisk, but when the light swings onto the ${eye} both pupils dilate (optic nerve or extensive retinal disease in that eye).`, storyHe: `‏RAPD ב-${eye} דרגה ${grade}+: האישונים שווים ותגובתיים, אבל כשהאור עובר ל-${eye} שני האישונים מתרחבים (פגיעה בעצב הראייה או מחלת רשתית נרחבת באותה עין).`,
         patch: { pupils: { sizeLightMm: { OD: L, OS: L }, sizeDarkMm: { OD: D, OS: D }, rapd: eye, rapdGrade: grade, ...sev } } as DeepPartial<PatientFindings>,
       };
     }
@@ -57,7 +68,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
       const smallL = L - rng.pick([0.5, 0.7]);
       const smallD = D - rng.pick([1.4, 1.8, 2.0]);
       return {
-        age, story: `Horner-type picture: ${eye} is the smaller pupil and anisocoria is greater in the dark, with a mild ptosis and dilation lag on that side (sympathetic lesion).`,
+        age, story: `Horner-type picture: ${eye} is the smaller pupil and anisocoria is greater in the dark, with a mild ptosis and dilation lag on that side (sympathetic lesion).`, storyHe: `תמונה של תסמונת הורנר: ${eye} הוא האישון הקטן והאניסוקוריה בולטת יותר בחושך, עם פטוזיס קל ואיחור בהתרחבות בצד הזה (פגיעה סימפתטית).`,
         patch: {
           pupils: { sizeLightMm: { [eye]: smallL, [ok]: L }, sizeDarkMm: { [eye]: smallD, [ok]: D } },
           external: { ptosis: [eye] },
@@ -67,7 +78,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
     case 'adie': {
       const big = L + rng.pick([2.0, 2.5, 3.0]);
       return {
-        age, story: `Adie tonic pupil ${eye}: larger in the light, slow and segmental to light, constricts slowly to near and redilates very slowly (light-near dissociation).`,
+        age, story: `Adie tonic pupil ${eye}: larger in the light, slow and segmental to light, constricts slowly to near and redilates very slowly (light-near dissociation).`, storyHe: `אישון טוני של אדי ב-${eye}: גדול יותר באור, איטי וסגמנטלי לאור, מתכווץ לאט לקרוב ומתרחב מחדש לאט מאוד (דיסוציאציה אור-קרוב).`,
         patch: {
           pupils: {
             sizeLightMm: { [eye]: big, [ok]: L }, sizeDarkMm: { [eye]: big + 0.4, [ok]: D },
@@ -78,7 +89,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
     }
     case 'cn3':
       return {
-        age, story: `Third-nerve palsy ${eye}: a dilated, non-reactive pupil with ptosis, no near response. Urgent imaging for a compressive cause such as an aneurysm.`,
+        age, story: `Third-nerve palsy ${eye}: a dilated, non-reactive pupil with ptosis, no near response. Urgent imaging for a compressive cause such as an aneurysm.`, storyHe: `שיתוק של העצב השלישי ב-${eye}: אישון מורחב שאינו מגיב, עם פטוזיס וללא תגובת קרוב. הדמיה דחופה לאיתור סיבה לוחצת כמו מפרצת.`,
         patch: {
           pupils: {
             sizeLightMm: { [eye]: 7, [ok]: L }, sizeDarkMm: { [eye]: 7.5, [ok]: D },
@@ -89,7 +100,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
       };
     case 'pharm':
       return {
-        age, story: `Pharmacologic mydriasis ${eye}: very large (7-8 mm) round fixed pupil, no ptosis, normal eye movements. A fresh dilating drop or exposure to an anticholinergic.`,
+        age, story: `Pharmacologic mydriasis ${eye}: very large (7-8 mm) round fixed pupil, no ptosis, normal eye movements. A fresh dilating drop or exposure to an anticholinergic.`, storyHe: `מידריאזיס תרופתי ב-${eye}: אישון עגול, קבוע וגדול מאוד (7-8 מ״מ), בלי פטוזיס ועם תנועות עיניים תקינות. טיפת הרחבה טרייה או חשיפה לחומר אנטיכולינרגי.`,
         patch: {
           pupils: { sizeLightMm: { [eye]: 8, [ok]: L }, sizeDarkMm: { [eye]: 8, [ok]: D }, reactivity: { [eye]: 'fixed', [ok]: 'brisk' } },
         } as DeepPartial<PatientFindings>,
@@ -98,7 +109,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
       const ar = rng.chance(0.5);
       return ar
         ? {
-          age, story: 'Argyll Robertson-type pupils: small, irregular, both eyes, poor to light yet brisk to near (light-near dissociation). Think neurosyphilis and test serology.',
+          age, story: 'Argyll Robertson-type pupils: small, irregular, both eyes, poor to light yet brisk to near (light-near dissociation). Think neurosyphilis and test serology.', storyHe: 'אישונים מסוג ארגייל-רוברטסון: קטנים, לא סדירים, בשתי העיניים, חלשים לאור אך מהירים לקרוב (דיסוציאציה אור-קרוב). חשבו על עגבת עצבית ובדקו סרולוגיה.',
           patch: {
             pupils: {
               sizeLightMm: { OD: 2, OS: 2 }, sizeDarkMm: { OD: 2.5, OS: 2.5 }, reactivity: { OD: 'sluggish', OS: 'sluggish' },
@@ -107,7 +118,7 @@ function gen(kind: PupilKind, rng: Rng, difficulty: number): Gen {
           } as DeepPartial<PatientFindings>,
         }
         : {
-          age, story: 'Dorsal midbrain (Parinaud) pattern: mid-dilated pupils that react poorly to light but constrict to near (light-near dissociation).',
+          age, story: 'Dorsal midbrain (Parinaud) pattern: mid-dilated pupils that react poorly to light but constrict to near (light-near dissociation).', storyHe: 'תסמונת פארינו (המוח האמצעי הגבי): אישונים בינוניים-מורחבים שמגיבים חלש לאור אך מתכווצים לקרוב (דיסוציאציה אור-קרוב).',
           patch: {
             pupils: {
               sizeLightMm: { OD: 5, OS: 5 }, sizeDarkMm: { OD: 6, OS: 6 }, reactivity: { OD: 'sluggish', OS: 'sluggish' }, nearResponse: 'light-near-dissociation',
@@ -125,55 +136,61 @@ export function makeScenario(rng: Rng, difficulty: number, forceKind?: PupilKind
   const g = gen(kind, rng, difficulty);
   const findings = buildFindings(g.age, g.patch);
   const sex = rng.pick(['F', 'M'] as const);
+  const locale = editionLocale();
+  const he = locale === 'he';
   const patient: PatientProfile = {
-    name: rng.pick(sex === 'F' ? NAMES_F : NAMES_M),
-    age: g.age, sex, occupation: rng.pick(JOBS),
-    personality: rng.pick(['Looks straight ahead and tries not to blink.', 'Squints when the light comes close.', 'Chatty, but holds still when asked.', 'A little anxious about the bright light.']),
+    name: rng.pick(sex === 'F' ? (he ? NAMES_F_HE : NAMES_F) : (he ? NAMES_M_HE : NAMES_M)),
+    age: g.age, sex, occupation: he ? rng.pick(JOBS_HE)[sex === 'F' ? 0 : 1]! : rng.pick(JOBS),
+    personality: he
+      ? rng.pick(PERSONALITY_HE)[sex === 'F' ? 0 : 1]
+      : rng.pick(['Looks straight ahead and tries not to blink.', 'Squints when the light comes close.', 'Chatty, but holds still when asked.', 'A little anxious about the bright light.']),
     avatar: { ...generateAvatar(rng, { age: g.age, sex }), glasses: 'none' },
   };
-  return { patient, findings, answer: g.story };
+  return { patient, findings, answer: he ? fix(locale, g.storyHe) : g.story };
 }
 
 // ───────────────────────── recognition challenge
 export interface Challenge { question: string; options: string[]; correct: number; explain: string }
 
-export function explain(f: PatientFindings): string {
+export function explain(f: PatientFindings, locale: Locale = 'en'): string {
   const p = f.pupils;
   const an = anisocoria(f);
+  const t = pickStrings(P, locale);
   const parts: string[] = [];
-  if (p.rapd !== 'none') parts.push(`RAPD ${p.rapd} ${p.rapdGrade ?? 2}+: when the light swung onto the ${p.rapd} the pupils dilated, because that nerve carries a weaker signal than its partner. Hold the light ~3 s on each eye and swing briskly.`);
-  else parts.push('No RAPD: both pupils stayed constricted as the light swung across.');
-  if (an.pattern === 'physiologic') parts.push('Anisocoria that is the same in light and dark, up to about 1 mm, with brisk reactions is physiologic.');
-  if (an.pattern === 'greater-dark') parts.push(`Anisocoria is greater in the dark: the smaller pupil (${an.smaller}) is the abnormal one, failing to dilate. With ptosis and dilation lag this is a Horner pattern (sympathetic pathway).`);
-  if (an.pattern === 'greater-light') parts.push(`Anisocoria is greater in the light: the larger pupil (${an.larger}) is the abnormal one, failing to constrict. ${p.reactivity[an.larger!] === 'tonic' ? 'Slow, segmental reaction with near sparing is a tonic (Adie) pupil.' : ptosisHint(f)}`);
-  if (p.nearResponse === 'light-near-dissociation') parts.push('The pupils constrict to a near target far better than to light: light-near dissociation.');
-  return parts.join(' ');
+  if (p.rapd !== 'none') parts.push(t.rapdYes(p.rapd, p.rapdGrade ?? 2));
+  else parts.push(t.rapdNo);
+  if (an.pattern === 'physiologic') parts.push(t.physio);
+  if (an.pattern === 'greater-dark') parts.push(t.greaterDark(an.smaller ?? ''));
+  if (an.pattern === 'greater-light') parts.push(t.greaterLight(an.larger ?? '', p.reactivity[an.larger!] === 'tonic' ? t.tonic : ptosisHint(f, t)));
+  if (p.nearResponse === 'light-near-dissociation') parts.push(t.lnd);
+  const out = parts.join(' ');
+  return locale === 'he' ? isolateLtrRuns(out) : out;
 }
 
-const ptosisHint = (f: PatientFindings) =>
-  f.external?.ptosis?.length ? 'A fixed, dilated pupil with ptosis is a third-nerve palsy until proven otherwise: urgent imaging.' : 'A large fixed round pupil without ptosis suggests pharmacologic blockade (no constriction to 1% pilocarpine).';
+const ptosisHint = (f: PatientFindings, t: { cn3: string; pharm: string }) => (f.external?.ptosis?.length ? t.cn3 : t.pharm);
 
-export function makeChallenge(f: PatientFindings, rng: Rng): Challenge {
+export function makeChallenge(f: PatientFindings, rng: Rng, locale: Locale = 'en'): Challenge {
   const p = f.pupils;
   const an = anisocoria(f);
-  const text = explain(f);
+  const t = pickStrings(P, locale);
+  const text = explain(f, locale);
   const shuffle = <T,>(opts: T[], correctIdx: number) => {
     const order = rng.shuffle(opts.map((_, i) => i));
     return { options: order.map((i) => opts[i]!) as T[], correct: order.indexOf(correctIdx) };
   };
   if (p.rapd !== 'none' || (an.pattern === 'none' && p.nearResponse === 'normal') || an.pattern === 'physiologic') {
-    const opts = ['No RAPD', 'RAPD in the right eye (OD)', 'RAPD in the left eye (OS)'];
+    const opts = [t.optNone, t.optOD, t.optOS];
     const s = shuffle(opts, p.rapd === 'none' ? 0 : p.rapd === 'OD' ? 1 : 2);
-    return { question: 'What did the swinging flashlight test show?', ...s, explain: text };
+    return { question: t.qSwing, ...s, explain: text };
   }
   if (an.pattern === 'greater-dark') {
-    const s = shuffle(['Right pupil (OD)', 'Left pupil (OS)', 'Neither: this is normal'], an.smaller === 'OD' ? 0 : 1);
-    return { question: 'The difference in size is greater in the dark. Which pupil is the abnormal one?', ...s, explain: text };
+    const s = shuffle([t.pRight, t.pLeft, t.pNeither], an.smaller === 'OD' ? 0 : 1);
+    return { question: t.qDark, ...s, explain: text };
   }
   if (an.pattern === 'greater-light') {
-    const s = shuffle(['Right pupil (OD)', 'Left pupil (OS)', 'Neither: this is normal'], an.larger === 'OD' ? 0 : 1);
-    return { question: 'The difference in size is greater in the light. Which pupil is the abnormal one?', ...s, explain: text };
+    const s = shuffle([t.pRight, t.pLeft, t.pNeither], an.larger === 'OD' ? 0 : 1);
+    return { question: t.qLight, ...s, explain: text };
   }
-  const s = shuffle(['Light-near dissociation', 'RAPD', 'Physiologic anisocoria', 'Hippus'], 0);
-  return { question: 'The pupils react poorly to light but constrict to the near target. What is this called?', ...s, explain: text };
+  const s = shuffle([t.oLnd, t.oRapd, t.oPhysio, t.oHippus], 0);
+  return { question: t.qLnd, ...s, explain: text };
 }

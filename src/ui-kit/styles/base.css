@@ -65,7 +65,9 @@ code, kbd, samp { font-family: var(--lm-font-num); }
   overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
 }
 .lm-display { font-family: var(--lm-font-display); font-optical-sizing: auto; letter-spacing: -0.01em; }
-.lm-num { font-family: var(--lm-font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.lm-num { font-family: var(--lm-font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; unicode-bidi: isolate; }
+.lm-num:not([dir=auto]) { direction: ltr; }
+.lm-countup { font-family: var(--lm-font-num); font-variant-numeric: tabular-nums; }
 .lm-eyebrow {
   font-family: var(--lm-font-ui); font-size: var(--lm-fs-2xs); font-weight: 650;
   letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: var(--lm-gold);
@@ -98,3 +100,26 @@ html.reduced-motion *, html.reduced-motion *::before, html.reduced-motion *::aft
     transition-duration: 1ms !important; scroll-behavior: auto !important;
   }
 }
+
+/* ── RTL: directional icons mirror; clinical/spatial content opts out with dir="ltr" ── */
+[dir='rtl'] .lm-icon[data-icon='chevron-left'],
+[dir='rtl'] .lm-icon[data-icon='chevron-right'],
+[dir='rtl'] .lm-icon[data-icon='arrow-left'],
+[dir='rtl'] .lm-icon[data-icon='arrow-right']:not(.codex-ref__arrow) { scale: -1 1; }
+/* scenes that already mirror their own arrow (hub mode card, codex reference link) must not be flipped twice */
+[dir='rtl'] .hub-mode__go .lm-icon[data-icon='arrow-right'] { scale: none; }
+/* a trailing icon nudges toward the reading direction */
+[dir='rtl'] .lm-btn:hover:not(:disabled) .lm-btn__icon--trail { transform: translateX(-3px); }
+/* Latin/number runs keep their own direction */
+bdi, .lm-ltr { unicode-bidi: isolate; }
+.lm-ltr { direction: ltr; }
+
+/* Hebrew has no capitals and must never be tracked or uppercased. */
+:root:lang(he) { --lm-tracking-caps: 0; }
+:lang(he) .lm-eyebrow, :lang(he) .lm-badge, :lang(he) .lm-reward__rarity, :lang(he) .lm-speech__speaker { letter-spacing: 0; text-transform: none; }
+:lang(he) .lm-reward__rarity { font-size: 11px; }
+
+/* Hebrew edition: a number element may hold a Hebrew phrase ("1 שנ׳", "בעוד 4 ימים", "✦ 4.0 בשעה").
+   plaintext picks the direction from the first strong character, so pure numbers/units stay LTR
+   ("−6.00 D", "+71") while Hebrew phrases read right-to-left. */
+:root:lang(he) .lm-num:not([dir]) { unicode-bidi: plaintext; }

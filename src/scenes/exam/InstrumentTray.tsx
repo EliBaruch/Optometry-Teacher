@@ -1,5 +1,6 @@
 import { TEST_CATALOG, type MiniGameModule, type MiniGameResult, type TestId } from '@core';
-import { GlassPanel, Icon, IconOrText, isIconName, useSfx } from '@ui-kit';
+import { GlassPanel, Icon, IconOrText, isIconName, useLocale, useSfx, useStrings } from '@ui-kit';
+import { S } from './strings';
 import { testName } from './logic';
 
 /** Offer a tidy hyphenation point in long clinical words so narrow cards never split them mid-syllable. */
@@ -14,18 +15,21 @@ export function InstrumentTray(props: {
 }) {
   const { instruments, done, techOk, onOpen, onTech } = props;
   const play = useSfx();
+  const t = useStrings(S);
+  const locale = useLocale();
+  const nameOf = (mg: MiniGameModule) => testName(mg.id, mg, locale);
   const doneCount = instruments.filter((m) => done[m.id]).length;
   return (
     <GlassPanel
       class="exm-tray"
-      title="Instruments"
-      eyebrow="Examine the patient"
+      title={t.trayTitle}
+      eyebrow={t.trayEyebrow}
       icon="eye"
       padding="md"
-      actions={<span class="exm-count lm-num" aria-label={`${doneCount} of ${instruments.length} tests done`}>{doneCount}/{instruments.length}</span>}
+      actions={<span class="exm-count lm-num" aria-label={t.trayCount(doneCount, instruments.length)}>{doneCount}/{instruments.length}</span>}
     >
       {instruments.length === 0 ? (
-        <p class="lm-muted">The instrument trolley is empty for now. Questions and your clinical judgement will have to do.</p>
+        <p class="lm-muted">{t.trayEmpty}</p>
       ) : (
         <ul class="exm-tools" data-testid="exm-tools">
           {instruments.map((mg, i) => {
@@ -38,15 +42,15 @@ export function InstrumentTray(props: {
                   class="exm-tool__main"
                   onClick={() => onOpen(mg)}
                   onPointerEnter={() => play('hover', { volume: 0.25 })}
-                  aria-label={`${r ? 'Repeat' : 'Start'} ${testName(mg.id, mg)}, ${info.minutes} minutes${r ? ', already done' : ''}`}
+                  aria-label={t.toolAria(nameOf(mg), info.minutes, !!r)}
                 >
                   <span class="exm-tool__icon">
                     {isIconName(mg.id) ? <Icon name={mg.id} size={26} /> : <IconOrText icon={mg.icon} size={24} />}
                   </span>
                   <span class="exm-tool__text">
-                    <span class="exm-tool__name">{softBreak(testName(mg.id, mg))}</span>
+                    <span class="exm-tool__name">{softBreak(nameOf(mg))}</span>
                     <span class="exm-tool__sub lm-num">
-                      {r ? (r.autoRun ? 'By the technician' : 'Charted') : `${info.minutes} min`}
+                      {r ? (r.autoRun ? t.toolByTech : t.toolCharted) : t.toolMin(info.minutes)}
                     </span>
                   </span>
                   {r && (
@@ -59,13 +63,13 @@ export function InstrumentTray(props: {
                   <button
                     type="button"
                     class="exm-tool__tech"
-                    title="The technician runs it for you: instant, but only half the skill credit."
+                    title={t.techTitle}
                     onClick={(e) => onTech(mg, e.currentTarget as HTMLElement)}
-                    aria-label={`Ask the technician to do the ${testName(mg.id, mg)}`}
+                    aria-label={t.techAria(nameOf(mg))}
                   >
                     <Icon name="user" size={13} />
-                    <span class="exm-tool__tech-full">Ask the technician</span>
-                    <span class="exm-tool__tech-short" aria-hidden="true">Technician</span>
+                    <span class="exm-tool__tech-full">{t.techFull}</span>
+                    <span class="exm-tool__tech-short" aria-hidden="true">{t.techShort}</span>
                   </button>
                 )}
               </li>

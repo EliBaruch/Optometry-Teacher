@@ -4,8 +4,9 @@
  * distance -4..+2Δ, near -8..+3Δ, vertical phoria <= 1Δ. Any tropia is abnormal;
  * a tropia with diplopia is flagged critical (acquired palsy needs work-up).
  */
-import type { Deviation, PatientFindings, PatientProfile, RevealedFinding } from '@core';
+import { pickStrings, type Deviation, type Locale, type PatientFindings, type PatientProfile, type RevealedFinding } from '@core';
 import { describe, resolve, type Target, type Truth } from './model';
+import { S } from './strings';
 
 export function flagFor(dev: Deviation, target: Target, diplopia: string | undefined): RevealedFinding['flag'] {
   const t = resolve(dev);
@@ -17,34 +18,34 @@ export function flagFor(dev: Deviation, target: Target, diplopia: string | undef
 }
 
 /** Distance/near pattern in the sense used for classifying horizontal deviations. */
-export function pattern(d: Truth, n: Truth): string | null {
+export function pattern(d: Truth, n: Truth, locale: Locale = 'en'): string | null {
+  const w = pickStrings(S, locale);
   if (d.dir !== n.dir || (d.dir !== 'eso' && d.dir !== 'exo')) return null;
   const diff = n.mag - d.mag;
   if (d.dir === 'eso') {
-    if (diff >= 10) return 'Near > distance: convergence excess pattern';
-    if (diff <= -10) return 'Distance > near: divergence insufficiency pattern';
+    if (diff >= 10) return w.patNearDist(w.convExcess);
+    if (diff <= -10) return w.patDistNear(w.divInsuff);
   } else {
-    if (diff >= 10) return 'Near > distance: convergence insufficiency pattern';
-    if (diff <= -10) return 'Distance > near: divergence excess pattern';
+    if (diff >= 10) return w.patNearDist(w.convInsuff);
+    if (diff <= -10) return w.patDistNear(w.divExcess);
   }
   return null;
 }
 
-const POSTURE: Record<string, string> = {
-  'turn-left': 'face turn left', 'turn-right': 'face turn right', 'tilt-left': 'head tilt left',
-  'tilt-right': 'head tilt right', 'chin-down': 'chin down', 'chin-up': 'chin up',
-};
-
-export function report(findings: PatientFindings, _patient?: PatientProfile): RevealedFinding[] {
+/** Chart lines in the edition's language. `report()` is the English form used by tests and auto-run. */
+export function reportFor(findings: PatientFindings, locale: Locale): RevealedFinding[] {
+  const w = pickStrings(S, locale);
   const m = findings.motility;
   const out: RevealedFinding[] = [];
   for (const [target, dev] of [['distance', m.distance], ['near', m.near]] as const) {
     const t = resolve(dev);
     const eye = t.eye === 'OD' || t.eye === 'OS' ? t.eye : 'OU';
-    out.push({ label: target === 'distance' ? 'Cover test (distance)' : 'Cover test (near)', value: describe(t), eye, flag: flagFor(dev, target, m.diplopia) });
+    out.push({ label: target === 'distance' ? w.coverDist : w.coverNear, value: describe(t, locale), eye, flag: flagFor(dev, target, m.diplopia) });
   }
-  const p = pattern(resolve(m.distance), resolve(m.near));
-  if (p) out.push({ label: 'Distance vs near', value: p, eye: 'OU', flag: 'abnormal' });
-  if (m.headPosture && m.headPosture !== 'none') out.push({ label: 'Head posture', value: POSTURE[m.headPosture] ?? m.headPosture, eye: 'OU', flag: 'abnormal' });
+  const p = pattern(resolve(m.distance), resolve(m.near), locale);
+  if (p) out.push({ label: w.distVsNear, value: p, eye: 'OU', flag: 'abnormal' });
+  if (m.headPosture && m.headPosture !== 'none') out.push({ label: w.headPosture, value: w.posture[m.headPosture] ?? m.headPosture, eye: 'OU', flag: 'abnormal' });
   return out;
 }
+
+export const report = (findings: PatientFindings, _patient?: PatientProfile): RevealedFinding[] => reportFor(findings, 'en');

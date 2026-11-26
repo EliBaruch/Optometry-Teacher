@@ -14,7 +14,7 @@
   --toast-c: var(--lm-info);
   position: relative; overflow: hidden; pointer-events: auto;
   display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 10px 18px 10px 12px;
-  border-radius: 16px; text-align: left; color: var(--lm-ivory);
+  border-radius: 16px; text-align: start; color: var(--lm-ivory);
   background: linear-gradient(90deg, color-mix(in srgb, var(--toast-c) 16%, transparent), transparent 55%), rgba(24, 14, 44, 0.93);
   backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
   box-shadow: inset 0 1px 0 rgba(255, 245, 230, 0.1), inset 0 0 0 1px color-mix(in srgb, var(--toast-c) 35%, transparent), 0 0 30px -10px color-mix(in srgb, var(--toast-c) 60%, transparent), var(--lm-shadow-2);
@@ -32,7 +32,7 @@
 .lm-toast__icon svg { width: 18px; height: 18px; }
 .lm-toast__msg { flex: 1; font-size: var(--lm-fs-sm); font-weight: 560; line-height: 1.35; }
 .lm-toast__timer {
-  position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; transform-origin: left;
+  position: absolute; inset-inline-start: 0; bottom: 0; height: 2px; width: 100%; transform-origin: left; /* rtl: see below */
   background: linear-gradient(90deg, transparent, var(--toast-c));
   animation: lm-toast-timer linear both;
 }
@@ -57,3 +57,4 @@
 html.high-contrast .lm-toast:focus-visible { --lm-focus-color: #fff; }
 /* hovering or focusing the stack pauses auto-dismiss (and the timer bar) */
 .lm-toasts.is-paused .lm-toast__timer { animation-play-state: paused; opacity: 0.45; }
+[dir='rtl'] .lm-toast__timer { transform-origin: right; background: linear-gradient(270deg, transparent, var(--toast-c)); }

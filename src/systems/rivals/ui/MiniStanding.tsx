@@ -5,7 +5,8 @@
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameServices } from '@core';
-import { Icon, useSfx, useSignal } from '@ui-kit';
+import { Icon, useSfx, useSignal, useStrings } from '@ui-kit';
+import { S, rivalText } from '../strings';
 import { SYSTEM_ID } from '../controller';
 import { nextAbove, playerRank, standings } from '../league';
 import { useRivals } from './shared';
@@ -14,6 +15,7 @@ const TREND_MS = 24 * 3_600_000;
 
 export function MiniStanding({ services }: { services: GameServices }) {
   const { state, now } = useRivals(services);
+  const t = useStrings(S);
   const session = useSignal(services.session.state);
   const play = useSfx();
   const [open, setOpen] = useState(false);
@@ -24,11 +26,12 @@ export function MiniStanding({ services }: { services: GameServices }) {
   const trend = state.trend && now - state.trend.at < TREND_MS ? state.trend.dir : null;
   const joined = state.cases > 0;
   const inExam = !!session && !session.submitted && !session.failed;
+  const aboveShort = above?.rival ? rivalText(above.rival, services.locale).short : '';
   const hint = !joined
-    ? 'Colleagues board: finish a patient to join this week'
+    ? t.miniJoin
     : above?.rival
-      ? `Colleagues board: #${rank} of ${rows.length}, ${(above.points - state.points).toLocaleString('en')} pts to pass ${above.rival.short}`
-      : `Colleagues board: top of ${rows.length} this week`;
+      ? t.miniGap(rank, rows.length, above.points - state.points, aboveShort)
+      : t.miniTop(rows.length);
 
   // Close the popover on outside tap / Escape, and whenever the exam ends.
   useEffect(() => {
@@ -56,7 +59,7 @@ export function MiniStanding({ services }: { services: GameServices }) {
         type="button"
         class={`rv-mini${rank === 1 && joined ? ' is-top' : ''}${inExam ? ' is-exam' : ''}`}
         title={inExam ? undefined : hint}
-        aria-label={inExam ? `${hint}. Opens after this patient.` : `${hint}. Open the board.`}
+        aria-label={inExam ? t.miniAriaExam(hint) : t.miniAriaOpen(hint)}
         aria-expanded={inExam ? open : undefined}
         onClick={() => {
           play('click');
@@ -69,7 +72,7 @@ export function MiniStanding({ services }: { services: GameServices }) {
       >
         <span class="rv-mini__icon"><Icon name={rank === 1 && joined ? 'crown' : 'users'} size={15} /></span>
         {joined ? (
-          <span class="rv-mini__rank lm-num" key={rank}>#{rank}</span>
+          <span class="rv-mini__rank lm-num" key={rank} dir="ltr">#{rank}</span>
         ) : (
           <span class="rv-mini__rank rv-mini__rank--idle lm-num">—</span>
         )}
@@ -81,9 +84,9 @@ export function MiniStanding({ services }: { services: GameServices }) {
       </button>
       {inExam && open && (
         <span class="rv-mini__pop" role="status">
-          <b>{joined ? `#${rank} of ${rows.length}` : 'Not on the board yet'}</b>
-          <span>{joined && above?.rival ? `${(above.points - state.points).toLocaleString('en')} pts to pass ${above.rival.short}` : joined ? 'Leading the ward' : 'Finish this patient to join'}</span>
-          <span class="rv-dim">The full board opens after this patient.</span>
+          <b>{joined ? t.popRank(rank, rows.length) : t.popNot}</b>
+          <span>{joined && above?.rival ? t.popGap(above.points - state.points, aboveShort) : joined ? t.popLead : t.popJoin}</span>
+          <span class="rv-dim">{t.popNote}</span>
         </span>
       )}
     </span>

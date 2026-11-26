@@ -33,7 +33,7 @@
 .lm-modal__panel--xl { --modal-w: 1040px; }
 .lm-modal__panel--stage { --modal-w: 1180px; height: min(860px, 92vh, 100%); max-height: 100%; }
 .lm-modal__header { display: flex; align-items: center; gap: var(--lm-sp-3); padding: var(--lm-sp-5) var(--lm-sp-5) var(--lm-sp-3) var(--lm-sp-6); }
-.lm-modal__header.is-bare { position: absolute; right: 0; top: 0; z-index: 2; padding: var(--lm-sp-3); }
+.lm-modal__header.is-bare { position: absolute; inset-inline-end: 0; top: 0; z-index: 2; padding: var(--lm-sp-3); }
 .lm-modal__titles { flex: 1; min-width: 0; }
 .lm-modal__title { font-size: var(--lm-fs-2xl); font-weight: 540; color: var(--lm-ivory); }
 .lm-modal__icon {

@@ -74,9 +74,8 @@ export function newlyCompletedSets(state: CollectionState, all: readonly Diagnos
 }
 
 /** Readable date for card faces, e.g. "24 Nov 2026". */
-export function formatCardDate(ms: number): string {
+export function formatCardDate(ms: number, months: readonly string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']): string {
   const d = new Date(ms);
   if (Number.isNaN(d.getTime())) return '';
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
