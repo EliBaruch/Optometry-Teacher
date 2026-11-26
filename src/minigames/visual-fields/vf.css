@@ -26,7 +26,7 @@
 }
 .vf__title { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .vf__title-icon { color: var(--lm-gold, var(--lm-brand-500)); filter: drop-shadow(0 0 6px rgba(34, 87, 240, 0.5)); flex: none; }
-.vf__title h2 { margin: 0; font-family: var(--lm-font-display, Georgia, serif); font-weight: 560; font-size: 1.12rem; letter-spacing: 0.01em; }
+.vf__title h2 { margin: 0; font-family: var(--lm-font-display); font-weight: 780; font-size: 1.12rem; letter-spacing: 0.01em; }
 .vf__title p { margin: 1px 0 0; color: var(--lm-muted, var(--lm-ink-3)); font-size: var(--lm-fs-xs, 12px); line-height: 1.35; }
 
 .vf-eyes {
@@ -285,7 +285,7 @@
 .vf-verdict { padding: 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 3px; }
 .vf-verdict.is-good { background: linear-gradient(160deg, rgba(0, 168, 112, 0.16), rgba(10, 22, 51, 0.072)); box-shadow: inset 0 0 0 1px rgba(0, 168, 112, 0.45); }
 .vf-verdict.is-bad { background: linear-gradient(160deg, rgba(225, 29, 72, 0.16), rgba(10, 22, 51, 0.072)); box-shadow: inset 0 0 0 1px rgba(225, 29, 72, 0.45); }
-.vf-verdict strong { font-family: var(--lm-font-display); font-size: 1.05rem; font-weight: 560; }
+.vf-verdict strong { font-family: var(--lm-font-display); font-size: 1.05rem; font-weight: 780; }
 .vf-verdict span { font-size: var(--lm-fs-xs); color: var(--lm-ivory-dim); }
 .vf-verdict p { margin: 4px 0 0; font-size: var(--lm-fs-xs); line-height: 1.5; color: var(--lm-ivory-dim); }
 .vf-debrief__eyes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -340,7 +340,7 @@
   box-shadow: 0 0 0 1px rgba(34, 87, 240, 0.4), 0 0 24px rgba(34, 87, 240, 0.25);
 }
 .vf-tutorial__step { margin: 0; font-size: var(--lm-fs-2xs); text-transform: uppercase; letter-spacing: 0.16em; color: var(--lm-muted); }
-.vf-tutorial h3 { margin: 4px 0 8px; font-family: var(--lm-font-display); font-weight: 560; font-size: 1.45rem; }
+.vf-tutorial h3 { margin: 4px 0 8px; font-family: var(--lm-font-display); font-weight: 780; font-size: 1.45rem; }
 .vf-tutorial__body { margin: 0; color: var(--lm-ivory-dim); font-size: var(--lm-fs-sm); line-height: 1.55; }
 .vf-tutorial__dots { display: flex; gap: 6px; justify-content: center; margin: 16px 0 14px; }
 .vf-tutorial__dots i { width: 6px; height: 6px; border-radius: 3px; background: rgba(86, 99, 125, 0.4); transition: all 300ms var(--lm-ease-out); }

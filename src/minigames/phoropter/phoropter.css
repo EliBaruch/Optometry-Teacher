@@ -136,7 +136,7 @@
 .php-occ.is-in { transform: none; opacity: 1; }
 .php-occ__t { font: 700 12px var(--lm-font-num); fill: rgba(34, 87, 240, 0.4); letter-spacing: 0.2em; }
 .php-badge circle { fill: rgba(255, 255, 255, 0.86); stroke: var(--lm-gold); stroke-width: 2; filter: drop-shadow(0 0 10px rgba(34, 87, 240, 0.6)); }
-.php-badge text { font: 700 26px var(--lm-font-display, serif); fill: var(--lm-gold); }
+.php-badge text { font: 700 26px var(--lm-font-display); fill: var(--lm-gold); }
 .php-badge { animation: php-pop 320ms var(--lm-ease-spring) both; transform-box: fill-box; transform-origin: center; }
 
 /* control deck */
@@ -239,7 +239,7 @@
 .php-patient__say .lm-speech__text { font-size: 0.98rem; line-height: 1.35; }
 .php-patient__say .lm-speech__speaker { margin-bottom: 2px; }
 .php-you {
-  margin: 8px 0 0; padding: 9px 13px; border-radius: 14px; font: italic 500 0.96rem/1.3 var(--lm-font-display, serif);
+  margin: 8px 0 0; padding: 9px 13px; border-radius: 14px; font: italic 500 0.96rem/1.3 var(--lm-font-display);
   color: var(--lm-gold-200, var(--lm-brand-500)); background: rgba(34, 87, 240, 0.07); box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.25);
   animation: php-fade-in var(--lm-dur-ui) var(--lm-ease-out) both;
 }
@@ -278,7 +278,7 @@
 .php-chart__dark { position: absolute; inset: 0; display: grid; place-items: center; color: var(--lm-muted-2); font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; }
 .php-chart__badge {
   position: absolute; top: 10px; inset-inline-end: 10px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
-  font: 700 1.4rem/1 var(--lm-font-display, serif); color: var(--lm-gold);
+  font: 700 1.4rem/1 var(--lm-font-display); color: var(--lm-gold);
   background: rgba(255, 255, 255, 0.86); box-shadow: 0 0 0 2px var(--lm-gold), 0 0 18px rgba(34, 87, 240, 0.6);
   animation: php-pop 320ms var(--lm-ease-spring) both;
 }
@@ -328,7 +328,7 @@
   content: ''; position: absolute; inset: 0 0 auto; height: 3px; border-radius: 28px 28px 0 0;
   background: linear-gradient(90deg, transparent, rgba(34, 87, 240, 0.85), transparent);
 }
-.php-tut__title { margin: 6px 0 8px; font: 560 1.45rem/1.15 var(--lm-font-display, serif); }
+.php-tut__title { margin: 6px 0 8px; font: 780 1.45rem/1.15 var(--lm-font-display); }
 .php-tut__body { margin: 0; color: var(--lm-ivory-dim); line-height: 1.55; font-size: 0.93rem; }
 .php-tut__keys { display: flex; gap: 6px; margin: 12px 0 0; }
 .php-tut__dots { display: flex; gap: 6px; justify-content: center; margin: 16px 0 12px; }
@@ -343,7 +343,7 @@
 .php-challenge .php-scroll { gap: 10px; }
 .php-result__foot { flex: none; padding-top: 10px; }
 .php-challenge { display: flex; flex-direction: column; gap: 10px; }
-.php-challenge__q { margin: 0; font: 520 1.15rem/1.35 var(--lm-font-display, serif); }
+.php-challenge__q { margin: 0; font: 780 1.15rem/1.35 var(--lm-font-display); }
 .php-challenge__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .php-opt {
   display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 8px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: start;
@@ -371,7 +371,7 @@
 .php-challenge + .php-result { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--lm-hairline); }
 .php-result__head { display: flex; align-items: center; gap: 16px; }
 .php-result__pct { font: 700 1.35rem var(--lm-font-num); }
-.php-result__title { margin: 4px 0 0; font: 560 1.3rem/1.2 var(--lm-font-display, serif); }
+.php-result__title { margin: 4px 0 0; font: 780 1.3rem/1.2 var(--lm-font-display); }
 .php-result__eyes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .php-rx {
   position: relative; padding: 10px 12px; border-radius: 14px; background: rgba(10, 22, 51, 0.054);

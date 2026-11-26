@@ -64,7 +64,7 @@ export function TitleScene({ services }: SceneProps) {
       : split
         ? Math.min(vp.w * 0.36, 580, vp.h * 0.66)
         : narrow
-          ? Math.min(vp.w - 96, vp.h * 0.32)
+          ? Math.min(vp.w - 100, vp.h * 0.33)
           : Math.min(vp.w * 0.5, 480, vp.h * 0.34),
   );
   const eyeW = Math.round(lens * CROP);

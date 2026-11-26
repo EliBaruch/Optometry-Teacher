@@ -50,13 +50,13 @@ html[dir='rtl'] .ttl-cta__main .lm-btn__icon--trail, html[dir='rtl'] .ttl-cta__m
 /* colour behind the glass so it has something to refract */
 .ttl-eye__halo { position: absolute; inset: -34%; pointer-events: none; transform: translate3d(calc(var(--px) * -22px), calc(var(--py) * -16px), 0); }
 .ttl-eye__halo i { position: absolute; border-radius: 50%; }
-.ttl-eye__halo i:nth-child(1) { width: 64%; height: 64%; right: 4%; top: 6%; background: radial-gradient(circle, rgba(92, 135, 255, 0.55), rgba(92, 135, 255, 0) 68%); }
-.ttl-eye__halo i:nth-child(2) { width: 58%; height: 58%; left: 8%; bottom: 8%; background: radial-gradient(circle, rgba(167, 139, 250, 0.5), rgba(167, 139, 250, 0) 68%); }
-.ttl-eye__halo i:nth-child(3) { width: 46%; height: 46%; left: 14%; top: 10%; background: radial-gradient(circle, rgba(78, 204, 245, 0.5), rgba(78, 204, 245, 0) 68%); }
+.ttl-eye__halo i:nth-child(1) { width: 64%; height: 64%; right: 4%; top: 6%; background: radial-gradient(circle, rgba(92, 135, 255, 0.7), rgba(92, 135, 255, 0) 68%); }
+.ttl-eye__halo i:nth-child(2) { width: 58%; height: 58%; left: 8%; bottom: 8%; background: radial-gradient(circle, rgba(167, 139, 250, 0.62), rgba(167, 139, 250, 0) 68%); }
+.ttl-eye__halo i:nth-child(3) { width: 46%; height: 46%; left: 14%; top: 10%; background: radial-gradient(circle, rgba(78, 204, 245, 0.6), rgba(78, 204, 245, 0) 68%); }
 
 /* hairline dial: degree ticks like a trial-lens axis ring */
 .ttl-eye__rings { position: absolute; inset: -17%; width: 134%; height: 134%; pointer-events: none; transform: translate3d(calc(var(--px) * -8px), calc(var(--py) * -6px), 0); }
-.ttl-eye__rings circle { fill: none; stroke: var(--lm-brand-400); stroke-opacity: 0.28; stroke-width: 0.18; }
+.ttl-eye__rings circle { fill: none; stroke: var(--lm-brand-400); stroke-opacity: 0.38; stroke-width: 0.18; }
 .ttl-eye__rings .ttl-eye__ticks { stroke: var(--lm-brand-500); stroke-opacity: 0.55; stroke-width: 1.3; stroke-dasharray: 0.14 4.86; stroke-dashoffset: 0.07; }
 .ttl-eye__rings .ttl-eye__ticks--major { stroke: var(--lm-ink); stroke-opacity: 0.55; stroke-width: 2.2; stroke-dasharray: 0.3 44.7; stroke-dashoffset: 0.15; }
 
@@ -110,7 +110,7 @@ html[dir='rtl'] .ttl-cta__main .lm-btn__icon--trail, html[dir='rtl'] .ttl-cta__m
 .ttl-tag--orange { --label: var(--lm-vivid-orange); }
 .ttl-tag--red { --label: var(--lm-vivid-red); }
 .ttl-eye.is-zoom .ttl-card, .ttl-eye.is-zoom .ttl-eye__rings, .ttl-eye.is-zoom .ttl-eye__halo, .ttl-eye.is-zoom .ttl-eye__bezel { opacity: 0; transition: opacity 0.4s; }
-@keyframes ttl-eye-in { from { opacity: 0; transform: translate3d(0, 28px, 0) scale(0.94); filter: blur(12px); } }
+@keyframes ttl-eye-in { from { opacity: 0; translate: 0 28px; scale: 0.94; } }
 @keyframes ttl-chip-in { from { opacity: 0; scale: 0.92; } }
 @keyframes ttl-bob { 50% { translate: 0 -7px; } }
 
@@ -163,10 +163,14 @@ html[dir='rtl'] .ttl-intro__foot { padding: 8px 24px 8px 8px; }
 }
 @media (min-width: 640px) and (max-width: 959px) and (min-height: 700px) { .ttl-mark__pitch { display: block; } }
 @media (max-width: 639px) {
+  .ttl__stage { padding-top: 84px; row-gap: clamp(22px, 4vh, 36px); }
+  .ttl-mark__top { position: absolute; top: max(18px, env(safe-area-inset-top)); inset-inline-start: 16px; margin: 0; }
+  .ttl-mark__pill { display: none; }
+  .ttl-mark__logo { width: 40px; height: 40px; }
   .ttl-card--triage { display: none; }
   .ttl-card { padding: 8px 12px 8px 9px; border-radius: 16px; }
-  .ttl-card--va { padding: 9px 14px 11px; top: 0; inset-inline-start: -6%; }
-  .ttl-card--pupils { bottom: 4%; inset-inline-end: -6%; }
+  .ttl-card--va { padding: 9px 14px 11px; top: -9%; inset-inline-start: -4%; }
+  .ttl-card--pupils { bottom: -3%; inset-inline-end: -4%; }
   .ttl-card__ico { width: 28px; height: 28px; }
   .ttl-card__num { font-size: 26px; }
   .ttl-link { padding: 0 13px; }
