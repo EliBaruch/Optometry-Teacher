@@ -465,7 +465,7 @@
   .exm-tool__tech { margin: 0 8px 8px; }
   .exm-tool__tech-full { display: none; }
   .exm-tool__tech-short { display: inline; }
-  .exm-overlay { zoom: 0.72; max-height: none; overflow: visible; padding-block: 2px 6px; }
+  .exm-overlay { zoom: 0.62; max-height: none; overflow: visible; padding-block: 2px 6px; }
   .exm-board__titles { padding-inline-end: 0; }
   .exm-board__head { align-items: flex-start; gap: 12px; padding-bottom: 16px; margin-bottom: 18px; }
   .exm-board__titles h1 { font-size: var(--lm-fs-3xl); }
