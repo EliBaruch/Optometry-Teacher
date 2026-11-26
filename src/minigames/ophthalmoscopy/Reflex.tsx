@@ -35,7 +35,7 @@ function Pupil({ eye, truth, iris, reduced, lit }: { eye: Eye; truth: ReflexChoi
         </radialGradient>
         <clipPath id={`${id}-clip`}><circle r="34" /></clipPath>
       </defs>
-      <circle r="98" fill="#1a0f2e" opacity="0.5" />
+      <circle r="98" fill="#0b1226" opacity="0.5" />
       <circle r="92" fill={`url(#${id}-halo)`} />
       <circle r="78" fill={`url(#${id}-iris)`} />
       <g opacity="0.35" stroke="#000" stroke-width="0.8">

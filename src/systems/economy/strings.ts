@@ -7,7 +7,7 @@ import type { CrateKind, ItemKind } from './catalog';
  */
 
 export const ITEM_HE: Record<string, { name: string; blurb: string }> = {
-  candlelight: { name: 'תכלת לומן', blurb: 'המראה המקורי של Clinic Glass: תכלת חשמלי מעל רקע שטוף שמש.' },
+  candlelight: { name: 'תכלת לומן', blurb: 'המראה החתום של המרפאה: תכלת חשמלי מעל רקע שטוף שמש.' },
   moonstone: { name: 'אבן ירח', blurb: 'כחול-אפור קריר, כמו קרן מנורת סדק על קרנית צלולה.' },
   'rose-quartz': { name: 'קוורץ ורוד', blurb: 'גוונים ורודים רכים וסומק של אור בוקר.' },
   'jade-lantern': { name: 'ירקן', blurb: 'ירוק קליני רגוע, כמו מסנן ה-red-free במצלמת קרקעית.' },

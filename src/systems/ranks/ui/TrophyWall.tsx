@@ -62,7 +62,7 @@ function Plaque({ def, at, cur, max, fresh, index }: { def: AchievementDef; at?:
   const txt = achText(def, locale);
   const got = !!at;
   const hidden = !got && def.secret;
-  const color = RARITY_COLOR[def.rarity];
+  const color = def.rarity === 'common' ? '#1fa971' : RARITY_COLOR[def.rarity];
   return (
     <li
       class={`rk-plaque rk-plaque--${def.rarity}${got ? ' is-got' : ' is-locked'}${fresh ? ' is-fresh' : ''} lm-enter`}

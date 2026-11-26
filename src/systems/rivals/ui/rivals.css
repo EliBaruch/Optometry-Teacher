@@ -65,7 +65,12 @@
 }
 .rv-mini.is-top .rv-mini__icon { background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%), var(--lm-vivid-yellow); }
 .rv-mini__rank { font-family: var(--lm-font-num); font-size: var(--lm-fs-lg); font-weight: 700; letter-spacing: -0.02em; animation: rv-pop 0.5s var(--lm-ease-spring); }
-.rv-mini__rank--idle { color: var(--lm-ink-3); animation: none; }
+.rv-mini__rank--idle { color: var(--lm-ink-2); animation: none; }
+.rv-mini:has(.rv-mini__rank--idle) { background: radial-gradient(120% 160% at 0% 50%, rgba(87, 155, 252, 0.3), transparent 70%), var(--lm-glass); box-shadow: var(--lm-glass-highlight), 0 0 0 1px rgba(87, 155, 252, 0.4), var(--lm-glass-shadow); }
+.rv-mini:has(.rv-mini__rank--idle) .rv-mini__icon { background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%), var(--lm-vivid-blue); }
+.rv-mini { animation: rv-mini-in 520ms var(--lm-ease-spring) 80ms both; }
+@keyframes rv-mini-in { from { opacity: 0; transform: translateY(-8px) scale(0.92); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .rv-mini { animation: none; } }
 .rv-mini__trend { font: 700 13px/1 var(--lm-font-num); }
 .rv-mini-wrap { position: relative; display: inline-flex; }
 .rv-mini.is-exam { opacity: 0.92; }

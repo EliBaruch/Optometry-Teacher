@@ -2,7 +2,7 @@
  * Clinic colour themes (Clinic Glass): each palette recolours the brand/accent token family,
  * the primary azure capsule and the daylight mesh behind the glass, by setting `data-theme`
  * on <html> plus one generated <style> sheet. Every accent is a deep, legible colour on white
- * (white text on fills). The default theme ('candlelight', shown as "Lumen Azure") removes
+ * (white text on fills). The default theme (legacy id 'candlelight', kept for save compatibility; shown as "Lumen Azure") removes
  * the attribute entirely so the base tokens apply.
  */
 import { THEMES, type ThemePalette } from './catalog';
@@ -16,7 +16,14 @@ function rgb(hex: string): string {
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 }
 
-const mixW = (c: string, pct: number) => `color-mix(in srgb, ${c} ${pct}%, #ffffff)`;
+/** Plain-hex mix (no color-mix(), so older browsers still get the theme): `pct`% of `c` over `base`. */
+function mixHex(c: string, pct: number, base = '#ffffff'): string {
+  const a = parseInt(c.replace('#', ''), 16);
+  const b = parseInt(base.replace('#', ''), 16);
+  const ch = (sh: number) => Math.round((((a >> sh) & 255) * pct + ((b >> sh) & 255) * (100 - pct)) / 100);
+  return '#' + [16, 8, 0].map((sh) => ch(sh).toString(16).padStart(2, '0')).join('');
+}
+const mixW = (c: string, pct: number) => mixHex(c, pct);
 
 export function themeCss(id: string, p: ThemePalette): string {
   const a = rgb(p.accent);
@@ -29,7 +36,7 @@ export function themeCss(id: string, p: ThemePalette): string {
   --lm-brand-50: ${p.pale}; --lm-brand-100: ${mixW(p.accent, 14)}; --lm-brand-200: ${mixW(p.accent, 28)};
   --lm-brand-300: ${mixW(p.accent, 50)}; --lm-brand-400: ${mixW(p.accent, 72)}; --lm-brand-500: ${mixW(p.accent, 90)};
   --lm-brand-600: ${p.accent}; --lm-brand-700: ${p.deep}; --lm-brand-800: ${p.shade};
-  --lm-brand-900: color-mix(in srgb, ${p.shade} 65%, #0a1633);
+  --lm-brand-900: ${mixHex(p.shade, 65, '#0a1633')};
   --lm-accent: ${p.accent}; --lm-accent-text: ${p.deep}; --lm-accent-soft: ${p.pale}; --lm-on-accent: ${p.ink};
   --lm-accent-gradient: ${gradient};
   --lm-glow-gold: 0 0 0 1px rgba(${a}, 0.2), 0 10px 28px -8px rgba(${a}, 0.45);
@@ -66,7 +73,7 @@ function ensureSheet(): void {
   if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
   const el = document.createElement('style');
   el.id = STYLE_ID;
-  el.textContent = THEMES.filter((t) => t.id !== 'candlelight' && t.palette).map((t) => themeCss(t.id, t.palette!)).join('\n');
+  el.textContent = THEMES.filter((t) => t.id !== 'candlelight' && t.palette).map((t) => themeCss(t.id, t.palette!)).join('\n'); // legacy default-theme id (save compatibility)
   document.head.appendChild(el);
 }
 

@@ -332,7 +332,7 @@ export function ExamScene({ services, params }: SceneProps) {
 
   const barRight = (
     <div class="exm-bar">
-      <span class="exm-chip" title={t.clinicTime}>
+      <span class="exm-chip" title={t.clinicTime} aria-label={`${t.clinicTime}: ${clinicMin} ${t.min}`}>
         <Icon name="clock" size={15} />
         <b class="lm-num">{clinicMin}</b>
         <span>{t.min}</span>

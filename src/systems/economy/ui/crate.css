@@ -25,7 +25,7 @@
 @keyframes eco-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .eco-open__scrim {
   position: absolute; inset: 0;
-  background: radial-gradient(60% 50% at 50% 45%, color-mix(in srgb, var(--rc) 16%, rgba(255, 255, 255, 0.96)), rgba(238, 242, 250, 0.985) 75%);
+  background: radial-gradient(60% 50% at 50% 45%, color-mix(in srgb, var(--rc) 16%, rgba(255, 255, 255, 0.985)), rgba(236, 241, 250, 0.995) 75%);
   backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%);
   transition: background 600ms var(--lm-ease-out);
 }
@@ -38,12 +38,12 @@
 }
 @keyframes eco-rays { to { rotate: 360deg; } }
 .eco-open__stage { position: relative; display: grid; justify-items: center; gap: 14px; padding: 24px 16px; width: min(560px, 100%); text-align: center; }
-.eco-open__eyebrow { color: var(--trim); font-weight: 700; }
+.eco-open__eyebrow { color: color-mix(in srgb, var(--trim) 55%, #0a1633); font-weight: 800; }
 .eco-open__crate { cursor: pointer; position: relative; filter: drop-shadow(0 24px 26px rgba(10, 22, 51, 0.22)); -webkit-tap-highlight-color: transparent; }
 .eco-open__actions { display: grid; justify-items: center; gap: 10px; min-height: 92px; }
-.eco-open__hint { font-size: var(--lm-fs-xs); color: var(--lm-ink-3); max-width: 40ch; }
-.eco-open__hint--skip { letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.8; animation: eco-blink 1.4s ease-in-out infinite; }
-@keyframes eco-blink { 50% { opacity: 0.3; } }
+.eco-open__hint { font-size: var(--lm-fs-xs); font-weight: 600; color: var(--lm-ink-2); max-width: 40ch; }
+.eco-open__hint--skip { letter-spacing: 0.12em; text-transform: uppercase; color: var(--lm-ink); opacity: 1; animation: eco-blink 1.4s ease-in-out infinite; }
+@keyframes eco-blink { 50% { opacity: 0.65; } }
 .eco-open__buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; animation: eco-rise 600ms var(--lm-ease-out-expo) 500ms both; }
 
 /* ready: the crate breathes, waiting */

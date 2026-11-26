@@ -46,9 +46,9 @@ describe('clock maths', () => {
     expect(clockPhase(50, 120)).toBe('tense');
     expect(clockPhase(25, 120)).toBe('critical');
     expect(clockPhase(8, 120)).toBe('final');
-    expect(clockColor(120, 120)).toBe('#ffd27a');
-    expect(clockColor(30, 120)).toBe('#ef4444');
-    expect(clockColor(5, 120)).toBe('#f43f5e');
+    expect(clockColor(120, 120)).toBe('#2257f0');
+    expect(clockColor(30, 120)).toBe('#e11d48');
+    expect(clockColor(5, 120)).toBe('#e11d48');
   });
 });
 

@@ -465,7 +465,7 @@
   .exm-tool__tech { margin: 0 8px 8px; }
   .exm-tool__tech-full { display: none; }
   .exm-tool__tech-short { display: inline; }
-  .exm-overlay { zoom: 0.72; max-height: 56px; overflow-x: auto; overflow-y: hidden; }
+  .exm-overlay { zoom: 0.72; max-height: none; overflow: visible; padding-block: 2px 6px; }
   .exm-board__titles { padding-inline-end: 0; }
   .exm-board__head { align-items: flex-start; gap: 12px; padding-bottom: 16px; margin-bottom: 18px; }
   .exm-board__titles h1 { font-size: var(--lm-fs-3xl); }
@@ -517,3 +517,154 @@ html[dir="rtl"] { --exm-dir: -1; }
 :lang(he) .exm-stamp__top, :lang(he) .exm-stamp__bot { padding-inline-start: 0; font-weight: 700; }
 /* Clinical state stays left-to-right: the technician check, eye badge and time readouts. */
 .exm-clock, .exm-chip--time { unicode-bidi: isolate; }
+
+/* ==========================================================================
+   Clinic Glass v2 — visible translucency over a living backdrop, specular
+   rims, AA-readable labels, explicit scroll affordances, clear tile states.
+   ========================================================================== */
+/* A soft colour field behind the panels so the glass has something to refract. */
+.exm-stage {
+  background:
+    radial-gradient(520px 380px at 4% 6%, rgba(78, 204, 245, 0.42), transparent 70%),
+    radial-gradient(560px 420px at 96% 10%, rgba(162, 93, 220, 0.26), transparent 70%),
+    radial-gradient(680px 440px at 52% 58%, rgba(59, 107, 255, 0.22), transparent 70%),
+    radial-gradient(520px 380px at 94% 94%, rgba(255, 168, 120, 0.3), transparent 70%),
+    radial-gradient(480px 360px at 6% 92%, rgba(45, 212, 191, 0.26), transparent 70%);
+}
+
+/* Liquid Glass panels: see-through body, strong blur, a bright specular rim. */
+.exm .lm-panel {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 52%, rgba(255, 255, 255, 0.44) 100%);
+  backdrop-filter: blur(30px) saturate(210%); -webkit-backdrop-filter: blur(30px) saturate(210%);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 1), inset 1.5px 0 0 rgba(255, 255, 255, 0.75), inset 0 -1px 0 rgba(255, 255, 255, 0.5),
+    0 0 0 1px rgba(10, 22, 51, 0.07), 0 14px 34px -14px rgba(10, 22, 51, 0.2), 0 32px 60px -34px rgba(10, 22, 51, 0.2);
+}
+.exm .lm-panel::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; z-index: 1;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.1) 38%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.85));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.exm .lm-panel.exm-triage { background: linear-gradient(150deg, rgba(255, 226, 180, 0.92) 0%, rgba(255, 246, 232, 0.7) 70%); }
+.exm-tool { background: rgba(255, 255, 255, 0.58); }
+.exm-cg { background: rgba(255, 255, 255, 0.5); }
+.exm-log { background: rgba(255, 255, 255, 0.36); }
+.exm-pin { background: rgba(255, 255, 255, 0.66); }
+.exm-dock {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.5));
+  backdrop-filter: blur(30px) saturate(210%); -webkit-backdrop-filter: blur(30px) saturate(210%);
+}
+
+/* Readable labels: navy/slate at 12px+ (AA on glass), never pale grey. */
+.exm .lm-panel__eyebrow { color: var(--lm-ink-2); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+.exm-no { font-size: 12.5px; }
+.exm-qgroup__title { font-size: 12px; color: var(--lm-ink-2); letter-spacing: 0.06em; }
+.exm-msg--them b { font-size: 12px; letter-spacing: 0.04em; }
+.exm-count { height: 26px; padding: 0 11px; font-size: 12.5px; color: var(--lm-brand-900); background: rgba(255, 255, 255, 0.72); box-shadow: inset 0 0 0 1px var(--lm-brand-200); }
+.exm-card__quote, .exm-patient__foot { color: var(--lm-ink-2); font-size: var(--lm-fs-sm); }
+.exm-patient__foot { font-size: 12.5px; }
+.exm-dock__status span { height: 30px; color: var(--lm-ink); font-size: 13px; background: rgba(255, 255, 255, 0.68); box-shadow: inset 0 0 0 1px var(--lm-border); }
+.exm-cg__tag { font-size: 11px; color: var(--lm-ink); }
+.exm-eye { font-size: 11px; }
+.exm-row__flag { height: 24px; font-size: 12px; padding: 0 10px 0 8px; }
+.exm-row__label { color: var(--lm-ink-2); font-size: 12.5px; }
+.exm-dx__cat, .exm-stamp__top { color: var(--lm-ink-2); }
+.exm-dx__pin { font-size: 11px; }
+.exm-triage p { color: var(--lm-ink); }
+
+/* The patient's line: a compact messenger bubble, sized by its text. */
+.exm-bubble { --speech-bg: #fff; padding: 12px 16px 13px; border-radius: 20px; min-height: 0; }
+.exm-bubble .lm-speech__text { font-size: var(--lm-fs-md); line-height: 1.45; }
+
+/* Instrument tiles: a clear unused (azure "Run" pill) / charted (green) split. */
+.exm-tool__icon { width: 40px; height: 40px; border-radius: 13px; }
+.exm-tool__sub {
+  display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; margin-top: 5px; padding: 3px 9px 3px 7px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; line-height: 1.2; color: var(--lm-brand-800); background: var(--lm-brand-100); box-shadow: inset 0 0 0 1px var(--lm-brand-200);
+}
+.exm-tool__sub svg { flex: none; fill: currentColor; }
+.exm-tool.is-done .exm-tool__sub { box-shadow: none; }
+.exm-tool:not(.is-done):hover .exm-tool__sub { color: #fff; background: var(--lm-accent-gradient); box-shadow: none; }
+.exm-tool__tech {
+  color: var(--lm-brand-700); font-size: 12.5px; background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 0 1px var(--lm-brand-200), 0 4px 10px -6px rgba(34, 87, 240, 0.55);
+}
+.exm-tool__tech:hover { color: #fff; background: var(--lm-accent-gradient); box-shadow: none; }
+
+/* Desktop: the three columns share the height; inner lists scroll with a visible bottom fade. */
+@media (min-width: 1024px) {
+  .exm-cols:not(.is-narrow) .exm-col--centre { grid-template-rows: minmax(220px, 1.12fr) minmax(250px, 1fr); }
+  .exm-cols:not(.is-narrow) .exm-col--centre .exm-tray { max-height: none; min-height: 0; }
+  .exm-cols:not(.is-narrow) .exm-tray .lm-panel__header { margin-bottom: 10px; }
+  .exm-cols:not(.is-narrow) .exm-tools { grid-template-columns: repeat(auto-fill, minmax(min(100%, 196px), 1fr)); grid-auto-rows: min-content; align-content: start; padding-bottom: 30px; }
+  .exm-cols:not(.is-narrow) .exm-tool { display: block; min-height: 0; }
+  .exm-cols:not(.is-narrow) .exm-tool__main { display: flex; align-items: flex-start; min-height: 72px; padding: 10px 12px; gap: 11px; }
+  .exm-cols:not(.is-narrow) .exm-tool__icon { width: 40px; height: 40px; }
+  .exm-cols:not(.is-narrow) .exm-tool__name { font-size: var(--lm-fs-md); line-height: 1.15; }
+  .exm-cols:not(.is-narrow) .exm-tool__sub { margin-top: 6px; }
+  /* the technician shortcut sits in the empty corner beside the "min" pill: a clear azure-ringed circle, not a disabled grey dot */
+  .exm-cols:not(.is-narrow) .exm-tool__tech { position: absolute; inset-inline-end: 10px; bottom: 10px; width: 30px; height: 30px; margin: 0; }
+  .exm-cols:not(.is-narrow) .exm-col--patient { padding-bottom: 30px; }
+  .exm-cols:not(.is-narrow) .exm-col--patient, .exm-cols:not(.is-narrow) .exm-col--chart,
+  .exm-cols:not(.is-narrow) .exm-tools, .exm-cols:not(.is-narrow) .exm-history__groups,
+  .exm-cols:not(.is-narrow) .exm-log__list, .exm-cols:not(.is-narrow) .exm-chart__groups {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 30px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 30px), transparent);
+  }
+  .exm-cols:not(.is-narrow) .exm-history__groups, .exm-cols:not(.is-narrow) .exm-log__list, .exm-cols:not(.is-narrow) .exm-chart__groups { padding-bottom: 26px; }
+  .exm-cols:not(.is-narrow) .exm-portrait { width: min(100%, 196px); }
+  .exm-cols:not(.is-narrow) .exm-patient { gap: 10px; }
+  .exm-cols:not(.is-narrow) .exm-card__name { font-size: var(--lm-fs-xl); }
+}
+@media (min-width: 1024px) and (min-height: 1100px) { .exm-cols:not(.is-narrow) .exm-portrait { width: min(100%, 236px); } }
+
+/* Phones: bigger touch targets, a stable single column. */
+@media (max-width: 1023px) {
+  .exm-tool__main { min-height: 60px; }
+  .exm-tool__tech { min-height: 38px; }
+  .exm-q { min-height: 40px; }
+  .exm-bubble { padding: 11px 15px 12px; }
+}
+@media (max-width: 640px) {
+  .exm-tool__icon { width: 36px; height: 36px; }
+  .exm-tool__name { font-size: var(--lm-fs-sm); }
+}
+
+/* Diagnosis board sits on the same living colour field. */
+.exm-board {
+  background:
+    radial-gradient(620px 420px at 6% 4%, rgba(78, 204, 245, 0.42), transparent 70%),
+    radial-gradient(640px 460px at 98% 8%, rgba(162, 93, 220, 0.28), transparent 70%),
+    radial-gradient(720px 460px at 50% 60%, rgba(59, 107, 255, 0.2), transparent 70%),
+    radial-gradient(560px 400px at 92% 96%, rgba(255, 168, 120, 0.3), transparent 70%),
+    var(--lm-canvas);
+}
+
+/* "More below" chevron for the instrument list (shown only while it can still scroll). */
+.exm-tray__more {
+  all: unset; box-sizing: border-box; cursor: pointer; position: absolute; z-index: 2; bottom: 12px; inset-inline: 0; margin-inline: auto; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  color: #fff; background: var(--lm-accent-gradient); box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.45), 0 8px 18px -6px rgba(34, 87, 240, 0.7);
+  animation: exm-nudge-down 1.8s var(--lm-ease-in-out) infinite;
+}
+.exm-tray__more svg { transform: rotate(90deg); }
+.exm-tray__more:focus-visible { outline: var(--lm-focus-width) solid var(--lm-focus-color); outline-offset: 2px; }
+@keyframes exm-nudge-down { 50% { transform: translateY(3px); } }
+@media (min-width: 1024px) { .exm-cols:not(.is-narrow) .exm-tools { padding-bottom: 22px; } }
+.exm.is-reduced .exm-tray__more { animation: none; }
+
+/* Diagnosis board: the same see-through glass + specular rim as the workspace. */
+.exm-dx__card, .exm-urg-grid, .exm-conf, .exm-board__foot {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.3) 55%, rgba(255, 255, 255, 0.44) 100%);
+  backdrop-filter: blur(30px) saturate(210%); -webkit-backdrop-filter: blur(30px) saturate(210%);
+  box-shadow: inset 0 1.5px 0 #fff, inset 1.5px 0 0 rgba(255, 255, 255, 0.75), inset 0 -1px 0 rgba(255, 255, 255, 0.5), 0 0 0 1px rgba(10, 22, 51, 0.07), 0 14px 34px -14px rgba(10, 22, 51, 0.2);
+}
+.exm-dx__card::after, .exm-urg-grid::after, .exm-conf::after, .exm-board__foot::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: linear-gradient(140deg, #fff, rgba(255, 255, 255, 0.1) 38%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.85));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.exm-urg-grid, .exm-conf { position: relative; }
+.exm-dx:hover .exm-dx__card { box-shadow: inset 0 1.5px 0 #fff, 0 0 0 1.5px var(--lm-brand-300), 0 22px 40px -16px rgba(34, 87, 240, 0.35); }
+.exm-dx.is-picked .exm-dx__card { background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(220, 230, 255, 0.7)); box-shadow: inset 0 1.5px 0 #fff, 0 0 0 2.5px var(--lm-brand-600), 0 24px 44px -16px rgba(34, 87, 240, 0.5); }
+.exm-urg__detail, .exm-conf__card small { color: var(--lm-ink-2); font-size: 12.5px; }
+.exm-board__titles .lm-eyebrow { font-size: 12px; }
+.exm-stamp__ring { background: linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(236, 242, 255, 0.82)); }

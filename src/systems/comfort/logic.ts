@@ -49,7 +49,7 @@ export interface GiftDay {
   coins: number;
   /** Mystery satchel: an extra coin bundle whose size is a published rarity roll. */
   satchel: boolean;
-  /** Flavour: what the gift is wrapped in tonight. Coins are the reward. */
+  /** Flavour: what the gift is wrapped in today. Coins are the reward. */
   label: string;
 }
 
@@ -272,7 +272,7 @@ export function nextGift(s: ComfortState): GiftDay {
   return GIFT_CALENDAR[s.gift.next] ?? GIFT_CALENDAR[0]!;
 }
 
-/** Short progress line toward the evening-7 grand satchel (counts gifts, not days: missed evenings never matter). */
+/** Short progress line toward the day-7 grand satchel (counts gifts, not days: missed days never matter). */
 export function grandSatchelHint(s: ComfortState, ready: boolean, locale: Locale = 'en'): string {
   const t = pickStrings(S, locale);
   if (!ready && s.gift.next === 0 && s.gift.totalClaims > 0) return t.hintWeekDone;

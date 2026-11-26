@@ -484,3 +484,79 @@ html.reduced-motion .rs-rosette, html.reduced-motion .rs-next::before, html.redu
 /* RTL: bars fill from the inline start; hebrew letterforms need no uppercase tracking */
 [dir='rtl'] .rs-ledger__bar > span { transform-origin: right; }
 :lang(he) .rs-qa__cat, :lang(he) .lm-eyebrow, :lang(he) .rs-card__ribbon, :lang(he) .rs-teach__h { letter-spacing: 0; text-transform: none; }
+
+/* ==========================================================================
+   Clinic Glass v2 — see-through glass with specular rims, a grade colour that
+   ties medal, label and numeral together, a clear focal numeral, bar clearance.
+   ========================================================================== */
+.rs-content {
+  background:
+    radial-gradient(560px 420px at 4% 6%, rgba(78, 204, 245, 0.34), transparent 70%),
+    radial-gradient(620px 460px at 98% 10%, rgba(162, 93, 220, 0.2), transparent 70%),
+    radial-gradient(720px 480px at 50% 52%, rgba(59, 107, 255, 0.16), transparent 70%),
+    radial-gradient(560px 420px at 94% 96%, rgba(255, 168, 120, 0.26), transparent 70%),
+    radial-gradient(520px 380px at 6% 94%, rgba(45, 212, 191, 0.22), transparent 70%);
+}
+.rs-page { padding-bottom: calc(112px + var(--lm-safe-bottom)); }
+
+/* Glass: translucent body, strong blur, bright specular rim. */
+.rs-scorepanel.lm-panel, .rs-teach .lm-panel, .rs-clinic .lm-panel:not(.lm-panel--glow), .rs-callout, .rs-reflect, .rs-card__face--front {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.66) 0%, rgba(255, 255, 255, 0.36) 52%, rgba(255, 255, 255, 0.5) 100%);
+  backdrop-filter: blur(30px) saturate(210%); -webkit-backdrop-filter: blur(30px) saturate(210%);
+  box-shadow: inset 0 1.5px 0 #fff, inset 1.5px 0 0 rgba(255, 255, 255, 0.75), inset 0 -1px 0 rgba(255, 255, 255, 0.5), 0 0 0 1px rgba(10, 22, 51, 0.07), 0 16px 36px -14px rgba(10, 22, 51, 0.2), 0 34px 64px -36px rgba(10, 22, 51, 0.22);
+}
+.rs-card__face--front { background: radial-gradient(120% 60% at 50% -12%, color-mix(in srgb, var(--vc) 26%, transparent), transparent 64%), linear-gradient(150deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.5) 100%); }
+.rs-scorepanel.lm-panel::after, .rs-teach .lm-panel::after, .rs-clinic .lm-panel:not(.lm-panel--glow)::after, .rs-callout::after, .rs-reflect::after, .rs-card__face--front::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; z-index: 2;
+  background: linear-gradient(140deg, #fff, rgba(255, 255, 255, 0.1) 38%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.85));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.rs-callout, .rs-reflect { position: relative; }
+.rs-qa li, .rs-clue { background: rgba(255, 255, 255, 0.58); }
+
+/* One grade colour ties the medal, the label, the numeral underline and the panel rim. */
+.rs-hero__right { --g: var(--lm-vivid-sky); }
+.rs-g--S { --g: var(--lm-vivid-yellow); }
+.rs-g--A { --g: var(--lm-vivid-green); }
+.rs-g--B { --g: var(--lm-vivid-blue); }
+.rs-g--C { --g: var(--lm-vivid-purple); }
+.rs-g--D { --g: var(--lm-vivid-orange); }
+.rs-g--F { --g: var(--lm-vivid-red); }
+.rs-head__text .lm-eyebrow {
+  align-self: flex-start; display: inline-flex; align-items: center; height: 26px; padding: 0 12px; border-radius: var(--lm-r-pill);
+  font-size: 12px; font-weight: 750; color: var(--lm-ink); background: var(--g); box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.55), 0 6px 14px -6px color-mix(in srgb, var(--g) 90%, transparent);
+}
+.rs-scorepanel.lm-panel { box-shadow: inset 0 1.5px 0 #fff, inset 1.5px 0 0 rgba(255, 255, 255, 0.75), 0 0 0 1px color-mix(in srgb, var(--g) 36%, rgba(10, 22, 51, 0.06)), 0 16px 36px -14px color-mix(in srgb, var(--g) 50%, transparent), 0 34px 64px -36px rgba(10, 22, 51, 0.22); }
+
+/* The case total is the page's focal point: first in the panel, huge, underlined in the grade colour. */
+.rs-ledger { display: flex; flex-direction: column; }
+.rs-ledger__total { order: -1; align-items: flex-end; padding: var(--lm-sp-2) 2px var(--lm-sp-5); margin-bottom: var(--lm-sp-3); border-bottom: 1px solid var(--lm-rule); }
+.rs-ledger__total-num .lm-num { font-size: clamp(4.4rem, 2.6rem + 6vw, 7.4rem); line-height: 0.88; letter-spacing: -0.05em; background: linear-gradient(var(--g), var(--g)) no-repeat 0 98% / 100% 0.075em; padding-bottom: 0.1em; }
+.rs-ledger__total-num .rs-ledger__max { font-size: var(--lm-fs-xl); font-weight: 600; color: var(--lm-ink-3); margin-inline-start: 6px; }
+.rs-ledger__total .lm-eyebrow { color: var(--lm-ink-2); font-size: 12px; }
+.rs-ledger__grade-word { height: 34px; padding: 0 16px; font-size: var(--lm-fs-md); font-weight: 800; color: var(--lm-ink); background: var(--g); box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.55), 0 8px 18px -8px color-mix(in srgb, var(--g) 90%, transparent); }
+.rs-ledger__pts { font-size: var(--lm-fs-lg); }
+.rs-ledger__label { color: var(--lm-ink); }
+.rs-ledger__max { color: var(--lm-ink-3); }
+.rs-clock__label, .rs-card__chosen-label { font-size: 12px; color: var(--lm-ink-2); }
+.rs-teach__h { font-size: 12px; }
+.rs-qa__cat, .rs-scale__tag { font-size: 11px; }
+.rs-card__patient-text span { color: var(--lm-ink-2); }
+
+/* Other systems' rail panels share one heading scale. */
+.rs-clinic .lm-panel__title { font-size: var(--lm-fs-xl); font-weight: 800; letter-spacing: var(--lm-tracking-display); }
+.rs-clinic .lm-panel__eyebrow { color: var(--lm-ink-2); font-size: 12px; font-weight: 700; }
+
+/* Action bar: more opaque + deeper blur so lesson text behind it never reads as clutter; a soft scrim fades the page out under it. */
+.rs-actions {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.78));
+  backdrop-filter: blur(36px) saturate(200%); -webkit-backdrop-filter: blur(36px) saturate(200%);
+}
+.rs-screen.rs-bar-on::after {
+  content: ''; position: absolute; inset-inline: 0; bottom: 0; height: 150px; pointer-events: none; z-index: calc(var(--lm-z-hud) - 1);
+  background: linear-gradient(to top, rgba(238, 242, 250, 0.96) 18%, rgba(238, 242, 250, 0)); animation: lm-fade-up 500ms var(--lm-ease-out) both;
+}
+@media (max-width: 640px) { .rs-page { padding-bottom: calc(132px + var(--lm-safe-bottom)); } .rs-ledger__total-num .lm-num { font-size: clamp(4rem, 22vw, 5.6rem); } }
+
+.rs-head__stamp { position: relative; }
+.rs-head__stamp::before { content: ''; position: absolute; inset: -22%; z-index: -1; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, color-mix(in srgb, var(--g) 42%, transparent), transparent 72%); }

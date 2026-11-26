@@ -26,7 +26,7 @@ export const WINGS: Record<DiagnosisCategory, WingInfo> = {
   glaucoma: { label: 'Glaucoma', wing: 'Pressure Chamber', color: '#00c875' },
   lens: { label: 'Lens', wing: 'Crystal Room', color: '#ffcb00' },
   retina: { label: 'Retina', wing: 'Retina Nave', color: '#ff5a6e' },
-  neuro: { label: 'Neuro-ophthalmic', wing: 'Neuro Observatory', color: '#c084fc' },
+  neuro: { label: 'Neuro-ophthalmic', wing: 'Neuro Suite', color: '#c084fc' },
   systemic: { label: 'Systemic', wing: 'Systemic Study', color: '#fb923c' },
   normal: { label: 'Healthy Eyes', wing: 'Healthy Eye Alcove', color: '#ffcb00' },
 };

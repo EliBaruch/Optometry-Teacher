@@ -7,7 +7,7 @@
 }
 .pu-root button:not(.lm-btn) { font: inherit; color: inherit; }
 .pu-num { font-family: var(--lm-font-num, sans-serif); font-variant-numeric: tabular-nums; }
-.pu-eyebrow { margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-ink-3); }
+.pu-eyebrow { margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-brand-700); }
 .pu-root :focus-visible { outline: 2px solid var(--lm-brand-600); outline-offset: 2px; }
 
 /* header */

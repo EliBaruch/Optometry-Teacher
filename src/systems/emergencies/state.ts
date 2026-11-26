@@ -2,7 +2,7 @@ import { signal, type GameServices, type Signal } from '@core';
 import { INITIAL_STATS, STATS_VERSION, migrateStats, type EmergencyStats } from './logic';
 
 export const SYSTEM_ID = 'emergencies';
-export const ACCENT = '#ef4444';
+export const ACCENT = '#e11d48';
 export const SLOT = `sys:${SYSTEM_ID}`;
 
 /** The persisted Code Red slice (the save service caches it per namespace). */

@@ -96,7 +96,7 @@ export function cardPaletteInfo(irisColor: string, rarity: CardRarity, seed = 0)
   const spin = rng.float(-10, 10);
   const character = CHARACTERS[rng.int(0, CHARACTERS.length - 1)]!;
   const dark = src.l < 0.24;
-  // Lift dark irises enough to read as rich brown/hazel on a midnight card, never into orange.
+  // Lift dark irises enough to read as rich brown/hazel on a glass card, never into orange.
   const mid: HSL = dark
     ? { h: h + spin, s: clamp(src.s * rng.float(0.95, 1.3), 0.36, 0.64), l: rng.float(0.27, 0.4) }
     : { h: h + spin, s: clamp(Math.max(src.s, 0.2) * rng.float(1, 1.35), 0.26, 0.72), l: clamp(src.l * rng.float(1.02, 1.28), 0.34, 0.6) };

@@ -71,12 +71,12 @@ function mix(a: string, b: string, t: number): string {
   return '#' + A.map((v, i) => Math.round(v + (B[i]! - v) * clamp01(t)).toString(16).padStart(2, '0')).join('');
 }
 
-/** Ring colour: candle gold → amber → Code Red crimson as the clock drains. */
+/** Ring colour: azure → amber → Code Red crimson as the clock drains. */
 export function clockColor(remaining: number, limit: number): string {
   const f = limit > 0 ? clamp01(remaining / limit) : 0;
-  if (remaining <= 10) return '#f43f5e';
-  if (f > 0.55) return mix('#ffd27a', '#fb923c', (1 - f) / 0.45);
-  return mix('#fb923c', '#ef4444', (0.55 - f) / 0.3);
+  if (remaining <= 10) return '#e11d48';
+  if (f > 0.55) return mix('#2257f0', '#f59e0b', (1 - f) / 0.45);
+  return mix('#f59e0b', '#e11d48', (0.55 - f) / 0.3);
 }
 
 // ── Outcomes & rewards ───────────────────────────────────────────────────

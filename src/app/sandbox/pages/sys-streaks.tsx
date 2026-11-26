@@ -152,7 +152,11 @@ function Page({ services }: { services: GameServices }) {
         <section class="sksb-col">
           <h2 class="sksb-h">exam-overlay</h2>
           <div class="sksb-exam">
-            <div class="sksb-exam__overlay"><HudSlot slot="exam-overlay" /></div>
+            <div class="sksb-exam__bar">
+              <span class="sksb-exam__title"><i class="sksb-exam__dot" />Exam in progress</span>
+              <span class="sksb-exam__skeleton" aria-hidden="true"><i /><i /><i /></span>
+              <div class="sksb-exam__overlay"><HudSlot slot="exam-overlay" /></div>
+            </div>
             <p class="sksb-exam__hint">{run ? t.runLine((() => { const m = services.registries.modes.get(run.modeId); return m ? modeText(m, services.locale).title : undefined; })(), run.completed.length, run.totalScore) : t.startHint}</p>
           </div>
           <h2 class="sksb-h">results-extra</h2>
@@ -245,9 +249,15 @@ const CSS = `
 .sksb-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .sksb-col .hud-slot { display: flex; flex-direction: column; gap: 14px; }
 .sksb-h { margin: 6px 0 0; font: 650 11px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-ink-3); }
-.sksb-exam { position: relative; min-height: 120px; border-radius: 18px; padding: 14px; background: var(--lm-glass); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); }
+.sksb-exam { position: relative; min-height: 200px; border-radius: 22px; padding: 18px 20px 22px; background: var(--lm-glass); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); }
+.sksb-exam__bar { display: flex; align-items: center; gap: 14px; padding: 8px 10px 8px 16px; border-radius: 999px; background: rgba(255,255,255,.7); box-shadow: inset 0 0 0 1px var(--lm-border); }
+.sksb-exam__title { display: inline-flex; align-items: center; gap: 8px; font: 700 13px/1 var(--lm-font-ui); color: var(--lm-ink); white-space: nowrap; }
+.sksb-exam__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--lm-vivid-green); box-shadow: 0 0 0 4px rgba(0,200,117,.22); }
+.sksb-exam__skeleton { flex: 1; display: flex; gap: 8px; }
+.sksb-exam__skeleton i { height: 8px; border-radius: 4px; background: var(--lm-rule); flex: 1; }
+.sksb-exam__skeleton i:first-child { flex: 2; }
 .sksb-exam__overlay { display: flex; justify-content: flex-end; min-height: 40px; }
-.sksb-exam__hint { margin: 30px 0 0; color: var(--lm-ink-3); font-size: 13px; }
+.sksb-exam__hint { margin: 22px 0 0; color: var(--lm-ink-2); font-size: 14px; font-weight: 500; }
 .sksb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(470px, calc(100vw - 24px)); padding: 12px; border-radius: var(--lm-r-md);
   background: var(--lm-glass-bg-strong); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); backdrop-filter: var(--lm-glass-blur); display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--lm-ink-2); }
 .sksb-dock summary { cursor: pointer; color: var(--lm-ink); font-weight: 600; }

@@ -76,8 +76,11 @@
 .sk-chip__freeze { display: inline-flex; align-items: center; gap: 1px; margin-inline-start: 2px; font-size: 10px; color: #0369a1; }
 .sk-chip.is-waiting { animation: sk-glowpulse 3.2s var(--lm-ease-in-out) infinite; }
 .sk-chip.is-protected { background: radial-gradient(120% 160% at 0% 50%, rgba(78, 204, 245, 0.32), transparent 65%), var(--lm-glass); }
-.sk-chip.is-new, .sk-chip.is-resting { background: var(--lm-glass); }
-.sk-chip.is-new .sk-chip__num, .sk-chip.is-resting .sk-chip__num { color: var(--lm-ink-3); }
+.sk-chip.is-new, .sk-chip.is-resting { background: radial-gradient(120% 160% at 0% 50%, rgba(253, 171, 61, 0.34), transparent 70%), var(--lm-glass); box-shadow: var(--lm-glass-highlight), 0 0 0 1px rgba(253, 171, 61, 0.45), var(--lm-glass-shadow); }
+.sk-chip.is-new .sk-chip__num, .sk-chip.is-resting .sk-chip__num { color: #9a4a06; }
+.sk-chip { animation: sk-chip-in 520ms var(--lm-ease-spring) both; }
+@keyframes sk-chip-in { from { opacity: 0; transform: translateY(-8px) scale(0.92); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sk-chip { animation: none; } }
 @keyframes sk-glowpulse {
   0%, 100% { box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); }
   50% { box-shadow: var(--lm-glass-highlight), 0 0 0 2px rgba(253, 171, 61, 0.55), 0 12px 28px -10px rgba(234, 88, 12, 0.45); }
@@ -138,7 +141,7 @@
 .sk-ladder { list-style: none; margin: var(--lm-sp-4) 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .sk-ladder__step {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 7px; border-radius: var(--lm-r-sm);
-  background: rgba(255, 255, 255, 0.6); box-shadow: inset 0 0 0 1px var(--lm-border); color: var(--lm-ink-3);
+  background: rgba(255, 255, 255, 0.7); box-shadow: inset 0 0 0 1px var(--lm-border-strong); color: var(--lm-ink-2);
   animation: sk-in 0.45s var(--lm-ease-out-expo) both; animation-delay: calc(0.25s + var(--sk-i) * 70ms);
 }
 .sk-ladder__mult { font-family: var(--lm-font-num); font-size: var(--lm-fs-md); font-weight: 700; }

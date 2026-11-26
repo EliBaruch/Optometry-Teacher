@@ -8,7 +8,10 @@
 .eco-shop__hero {
   position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: var(--lm-sp-5);
   padding: clamp(24px, 4vw, 44px) clamp(20px, 4vw, 48px); border-radius: var(--lm-r-xl);
-  background: radial-gradient(70% 120% at 100% 0%, color-mix(in srgb, var(--lm-coin) 22%, transparent), transparent 60%), var(--lm-glass);
+  background:
+    radial-gradient(60% 110% at 100% 0%, color-mix(in srgb, var(--lm-brand-400, #5b8def) 20%, transparent), transparent 62%),
+    radial-gradient(50% 90% at 0% 100%, color-mix(in srgb, var(--lm-brand-300, #9bbcf8) 18%, transparent), transparent 60%),
+    var(--lm-glass);
   backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
   box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow);
   animation: eco-rise 700ms var(--lm-ease-out-expo) both;
@@ -33,15 +36,15 @@
 
 /* ── Crate shelf: a glass shelf ───────────────────────────────────────── */
 .eco-shelf {
-  position: relative; padding: 18px 20px 26px; border-radius: var(--lm-r-lg);
+  position: relative; padding: 14px 20px 14px; border-radius: var(--lm-r-lg); min-height: 0;
   background: var(--lm-glass);
   backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
   box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow);
   animation: eco-rise 700ms var(--lm-ease-out-expo) 80ms both;
 }
-.eco-shelf__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: -8px; }
+.eco-shelf__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 0; }
 .eco-shelf__head h3 { font-size: var(--lm-fs-xl); font-weight: 800; letter-spacing: var(--lm-tracking-display); color: var(--lm-ink); }
-.eco-shelf__row { display: flex; gap: 6px; overflow-x: auto; margin: 0; padding: 14px 4px 0; list-style: none; scroll-snap-type: x mandatory; align-items: flex-end; }
+.eco-shelf__row { display: flex; gap: 6px; overflow-x: auto; margin: 0; padding: 8px 4px 0; list-style: none; scroll-snap-type: x mandatory; align-items: flex-end; }
 /* Entrance on the <li>, hover lift on the <button>: the two transforms never fight. */
 .eco-shelf__slot { flex: none; scroll-snap-align: start; animation: eco-crate-arrive 700ms var(--lm-ease-spring) backwards; animation-delay: calc(var(--i) * 70ms + 200ms); }
 .eco-shelf__crate {
@@ -60,17 +63,39 @@
 .eco-shelf__crate:focus-visible { outline: 2px solid var(--lm-brand-500); outline-offset: 2px; }
 .eco-shelf__crate:hover .eco-crate, .eco-shelf__crate:focus-visible .eco-crate { --leak: 0.5; }
 .eco-shelf__crate:hover .eco-shelf__name, .eco-shelf__crate:focus-visible .eco-shelf__name { color: var(--lm-ink); }
-.eco-shelf__name { font-size: 11px; font-weight: 600; color: var(--lm-ink-3); letter-spacing: 0.02em; }
+.eco-shelf__name { font-size: 11px; font-weight: 700; color: var(--lm-ink-2); letter-spacing: 0.02em; }
 .eco-shelf__more { align-self: center; padding: 0 12px; color: var(--lm-accent-text); font-weight: 700; }
-.eco-shelf__empty { display: flex; align-items: center; gap: 10px; color: var(--lm-ink-3); font-size: var(--lm-fs-sm); padding: 12px 2px 6px; }
+.eco-shelf__empty { display: flex; align-items: center; gap: 10px; color: var(--lm-ink-2); font-size: var(--lm-fs-sm); padding: 8px 2px 2px; }
 .eco-shelf__empty svg { color: var(--lm-economy); flex: none; }
-.eco-shelf__brass { position: absolute; left: 20px; right: 20px; bottom: 12px; height: 2px; border-radius: 1px; background: var(--lm-rule); box-shadow: none; }
+.eco-shelf__brass { display: none; position: absolute; left: 20px; right: 20px; bottom: 12px; height: 2px; border-radius: 1px; background: var(--lm-rule); box-shadow: none; }
 
 /* ── Departments ──────────────────────────────────────────────────────── */
 .eco-shop__tabs { justify-self: center; max-width: 100%; overflow-x: auto; }
 .eco-shop__panel { outline: none; }
 .eco-cases { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--lm-sp-4); }
-@media (min-width: 900px) { .eco-cases--n6 { grid-template-columns: repeat(3, 1fr); } .eco-cases--n6 .eco-case__vitrine {
+@media (min-width: 900px) { .eco-cases--n6 { grid-template-columns: repeat(3, 1fr); } .eco-cases--n6 .eco-case__vitrine { height: 184px; } }
+
+.eco-case {
+  position: relative; display: flex; flex-direction: column; border-radius: var(--lm-r-lg); overflow: hidden;
+  background: var(--lm-glass);
+  box-shadow: var(--lm-glass-highlight), 0 0 0 1px color-mix(in srgb, var(--rc) 22%, transparent), var(--lm-glass-shadow);
+  transition: transform var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-med) var(--lm-ease-out);
+  /* backwards, not both: once the entrance ends, :hover may own transform */
+  animation: eco-rise 600ms var(--lm-ease-out-expo) backwards; animation-delay: calc(var(--i) * 60ms);
+}
+.eco-case:hover, .eco-case:has(:focus-visible) { transform: translateY(-5px); box-shadow: var(--lm-glass-highlight), 0 0 0 1.5px color-mix(in srgb, var(--rc) 55%, transparent), 0 22px 40px -18px color-mix(in srgb, var(--rc) 55%, transparent); }
+.eco-case--legendary::before {
+  content: ''; position: absolute; inset: 0; z-index: 3; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: var(--lm-iridescent); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: eco-hue 6s linear infinite; opacity: 0.85;
+}
+.eco-case.is-equipped { box-shadow: var(--lm-glass-highlight), 0 0 0 2px var(--lm-normal), 0 16px 30px -16px var(--lm-normal); }
+.eco-case.is-fresh { animation: eco-bought 1200ms var(--lm-ease-spring) backwards; }
+@keyframes eco-bought {
+  0% { transform: scale(1); } 20% { transform: scale(1.05) translateY(-6px); box-shadow: 0 0 0 2px var(--rc), 0 22px 50px -10px color-mix(in srgb, var(--rc) 60%, transparent); }
+  100% { transform: none; }
+}
+.eco-case__vitrine {
   position: relative; height: 168px; display: grid; place-items: center; overflow: hidden; margin: 8px 8px 0; border-radius: var(--lm-r-md);
   background:
     radial-gradient(70% 80% at 50% 100%, color-mix(in srgb, var(--rc) 22%, transparent), transparent 70%),
@@ -100,7 +125,7 @@
 .eco-price { font-family: var(--lm-font-num); font-weight: 700; letter-spacing: -0.01em; }
 .eco-price.is-confirm { animation: eco-confirm 900ms var(--lm-ease-in-out) infinite; }
 @keyframes eco-confirm { 50% { box-shadow: var(--lm-glow-gold); } }
-.eco-case__short { font-size: 11px; color: var(--lm-ink-3); }
+.eco-case__short { font-size: 11px; font-weight: 600; color: var(--lm-ink-2); }
 
 /* ── Ledger & odds ────────────────────────────────────────────────────── */
 .eco-ledger { display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--lm-sp-4); align-items: start; }
@@ -131,7 +156,7 @@
   .eco-ledger { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
-  .eco-shelf { padding: 14px 12px 24px; }
+  .eco-shelf { padding: 12px 12px 12px; }
   .eco-shelf__crate { padding: 4px 4px 8px; }
   .eco-shelf__row { padding-top: 10px; }
   .eco-shelf__crate .eco-crate { width: 74px; height: 74px; }

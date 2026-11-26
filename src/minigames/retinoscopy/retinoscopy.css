@@ -13,7 +13,7 @@
 }
 .rt-root button:not(.lm-btn) { font: inherit; color: inherit; }
 .rt-num { font-family: var(--lm-font-num, sans-serif); font-variant-numeric: tabular-nums; }
-.rt-eyebrow { margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-ink-3); }
+.rt-eyebrow { margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-brand-700); }
 .rt-k { margin: 0; font: 700 0.64rem/1 var(--lm-font-ui); letter-spacing: 0.13em; text-transform: uppercase; color: var(--lm-ink-3); }
 .rt-big { margin: 0; font-size: 1.32rem; font-weight: 600; line-height: 1.05; color: var(--lm-ink); letter-spacing: var(--lm-tracking-display, -0.02em); }
 .rt-sub { margin: 0; font-size: 0.74rem; color: var(--lm-ink-3); }

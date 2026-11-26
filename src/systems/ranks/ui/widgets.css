@@ -3,7 +3,7 @@
    ========================================================================== */
 
 /* ── Crest ──────────────────────────────────────────────────────────────── */
-.rk-crest { display: block; overflow: visible; filter: drop-shadow(0 6px 10px rgba(10, 22, 51, 0.18)); }
+.rk-crest { display: block; overflow: visible; filter: drop-shadow(0 0 0.6px rgba(10, 22, 51, 0.55)) drop-shadow(0 6px 10px rgba(10, 22, 51, 0.18)); }
 .rk-crest .rk-crest__rays { transform-origin: 60px 70px; transform-box: view-box; }
 .rk-crest.is-anim .rk-crest__rays { animation: rk-spin 48s linear infinite; }
 .rk-crest.is-anim .rk-crest__halo { transform-origin: 60px 70px; transform-box: view-box; animation: rk-breathe 4.8s var(--lm-ease-in-out) infinite; }
@@ -125,7 +125,7 @@
 .rk-stat dt { display: flex; align-items: center; gap: 5px; font-size: var(--lm-fs-2xs); text-transform: uppercase; letter-spacing: var(--lm-tracking-caps); font-weight: 650; color: var(--lm-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rk-stat dt .lm-icon { flex: none; }
 .rk-stat dt .lm-icon { color: var(--lm-career); }
-.rk-stat dd { margin: 4px 0 0; font-family: var(--lm-font-num); font-size: var(--lm-fs-2xl); font-weight: 700; letter-spacing: -0.02em; color: var(--lm-ink); }
+.rk-stat dd { margin: 4px 0 0; white-space: nowrap; font-family: var(--lm-font-num); font-size: var(--lm-fs-2xl); font-weight: 700; letter-spacing: -0.02em; color: var(--lm-ink); }
 
 /* ── Profile ────────────────────────────────────────────────────────────── */
 .rk-profile { display: flex; flex-direction: column; gap: var(--lm-sp-4); }
@@ -163,3 +163,5 @@ html.reduced-motion .rk-crest.is-anim .rk-crest__sheen,
 html.reduced-motion .rk-badge .rk-badge__dial,
 html.reduced-motion .rk-xp__flare { animation: none; }
 
+
+.rk-hero__stats .rk-stat dd { font-size: var(--lm-fs-xl); }

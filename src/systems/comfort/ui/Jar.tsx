@@ -53,7 +53,7 @@ const POOL: readonly Coin[] = (() => {
 
 /**
  * A blown-glass tip jar with a brass lid. Gold coins pile up to `fill` (0..1)
- * with a soft heap on top; an inner candle-glow brightens as it fills.
+ * with a soft heap on top; an inner glow brightens as it fills.
  */
 export function Jar(props: { fill: number; size?: number; class?: string }) {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');

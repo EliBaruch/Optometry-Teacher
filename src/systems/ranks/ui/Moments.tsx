@@ -140,7 +140,7 @@ function TrophyToast({ services, m, index, onDone }: { services: GameServices; m
   const txt = achText(m.def, locale);
   const ref = useRef<HTMLButtonElement>(null);
   const [leaving, setLeaving] = useState(false);
-  const color = RARITY_COLOR[m.def.rarity];
+  const color = m.def.rarity === 'common' ? '#1fa971' : RARITY_COLOR[m.def.rarity];
 
   useEffect(() => {
     const big = m.def.rarity === 'legendary' || m.def.rarity === 'epic';

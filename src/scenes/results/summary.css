@@ -72,9 +72,16 @@
 .sm-row.is-wrong .sm-row__res { background: var(--lm-vivid-red); }
 .sm-row__grade {
   width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center;
-  font-family: var(--lm-font-display); font-size: 20px; font-weight: 800; color: color-mix(in srgb, var(--g) 70%, var(--lm-ink));
-  background: color-mix(in srgb, var(--g) 16%, #fff); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 45%, transparent);
+  font-family: var(--lm-font-display); font-size: 20px; font-weight: 800; color: var(--lm-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 55%), var(--gv, var(--lm-surface-3)); box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.7), 0 6px 14px -6px color-mix(in srgb, var(--gv, transparent) 80%, transparent);
 }
+/* vivid medal fills, one per grade (same mapping as the results screen) */
+.sm-row__grade[data-grade='S'] { --gv: var(--lm-vivid-yellow); }
+.sm-row__grade[data-grade='A'] { --gv: var(--lm-vivid-green); }
+.sm-row__grade[data-grade='B'] { --gv: var(--lm-vivid-blue); }
+.sm-row__grade[data-grade='C'] { --gv: var(--lm-vivid-purple); }
+.sm-row__grade[data-grade='D'] { --gv: var(--lm-vivid-orange); }
+.sm-row__grade[data-grade='F'] { --gv: var(--lm-vivid-red); }
 .sm-row__pts { text-align: end; font-size: var(--lm-fs-lg); font-weight: 700; color: var(--lm-ink); }
 .sm-row__crown { position: absolute; top: -11px; inset-inline-start: 52px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: var(--lm-ink); background: var(--lm-vivid-yellow); box-shadow: 0 0 0 2px #fff, 0 6px 12px -4px rgba(245, 165, 36, 0.7); }
 .sm-row__crown svg { width: 14px; height: 14px; }
@@ -146,3 +153,32 @@ button.sm-study__item:focus-visible { outline: none; box-shadow: var(--lm-focus-
 @keyframes rs-beckon { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 1; transform: scale(1.04); } }
 .sm-row__ph--lg { flex: none; width: 64px; height: 64px; }
 :lang(he) .sm-total__label { letter-spacing: 0; text-transform: none; }
+
+
+/* ── Clinic Glass v2: see-through glass, specular rims, bar clearance ── */
+.sm-content {
+  background:
+    radial-gradient(560px 420px at 4% 6%, rgba(78, 204, 245, 0.34), transparent 70%),
+    radial-gradient(620px 460px at 98% 10%, rgba(162, 93, 220, 0.2), transparent 70%),
+    radial-gradient(720px 480px at 50% 55%, rgba(59, 107, 255, 0.16), transparent 70%),
+    radial-gradient(560px 420px at 94% 96%, rgba(255, 168, 120, 0.26), transparent 70%);
+}
+.sm-page { padding-bottom: calc(100px + var(--lm-safe-bottom)); }
+.sm-row, .sm-study, .sm-stat.lm-panel {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.66) 0%, rgba(255, 255, 255, 0.36) 52%, rgba(255, 255, 255, 0.5) 100%);
+  backdrop-filter: blur(30px) saturate(210%); -webkit-backdrop-filter: blur(30px) saturate(210%);
+  box-shadow: inset 0 1.5px 0 #fff, inset 1.5px 0 0 rgba(255, 255, 255, 0.75), 0 0 0 1px rgba(10, 22, 51, 0.07), 0 14px 32px -14px rgba(10, 22, 51, 0.2);
+}
+.sm-row.is-best { box-shadow: inset 0 1.5px 0 #fff, 0 0 0 2px var(--lm-vivid-yellow), 0 14px 30px -14px rgba(245, 165, 36, 0.5); }
+.sm-row::after, .sm-study::after, .sm-stat.lm-panel::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: linear-gradient(140deg, #fff, rgba(255, 255, 255, 0.1) 38%, rgba(255, 255, 255, 0.04) 62%, rgba(255, 255, 255, 0.85));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.sm-study { position: relative; }
+.sm-actions { background: linear-gradient(150deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.78)); backdrop-filter: blur(36px) saturate(200%); -webkit-backdrop-filter: blur(36px) saturate(200%); }
+.sm-total__label, .sm-stat .lm-eyebrow { color: var(--lm-ink-2); font-size: 12px; }
+.sm-total .lm-num { background: linear-gradient(var(--lm-accent), var(--lm-accent)) no-repeat 50% 98% / 34% 0.06em; padding-bottom: 0.08em; }
+.sm-row__who span, .sm-stat__sub { color: var(--lm-ink-2); }
+.sm-row__n { color: var(--lm-ink-2); }
+.sm-study__item { background: rgba(255, 255, 255, 0.7); }

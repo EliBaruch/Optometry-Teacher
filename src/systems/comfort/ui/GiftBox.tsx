@@ -4,7 +4,7 @@ import { cx } from '@ui-kit';
 export type GiftPhase = 'idle' | 'ready' | 'shaking' | 'open' | 'spent';
 
 /**
- * Procedural gift box: midnight-blue lacquer, ice-blue silk ribbon and a
+ * Procedural gift box: navy lacquer, ice-blue silk ribbon and a
  * brass clasp. `ready` bobs and glows, `shaking` wobbles in anticipation,
  * `open` throws the lid off with a spring and spills light rays.
  */

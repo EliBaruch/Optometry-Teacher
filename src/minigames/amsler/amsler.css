@@ -67,7 +67,7 @@
 }
 .amsler-card__plate::before {
   content: ''; position: absolute; inset: 6px; border-radius: 17px; pointer-events: none;
-  box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.072), inset 0 2px 6px rgba(10, 22, 51, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.08);
 }
 .amsler-card__canvas {
   display: block; border-radius: 12px; touch-action: pan-y; outline: none;
@@ -78,8 +78,8 @@
 .amsler-card__sheen {
   position: absolute; inset: 12px; border-radius: 12px; pointer-events: none;
   background:
-    linear-gradient(125deg, rgba(10, 22, 51, 0.045) 0%, rgba(10, 22, 51, 0.01) 22%, transparent 40%),
-    radial-gradient(120% 90% at 50% 50%, transparent 62%, rgba(10, 22, 51, 0.225) 100%);
+    linear-gradient(125deg, rgba(255, 255, 255, 0.07) 0%, transparent 30%),
+    none;
   
 }
 
@@ -88,10 +88,11 @@
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   animation: amsler-rise 600ms var(--lm-ease-out) both;
 }
-.amsler__ask .lm-btn { box-shadow: 0 0 0 1px rgba(34, 87, 240, 0.75), 0 0 40px rgba(34, 87, 240, 0.35), 0 14px 34px -8px rgba(10, 22, 51, 0.4); }
+.amsler__ask .lm-btn { box-shadow: 0 0 0 1px rgba(34, 87, 240, 0.75), 0 14px 34px -8px rgba(10, 22, 51, 0.45); }
 .amsler__ask-hint {
-  font-size: var(--lm-fs-xs); color: var(--lm-ivory-dim, var(--lm-ink-2)); padding: 4px 10px; border-radius: 999px;
-  background: var(--lm-glass); backdrop-filter: blur(10px); color: var(--lm-ink-2);
+  font-size: var(--lm-fs-xs); font-weight: 600; padding: 5px 12px; border-radius: 999px; margin-top: 4px;
+  background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(10px); color: var(--lm-ink);
+  box-shadow: 0 6px 18px -8px rgba(10, 22, 51, 0.5), inset 0 0 0 1px rgba(10, 22, 51, 0.1);
 }
 
 .amsler__viewtoggle {
@@ -137,21 +138,21 @@
 .amsler-classes { display: flex; flex-direction: column; gap: 6px; }
 .amsler-class {
   display: flex; align-items: center; gap: 10px; padding: 7px 10px 7px 7px; border-radius: 12px; cursor: pointer; text-align: left;
-  border: 0; background: rgba(10, 22, 51, 0.054); box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.08);
+  border: 0; background: rgba(255, 255, 255, 0.78); box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.14), 0 2px 6px -3px rgba(10, 22, 51, 0.2);
   transition: transform 160ms var(--lm-ease-out), box-shadow 220ms var(--lm-ease-out), background 220ms var(--lm-ease-out);
 }
-.amsler-class:hover:not(:disabled) { background: rgba(10, 22, 51, 0.025); transform: translateX(2px); }
-.amsler-class:disabled { opacity: 0.45; cursor: not-allowed; }
+.amsler-class:hover:not(:disabled) { background: #fff; transform: translateX(2px); }
+.amsler-class:disabled { opacity: 0.72; cursor: not-allowed; }
 .amsler-class.is-on {
-  background: linear-gradient(90deg, rgba(34, 87, 240, 0.16), rgba(34, 87, 240, 0.04));
-  box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.6), 0 0 18px -4px rgba(34, 87, 240, 0.35);
+  background: linear-gradient(90deg, rgba(34, 87, 240, 0.2), rgba(34, 87, 240, 0.08));
+  box-shadow: inset 0 0 0 2px var(--lm-brand-500), 0 6px 16px -8px rgba(34, 87, 240, 0.5);
 }
 .amsler-class:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 1px; }
 .amsler-glyph { width: 38px; height: 38px; flex: none; }
 .amsler-class__text { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.2; }
-.amsler-class__text strong { font-size: var(--lm-fs-sm); font-weight: 620; }
-.amsler-class__text small { font-size: var(--lm-fs-2xs); color: var(--lm-muted); margin-top: 2px; }
-.amsler-class__kbd { opacity: 0.6; }
+.amsler-class__text strong { font-size: var(--lm-fs-sm); font-weight: 680; color: var(--lm-ink); }
+.amsler-class__text small { font-size: var(--lm-fs-2xs); color: var(--lm-ink-2); margin-top: 2px; }
+.amsler-class__kbd { opacity: 1; font-weight: 700; }
 
 .amsler-tools { display: flex; flex-direction: column; gap: 10px; }
 .amsler-tools__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }

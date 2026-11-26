@@ -90,6 +90,9 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     }
   };
 
+  /** Very low-alpha edge-only glow so the bright glass UI is never washed pink. */
+  const EDGE_GLOW = 'rgba(225, 29, 72, 0.22)';
+  const EDGE_GLOW_HOT = 'rgba(225, 29, 72, 0.32)';
   let active: Active | null = null;
 
   // ── Heartbeat / vignette pulse ────────────────────────────────────────
@@ -118,16 +121,16 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
       marks.add(key);
       safe(fn);
     };
-    if (phase === 'tense') once('tense', () => fx.vignette(ACCENT, 1100));
-    if (phase === 'critical') once('critical', () => fx.vignette(ACCENT, 1300));
+    if (phase === 'tense') once('tense', () => fx.vignette(EDGE_GLOW, 1100));
+    if (phase === 'critical') once('critical', () => fx.vignette(EDGE_GLOW, 1300));
     if (phase === 'final') {
       once('final', () => {
         audio.play('countdown', { volume: 0.7 });
-        fx.vignette('#f43f5e', 900);
+        fx.vignette(EDGE_GLOW_HOT, 900);
       });
       // A red throb on every other beat in the final seconds (motion-sensitive players get none).
       finalBeats++;
-      if (!reduced() && finalBeats % 2 === 0) safe(() => fx.vignette('#f43f5e', Math.round(interval * 1.6)));
+      if (!reduced() && finalBeats % 2 === 0) safe(() => fx.vignette(EDGE_GLOW_HOT, Math.round(interval * 1.6)));
     }
     beatTimer = later(beat, interval);
   };
@@ -154,7 +157,7 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     marks = new Set();
     finalBeats = 0;
     safe(() => audio.play('alarm', { volume: 0.8 }));
-    safe(() => fx.vignette(ACCENT, reduced() ? 900 : 1500));
+    safe(() => fx.vignette(EDGE_GLOW, reduced() ? 900 : 1500));
     safe(() => stage?.arrival({ locale: services.locale, kase: caseOf(p.caseId), limitSec: p.timeLimitSec!, grandRounds: isGrand, reduced: reduced() }));
     // First heartbeat lands just after the klaxon.
     beatTimer = later(beat, 1100);
@@ -220,7 +223,7 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
       bus.emit('xp:grant', { amount: reward.grandXp, reason: tx.grandRounds });
       bus.emit('reward:granted', {
         source: SYSTEM_ID, label: tx.grandRounds, value: `+${reward.grandCoins} ✦ · +${reward.grandXp} XP`,
-        icon: 'crown', color: '#ffd27a', rarity: 'legendary',
+        icon: 'crown', color: '#ffcb00', rarity: 'legendary',
       });
     }
     // Cinematic: freeze-frame, white-gold flash, sparks; the stage plays the finale card.
@@ -231,13 +234,13 @@ export function startEngine(services: GameServices, opts: EngineOptions = {}): (
     if (!r && big) safe(() => fx.hitstop(140));
     later(() => {
       if (big) safe(() => audio.play(reward.rarity === 'legendary' || a.grandWeek ? 'legendary' : 'rare', { volume: 0.8 }));
-      safe(() => fx.flash('#fff1d6', big ? 460 : 260));
+      safe(() => fx.flash('#ffffff', big ? 460 : 260));
       if (!r && typeof window !== 'undefined') {
         const x = window.innerWidth / 2;
         const y = window.innerHeight * 0.36; // the finale's eye emblem
         const k = reward.rarity === 'legendary' ? 1.4 : reward.rarity === 'epic' ? 1.15 : big ? 1 : 0.35;
-        safe(() => fx.burst(x, y, { kind: 'sparks', count: Math.round(90 * k), color: '#ffd27a' }));
-        if (big) later(() => safe(() => fx.burst(x, y, { kind: 'stars', count: Math.round(28 * k), color: '#fff1c2' })), 140);
+        safe(() => fx.burst(x, y, { kind: 'sparks', count: Math.round(90 * k), color: '#ffcb00' }));
+        if (big) later(() => safe(() => fx.burst(x, y, { kind: 'stars', count: Math.round(28 * k), color: '#ffffff' })), 140);
       }
       safe(() => stage?.saved({ locale: services.locale, kase, dxName: dxName(score.correctDiagnosisId), sec, reward, note, reduced: r }));
     }, r ? 0 : 150);

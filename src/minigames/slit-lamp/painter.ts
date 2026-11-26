@@ -186,7 +186,7 @@ export function createPainter(canvas: HTMLCanvasElement): LampPainter {
     if (tech === 'conical') {
       const b = 1 * sc;
       c.save();
-      c.strokeStyle = 'rgba(255,210,122,0.42)';
+      c.strokeStyle = 'rgba(190,215,255,0.55)';
       c.lineWidth = 1;
       c.setLineDash([3, 4]);
       c.strokeRect(d / 2 - b / 2, d / 2 - b / 2, b, b);

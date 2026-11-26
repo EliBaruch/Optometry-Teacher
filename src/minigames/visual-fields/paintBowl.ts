@@ -34,8 +34,8 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
 
   // soft halo behind the instrument
   const halo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, Math.min(w, h) / 2);
-  halo.addColorStop(0, 'rgba(140, 170, 255, 0.12)');
-  halo.addColorStop(0.6, 'rgba(140, 170, 255, 0.03)');
+  halo.addColorStop(0, 'rgba(140, 170, 255, 0)');
+  halo.addColorStop(0.6, 'rgba(140, 170, 255, 0)');
   halo.addColorStop(1, 'rgba(140, 170, 255, 0)');
   ctx.fillStyle = halo;
   ctx.fillRect(0, 0, w, h);

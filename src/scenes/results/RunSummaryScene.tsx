@@ -212,7 +212,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               <span class="sm-row__res" title={r.correct ? t.rowCorrect : r.timeout ? t.rowTimeout : t.rowMissed}>
                 <Icon name={r.correct ? 'check' : r.timeout ? 'clock' : 'x'} label={r.correct ? t.rowCorrectShort : r.timeout ? t.rowTimeout : t.rowMissedShort} />
               </span>
-              <span class="sm-row__grade" style={{ '--g': r.grade ? GRADE_COLOR[r.grade] : '#8a95ab' }}>
+              <span class="sm-row__grade" data-grade={r.grade ?? 'none'}>
                 {r.grade ?? '–'}
               </span>
               <span class="sm-row__pts lm-num">{r.points ? <bdi dir="ltr">{`+${r.points.toLocaleString('en-US')}`}</bdi> : '—'}</span>

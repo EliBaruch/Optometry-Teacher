@@ -17,8 +17,8 @@ function below(sel: string, box: { x: number; y: number }, dy: number): { x: num
 }
 
 /**
- * Opening tonight's gift: the box wobbles, the lid springs off with a flash of
- * light, coins count up and (on evenings 3 and 7) a satchel reveals its rarity.
+ * Opening today's gift: the box wobbles, the lid springs off with a flash of
+ * light, coins count up and (on days 3 and 7) a satchel reveals its rarity.
  * The reward is claimed the moment the player taps Open, so closing early never loses it.
  */
 export function GiftReveal(props: { services: GameServices; open: boolean; onClose: () => void }) {

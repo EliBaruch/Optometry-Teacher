@@ -16,12 +16,12 @@ function StarChart() {
   const pts: [number, number][] = [[30, 40], [80, 22], [140, 52], [200, 30], [262, 64], [320, 36], [372, 70]];
   return (
     <svg class="cr-grand__chart" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <circle cx="330" cy="60" r="86" fill="none" stroke="#ffd27a" stroke-opacity=".12" />
-      <circle cx="330" cy="60" r="58" fill="none" stroke="#ef4444" stroke-opacity=".16" stroke-dasharray="2 5" />
-      <circle cx="330" cy="60" r="30" fill="none" stroke="#ffd27a" stroke-opacity=".1" />
-      <polyline points={pts.map((p) => p.join(',')).join(' ')} fill="none" stroke="#ffd27a" stroke-opacity=".14" stroke-width=".7" />
+      <circle cx="330" cy="60" r="86" fill="none" stroke="#2257f0" stroke-opacity=".16" />
+      <circle cx="330" cy="60" r="58" fill="none" stroke="#e11d48" stroke-opacity=".22" stroke-dasharray="2 5" />
+      <circle cx="330" cy="60" r="30" fill="none" stroke="#2257f0" stroke-opacity=".14" />
+      <polyline points={pts.map((p) => p.join(',')).join(' ')} fill="none" stroke="#2257f0" stroke-opacity=".2" stroke-width=".7" />
       {pts.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.2 : 1.4} fill={i % 3 === 0 ? '#ffd27a' : '#f6efe4'} opacity=".7" class="cr-grand__star" style={{ '--i': i }} />
+        <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.2 : 1.4} fill={i % 3 === 0 ? '#e11d48' : '#2257f0'} opacity=".7" class="cr-grand__star" style={{ '--i': i }} />
       ))}
     </svg>
   );
@@ -50,7 +50,7 @@ export function GrandRoundsBanner({ services }: { services: GameServices }) {
       <div class="cr-grand__glow" aria-hidden="true" />
       <StarChart />
       <div class="cr-grand__portrait">
-        <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={92} ring={claimed ? '#5eead4' : '#ef4444'} expression={claimed ? 'relieved' : 'worried'} label={p.name} />
+        <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={92} ring={claimed ? '#00c875' : '#ff5a6e'} expression={claimed ? 'relieved' : 'worried'} label={p.name} />
         <span class="cr-grand__week lm-num" aria-hidden="true">{tx.week(weekNo!)}</span>
       </div>
       <div class="cr-grand__body">

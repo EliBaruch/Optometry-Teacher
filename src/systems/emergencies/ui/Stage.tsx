@@ -69,7 +69,7 @@ export function ArrivalBanner({ info, onDone, cut }: { info: ArrivalInfo; onDone
   );
 }
 
-/** Candle-gold light rays fading from the centre (rotated as one composited layer). */
+/** Golden light rays fading from the centre (rotated as one composited layer). */
 function Rays() {
   const wedges = Array.from({ length: 24 }, (_, i) => {
     const a0 = (i / 24) * Math.PI * 2;
@@ -80,9 +80,9 @@ function Rays() {
     <svg viewBox="-100 -100 200 200">
       <defs>
         <radialGradient id="cr-rays-fade" r="100" cx="0" cy="0" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#ffd27a" stop-opacity="0.26" />
-          <stop offset="0.35" stop-color="#ffd27a" stop-opacity="0.1" />
-          <stop offset="1" stop-color="#ffd27a" stop-opacity="0" />
+          <stop offset="0" stop-color="#2257f0" stop-opacity="0.26" />
+          <stop offset="0.35" stop-color="#2257f0" stop-opacity="0.1" />
+          <stop offset="1" stop-color="#2257f0" stop-opacity="0" />
         </radialGradient>
       </defs>
       <path d={wedges.join(' ')} fill="url(#cr-rays-fade)" />
@@ -112,7 +112,7 @@ export function SightSaved({ info, onDone }: { info: SavedInfo; onDone: () => vo
           <EyeJewel uid="saved" size={180} class="cr-eye" />
           {p && (
             <span class="cr-saved__bust">
-              <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={54} ring="#5eead4" expression="relieved" label={p.name} />
+              <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={54} ring="#00c875" expression="relieved" label={p.name} />
             </span>
           )}
         </div>

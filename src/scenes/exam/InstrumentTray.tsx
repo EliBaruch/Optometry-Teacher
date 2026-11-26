@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { TEST_CATALOG, type MiniGameModule, type MiniGameResult, type TestId } from '@core';
 import { GlassPanel, Icon, IconOrText, isIconName, useLocale, useSfx, useStrings } from '@ui-kit';
 import { S } from './strings';
@@ -19,6 +20,22 @@ export function InstrumentTray(props: {
   const locale = useLocale();
   const nameOf = (mg: MiniGameModule) => testName(mg.id, mg, locale);
   const doneCount = instruments.filter((m) => done[m.id]).length;
+  // Explicit scroll affordance: when the tile list is taller than its box, a floating chevron says "more below".
+  const listRef = useRef<HTMLUListElement>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const measure = () => setMore(el.scrollTop + el.clientHeight < el.scrollHeight - 6);
+    measure();
+    el.addEventListener('scroll', measure, { passive: true });
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    ro?.observe(el);
+    return () => {
+      el.removeEventListener('scroll', measure);
+      ro?.disconnect();
+    };
+  }, [instruments.length]);
   return (
     <GlassPanel
       class="exm-tray"
@@ -31,7 +48,7 @@ export function InstrumentTray(props: {
       {instruments.length === 0 ? (
         <p class="lm-muted">{t.trayEmpty}</p>
       ) : (
-        <ul class="exm-tools" data-testid="exm-tools">
+        <ul ref={listRef} class="exm-tools" data-testid="exm-tools">
           {instruments.map((mg, i) => {
             const r = done[mg.id];
             const info = TEST_CATALOG[mg.id];
@@ -50,6 +67,7 @@ export function InstrumentTray(props: {
                   <span class="exm-tool__text">
                     <span class="exm-tool__name">{softBreak(nameOf(mg))}</span>
                     <span class="exm-tool__sub lm-num">
+                      {!r && <Icon name="play" size={11} strokeWidth={2.4} />}
                       {r ? (r.autoRun ? t.toolByTech : t.toolCharted) : t.toolMin(info.minutes)}
                     </span>
                   </span>
@@ -76,6 +94,17 @@ export function InstrumentTray(props: {
             );
           })}
         </ul>
+      )}
+      {more && (
+        <button
+          type="button"
+          class="exm-tray__more"
+          aria-label={t.trayMore}
+          title={t.trayMore}
+          onClick={() => listRef.current?.scrollBy?.({ top: Math.max(120, (listRef.current?.clientHeight ?? 200) * 0.8), behavior: 'smooth' })}
+        >
+          <Icon name="chevron-right" size={18} strokeWidth={2.6} />
+        </button>
       )}
     </GlassPanel>
   );

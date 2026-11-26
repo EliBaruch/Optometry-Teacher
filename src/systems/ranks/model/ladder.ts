@@ -19,8 +19,8 @@ export interface RankDef {
 }
 
 export const RANKS: readonly RankDef[] = [
-  { id: 'student', title: 'Student', motto: 'Every expert began with a blurry chart.', color: '#c08457', color2: '#f3c99a' },
-  { id: 'intern', title: 'Intern', motto: 'The white coat fits. Mostly.', color: '#b8c4d6', color2: '#f1f5fb' },
+  { id: 'student', title: 'Student', motto: 'Every expert began with a blurry chart.', color: '#f0613f', color2: '#ffd1c2' },
+  { id: 'intern', title: 'Intern', motto: 'The white coat fits. Mostly.', color: '#5b6cf5', color2: '#dfe3ff' },
   { id: 'resident', title: 'Resident', motto: 'You trust your findings now.', color: '#5eead4', color2: '#d6fff6' },
   { id: 'associate', title: 'Associate', motto: 'Patients ask for you by name.', color: '#38bdf8', color2: '#d4f1ff' },
   { id: 'senior', title: 'Senior', motto: 'Colleagues bring you their hardest cases.', color: '#a78bfa', color2: '#efe8ff' },

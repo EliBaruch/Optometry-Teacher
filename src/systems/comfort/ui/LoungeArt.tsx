@@ -178,12 +178,11 @@ export function LoungeArt(p: LoungeArtProps) {
           <path d="M696 12 H474 V404 C500 396 520 404 544 398 C570 392 600 402 624 396 C648 392 672 400 696 396 Z" fill="#ffffff" opacity="0.7" />
           <path d="M650 12 V396 M600 12 V398 M548 12 V396 M500 12 V402" stroke="#0a1633" stroke-opacity="0.05" />
         </g>
-        <path class="cf-art__tie" d="M244 262 C256 270 278 270 292 258" stroke="#2257f0" stroke-width="4" stroke-linecap="round" fill="none" />
-        <path class="cf-art__tie" d="M696 262 C684 270 662 270 648 258" stroke="#2257f0" stroke-width="4" stroke-linecap="round" fill="none" />
       </g>
 
       {/* ── framed Snellen chart ─────────────────────────────── */}
       <g transform="translate(868 70)">
+        <g class="cf-art__unflip">
         <rect x="-8" y="-8" width="116" height="172" rx="10" fill="#ffffff" />
         <rect x="-8" y="-8" width="116" height="172" rx="10" fill="none" stroke="#0a1633" stroke-opacity="0.1" />
         <rect width="100" height="156" rx="4" fill="#fbfcff" />
@@ -199,6 +198,7 @@ export function LoungeArt(p: LoungeArtProps) {
           },
           { y: 6, els: [] },
         ).els}
+        </g>
       </g>
 
       {/* ── plant ────────────────────────────────────────────── */}

@@ -14,7 +14,7 @@ import { safePlay, useComfort, useNow } from './hooks';
 import './comfort.css';
 
 /**
- * Hub banner: tonight's gift (tap to open), the 7-evening calendar, and a
+ * Hub banner: today's gift (tap to open), the 7-day calendar, and a
  * one-tap Continue that starts whatever suits the player best right now.
  * Also hosts the "Welcome back" note so it greets the player in the lobby.
  */

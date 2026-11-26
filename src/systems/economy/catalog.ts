@@ -43,6 +43,7 @@ export interface CatalogItem {
   tint?: string;
 }
 
+/** NOTE: 'candlelight' is a legacy id, kept only so existing saves keep working; its display name is "Lumen Azure". */
 export const DEFAULT_EQUIPPED = { theme: 'candlelight', frame: 'clinic-classic', nameplate: 'ivory-card' } as const;
 
 export const THEMES: CatalogItem[] = [
@@ -124,15 +125,15 @@ export interface CrateSpec {
 export const CRATES: Record<CrateKind, CrateSpec> = {
   case: {
     kind: 'case', name: 'Supply crate', earn: 'Exemplary (S) cases — and sometimes excellent (A) ones',
-    odds: { common: 62, rare: 27, epic: 9, legendary: 2 }, wood: '#e8f0ff', trim: '#2257f0',
+    odds: { common: 62, rare: 27, epic: 9, legendary: 2 }, wood: '#b9d0ff', trim: '#2257f0',
   },
   momentum: {
     kind: 'momentum', name: 'Momentum crate', earn: 'Correct-diagnosis runs of 3, 5, 10, 15…',
-    odds: { common: 45, rare: 35, epic: 15, legendary: 5 }, wood: '#fff0e0', trim: '#ea580c',
+    odds: { common: 45, rare: 35, epic: 15, legendary: 5 }, wood: '#ffd2a3', trim: '#ea580c',
   },
   promotion: {
     kind: 'promotion', name: 'Promotion crate', earn: 'Every career promotion',
-    odds: { common: 15, rare: 45, epic: 28, legendary: 12 }, wood: '#f1eaff', trim: '#7c3aed',
+    odds: { common: 15, rare: 45, epic: 28, legendary: 12 }, wood: '#d9c4ff', trim: '#7c3aed',
   },
 };
 

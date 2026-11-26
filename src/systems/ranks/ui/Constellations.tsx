@@ -8,6 +8,7 @@ import type { RanksState } from '../model/state';
 import { hash01 } from './hooks';
 import { layoutConstellation } from './layout';
 
+const CAT_COLORS = ['#2257f0', '#e2445c', '#00a86b', '#f59e0b', '#7c3aed', '#0891b2', '#ea580c', '#d6338a'];
 const W = 300;
 const H = 176;
 
@@ -79,7 +80,7 @@ function ConstellationCard({ cat, stars, index }: { cat: DiagnosisCategory; star
   const cur = sel !== null ? stars[sel] : null;
 
   return (
-    <section class="rk-const lm-enter" style={{ '--lm-delay': `${index * 70}ms` }} aria-label={t.constLabel(categoryLabel(cat, locale), lit, stars.length, mastered)}>
+    <section class={`rk-const lm-enter${lit === 0 ? ' is-empty' : ''}`} style={{ '--lm-delay': `${index * 70}ms`, '--cc': CAT_COLORS[Math.max(0, CATEGORY_ORDER.indexOf(cat)) % CAT_COLORS.length] }} aria-label={t.constLabel(categoryLabel(cat, locale), lit, stars.length, mastered)}>
       <header class="rk-const__head">
         <div>
           <div class="lm-eyebrow">{categoryLabel(cat, locale)}</div>
@@ -133,6 +134,12 @@ function ConstellationCard({ cat, stars, index }: { cat: DiagnosisCategory; star
             </g>
           );
         })}
+        {lit === 0 && (
+          <g aria-hidden="true">
+            <rect x={W / 2 - 52} y={H / 2 - 14} width="104" height="28" rx="14" class="rk-const__empty-pill" />
+            <text x={W / 2} y={H / 2 + 4} text-anchor="middle" class="rk-const__empty-txt">{t.legend.u}</text>
+          </g>
+        )}
       </svg>
       <div class="rk-const__detail" aria-live="polite">
         {cur ? (

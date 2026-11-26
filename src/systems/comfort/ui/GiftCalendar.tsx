@@ -3,8 +3,8 @@ import { GIFT_CALENDAR } from '../logic';
 import { S } from '../strings';
 
 /**
- * The 7-evening gift calendar. Past evenings of the current cycle are stamped,
- * tonight's glows, the 7th is the grand satchel. Missing a day never resets it.
+ * The 7-day gift calendar. Past days of the current cycle are stamped,
+ * today's glows, the 7th is the grand satchel. Missing a day never resets it.
  */
 export function GiftCalendar(props: { next: number; ready: boolean; totalClaims?: number; compact?: boolean; class?: string }) {
   const t = useStrings(S);

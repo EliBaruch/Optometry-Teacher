@@ -243,7 +243,7 @@ describe('daily gift calendar', () => {
     expect(grandSatchelHint(at(0, 0), true)).toBe('6 gifts until the grand satchel');
     expect(grandSatchelHint(at(1), false)).toBe('5 gifts until the grand satchel');
     expect(grandSatchelHint(at(5), true)).toBe('1 gift until the grand satchel');
-    expect(grandSatchelHint(at(6), true)).toBe('Tonight: the grand satchel');
+    expect(grandSatchelHint(at(6), true)).toBe('Today: the grand satchel');
     expect(grandSatchelHint(at(6), false)).toBe('The grand satchel is next');
     expect(grandSatchelHint(at(0, 7), false)).toMatch(/fresh calendar/);
   });
@@ -278,7 +278,7 @@ describe('salutation', () => {
     expect(salutation(8)).toBe('Good morning');
     expect(salutation(14)).toBe('Good afternoon');
     expect(salutation(20)).toBe('Good evening');
-    expect(salutation(2)).toBe('A quiet night');
-    expect(salutation(23)).toBe('A quiet night');
+    expect(salutation(2)).toBe('A calm late shift');
+    expect(salutation(23)).toBe('A calm late shift');
   });
 });

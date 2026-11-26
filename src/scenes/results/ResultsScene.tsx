@@ -140,7 +140,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
         fx.hitstop(110);
         fx.burst(cx0, cy0, { kind: 'sparks', count: 48, color: palette.gold });
         fx.burst(cx0, cy0, { kind: 'stars', count: 12, color: '#ffffff' });
-        fx.flash('rgba(255,210,122,0.18)', 260);
+        fx.flash('rgba(59,107,255,0.14)', 260);
       }
     } else if (review.verdict === 'wrong') {
       audio.play('fail', { volume: 0.55 });
@@ -211,7 +211,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
   const headline = score ? (score.perfect ? t.perfect : t.headline[score.grade]) : review.verdict === 'timeout' ? t.timeoutHeadline : t.closedHeadline;
 
   return (
-    <Screen backdrop="results" eyebrow={modeTitle ?? t.caseReview} title={kase.patient.name} class={cx('rs-screen', `rs--${review.verdict}`, instant && 'is-instant')} contentClass="rs-content">
+    <Screen backdrop="results" eyebrow={modeTitle ?? t.caseReview} title={kase.patient.name} class={cx('rs-screen', `rs--${review.verdict}`, instant && 'is-instant', (hit.total || !score) && 'rs-bar-on')} contentClass="rs-content">
       <div class="rs-page">
         <div
           class="rs-hero"
@@ -235,7 +235,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
             {hit.verdict && <ConfidenceCallout review={review} onReadFindings={readFindings} />}
           </div>
 
-          <div class="rs-hero__right">
+          <div class={cx('rs-hero__right', score && `rs-g--${score.grade}`)}>
             <div class={cx('rs-head', hit.stamp && 'is-shown')}>
               <div class="rs-head__stamp" ref={stampEl}>
                 {hit.stamp &&
