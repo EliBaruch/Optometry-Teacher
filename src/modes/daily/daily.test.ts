@@ -93,7 +93,7 @@ describe('daily mode', () => {
     playRound(900);
     const reason = daily.locked!(s)!;
     expect(reason).toMatch(/done/);
-    expect(reason).toMatch(/midnight/);
+    expect(reason).toMatch(/tomorrow morning/);
     expect(reason).not.toMatch(BANNED);
     expect(dailyRecord(s)).toMatchObject({ doneToday: true, bestToday: 900, streak: 1 });
 

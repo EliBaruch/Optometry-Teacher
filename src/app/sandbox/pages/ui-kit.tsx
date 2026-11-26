@@ -22,62 +22,61 @@ const CSS = `
 .uk-c12 { grid-column: span 12; } .uk-c8 { grid-column: span 8; } .uk-c7 { grid-column: span 7; } .uk-c6 { grid-column: span 6; }
 .uk-c5 { grid-column: span 5; } .uk-c4 { grid-column: span 4; }
 @media (max-width: 980px) { .uk-c8, .uk-c7, .uk-c6, .uk-c5, .uk-c4 { grid-column: span 12; } }
-.uk-sub { font: 600 var(--lm-fs-2xs)/1 var(--lm-font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--lm-muted-2); margin: 18px 0 10px; }
+.uk-sub { font: 600 var(--lm-fs-2xs)/1 var(--lm-font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--lm-ink-3); margin: 18px 0 10px; }
 .uk-sub:first-child, .lm-panel__header + .uk-sub { margin-top: 0; }
 .uk-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; }
-.uk-sw { border-radius: 14px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--lm-glass-border); background: rgba(6,3,14,.35); }
-.uk-sw i { display: block; height: 52px; box-shadow: inset 0 -1px 0 rgba(255,255,255,.06); }
+.uk-sw { border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px var(--lm-border); background: var(--lm-surface); }
+.uk-sw i { display: block; height: 52px; box-shadow: inset 0 -1px 0 rgba(10, 22, 51,.06); }
 .uk-sw div { padding: 7px 9px 8px; font-size: 11.5px; line-height: 1.3; }
-.uk-sw b { display: block; font-weight: 600; color: var(--lm-ivory); }
+.uk-sw b { display: block; font-weight: 600; color: var(--lm-ink); }
 .uk-sw span { font-family: var(--lm-font-num); color: var(--lm-muted); font-size: 10.5px; }
-.uk-type .d1 { font-family: var(--lm-font-display); font-size: var(--lm-fs-3xl); line-height: 1.05; font-weight: 500; }
-.uk-type .d2 { font-family: var(--lm-font-display); font-size: var(--lm-fs-2xl); font-style: italic; font-weight: 380; color: var(--lm-ivory-dim); }
+.uk-type .d1 { font-family: var(--lm-font-display); font-size: var(--lm-fs-3xl); line-height: 1.1; font-weight: 700; letter-spacing: var(--lm-tracking-display); }
+.uk-type .d2 { font-family: var(--lm-font-display); font-family: var(--lm-font-ui); font-size: var(--lm-fs-xl); font-weight: 500; color: var(--lm-ink-2); }
 .uk-type .num { font-family: var(--lm-font-num); font-size: var(--lm-fs-3xl); font-weight: 700; letter-spacing: .01em; display: flex; flex-wrap: wrap; column-gap: .32em; row-gap: 6px; line-height: 1.1; }
 .uk-type .num-g { display: inline-flex; align-items: baseline; white-space: nowrap; position: relative; padding-bottom: 16px; }
-.uk-type .num-g em { font-style: normal; font-size: .5em; color: var(--lm-ivory-dim); }
-.uk-type .num-g small { position: absolute; left: 0; bottom: 0; font: 600 10px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-text-muted); }
-.uk-type .num-sep { font-style: normal; color: var(--lm-text-muted); margin-right: .32em; }
+.uk-type .num-g em { font-style: normal; font-size: .5em; color: var(--lm-ink-2); }
+.uk-type .num-g small { position: absolute; left: 0; bottom: 0; font: 600 10px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-ink-3); }
+.uk-type .num-sep { font-style: normal; color: var(--lm-ink-3); margin-right: .32em; }
 .uk-type .num-g:has(.num-sep) small { left: .64em; }
-.uk-type p { color: var(--lm-text-muted); max-width: 56ch; }
-.uk-sep { width: 1px; height: 22px; background: var(--lm-hairline); margin: 0 4px; }
+.uk-type p { color: var(--lm-ink-3); max-width: 56ch; }
+.uk-sep { width: 1px; height: 22px; background: var(--lm-border); margin: 0 4px; }
 .uk-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .uk-meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 18px; align-items: center; justify-items: center; }
-.uk-ring-val { font-family: var(--lm-font-num); font-size: 24px; font-weight: 700; color: var(--lm-ivory); }
-.uk-ring-lbl { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--lm-muted); margin-top: 3px; }
-.uk-big { font-size: 46px; font-weight: 700; color: var(--lm-gold); text-shadow: var(--lm-text-glow); }
+.uk-ring-val { font-family: var(--lm-font-num); font-size: 24px; font-weight: 700; color: var(--lm-ink); }
+.uk-ring-lbl { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--lm-ink-3); margin-top: 3px; }
+.uk-big { font-size: 46px; font-weight: 700; color: var(--lm-accent-text); }
 .uk-stamps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; justify-items: center; align-items: center; padding: 26px 0 30px; }
 @media (max-width: 760px) { .uk-stamps { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 26px; padding: 18px 8px 6px; } }
 .uk-rewards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
 .uk-patient { display: grid; grid-template-columns: 84px 1fr; gap: 18px; align-items: start; }
-.uk-portrait { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; color: var(--lm-gold);
-  background: radial-gradient(circle at 50% 30%, rgba(255,210,122,.25), rgba(60,36,100,.6) 70%); box-shadow: inset 0 0 0 1px var(--lm-glass-border-hi), 0 0 30px -6px rgba(255,210,122,.5); }
+.uk-portrait { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; color: var(--lm-accent-text);
+  background: var(--lm-brand-50); box-shadow: inset 0 0 0 1px var(--lm-brand-100); }
 .uk-findings { display: grid; gap: 8px; }
-.uk-finding { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: rgba(6,3,14,.35); box-shadow: inset 0 0 0 1px var(--lm-hairline); font-size: var(--lm-fs-sm); }
-.uk-finding .k { color: var(--lm-muted); min-width: 92px; font-size: 12px; }
-.uk-finding .v { flex: 1; color: var(--lm-ivory); font-family: var(--lm-font-num); }
+.uk-finding { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--lm-surface-2); box-shadow: inset 0 0 0 1px var(--lm-border); font-size: var(--lm-fs-sm); }
+.uk-finding .k { color: var(--lm-ink-3); min-width: 92px; font-size: 12px; }
+.uk-finding .v { flex: 1; color: var(--lm-ink); font-family: var(--lm-font-num); }
 .uk-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
-.uk-icon { display: grid; justify-items: center; gap: 8px; padding: 16px 6px 12px; border-radius: 14px; color: var(--lm-ivory-dim);
-  background: rgba(6,3,14,.28); box-shadow: inset 0 0 0 1px var(--lm-hairline); transition: all var(--lm-dur-ui) var(--lm-ease-out); }
-.uk-icon:hover { color: var(--lm-gold); background: rgba(255,210,122,.07); box-shadow: inset 0 0 0 1px rgba(255,210,122,.35), 0 0 22px -8px rgba(255,210,122,.6); transform: translateY(-2px); }
+.uk-icon { display: grid; justify-items: center; gap: 8px; padding: 16px 6px 12px; border-radius: 14px; color: var(--lm-ink-2);
+  background: var(--lm-surface); box-shadow: 0 0 0 1px var(--lm-border), var(--lm-shadow-1); transition: all var(--lm-dur-ui) var(--lm-ease-out); }
+.uk-icon:hover { color: var(--lm-accent-text); box-shadow: 0 0 0 1px var(--lm-brand-200), var(--lm-shadow-2); transform: translateY(-2px); }
 .uk-icon svg { width: 28px; height: 28px; }
-.uk-icon span { font-size: 10.5px; color: var(--lm-muted); text-align: center; line-height: 1.25; }
-.uk-icon small { font-size: 9.5px; color: var(--lm-muted-2); margin-top: -6px; }
+.uk-icon span { font-size: 10.5px; color: var(--lm-ink-3); text-align: center; line-height: 1.25; }
+.uk-icon small { font-size: 9.5px; color: var(--lm-ink-3); margin-top: -6px; }
 .uk-icons--tests { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
-.uk-icons--tests .uk-icon { align-content: start; padding: 18px 8px 14px; gap: 10px; background: linear-gradient(180deg, rgba(255,210,122,.045), rgba(6,3,14,.3) 60%); }
-.uk-icon__well { font-style: normal; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; color: var(--lm-gold);
-  background: radial-gradient(circle at 50% 30%, rgba(255,210,122,.2), rgba(255,210,122,.03) 68%);
-  box-shadow: inset 0 0 0 1px rgba(255,210,122,.24), inset 0 1px 0 rgba(255,245,230,.14), 0 6px 18px -10px rgba(255,190,90,.6);
-  transition: transform var(--lm-dur-ui) var(--lm-ease-spring), box-shadow var(--lm-dur-ui) var(--lm-ease-out); }
+.uk-icons--tests .uk-icon { align-content: start; padding: 18px 8px 14px; gap: 10px; background: var(--lm-surface); }
+.uk-icon__well { font-style: normal; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; color: var(--lm-accent-text);
+  background: var(--lm-brand-50);
+  transition: transform var(--lm-dur-ui) var(--lm-ease-spring), background var(--lm-dur-ui) var(--lm-ease-out); }
 .uk-icons--tests .uk-icon svg { width: 30px; height: 30px; }
-.uk-icons--tests .uk-icon span { color: var(--lm-ivory-dim); font-size: 11.5px; font-weight: 500; }
-.uk-icons--tests .uk-icon:hover .uk-icon__well { transform: scale(1.08) rotate(-4deg); box-shadow: inset 0 0 0 1px rgba(255,210,122,.5), inset 0 1px 0 rgba(255,245,230,.2), 0 0 26px -6px rgba(255,200,110,.75); }
+.uk-icons--tests .uk-icon span { color: var(--lm-ink-2); font-size: 11.5px; font-weight: 500; }
+.uk-icons--tests .uk-icon:hover .uk-icon__well { transform: scale(1.06); background: var(--lm-brand-100); }
 @media (max-width: 1100px) { .uk-icons--tests { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .uk-toasts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: center; }
 .uk-skills { display: grid; gap: 8px; width: 100%; }
-.uk-skill { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 12px; background: rgba(6,3,14,.3); box-shadow: inset 0 0 0 1px var(--lm-hairline); font-size: var(--lm-fs-sm); color: var(--lm-ivory-dim); }
+.uk-skill { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 12px; background: var(--lm-surface-2); box-shadow: inset 0 0 0 1px var(--lm-border); font-size: var(--lm-fs-sm); color: var(--lm-ink-2); }
 .uk-alert { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; }
-.uk-alert p { color: var(--lm-text-muted); font-size: var(--lm-fs-sm); }
-.uk-tabpanel { padding-top: 16px; color: var(--lm-text-muted); font-size: var(--lm-fs-sm); min-height: 64px; }
+.uk-alert p { color: var(--lm-ink-3); font-size: var(--lm-fs-sm); }
+.uk-tabpanel { padding-top: 16px; color: var(--lm-ink-3); font-size: var(--lm-fs-sm); min-height: 64px; }
 @media (max-width: 560px) {
   .uk-swatches { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
   .uk-sw i { height: 40px; }
@@ -99,42 +98,43 @@ const CSS = `
   .uk-finding .v { grid-column: 1 / -1; grid-row: 2; }
   .uk-finding .lm-badge { grid-column: 2; grid-row: 1; }
 }
-.uk-footer { text-align: center; padding: 18px 0 8px; color: var(--lm-muted-2); font-size: 12px; display: grid; justify-items: center; gap: 10px; }
+.uk-footer { text-align: center; padding: 18px 0 8px; color: var(--lm-ink-3); font-size: 12px; display: grid; justify-items: center; gap: 10px; }
 `;
 
 const SWATCHES: [string, string, string][] = [
-  ['Ink', 'var(--lm-ink-900)', '#0b0716'],
-  ['Aubergine', 'var(--lm-aubergine-700)', '#1a0f2e'],
-  ['Plum', 'var(--lm-plum-500)', '#2f1d52'],
-  ['Candle gold', 'var(--lm-gold)', '#ffd27a'],
-  ['Deep gold', 'var(--lm-gold-500)', '#f5b942'],
-  ['Ivory', 'var(--lm-ivory)', '#f6efe4'],
-  ['Muted', 'var(--lm-muted)', '#a99bbd'],
+  ['Canvas', 'var(--lm-canvas)', '#f4f7fa'],
+  ['Surface', 'var(--lm-surface)', '#ffffff'],
+  ['Border', 'var(--lm-border)', '#e1e8ef'],
+  ['Lumen teal', 'var(--lm-brand-600)', '#2257f0'],
+  ['Teal tint', 'var(--lm-brand-100)', '#cdf2f1'],
+  ['Ink', 'var(--lm-ink)', '#0d1b2a'],
+  ['Secondary', 'var(--lm-ink-3)', '#5b6878'],
+  ['Coin', 'var(--lm-coin)', '#e9a20b'],
 ];
 const SYSTEMS: [string, string, string][] = [
-  ['Career', 'var(--lm-career)', '#a78bfa'],
-  ['Boutique', 'var(--lm-economy)', '#f5b942'],
-  ['Rivals', 'var(--lm-rivals)', '#4ade80'],
-  ['Streaks', 'var(--lm-streaks)', '#fb923c'],
-  ['Gallery', 'var(--lm-gallery)', '#f472b6'],
-  ['Code Red', 'var(--lm-code-red)', '#ef4444'],
-  ['Lounge', 'var(--lm-lounge)', '#38bdf8'],
+  ['Career', 'var(--lm-career)', '#7c3aed'],
+  ['Boutique', 'var(--lm-economy)', '#d98a06'],
+  ['Rivals', 'var(--lm-rivals)', '#16a34a'],
+  ['Streaks', 'var(--lm-streaks)', '#ea580c'],
+  ['Gallery', 'var(--lm-gallery)', '#db2777'],
+  ['Code Red', 'var(--lm-code-red)', '#dc2626'],
+  ['Lounge', 'var(--lm-lounge)', '#0284c7'],
 ];
 const CLINICAL: [string, string, string][] = [
-  ['Normal', 'var(--lm-normal)', '#5eead4'],
-  ['Abnormal', 'var(--lm-abnormal)', '#fbbf24'],
-  ['Critical', 'var(--lm-critical)', '#f43f5e'],
-  ['Common', 'var(--lm-rarity-common)', '#cbd5e1'],
-  ['Rare', 'var(--lm-rarity-rare)', '#38bdf8'],
-  ['Epic', 'var(--lm-rarity-epic)', '#c084fc'],
+  ['Normal', 'var(--lm-normal)', '#0f9f8f'],
+  ['Abnormal', 'var(--lm-abnormal)', '#d97706'],
+  ['Critical', 'var(--lm-critical)', '#e11d48'],
+  ['Common', 'var(--lm-rarity-common)', '#64748b'],
+  ['Rare', 'var(--lm-rarity-rare)', '#0284c7'],
+  ['Epic', 'var(--lm-rarity-epic)', '#9333ea'],
   ['Legendary', 'var(--lm-iridescent)', 'iridescent'],
 ];
 
 const REWARDS: RewardGrant[] = [
   { source: 'core', label: 'Lumens earned', value: '+120', icon: 'coin', rarity: 'common' },
-  { source: 'core', label: 'Career XP', value: '+340', icon: 'star', color: '#a78bfa', rarity: 'common' },
+  { source: 'core', label: 'Career XP', value: '+340', icon: 'star', color: '#7c3aed', rarity: 'common' },
   { source: 'core', label: 'Supply crate', value: 'Rare', icon: 'crate', rarity: 'rare' },
-  { source: 'core', label: 'Combo streak', value: 'x4', icon: 'flame', color: '#fb923c', rarity: 'rare' },
+  { source: 'core', label: 'Combo streak', value: 'x4', icon: 'flame', color: '#ea580c', rarity: 'rare' },
   { source: 'core', label: 'Iris card · Heterochromia', value: 'NEW!', icon: 'eye', rarity: 'epic' },
   { source: 'core', label: 'Perfect diagnosis seal', value: 'S', icon: 'crown', rarity: 'legendary' },
 ];
@@ -199,10 +199,10 @@ function UiKitShowcase({ services }: { services: GameServices }) {
       <ToastHost />
       <div class="uk">
         <section class="uk-hero lm-enter">
-          <div class="lm-eyebrow">Observatory at midnight</div>
+          <div class="lm-eyebrow">Design system · Daylight Clinic</div>
           <h2 class="lm-display lm-gold-text">Lumen</h2>
           <Ornament width={180} />
-          <p>Glass, candlelight and brass instruments. Every scene, instrument and reward in the clinic is built from these pieces.</p>
+          <p>Clean white surfaces, Lumen teal and soft daylight. Every screen, instrument frame and reward in the clinic is built from these pieces.</p>
           <div class="uk-row" style={{ justifyContent: 'center', marginTop: 6 }}>
             <Button variant="primary" size="lg" icon="eye" onClick={() => toast('epic', 'The clinic is open — first patient arriving.', 'sparkle')}>
               Open the clinic
@@ -220,20 +220,20 @@ function UiKitShowcase({ services }: { services: GameServices }) {
             <div class="uk-row">
               {VARIANTS.map((v) => (
                 <Chip key={v} selected={variant === v} onClick={() => setVariant(v)} icon={v === 'emergency' ? 'alert' : v === 'results' ? 'trophy' : v === 'exam' ? 'eye' : v === 'calm' ? 'heart' : v === 'title' ? 'star' : 'home'}
-                  accent={v === 'emergency' ? '#ef4444' : v === 'calm' ? '#38bdf8' : v === 'exam' ? '#5eead4' : undefined}>
+                  accent={v === 'emergency' ? '#dc2626' : v === 'calm' ? '#0284c7' : v === 'exam' ? '#0f9f8f' : undefined}>
                   {v}
                 </Chip>
               ))}
               <span class="uk-sep" aria-hidden="true" />
-              <Tooltip content="Live blur behind glass. Switched off automatically on devices that cannot keep up.">
-                <Chip icon="sparkle" selected={!lite} onClick={() => setLiteRendering(!lite)}>Frosted glass</Chip>
+              <Tooltip content="Frosted blur behind floating bars. Switched off automatically on devices that cannot keep up.">
+                <Chip icon="sparkle" selected={!lite} onClick={() => setLiteRendering(!lite)}>Frosted bars</Chip>
               </Tooltip>
             </div>
           </GlassPanel>
 
           {/* ── Palette ──────────────────────────────────────────── */}
           <GlassPanel class="uk-c7" eyebrow="Tokens" title="Palette" icon="gem">
-            <div class="uk-sub">Night &amp; candlelight</div>
+            <div class="uk-sub">Daylight core</div>
             <div class="uk-swatches">{SWATCHES.map(([n, c, h]) => <Swatch key={n} name={n} css={c} hex={h} />)}</div>
             <div class="uk-sub">Clinic wings</div>
             <div class="uk-swatches">{SYSTEMS.map(([n, c, h]) => <Swatch key={n} name={n} css={c} hex={h} />)}</div>
@@ -244,7 +244,7 @@ function UiKitShowcase({ services }: { services: GameServices }) {
           {/* ── Typography ───────────────────────────────────────── */}
           <GlassPanel class="uk-c5 uk-type" eyebrow="Tokens" title="Typography" icon="book">
             <div class="lm-stack" style={{ '--lm-stack-gap': '14px' }}>
-              <div class="lm-eyebrow">Fraunces · display</div>
+              <div class="lm-eyebrow">Plus Jakarta Sans · display</div>
               <div class="d1">Acute angle closure</div>
               <div class="d2">“The lights have rainbow halos, doctor.”</div>
               <div class="lm-eyebrow" style={{ marginTop: 8 }}>Inter · interface</div>
@@ -296,7 +296,7 @@ function UiKitShowcase({ services }: { services: GameServices }) {
               {[['onset', 'Sudden onset?'], ['pain', 'Any pain?'], ['halos', 'Halos around lights?'], ['meds', 'Medications?']].map(([k, l]) => (
                 <Chip key={k} size="sm" selected={!!chips[k!]} onClick={() => toggle(k!)}>{l}</Chip>
               ))}
-              <Chip size="sm" icon="flame" accent="#fb923c">Combo x3</Chip>
+              <Chip size="sm" icon="flame" accent="#ea580c">Combo x3</Chip>
               <Chip size="sm" onRemove={() => toast('info', 'Filter removed')}>Retina</Chip>
             </div>
             <div class="uk-sub">Badges</div>
@@ -305,7 +305,7 @@ function UiKitShowcase({ services }: { services: GameServices }) {
               <Badge tone="abnormal" icon="warning">Abnormal</Badge>
               <Badge tone="critical" variant="solid" pulse>Critical</Badge>
               <Badge tone="gold" variant="solid">3 new</Badge>
-              <Badge color="#a78bfa" variant="outline">Resident</Badge>
+              <Badge color="#7c3aed" variant="outline">Resident</Badge>
             </div>
             <div class="uk-sub">Tooltips · keys</div>
             <div class="uk-row">
@@ -333,7 +333,7 @@ function UiKitShowcase({ services }: { services: GameServices }) {
             <TabPanel tabsId="uk-tabs" id="tests" value={tab}><div class="uk-tabpanel">Pick the tests that will change your management. Every test costs clinic minutes.</div></TabPanel>
             <TabPanel tabsId="uk-tabs" id="chart" value={tab}><div class="uk-tabpanel">Findings appear here as you uncover them, flagged normal, abnormal or critical.</div></TabPanel>
             <div style={{ height: 14 }} />
-            <Tabs id="uk-tabs2" variant="underline" label="Eye" value={tab2} onChange={setTab2} accent="#5eead4" items={[
+            <Tabs id="uk-tabs2" variant="underline" label="Eye" value={tab2} onChange={setTab2} accent="#0f9f8f" items={[
               { id: 'od', label: 'Right eye (OD)' }, { id: 'os', label: 'Left eye (OS)' }, { id: 'ou', label: 'Both (OU)' },
             ]} />
           </GlassPanel>
@@ -361,10 +361,10 @@ function UiKitShowcase({ services }: { services: GameServices }) {
               <RingMeter value={ratio} size={124} ariaLabel="Accuracy">
                 <div><div class="uk-ring-val"><CountUp value={Math.round(ratio * 100)} suffix="%" /></div><div class="uk-ring-lbl">Accuracy</div></div>
               </RingMeter>
-              <RingMeter value={0.3} size={124} accent="#5eead4" accent2="#d1fff6" ariaLabel="Cup to disc">
+              <RingMeter value={0.3} size={124} accent="#0f9f8f" accent2="#5fd1c4" ariaLabel="Cup to disc">
                 <div><div class="uk-ring-val">0.3</div><div class="uk-ring-lbl">C/D ratio</div></div>
               </RingMeter>
-              <RingMeter value={Math.min(1, 52 / 60)} size={124} accent="#f43f5e" accent2="#ffc2cd" ariaLabel="Intraocular pressure">
+              <RingMeter value={Math.min(1, 52 / 60)} size={124} accent="#e11d48" accent2="#f58aa1" ariaLabel="Intraocular pressure">
                 <div><div class="uk-ring-val">52</div><div class="uk-ring-lbl">IOP mmHg</div></div>
               </RingMeter>
               <div style={{ textAlign: 'center' }}>

@@ -1,11 +1,11 @@
 import { beamIllumination } from './logic';
 
 const GHOSTS = [
-  { f: 0.35, s: 0.07, c: '255,190,120', a: 0.5 },
-  { f: 0.7, s: 0.12, c: '150,170,255', a: 0.32 },
-  { f: 1.15, s: 0.05, c: '255,240,200', a: 0.55 },
-  { f: 1.6, s: 0.2, c: '170,130,255', a: 0.22 },
-  { f: 2.1, s: 0.09, c: '120,220,200', a: 0.3 },
+  { f: 0.35, s: 0.06, c: '255,255,255', a: 0.32 },
+  { f: 0.7, s: 0.1, c: '190,235,240', a: 0.22 },
+  { f: 1.15, s: 0.05, c: '255,255,255', a: 0.34 },
+  { f: 1.6, s: 0.16, c: '160,220,230', a: 0.14 },
+  { f: 2.1, s: 0.07, c: '255,255,255', a: 0.2 },
 ];
 
 /** Multi-element lens flare: core, anamorphic streak and ghosts along the source/centre axis. */
@@ -29,7 +29,7 @@ export function updateFlare(el: HTMLElement | null, phase: number, w: number, h:
   const sy = h * 0.2;
   const k = reduced ? 0.35 : 0.38 + 0.62 * beamIllumination(phase);
   const cx = w / 2, cy = h / 2;
-  el.style.opacity = String(Math.min(1, k));
+  el.style.opacity = String(Math.min(1, k) * 0.85);
   const kids = el.children;
   const streak = kids[0] as HTMLElement, core = kids[1] as HTMLElement;
   const ang = Math.atan2(cy - sy, cx - sx);

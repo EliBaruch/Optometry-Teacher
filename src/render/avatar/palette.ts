@@ -40,10 +40,10 @@ export const IRIS_GREEN = ['#5f7d4a', '#4f7a5f', '#6c8a52'] as const;
 export const IRIS_BLUE = ['#4f7ca8', '#5e8fb8', '#3f6f9c', '#7aa0c2'] as const;
 export const IRIS_GREY = ['#7f8f99', '#8a98a0'] as const;
 
-/** Jewel-tone outfits that sit well on the midnight background. */
+/** Outfit colours; also tint the pastel studio backdrop. */
 export const OUTFITS = [
   '#3d5a80', '#7b3f61', '#2f6b5e', '#8a5a2b', '#4a3f7a', '#9c3d3d', '#2c4a6e',
   '#6d6a3a', '#5a2e5f', '#33576b', '#a0643a', '#2e3a4f', '#6a3b2e', '#3f6e8c',
 ] as const;
 
-export const GOLD = '#ffd27a';
+export const GOLD = '#3b6bff';

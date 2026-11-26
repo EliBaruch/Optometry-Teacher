@@ -35,7 +35,7 @@ export interface Particle {
   seed: number;
 }
 
-export const PALETTE = ['#ffd27a', '#a78bfa', '#f472b6', '#38bdf8', '#4ade80', '#fb923c', '#f6efe4', '#5eead4'] as const;
+export const PALETTE = ['#3b6bff', '#a78bfa', '#fb7185', '#38bdf8', '#34d399', '#f59e0b', '#7aa2ff', '#f472b6'] as const;
 
 export const DEFAULT_COUNT: Record<ParticleKind, number> = {
   confetti: 70,
@@ -47,12 +47,12 @@ export const DEFAULT_COUNT: Record<ParticleKind, number> = {
 };
 
 export const DEFAULT_COLOR: Record<ParticleKind, string> = {
-  confetti: '#ffd27a',
-  sparks: '#ffd27a',
-  coins: '#f5b942',
-  stars: '#fff1c2',
-  hearts: '#f472b6',
-  embers: '#fb923c',
+  confetti: '#3b6bff',
+  sparks: '#f59e0b',
+  coins: '#f5a524',
+  stars: '#f59e0b',
+  hearts: '#fb7185',
+  embers: '#f97316',
 };
 
 /** Kinds drawn with additive blending. */
@@ -117,7 +117,7 @@ export class ParticlePool {
     if (made > 0 && kind !== 'embers' && kind !== 'hearts') {
       const r = this.acquire();
       if (r) {
-        init(r, 'ring', x, y, kind === 'coins' ? '#ffd27a' : base, false, rand, scale, 0, 1);
+        init(r, 'ring', x, y, kind === 'coins' ? '#f5a524' : base, false, rand, scale, 0, 1);
         r.alive = true;
         this.live++;
       }
@@ -183,7 +183,7 @@ function init(p: Particle, kind: InternalKind, x: number, y: number, color: stri
       p.life = r(2.2, 3.4);
       p.variant = rand() < 0.3 ? 1 : 0;
       if (paletteMode) p.color = PALETTE[Math.floor(rand() * PALETTE.length)]!;
-      else p.color = rand() < 0.35 ? shade(color, 0.35) : rand() < 0.2 ? '#f6efe4' : color;
+      else p.color = rand() < 0.35 ? shade(color, 0.35) : rand() < 0.2 ? '#7aa2ff' : color;
       p.color2 = shade(p.color, -0.38);
       break;
     }

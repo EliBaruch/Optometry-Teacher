@@ -58,10 +58,10 @@ export function nearestDifficulty(cases: readonly ClinicalCase[], min: number, m
 const shift: ModeModule = {
   id: 'shift',
   title: 'Clinic Shift',
-  tagline: 'Five patients, one candlelit evening. Every chart tells a story.',
-  text: { he: { title: 'משמרת במרפאה', tagline: 'חמישה מטופלים, ערב אחד לאור נרות. מאחורי כל תיק מסתתר סיפור.' } },
-  icon: '🌙',
-  accent: '#ffd27a',
+  tagline: 'Five patients, one bright clinic day. Every chart tells a story.',
+  text: { he: { title: 'משמרת במרפאה', tagline: 'חמישה מטופלים, יום אחד במרפאה. מאחורי כל תיק מסתתר סיפור.' } },
+  icon: 'eye',
+  accent: '#2257f0',
   order: 10,
   // Design note (internal): the craft of a well-run clinic — visible competence growing shift by shift.
   rules: { length: SHIFT_LENGTH, scoreMultiplier: 1, hints: true, autoRun: true },

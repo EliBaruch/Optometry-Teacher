@@ -39,8 +39,8 @@ const review: ModeModule = {
   title: 'Second Opinion',
   tagline: 'Familiar faces return: the diagnoses that once slipped past you, right when memory starts to fade.',
   text: { he: { title: 'חוות דעת שנייה', tagline: 'פנים מוכרות חוזרות: האבחנות שחמקו מכם בפעם הקודמת, דווקא ברגע שהזיכרון מתחיל לדהות.' } },
-  icon: '🔍',
-  accent: '#a78bfa',
+  icon: 'refresh',
+  accent: '#7c3aed',
   order: 50,
   // Design note (internal): low-effort, high-value return visits — the game does the remembering.
   rules: { length: REVIEW_LENGTH, scoreMultiplier: 1, hints: true, autoRun: true },

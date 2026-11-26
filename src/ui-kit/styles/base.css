@@ -8,9 +8,11 @@ body {
   min-height: 100%;
   background-color: var(--lm-canvas);
   background-image:
-    radial-gradient(110% 70% at 85% -10%, rgba(95, 203, 205, 0.16), transparent 60%),
-    radial-gradient(80% 60% at 0% 0%, rgba(122, 168, 255, 0.10), transparent 60%),
-    linear-gradient(180deg, #f8fbfd, var(--lm-canvas) 45%, #eef3f7);
+    radial-gradient(60% 55% at 92% 2%, rgba(122, 162, 255, 0.55), transparent 70%),
+    radial-gradient(50% 50% at 6% 10%, rgba(111, 214, 255, 0.42), transparent 70%),
+    radial-gradient(55% 50% at 70% 100%, rgba(196, 181, 253, 0.45), transparent 70%),
+    radial-gradient(45% 45% at 10% 95%, rgba(255, 200, 170, 0.4), transparent 70%),
+    linear-gradient(180deg, #f3f6fd, var(--lm-canvas));
   background-attachment: fixed;
   color: var(--lm-text);
   font-family: var(--lm-font-ui);
@@ -30,12 +32,12 @@ svg.lm-icon { display: inline-block; flex: none; vertical-align: -0.2em; }
 button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
 button:disabled { cursor: not-allowed; }
-a { color: var(--lm-accent-text); text-decoration-color: rgba(8, 120, 130, 0.35); text-underline-offset: 3px; transition: color var(--lm-dur-fast) var(--lm-ease-out), text-decoration-color var(--lm-dur-fast); }
+a { color: var(--lm-accent-text); text-decoration-color: rgba(34, 87, 240, 0.35); text-underline-offset: 3px; transition: color var(--lm-dur-fast) var(--lm-ease-out), text-decoration-color var(--lm-dur-fast); }
 a:hover { color: var(--lm-brand-800); text-decoration-color: currentColor; }
 hr { border: 0; height: 1px; background: var(--lm-hairline); margin: var(--lm-sp-5) 0; }
 code, kbd, samp { font-family: var(--lm-font-num); }
 
-::selection { background: rgba(11, 146, 155, 0.2); color: var(--lm-ink); text-shadow: none; }
+::selection { background: rgba(59, 107, 255, 0.2); color: var(--lm-ink); text-shadow: none; }
 
 /* Focus: never removed, only made beautiful */
 :focus { outline: none; }
@@ -47,16 +49,16 @@ code, kbd, samp { font-family: var(--lm-font-num); }
 }
 
 /* Scrollbars: slim, quiet slate */
-* { scrollbar-width: thin; scrollbar-color: rgba(15, 30, 50, 0.2) transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(10, 22, 51, 0.2) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  background: rgba(15, 30, 50, 0.18);
+  background: rgba(10, 22, 51, 0.18);
   border: 3px solid transparent;
   background-clip: padding-box;
   border-radius: 999px;
 }
-*::-webkit-scrollbar-thumb:hover { background-color: rgba(15, 30, 50, 0.32); }
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(10, 22, 51, 0.32); }
 *::-webkit-scrollbar-corner { background: transparent; }
 
 /* ── Minimal utilities ─────────────────────────────────────────────────── */
@@ -74,11 +76,23 @@ code, kbd, samp { font-family: var(--lm-font-num); }
 }
 .lm-muted { color: var(--lm-text-muted); }
 .lm-gold-text {
-  background: linear-gradient(120deg, var(--lm-brand-700) 0%, var(--lm-brand-500) 55%, #3b82f6 100%);
+  background: linear-gradient(120deg, var(--lm-brand-700) 0%, var(--lm-brand-500) 50%, #8b5cf6 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .lm-stack { display: flex; flex-direction: column; gap: var(--lm-stack-gap, var(--lm-sp-3)); }
 .lm-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--lm-row-gap, var(--lm-sp-2)); }
+
+/* Liquid Glass material, as a utility any module can apply. */
+.lm-glass {
+  background: var(--lm-glass);
+  backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow);
+}
+/* Monday-style vivid label: saturated fill, navy text (AA), pill shape. */
+.lm-label {
+  display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: var(--lm-r-pill);
+  font: 650 var(--lm-fs-xs)/1 var(--lm-font-ui); color: var(--lm-ink); background: var(--label, var(--lm-vivid-blue));
+}
 
 /* Shared keyframes */
 @keyframes lm-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

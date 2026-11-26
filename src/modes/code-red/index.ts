@@ -80,8 +80,8 @@ const codeRed: ModeModule = {
   title: 'Code Red',
   tagline: 'Sight on the line. Spot the red flags and make the call before the clock runs out.',
   text: { he: { title: 'קוד אדום', tagline: 'הראייה על הכף. זהו את הדגלים האדומים וקבלו החלטה לפני שהשעון נגמר.' } },
-  icon: '🚨',
-  accent: '#ef4444',
+  icon: 'alert',
+  accent: '#dc2626',
   order: 40,
   // Design note (internal): urgency, a heartbeat clock and a 'sight saved' finale.
   rules: {

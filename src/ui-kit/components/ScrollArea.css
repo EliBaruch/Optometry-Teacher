@@ -10,3 +10,7 @@
 .lm-scroll.fade-end { --fade-b: 28px; }
 .lm-scroll:focus-visible { --lm-focus-offset: -2px; box-shadow: none; border-radius: var(--lm-r-sm); }
 .lm-scroll--horizontal .lm-scroll__content { width: max-content; }
+/* slim neutral scrollbars */
+.lm-scroll { scrollbar-width: thin; scrollbar-color: var(--lm-border-strong) transparent; }
+.lm-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.lm-scroll::-webkit-scrollbar-thumb { background: var(--lm-border-strong); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }

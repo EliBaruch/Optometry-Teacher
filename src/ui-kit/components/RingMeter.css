@@ -1,12 +1,11 @@
-.lm-ring { --ring-c: var(--lm-gold); position: relative; display: inline-grid; place-items: center; flex: none; }
+.lm-ring { --ring-c: var(--lm-accent); position: relative; display: inline-grid; place-items: center; flex: none; }
 .lm-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.lm-ring__track { fill: none; stroke: rgba(6, 3, 14, 0.55); }
+.lm-ring__track { fill: none; stroke: var(--lm-surface-3); }
 .lm-ring__arc {
   fill: none; stroke-linecap: round;
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ring-c) 70%, transparent));
   transition: stroke-dashoffset 1100ms var(--lm-ease-out-expo), opacity var(--lm-dur-ui);
 }
-.lm-ring__tick { stroke: rgba(255, 236, 210, 0.16); stroke-width: 0.8; stroke-linecap: round; transition: stroke 400ms var(--lm-ease-out); }
+.lm-ring__tick { stroke: var(--lm-border-strong); stroke-width: 0.8; stroke-linecap: round; transition: stroke 400ms var(--lm-ease-out); }
 .lm-ring__tick.is-major { stroke-width: 1.2; }
-.lm-ring__tick.is-lit { stroke: color-mix(in srgb, var(--ring-c) 80%, white); }
+.lm-ring__tick.is-lit { stroke: var(--ring-c); }
 .lm-ring__center { position: relative; display: grid; place-items: center; text-align: center; line-height: 1.1; }

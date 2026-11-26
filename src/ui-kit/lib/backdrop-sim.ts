@@ -19,13 +19,13 @@ export interface VariantSpec {
 }
 
 export const VARIANTS: Record<BackdropVariant, VariantSpec> = {
-  // Daylight: sparse, slow sunlit motes in soft clinic tints. No rain anywhere.
-  title: { colors: ['#5fcbcd', '#7aa8ff', '#ffc98a', '#b69cff'], density: 14, speed: 5, rise: -2, size: [2, 26], rain: false },
-  hub: { colors: ['#5fcbcd', '#7aa8ff', '#ffc98a', '#9fe3e2'], density: 10, speed: 4, rise: -1.5, size: [2, 22], rain: false },
-  exam: { colors: ['#5fcbcd', '#7aa8ff', '#9fe3e2', '#b69cff'], density: 7, speed: 3, rise: -1, size: [2, 18], rain: false },
-  emergency: { colors: ['#fb7185', '#f43f5e', '#fdba74', '#fda4af'], density: 12, speed: 10, rise: -6, size: [1.5, 16], rain: false },
-  results: { colors: ['#5fcbcd', '#ffc98a', '#7aa8ff', '#b69cff'], density: 16, speed: 8, rise: -8, size: [1.5, 20], rain: false },
-  calm: { colors: ['#7dd3fc', '#9fe3e2', '#b69cff', '#ffc98a'], density: 8, speed: 3, rise: -1, size: [2, 24], rain: false },
+  // Clinic Glass: soft white light motes drifting over the daylight mesh. No rain anywhere.
+  title: { colors: ['#ffffff', '#dce6ff', '#e9e2ff', '#d6f5ff'], density: 26, speed: 6, rise: -3, size: [2, 26], rain: false },
+  hub: { colors: ['#ffffff', '#dce6ff', '#d6f5ff', '#ffe9dc'], density: 22, speed: 5, rise: -2, size: [2, 22], rain: false },
+  exam: { colors: ['#ffffff', '#dce6ff', '#d6f5ff', '#e9e2ff'], density: 21, speed: 4, rise: -1.5, size: [2, 18], rain: false },
+  emergency: { colors: ['#ffffff', '#ffd6dc', '#ffe4d0', '#ffc2cb'], density: 24, speed: 12, rise: -8, size: [1.5, 16], rain: false },
+  results: { colors: ['#ffffff', '#fff1c9', '#dce6ff', '#e9e2ff'], density: 30, speed: 10, rise: -10, size: [1.5, 20], rain: false },
+  calm: { colors: ['#ffffff', '#d6f5ff', '#e9e2ff', '#e3f8ef'], density: 21, speed: 3, rise: -1, size: [2, 24], rain: false },
 };
 
 export interface Mote {

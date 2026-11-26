@@ -1,4 +1,4 @@
-/** Two brass-edged doors swing apart onto warm light. Purely visual; the scene times navigation. */
+/** Two glass clinic doors slide apart onto a wash of daylight. Purely visual; the scene times navigation. */
 export function DoorTransition({ accent, onCancel }: { accent: string; onCancel?: () => void }) {
   return (
     <div class="hub-door" style={{ '--acc': accent }} aria-hidden="true" onClick={onCancel}>

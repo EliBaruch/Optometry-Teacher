@@ -2,10 +2,10 @@
 .lm-star { position: relative; display: inline-block; flex: none; }
 .lm-star.is-mid { transform: translateY(-18%); }
 .lm-star svg { width: 100%; height: 100%; overflow: visible; }
-.lm-star__empty { fill: rgba(10, 5, 22, 0.55); stroke: rgba(255, 220, 160, 0.3); stroke-width: 1.2; stroke-linejoin: round; }
+.lm-star__empty { fill: var(--lm-surface-3); stroke: var(--lm-border-strong); stroke-width: 1; stroke-linejoin: round; }
 .lm-star__fill {
-  stroke: #fff1c9; stroke-width: 0.8; stroke-linejoin: round;
-  filter: drop-shadow(0 0 5px rgba(255, 200, 100, 0.75)) drop-shadow(0 1px 0 rgba(120, 70, 0, 0.6));
+  stroke: var(--lm-coin-deep); stroke-width: 0.8; stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgba(180, 83, 9, 0.25));
   transform-origin: 12px 12px;
 }
 .lm-stars.is-anim .lm-star__fill { animation: lm-star-pop 620ms var(--lm-ease-spring) var(--d) both; }
@@ -17,8 +17,8 @@
 .lm-star__glint {
   position: absolute; inset: -40%; pointer-events: none; opacity: 0;
   background:
-    radial-gradient(circle, rgba(255, 240, 200, 0.8) 0 6%, transparent 7%),
-    conic-gradient(from 0deg, transparent 0 20deg, rgba(255, 230, 170, 0.6) 22deg, transparent 24deg 110deg, rgba(255, 230, 170, 0.6) 112deg, transparent 114deg 200deg, rgba(255, 230, 170, 0.6) 202deg, transparent 204deg 290deg, rgba(255, 230, 170, 0.6) 292deg, transparent 294deg);
+    radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 6%, transparent 7%),
+    conic-gradient(from 0deg, transparent 0 20deg, rgba(255, 214, 120, 0.8) 22deg, transparent 24deg 110deg, rgba(255, 214, 120, 0.8) 112deg, transparent 114deg 200deg, rgba(255, 214, 120, 0.8) 202deg, transparent 204deg 290deg, rgba(255, 214, 120, 0.8) 292deg, transparent 294deg);
   -webkit-mask: radial-gradient(circle, #000 0 30%, transparent 62%); mask: radial-gradient(circle, #000 0 30%, transparent 62%);
 }
 .lm-stars.is-anim .lm-star__glint { animation: lm-star-glint 700ms var(--lm-ease-out) calc(var(--d) + 180ms) both; }

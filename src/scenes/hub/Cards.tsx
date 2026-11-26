@@ -9,22 +9,23 @@ function deny(el: HTMLElement) {
   el.classList.add('is-denied');
 }
 
-/** A playable session, as a wide row: medallion, story, rule chips, go. */
+/** A playable session, as a wide card: icon tile, story, rule chips, go. The first one is the featured session. */
 export function ModeCard({ mode, index, onStart, pending }: {
   mode: ModeModule; index: number; onStart: (m: ModeModule, el: HTMLElement) => void; pending: boolean;
 }) {
   const locale = useLocale();
+  const t = useStrings(S);
   const mt = modeText(mode, locale);
   const rules = rulesSummary(mode.rules, locale);
+  const featured = index === 0;
   return (
     <GlassPanel
-      interactive glow accent={mode.accent} padding="none" sfx="select"
-      class="hub-mode" style={{ '--i': index, '--acc': mode.accent }}
+      interactive glow={featured} accent={mode.accent} padding="none" sfx="select"
+      class={`hub-mode${featured ? ' hub-mode--featured' : ''}`} style={{ '--i': index, '--acc': mode.accent }}
       onClick={(e: MouseEvent) => { if (!pending) onStart(mode, e.currentTarget as HTMLElement); }}
       aria-label={`${mt.title}. ${mt.tagline}. ${rules.join(', ')}`}
     >
-      <div class="hub-mode__shine" aria-hidden="true" />
-      <div class="hub-mode__medal" aria-hidden="true"><IconOrText icon={mode.icon} size={30} /></div>
+      <div class="hub-mode__tile" aria-hidden="true"><IconOrText icon={mode.icon} size={featured ? 30 : 26} /></div>
       <div class="hub-mode__text">
         <h3 class="hub-mode__title">{mt.title}</h3>
         <p class="hub-mode__tag">{mt.tagline}</p>
@@ -32,7 +33,10 @@ export function ModeCard({ mode, index, onStart, pending }: {
       <ul class="hub-mode__rules" aria-hidden="true">
         {rules.map((r) => <li key={r}>{r}</li>)}
       </ul>
-      <span class="hub-mode__go" aria-hidden="true"><Icon name="arrow-right" size={18} /></span>
+      <span class="hub-mode__go" aria-hidden="true">
+        {featured && <span class="hub-mode__go-label">{t.start}</span>}
+        <Icon name="arrow-right" size={18} />
+      </span>
     </GlassPanel>
   );
 }

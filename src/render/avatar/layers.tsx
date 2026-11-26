@@ -7,7 +7,6 @@ import type { VNode } from 'preact';
 import { mix } from './color';
 import { CX, VIEW_H, VIEW_W } from './geometry';
 import { grainDataUrl } from './grain';
-import { GOLD } from './palette';
 import { bodyDefs, Body } from './parts/body';
 import type { PaintCtx } from './parts/ctx';
 import { AccessoryBody, AccessoryEar, Bandage, FacialHairOver, FacialHairUnder, Glasses, Headwear, ScarfBack } from './parts/extras';
@@ -18,7 +17,9 @@ import { EyePatch, Rash, ShieldHand, TearStreaks, TemporalArtery, templeMask } f
 import type { AttrMap } from './rig';
 
 export function Defs({ c, grain }: { c: PaintCtx; grain: boolean }) {
-  const bg = mix(c.spec.outfit, '#1a0f2e', 0.68);
+  // Photo-studio backdrop: a pastel of the outfit hue, pulled toward clinic teal-white.
+  const bg = mix(mix(c.spec.outfit, '#ffffff', 0.8), '#e3f3f4', 0.45);
+  const edge = mix(mix(c.spec.outfit, '#ffffff', 0.62), '#d3e9eb', 0.4);
   const url = grain ? grainDataUrl() : null;
   return (
     <defs>
@@ -27,13 +28,13 @@ export function Defs({ c, grain }: { c: PaintCtx; grain: boolean }) {
       {bodyDefs(c)}
       {templeMask(c)}
       <radialGradient id={c.id('bg')} gradientUnits="userSpaceOnUse" cx={CX + 18} cy="80" r="170">
-        <stop offset="0" stop-color={mix(bg, GOLD, 0.12)} />
+        <stop offset="0" stop-color="#ffffff" />
         <stop offset="0.55" stop-color={bg} />
-        <stop offset="1" stop-color="#0b0716" />
+        <stop offset="1" stop-color={edge} />
       </radialGradient>
       <radialGradient id={c.id('key')}>
-        <stop offset="0" stop-color={GOLD} stop-opacity="0.35" />
-        <stop offset="1" stop-color={GOLD} stop-opacity="0" />
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.7" />
+        <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
       </radialGradient>
       {url && (
         <pattern id={c.id('grain')} width="48" height="48" patternUnits="userSpaceOnUse">
@@ -49,10 +50,7 @@ export function Backdrop({ c, grain }: { c: PaintCtx; grain: boolean }) {
     <g>
       <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill={c.url('bg')} />
       <circle cx="172" cy="34" r="90" fill={c.url('key')} />
-      <circle cx="28" cy="58" r="5" fill={GOLD} opacity="0.08" />
-      <circle cx="40" cy="176" r="9" fill="#a78bfa" opacity="0.07" />
-      <circle cx="182" cy="150" r="4" fill="#fff" opacity="0.06" />
-      {grain && <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill={c.url('grain')} opacity="0.32" />}
+      {grain && <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill={c.url('grain')} opacity="0.07" />}
     </g>
   );
 }

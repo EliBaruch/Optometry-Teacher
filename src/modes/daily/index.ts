@@ -67,8 +67,8 @@ const daily: ModeModule = {
   title: 'Daily Rounds',
   tagline: 'Three patients, the same for every clinician today. Make your chart the cleanest.',
   text: { he: { title: 'סבב יומי', tagline: 'שלושה מטופלים, אותם שלושה לכולם היום. נסו להגיש את התיק הנקי ביותר.' } },
-  icon: '🗓️',
-  accent: '#4ade80',
+  icon: 'clock',
+  accent: '#16a34a',
   order: 20,
   // Design note (internal): a fair, shared daily set to compare against colleagues.
   // No hints or auto-run: everyone plays the same patients on equal terms.

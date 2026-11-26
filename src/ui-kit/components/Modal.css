@@ -1,5 +1,5 @@
 .lm-modal {
-  --modal-c: var(--lm-gold);
+  --modal-c: var(--lm-accent);
   position: fixed; inset: 0; z-index: var(--lm-z-modal);
   display: grid; place-items: center; padding: max(16px, var(--lm-safe-top)) 16px max(16px, var(--lm-safe-bottom));
   /* One track exactly the size of the modal box: without it the auto row grows to the panel's
@@ -8,26 +8,18 @@
 }
 .lm-modal__scrim {
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% 40%, rgba(30, 16, 56, 0.55), rgba(4, 2, 10, 0.82));
-  backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%);
+  background: rgba(10, 22, 51, 0.35);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
 .lm-modal__panel {
   position: relative; display: flex; flex-direction: column;
   width: min(var(--modal-w, 520px), 100%); max-height: min(88vh, 100%);
   border-radius: var(--lm-r-xl);
-  background: var(--lm-glass-sheen), var(--lm-glass-bg-strong);
-  box-shadow:
-    var(--lm-glass-highlight),
-    inset 0 0 0 1px color-mix(in srgb, var(--modal-c) 26%, rgba(255, 236, 210, 0.12)),
-    0 0 80px -20px color-mix(in srgb, var(--modal-c) 35%, transparent),
-    var(--lm-shadow-3);
+  background: var(--lm-surface);
+  box-shadow: 0 0 0 1px var(--lm-border), var(--lm-shadow-3);
   outline: none;
 }
-.lm-modal__panel::before {
-  content: ''; position: absolute; left: 10%; right: 10%; top: 0; height: 1px; pointer-events: none;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--modal-c) 80%, white), transparent);
-}
-.lm-modal__panel:focus-visible { box-shadow: var(--lm-glass-highlight), inset 0 0 0 1px var(--lm-glass-border-hi), var(--lm-shadow-3); }
+.lm-modal__panel:focus-visible { box-shadow: 0 0 0 1px var(--lm-border-strong), var(--lm-shadow-3); }
 .lm-modal__panel--sm { --modal-w: 400px; }
 .lm-modal__panel--lg { --modal-w: 760px; }
 .lm-modal__panel--xl { --modal-w: 1040px; }
@@ -35,19 +27,18 @@
 .lm-modal__header { display: flex; align-items: center; gap: var(--lm-sp-3); padding: var(--lm-sp-5) var(--lm-sp-5) var(--lm-sp-3) var(--lm-sp-6); }
 .lm-modal__header.is-bare { position: absolute; inset-inline-end: 0; top: 0; z-index: 2; padding: var(--lm-sp-3); }
 .lm-modal__titles { flex: 1; min-width: 0; }
-.lm-modal__title { font-size: var(--lm-fs-2xl); font-weight: 540; color: var(--lm-ivory); }
+.lm-modal__title { font-size: var(--lm-fs-2xl); font-weight: 700; letter-spacing: var(--lm-tracking-display); color: var(--lm-ink); }
 .lm-modal__icon {
   display: grid; place-items: center; width: 42px; height: 42px; flex: none; border-radius: 13px; color: var(--modal-c);
-  background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--modal-c) 30%, transparent), color-mix(in srgb, var(--modal-c) 8%, transparent));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--modal-c) 45%, transparent);
+  background: color-mix(in srgb, var(--modal-c) 11%, white);
 }
 .lm-modal__icon svg { width: 22px; height: 22px; }
 .lm-modal__close { align-self: flex-start; }
-.lm-modal__body { flex: 1; min-height: 0; overflow: auto; padding: var(--lm-sp-2) var(--lm-sp-6) var(--lm-sp-6); color: var(--lm-ivory-dim); }
+.lm-modal__body { flex: 1; min-height: 0; overflow: auto; padding: var(--lm-sp-2) var(--lm-sp-6) var(--lm-sp-6); color: var(--lm-ink-2); }
 .lm-modal__panel.is-flush .lm-modal__body { padding: 0; overflow: hidden; border-radius: 0 0 var(--lm-r-xl) var(--lm-r-xl); }
 .lm-modal__footer {
   display: flex; justify-content: flex-end; gap: var(--lm-sp-3); flex-wrap: wrap;
-  padding: var(--lm-sp-4) var(--lm-sp-6) var(--lm-sp-5); border-top: 1px solid var(--lm-hairline);
+  padding: var(--lm-sp-4) var(--lm-sp-6) var(--lm-sp-5); border-top: 1px solid var(--lm-border);
 }
 @media (max-width: 560px) {
   .lm-modal { padding: 10px; }
@@ -64,14 +55,10 @@
 .lm-modal.is-closing .lm-modal__panel { animation: lm-modal-out 240ms var(--lm-ease-in-out) both; pointer-events: none; }
 @keyframes lm-modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes lm-modal-in {
-  0% { opacity: 0; transform: translateY(18px) scale(0.92); filter: blur(10px); }
-  60% { filter: blur(0); }
-  100% { opacity: 1; transform: none; filter: none; }
+  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  100% { opacity: 1; transform: none; }
 }
-@keyframes lm-modal-out { to { opacity: 0; transform: translateY(8px) scale(0.96); filter: blur(6px); } }
+@keyframes lm-modal-out { to { opacity: 0; transform: translateY(8px) scale(0.97); } }
 
 /* lite rendering: no live blur, a deeper scrim instead */
-html.lm-lite .lm-modal__scrim {
-  backdrop-filter: none; -webkit-backdrop-filter: none;
-  background: radial-gradient(ellipse at 50% 40%, rgba(24, 12, 46, 0.86), rgba(4, 2, 10, 0.94));
-}
+html.lm-lite .lm-modal__scrim { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(10, 22, 51, 0.5); }

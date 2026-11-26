@@ -15,7 +15,7 @@ export interface ScrollAreaProps {
   ariaLabel?: string;
 }
 
-/** Scroll container with slim gold scrollbars and soft fade masks at overflowing edges. */
+/** Scroll container with slim neutral scrollbars and soft fade masks at overflowing edges. */
 export function ScrollArea({ children, maxHeight, fade = true, direction = 'vertical', class: klass, style, ariaLabel }: ScrollAreaProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: false, end: false });

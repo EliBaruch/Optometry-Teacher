@@ -89,12 +89,12 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
           <path id={`${uid}-rim`} d="M100 100 m-77 0 a77 77 0 1 1 154 0 a77 77 0 1 1 -154 0" />
           {isS && (
             <linearGradient id={`${uid}-iri`} x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse" spreadMethod="reflect">
-              <stop offset="0" stop-color="#fff2c4" />
-              <stop offset="0.22" stop-color="#ffd27a" />
-              <stop offset="0.4" stop-color="#ffb4d8" />
-              <stop offset="0.58" stop-color="#bba6ff" />
-              <stop offset="0.76" stop-color="#8fe9ff" />
-              <stop offset="1" stop-color="#ffe08a" />
+              <stop offset="0" stop-color="#f6c453" />
+              <stop offset="0.22" stop-color="#e9a20b" />
+              <stop offset="0.4" stop-color="#ec6aa8" />
+              <stop offset="0.58" stop-color="#8b6cf0" />
+              <stop offset="0.76" stop-color="#2bb3d6" />
+              <stop offset="1" stop-color="#f2b630" />
               {/* The gradient sits inside the ink filter, so each frame of drift re-runs the
                   turbulence. Drift for a few cycles after the slam, then hold (the glare keeps it alive). */}
               {!reduced && !lite && <animateTransform attributeName="gradientTransform" type="translate" values="-200 -200; 0 0; -200 -200" dur="6s" begin={`${(delay + STAMP_IMPACT_MS) / 1000}s`} repeatCount="2" fill="freeze" />}

@@ -194,7 +194,7 @@ export function createFxController(layer: HTMLElement, shakeTarget: HTMLElement,
       el.className = 'lfx-float';
       el.textContent = text;
       el.setAttribute('aria-hidden', 'true');
-      const color = o.color ?? '#ffd27a';
+      const color = o.color ?? '#3b6bff';
       const size = o.size ?? 30;
       el.style.left = `${x - off.x}px`;
       el.style.top = `${y - off.y}px`;
@@ -237,12 +237,12 @@ export function createFxController(layer: HTMLElement, shakeTarget: HTMLElement,
       wake();
     },
 
-    flash(color = '#fff4d6', ms = 260) {
+    flash(color = '#e6f7f8', ms = 260) {
       if (destroyed || reduced()) return;
       const el = doc.createElement('div');
       el.className = 'lfx-flash';
       el.style.background = `radial-gradient(ellipse at center, ${color} 0%, ${color} 45%, transparent 120%)`;
-      addOverlay(el, [{ opacity: 0 }, { opacity: 0.78, offset: 0.12 }, { opacity: 0 }], { duration: ms, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' });
+      addOverlay(el, [{ opacity: 0 }, { opacity: 0.55, offset: 0.12 }, { opacity: 0 }], { duration: ms, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' });
     },
 
     vignette(color: string, ms = 900) {

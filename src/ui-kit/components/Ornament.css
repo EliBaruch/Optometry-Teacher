@@ -1,9 +1,7 @@
-.lm-ornament { display: inline-block; flex: none; filter: drop-shadow(0 0 6px rgba(255, 210, 122, 0.35)); overflow: visible; }
+/* quiet modern divider: hairline with a small teal lens mark */
+.lm-ornament { display: inline-block; flex: none; overflow: visible; color: var(--lm-accent); }
 .lm-divider { display: flex; align-items: center; gap: var(--lm-sp-3); width: 100%; margin: var(--lm-sp-5) 0; }
-.lm-divider__line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 210, 122, 0.55)); }
-.lm-divider__line--r { background: linear-gradient(270deg, transparent, rgba(255, 210, 122, 0.55)); }
+.lm-divider__line { flex: 1; height: 1px; background: var(--lm-border); }
+.lm-divider__line--r { background: var(--lm-border); }
 .lm-divider--line { gap: 0; }
-.lm-divider__label { display: inline-flex; align-items: center; gap: 10px; }
-.lm-divider__label::before, .lm-divider__label::after {
-  content: ''; width: 5px; height: 5px; transform: rotate(45deg); background: var(--lm-gold); box-shadow: 0 0 8px var(--lm-gold);
-}
+.lm-divider__label { display: inline-flex; align-items: center; gap: 10px; color: var(--lm-ink-3); }

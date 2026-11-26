@@ -1,5 +1,5 @@
 .lm-btn {
-  --btn-h: 44px; --btn-px: 20px; --btn-r: 12px; --btn-fs: var(--lm-fs-md);
+  --btn-h: 44px; --btn-px: 22px; --btn-r: var(--lm-r-pill); --btn-fs: var(--lm-fs-md);
   position: relative; isolation: isolate; overflow: hidden;
   display: inline-flex; align-items: center; justify-content: center; gap: 0.55em;
   height: var(--btn-h); padding: 0 var(--btn-px); border-radius: var(--btn-r);
@@ -13,8 +13,8 @@
     color var(--lm-dur-ui) var(--lm-ease-out),
     filter var(--lm-dur-ui) var(--lm-ease-out);
 }
-.lm-btn--sm { --btn-h: 34px; --btn-px: 14px; --btn-r: 10px; --btn-fs: var(--lm-fs-sm); }
-.lm-btn--lg { --btn-h: 54px; --btn-px: 28px; --btn-r: 16px; --btn-fs: var(--lm-fs-lg); }
+.lm-btn--sm { --btn-h: 34px; --btn-px: 15px; --btn-r: var(--lm-r-pill); --btn-fs: var(--lm-fs-sm); }
+.lm-btn--lg { --btn-h: 54px; --btn-px: 30px; --btn-r: var(--lm-r-pill); --btn-fs: var(--lm-fs-lg); }
 .lm-btn--block { display: flex; width: 100%; }
 .lm-btn__label { position: relative; z-index: 1; }
 .lm-btn__icon { position: relative; z-index: 1; width: 1.15em; height: 1.15em; transition: transform var(--lm-dur-ui) var(--lm-ease-spring); }
@@ -50,40 +50,45 @@
   animation: lm-spin 700ms linear infinite;
 }
 
-/* ── primary: Lumen teal, solid and confident ─────────────────────────── */
+/* ── primary: electric azure capsule with a liquid specular top ───────── */
 .lm-btn--primary {
   color: var(--lm-on-accent);
-  background: linear-gradient(180deg, #0c8a94 0%, var(--lm-brand-600) 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 52%),
+    var(--lm-accent-gradient);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 1px 2px rgba(8, 60, 66, 0.25),
-    0 6px 16px -6px rgba(8, 120, 130, 0.55);
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0.5px rgba(10, 22, 80, 0.25),
+    0 1px 2px rgba(20, 44, 110, 0.25),
+    0 8px 20px -8px rgba(34, 87, 240, 0.6);
 }
 .lm-btn--primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #0b929b 0%, #087f89 100%);
+  filter: brightness(1.06) saturate(1.05);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 1px 2px rgba(8, 60, 66, 0.25),
-    0 10px 24px -8px rgba(8, 120, 130, 0.6);
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0.5px rgba(10, 22, 80, 0.25),
+    0 1px 2px rgba(20, 44, 110, 0.25),
+    0 14px 28px -10px rgba(34, 87, 240, 0.7);
   transform: translateY(-1px);
 }
 .lm-btn--primary:active:not(:disabled) {
-  background: var(--lm-brand-700);
-  box-shadow: inset 0 1px 3px rgba(0, 40, 45, 0.3), 0 1px 2px rgba(8, 60, 66, 0.2);
+  filter: brightness(0.96);
+  box-shadow: inset 0 1px 3px rgba(10, 22, 80, 0.35), 0 1px 2px rgba(20, 44, 110, 0.2);
 }
-.lm-btn--primary .lm-btn__sheen::before { background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent); }
+.lm-btn--primary .lm-btn__sheen::before { background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent); }
 
-/* ── glass → secondary: white card button with a crisp border ─────────── */
+/* ── glass: a Liquid Glass capsule ────────────────────────────────────── */
 .lm-btn--glass {
   color: var(--lm-ink);
-  background: var(--lm-surface);
-  box-shadow: inset 0 0 0 1px var(--lm-border-strong), 0 1px 2px rgba(15, 30, 50, 0.05);
+  background: var(--lm-glass);
+  backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  box-shadow: var(--lm-glass-highlight), 0 0 0 1px var(--lm-glass-edge), 0 4px 12px -6px rgba(10, 22, 51, 0.18);
 }
-.lm-btn--glass .lm-btn__sheen::before { background: linear-gradient(100deg, transparent, rgba(11, 146, 155, 0.08), transparent); }
+.lm-btn--glass .lm-btn__sheen::before { background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.7), transparent); }
 .lm-btn--glass:hover:not(:disabled) {
   color: var(--lm-ink);
-  background: var(--lm-surface-2);
-  box-shadow: inset 0 0 0 1px #b4c2cf, 0 4px 12px -4px rgba(15, 30, 50, 0.14);
+  background: var(--lm-glass-sheen), var(--lm-glass-bg-strong);
+  box-shadow: var(--lm-glass-highlight), 0 0 0 1px var(--lm-border-strong), 0 10px 24px -10px rgba(10, 22, 51, 0.25);
   transform: translateY(-1px);
 }
 .lm-btn--glass .lm-btn__icon { color: var(--lm-accent-text); }
@@ -91,15 +96,15 @@
 /* ── ghost ────────────────────────────────────────────────────────────── */
 .lm-btn--ghost { color: var(--lm-ink-3); background: transparent; }
 .lm-btn--ghost .lm-btn__sheen::before { display: none; }
-.lm-btn--ghost:hover:not(:disabled) { color: var(--lm-ink); background: rgba(15, 30, 50, 0.05); }
-.lm-btn--ghost:active:not(:disabled) { background: rgba(15, 30, 50, 0.09); }
-.lm-btn--ghost .lm-btn__ripple, .lm-btn--glass .lm-btn__ripple { background: radial-gradient(circle, rgba(11, 146, 155, 0.18), rgba(11, 146, 155, 0) 70%); }
+.lm-btn--ghost:hover:not(:disabled) { color: var(--lm-ink); background: rgba(10, 22, 51, 0.05); }
+.lm-btn--ghost:active:not(:disabled) { background: rgba(10, 22, 51, 0.09); }
+.lm-btn--ghost .lm-btn__ripple, .lm-btn--glass .lm-btn__ripple { background: radial-gradient(circle, rgba(59, 107, 255, 0.2), rgba(59, 107, 255, 0) 70%); }
 
 /* ── danger ───────────────────────────────────────────────────────────── */
 .lm-btn--danger {
   color: #fff;
-  background: linear-gradient(180deg, #ef4466 0%, #e11d48 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(120, 10, 30, 0.25), 0 6px 16px -6px rgba(225, 29, 72, 0.55);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 52%), linear-gradient(135deg, #ff4d6d, #e11d48);
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.45), 0 1px 2px rgba(120, 10, 30, 0.25), 0 8px 20px -8px rgba(225, 29, 72, 0.6);
 }
 .lm-btn--danger:hover:not(:disabled) {
   filter: brightness(1.05);
@@ -111,9 +116,9 @@
 html.high-contrast .lm-btn--glass, html.high-contrast .lm-btn--ghost { box-shadow: inset 0 0 0 1.5px var(--lm-ink-2); }
 
 /* ── keyboard focus: the outline ring comes from base.css; each variant
-      keeps its own depth and adds the soft teal halo on top ──────────── */
-.lm-btn--primary:focus-visible { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), var(--lm-focus-glow), 0 6px 16px -6px rgba(8, 120, 130, 0.55); }
-.lm-btn--glass:focus-visible { box-shadow: inset 0 0 0 1px var(--lm-border-strong), var(--lm-focus-glow); }
-.lm-btn--ghost:focus-visible { color: var(--lm-ink); background: rgba(15, 30, 50, 0.05); box-shadow: var(--lm-focus-glow); }
-.lm-btn--danger:focus-visible { --lm-focus-color: var(--lm-critical); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 0 4px rgba(225, 29, 72, 0.18); }
+      keeps its own depth and adds a soft azure halo ──────────────────── */
+.lm-btn--primary:focus-visible { box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.45), var(--lm-focus-glow), 0 8px 20px -8px rgba(34, 87, 240, 0.6); }
+.lm-btn--glass:focus-visible { box-shadow: var(--lm-glass-highlight), 0 0 0 1px var(--lm-glass-edge), var(--lm-focus-glow); }
+.lm-btn--ghost:focus-visible { color: var(--lm-ink); background: rgba(10, 22, 51, 0.05); box-shadow: var(--lm-focus-glow); }
+.lm-btn--danger:focus-visible { --lm-focus-color: var(--lm-critical); box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.45), 0 0 0 4px rgba(225, 29, 72, 0.2); }
 html.high-contrast .lm-btn--danger:focus-visible { --lm-focus-color: #000; }

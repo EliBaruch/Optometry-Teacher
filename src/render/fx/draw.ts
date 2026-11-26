@@ -27,9 +27,9 @@ function glowSprite(color: string): HTMLCanvasElement | null {
   if (!g) return null;
   const [r, gg, b] = parseColor(color);
   const grad = g.createRadialGradient(GLOW / 2, GLOW / 2, 0, GLOW / 2, GLOW / 2, GLOW / 2);
-  grad.addColorStop(0, `rgba(255,255,255,1)`);
-  grad.addColorStop(0.14, `rgba(${r},${gg},${b},0.95)`);
-  grad.addColorStop(0.4, `rgba(${r},${gg},${b},0.35)`);
+  grad.addColorStop(0, `rgba(${r},${gg},${b},1)`);
+  grad.addColorStop(0.16, `rgba(${r},${gg},${b},0.92)`);
+  grad.addColorStop(0.42, `rgba(${r},${gg},${b},0.32)`);
   grad.addColorStop(1, `rgba(${r},${gg},${b},0)`);
   g.fillStyle = grad;
   g.fillRect(0, 0, GLOW, GLOW);
@@ -163,11 +163,11 @@ function drawStar(g: Ctx, p: Particle, a: number): void {
   g.globalAlpha = a * (0.6 + 0.4 * tw);
   g.translate(p.x, p.y);
   g.rotate(p.rot * 0.25);
-  g.fillStyle = '#fffdf3';
+  g.fillStyle = shade(p.color, -0.12);
   g.beginPath();
   starPath(g, s);
   g.fill();
-  g.fillStyle = rgba(p.color, 0.9);
+  g.fillStyle = rgba(shade(p.color, 0.55), 0.95);
   g.beginPath();
   starPath(g, s * 0.55);
   g.fill();
@@ -279,13 +279,14 @@ function drawOne(g: Ctx, p: Particle): void {
   g.restore();
 }
 
-/** Paint every alive particle: normal-blend kinds first, then additive light. */
+/** Paint every alive particle with normal blending: solid kinds first, light kinds on top. */
 export function drawParticles(g: Ctx, list: { forEach(fn: (p: Particle) => void): void }): void {
+  // Daylight UI: no additive light (it vanishes on white). Everything uses
+  // normal blending; the former additive kinds are simply drawn last (on top).
   g.globalCompositeOperation = 'source-over';
   list.forEach((p) => {
     if (!ADDITIVE.has(p.kind)) drawOne(g, p);
   });
-  g.globalCompositeOperation = 'lighter';
   list.forEach((p) => {
     if (ADDITIVE.has(p.kind)) drawOne(g, p);
   });

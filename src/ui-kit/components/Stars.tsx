@@ -53,9 +53,9 @@ export function Stars({ value, max = 3, size = 28, animate = true, delay = 150, 
               {on && (
                 <defs>
                   <linearGradient id={`${gid}-${i}`} x1="0.2" y1="0" x2="0.8" y2="1">
-                    <stop offset="0" stop-color="#fff6dc" />
-                    <stop offset="0.45" stop-color="#ffd27a" />
-                    <stop offset="1" stop-color="#e09a2c" />
+                    <stop offset="0" stop-color="#fbd466" />
+                    <stop offset="0.45" stop-color="#f5b82e" />
+                    <stop offset="1" stop-color="#e9a20b" />
                   </linearGradient>
                 </defs>
               )}

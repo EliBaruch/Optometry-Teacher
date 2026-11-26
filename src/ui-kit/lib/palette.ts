@@ -3,34 +3,42 @@ import type { Grade, RewardGrant } from '@core';
 /** JS mirror of the colour tokens (for canvas / SVG drawing). Keep in sync with styles/tokens.css. */
 export const palette = {
   // Daylight canvas & surfaces
-  canvas: '#f4f7fa',
+  canvas: '#eef2fa',
   surface: '#ffffff',
-  border: '#e1e8ef',
+  border: '#dde3ee',
   // Legacy keys (remapped like the CSS tokens): "ink" = page background, "ivory" = text, "gold" = accent.
-  ink: '#f4f7fa',
-  inkDeep: '#e4ebf1',
-  aubergine: '#eaf0f5',
-  plum: '#dbe4ec',
-  gold: '#087882',
-  goldDeep: '#0a616a',
-  ivory: '#0d1b2a',
-  muted: '#5b6878',
+  ink: '#eef2fa',
+  inkDeep: '#dfe6f3',
+  aubergine: '#e6ebf6',
+  plum: '#d9e1ef',
+  gold: '#2257f0',
+  goldDeep: '#1b45c4',
+  ivory: '#0a1633',
+  muted: '#56637d',
   // Brand + text
-  brand: '#087882',
-  brandBright: '#0b929b',
-  brandSoft: '#ebfafa',
-  text: '#0d1b2a',
-  coin: '#e9a20b',
+  brand: '#2257f0',
+  brandBright: '#3b6bff',
+  brandSoft: '#eef3ff',
+  text: '#0a1633',
+  coin: '#f5a524',
   // System accents
   career: '#7c3aed',
-  economy: '#d98a06',
-  rivals: '#16a34a',
+  economy: '#d97706',
+  rivals: '#059669',
   streaks: '#ea580c',
   gallery: '#db2777',
-  codeRed: '#dc2626',
+  codeRed: '#e11d48',
   lounge: '#0284c7',
+  // Vivid status labels (Monday-style: vivid fill, navy text)
+  vividGreen: '#00c875',
+  vividOrange: '#fdab3d',
+  vividRed: '#ff5a6e',
+  vividPurple: '#a25ddc',
+  vividBlue: '#579bfc',
+  vividPink: '#ff6ec7',
+  vividSky: '#4eccf5',
   // Clinical states
-  normal: '#0f9f8f',
+  normal: '#059669',
   abnormal: '#d97706',
   critical: '#e11d48',
 } as const;
@@ -41,15 +49,15 @@ export const RARITY_COLOR: Record<Rarity, string> = {
   common: '#64748b',
   rare: '#0284c7',
   epic: '#9333ea',
-  legendary: '#d98a06',
+  legendary: '#d97706',
 };
 export const RARITY_LABEL: Record<Rarity, string> = {
   common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary',
 };
 
 export const GRADE_COLOR: Record<Grade, string> = {
-  S: '#d98a06',
-  A: '#0f9f8f',
+  S: '#d97706',
+  A: '#059669',
   B: '#0284c7',
   C: '#7c3aed',
   D: '#ea580c',
@@ -62,13 +70,13 @@ export const GRADE_WORD: Record<Grade, string> = {
 export type Tone = 'neutral' | 'gold' | 'info' | 'good' | 'warn' | 'bad' | 'epic' | 'normal' | 'abnormal' | 'critical';
 export const TONE_COLOR: Record<Tone, string> = {
   neutral: '#64748b',
-  gold: '#087882',
+  gold: '#2257f0',
   info: '#0284c7',
-  good: '#0f9f8f',
+  good: '#059669',
   warn: '#d97706',
   bad: '#e11d48',
   epic: '#9333ea',
-  normal: '#0f9f8f',
+  normal: '#059669',
   abnormal: '#d97706',
   critical: '#e11d48',
 };

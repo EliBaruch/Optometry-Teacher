@@ -45,9 +45,9 @@ export interface CoreTile {
 
 /** Built-in wings, shown only when their scene is registered. */
 export const CORE_TILES: CoreTile[] = [
-  { id: 'core-arcade', sceneId: 'arcade', title: 'Arcade', subtitle: 'Sharpen one test at a time', icon: 'target', accent: '#38bdf8' },
-  { id: 'core-codex', sceneId: 'codex', title: 'Codex', subtitle: 'Every diagnosis you have met', icon: 'book', accent: '#a78bfa' },
-  { id: 'core-profile', sceneId: 'profile', title: 'Profile', subtitle: 'Your record and specialty atlas', icon: 'user', accent: '#ffd27a' },
+  { id: 'core-arcade', sceneId: 'arcade', title: 'Arcade', subtitle: 'Sharpen one test at a time', icon: 'target', accent: '#0284c7' },
+  { id: 'core-codex', sceneId: 'codex', title: 'Codex', subtitle: 'Every diagnosis you have met', icon: 'book', accent: '#7c3aed' },
+  { id: 'core-profile', sceneId: 'profile', title: 'Profile', subtitle: 'Your record and specialty atlas', icon: 'user', accent: '#2257f0' },
 ];
 
 export interface WingView {

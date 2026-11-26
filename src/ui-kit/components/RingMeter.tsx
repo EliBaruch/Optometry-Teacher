@@ -22,7 +22,7 @@ export interface RingMeterProps {
 }
 
 /** Circular gauge with an animated luminous arc. */
-export function RingMeter({ value, size = 112, thickness = 8, accent = 'var(--lm-gold)', accent2, children, ariaLabel, ticks = true, class: klass }: RingMeterProps) {
+export function RingMeter({ value, size = 112, thickness = 8, accent = 'var(--lm-accent)', accent2, children, ariaLabel, ticks = true, class: klass }: RingMeterProps) {
   const reduced = useReducedMotion();
   const gid = 'lm-ring-' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const v = clamp(value);
@@ -68,7 +68,7 @@ export function RingMeter({ value, size = 112, thickness = 8, accent = 'var(--lm
       <svg viewBox="0 0 100 100" aria-hidden="true">
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color={accent2 ?? '#fff3d6'} />
+            <stop offset="0" stop-color={accent2 ?? 'var(--lm-brand-400)'} />
             <stop offset="1" stop-color={accent} />
           </linearGradient>
         </defs>

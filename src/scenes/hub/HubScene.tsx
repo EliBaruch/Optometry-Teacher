@@ -81,7 +81,7 @@ export function HubScene({ services }: SceneProps) {
       <div class="hub-grid">
         <header class="hub-hero">
           <div class="lm-eyebrow">{t.eyebrow}</div>
-          <h1 class="hub-hero__title">{greetingFor(new Date().getHours(), locale)}, <em>{name}</em></h1>
+          <h1 class="hub-hero__title">{greetingFor(new Date().getHours(), locale)}, <span class="hub-hero__name">{name}</span></h1>
           <p class="hub-hero__sub">{t.sub}</p>
         </header>
 

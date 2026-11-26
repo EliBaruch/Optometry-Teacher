@@ -59,9 +59,9 @@ export function AvatarBust(props: AvatarBustProps) {
           <FaceTop c={c} a={a} hair={hair} />
         </g>
       </g>
-      <circle cx={CX} cy={cy} r={R - 2} fill="none" stroke="#0b0716" stroke-opacity="0.6" stroke-width="5" />
+      <circle cx={CX} cy={cy} r={R - 2} fill="none" stroke="#0f283c" stroke-opacity="0.12" stroke-width="5" />
       <circle cx={CX} cy={cy} r={R - 3} fill="none" stroke={ring} stroke-width="3.2" />
-      <circle cx={CX} cy={cy} r={R - 1} fill="none" stroke="#fff" stroke-opacity="0.18" stroke-width="0.8" />
+      <circle cx={CX} cy={cy} r={R - 1} fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="0.8" />
     </svg>
   );
 }

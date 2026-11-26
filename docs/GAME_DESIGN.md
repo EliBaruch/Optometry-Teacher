@@ -27,19 +27,15 @@ Learning science baked in: retrieval practice (diagnose before being told), imme
 feedback, spaced repetition (missed diagnoses return — "Confessional"), interleaving across categories,
 desirable difficulty that ramps with rank.
 
-## 3. Art direction — "Daylight Clinic"
+## 3. Art direction — "Clinic Glass"
 The full spec lives in `docs/DESIGN_SYSTEM.md` (tokens in `src/ui-kit/styles/tokens.css`). In short:
-* Bright, airy, modern clinic: cool white canvas `#f4f7fa`, white cards with 1px borders and soft shadows.
-* Brand: Lumen teal `#087882`; ink text `#0d1b2a`; secondary `#5b6878`. Real gold only for coins/rewards.
-* System accents (legible on white): Career `#7c3aed` · Economy `#d98a06` · Rivals `#16a34a`
-  · Streaks `#ea580c` · Gallery `#db2777` · Code Red `#dc2626` · Lounge `#0284c7`.
-* Clinical states: normal `#0f9f8f`, abnormal `#d97706`, critical `#e11d48`.
+* Apple Liquid Glass materials over a luminous daylight mesh; floating glass capsules; big continuous radii.
+* Monday.com-style vivid, colour-coded status labels; McKinsey-style editorial type (navy ink, electric azure,
+  huge headlines, hairline rules, big numerals). Real gold only for coins/rewards.
 * Type: **Plus Jakarta Sans** (display), **Inter** (UI), **Space Grotesk** (numbers). Hebrew: Heebo.
-* Motion: everything eases (`cubic-bezier(.2,.8,.2,1)` out, springy overshoot for rewards). 150–250ms UI,
-  400–900ms reveals. Juice: screen shake on wrong/critical, hit-stop on correct diagnosis, particle bursts,
-  count-up numbers, staggered list entrances. Respect `reducedMotion`.
-* Motifs: daylight through big windows, clean lines, plants, light wood, modern instruments.
-  Instrument viewports (slit lamp, fundus, retinoscope) stay clinically dark, framed as screens.
+* Motion: everything eases (`cubic-bezier(.2,.8,.2,1)` out, springy overshoot for rewards). Juice: shake on
+  wrong/critical, hit-stop on correct diagnosis, particle bursts, count-ups, staggered entrances. Respect `reducedMotion`.
+* Instrument viewports (slit lamp, fundus, retinoscope) stay clinically dark, framed as screens inside glass.
 * Procedural everything (no external image assets): SVG patient portraits, canvas eyes with layered
   iris fibres, fundus paintings, Ishihara plates, charts. It must look *illustrated*, not programmer-art.
 * Audio: procedural WebAudio — glassy chimes, soft clinic ambience, a warm generative pad per scene,

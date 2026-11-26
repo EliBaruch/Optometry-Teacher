@@ -67,12 +67,12 @@ export function PatientAvatar(props: PatientAvatarProps) {
       <div class="lav-rig lav-breathe" style={breathe}>
         <svg class="lav-layer" viewBox={vb} aria-hidden="true" focusable="false">
           <BodyContent c={c} />
-          {backdrop && <GrainOverlay c={c} strength={0.14} />}
+          {backdrop && <GrainOverlay c={c} strength={0.04} />}
         </svg>
         <div class="lav-rig lav-sway" style={sway}>
           <svg class="lav-layer" viewBox={vb} aria-hidden="true" focusable="false">
             <HeadBase c={c} a={a} hair={hair} />
-            {backdrop && <GrainOverlay c={c} strength={0.12} clip={c.url('headClip')} />}
+            {backdrop && <GrainOverlay c={c} strength={0.035} clip={c.url('headClip')} />}
           </svg>
           <svg class="lav-layer lav-eyes" viewBox={vb} aria-hidden="true" focusable="false">
             <EyesContent c={c} a={a} />

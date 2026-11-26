@@ -57,8 +57,8 @@ const rush: ModeModule = {
   title: 'Rush Hour',
   tagline: 'The waiting room never empties. Keep the streak alive — three slips and the doors close.',
   text: { he: { title: 'שעת העומס', tagline: 'חדר ההמתנה לא מתרוקן. שמרו על הרצף: שלוש החמצות והדלתות ננעלות.' } },
-  icon: '⚡',
-  accent: '#fb923c',
+  icon: 'lightning',
+  accent: '#ea580c',
   order: 30,
   // Design note (internal): 'one more patient' momentum — the streak multiplier is the pull.
   rules: { length: 'endless', lives: RUSH_LIVES, scoreMultiplier: 1, hints: false, autoRun: true, comboMultiplier: rushComboMultiplier },

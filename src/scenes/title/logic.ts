@@ -51,7 +51,7 @@ export const INTRO_CARDS = [
     icon: 'eye' as const,
     eyebrow: 'Welcome to Lumen',
     title: 'You are the new optometrist',
-    body: 'An after-hours clinic in an old glass observatory. Patients drift in from the rain with blurred, red, haloed, double eyes, and you are the one who works out why.',
+    body: 'A bright, modern clinic with a full schedule. Patients arrive with blurred, red, haloed or double vision, and you are the one who works out why.',
   },
   {
     icon: 'book' as const,
@@ -76,7 +76,7 @@ export const INTRO_CARDS_HE: IntroCard[] = [
     icon: 'eye',
     eyebrow: 'ברוכים הבאים ללומן',
     title: 'אתם האופטומטריסטים החדשים',
-    body: 'מרפאה שנפתחת כשכולם כבר הלכו הביתה, בתוך מצפה כוכבים ישן מזכוכית. מטופלים נכנסים מהגשם עם עיניים מטושטשות, אדומות, עם הילות או עם ראייה כפולה, ואתם הולכים לפענח למה.',
+    body: 'מרפאה מודרנית ובהירה עם יומן מלא. מטופלים מגיעים עם ראייה מטושטשת, עיניים אדומות, הילות או ראייה כפולה, ואתם הולכים לפענח למה.',
   },
   {
     icon: 'book',

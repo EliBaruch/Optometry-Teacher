@@ -4,18 +4,12 @@ import { Backdrop, Button, Icon, Modal, useReducedMotion, useSignal, useStrings 
 import { S } from './strings';
 import { Intro } from './Intro';
 import { Flare, updateFlare } from './Flare';
-import { Lattice } from './Lattice';
 import { LivingEye } from './LivingEye';
-import { RainGlass } from './RainGlass';
 import './title.css';
 
 const ZOOM_MS = 1500;
-
-const MOTES = Array.from({ length: 22 }, (_, i) => {
-  const r = (k: number) => { const x = Math.sin((i + 1) * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
-  const big = r(5) > 0.7;
-  return { '--x': `${(r(1) * 100).toFixed(1)}%`, '--y': `${(30 + r(2) * 70).toFixed(1)}%`, '--s': `${big ? 22 + r(3) * 26 : 5 + r(3) * 8}px`, '--b': big ? '3px' : '0px', '--o': (big ? 0.35 : 0.8).toFixed(2), '--d': `${(9 + r(4) * 10).toFixed(1)}s`, '--dl': `-${(r(6) * 14).toFixed(1)}s`, '--dx': `${((r(7) - 0.5) * 80).toFixed(0)}px` };
-});
+/** Hero card aspect (height / width): a friendly macro crop of the eye, not a thin slit. */
+const ASPECT = 0.74;
 
 function useViewport() {
   const read = () => ({ w: window.innerWidth, h: window.innerHeight });
@@ -26,6 +20,24 @@ function useViewport() {
     return () => window.removeEventListener('resize', on);
   }, []);
   return v;
+}
+
+/** Lumen logo mark: a teal tile with a lens ring and a bright pupil. */
+function LumenMark() {
+  return (
+    <svg class="ttl-mark__logo" viewBox="0 0 48 48" aria-hidden="true">
+      <defs>
+        <linearGradient id="ttl-logo-g" x1="6" y1="2" x2="42" y2="46" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#5c87ff" />
+          <stop offset="1" stop-color="#2257f0" />
+        </linearGradient>
+      </defs>
+      <rect width="48" height="48" rx="14" fill="url(#ttl-logo-g)" />
+      <circle cx="24" cy="24" r="12.5" fill="none" stroke="#fff" stroke-width="3" />
+      <circle cx="24" cy="24" r="5" fill="#fff" />
+      <path d="M13.5 15.5a14 14 0 0 1 8-5" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  );
 }
 
 export function TitleScene({ services }: SceneProps) {
@@ -44,12 +56,17 @@ export function TitleScene({ services }: SceneProps) {
 
   const narrow = vp.w < 640;
   const landscape = vp.h <= 520 && vp.w > vp.h;
+  const split = landscape || vp.w >= 960;
   const eyeW = Math.round(
     landscape
-      ? Math.min(vp.w * 0.46, vp.h * 1.1)
-      : Math.min(vp.w * (narrow ? 1.0 : 0.8), 980, vp.h * (narrow ? 0.98 : 1.2)),
+      ? Math.min(vp.w * 0.4, (vp.h * 0.66) / ASPECT)
+      : split
+        ? Math.min(vp.w * 0.42, 640, (vp.h * 0.64) / ASPECT)
+        : narrow
+          ? Math.min(vp.w - 40, (vp.h * 0.33) / ASPECT)
+          : Math.min(vp.w * 0.7, 560, (vp.h * 0.36) / ASPECT),
   );
-  const eyeH = Math.round(eyeW * 0.5);
+  const eyeH = Math.round(eyeW * ASPECT);
   dims.current = { w: eyeW, h: eyeH, reduced };
   const onSweep = useCallback((ph: number) => updateFlare(flareRef.current, ph, dims.current.w, dims.current.h, dims.current.reduced), []);
   const burst = Math.ceil((Math.max(vp.w, vp.h) * 2.4) / Math.max(40, eyeH * 0.42));
@@ -86,7 +103,7 @@ export function TitleScene({ services }: SceneProps) {
     phaseRef.current = 'zoom';
     setPhase('zoom');
     services.audio.play('reveal');
-    services.fx.flash('#ffd27a', 500);
+    services.fx.flash('#cdf2f1', 500);
     timer.current = window.setTimeout(() => services.router.go('hub'), reduced ? 350 : ZOOM_MS);
   };
 
@@ -121,74 +138,65 @@ export function TitleScene({ services }: SceneProps) {
   return (
     <div ref={rootRef} class={`ttl ${zooming ? 'is-zoom' : ''} ${reduced ? 'is-reduced' : ''}`}>
       <Backdrop variant="title" fixed />
-      <div class="ttl__layer ttl__arch" aria-hidden="true" style={{ '--depth': 4 } as never}>
-        <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMax slice">
-          <defs>
-            <linearGradient id="ttl-arch" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#cdbbff" stop-opacity="0.5" />
-              <stop offset="1" stop-color="#ffd27a" stop-opacity="0.05" />
-            </linearGradient>
-          </defs>
-          <g fill="none" stroke="url(#ttl-arch)">
-            <path d="M120 1000 V420 Q120 120 500 20 Q880 120 880 420 V1000" stroke-width="2.4" />
-            <path d="M200 1000 V440 Q200 190 500 110 Q800 190 800 440 V1000" stroke-width="1.2" />
-          </g>
-        </svg>
-      </div>
-      <div class="ttl__layer ttl__lattice ttl__lattice--far" aria-hidden="true" style={{ '--depth': 8 } as never}><Lattice cols={11} rows={9} seed={7} strong={false} /></div>
-      <div class="ttl__layer ttl__lattice ttl__lattice--mid" aria-hidden="true" style={{ '--depth': 16 } as never}><Lattice cols={5} rows={4} seed={23} strong /></div>
-      <div class="ttl__layer ttl__stars" aria-hidden="true" style={{ '--depth': 14 } as never} />
-      <div class="ttl__motes" aria-hidden="true" style={{ '--depth': 26 } as never}>
-        {MOTES.map((m, i) => <i key={i} style={m as never} />)}
-      </div>
-      <div class="ttl__layer ttl__halo" aria-hidden="true" style={{ '--depth': 22 } as never} />
 
       <div class="ttl__stage" {...(phase === 'intro' ? ({ inert: true, 'aria-hidden': true } as object) : {})}>
-        <div class={`ttl-eye ${zooming ? 'is-zoom' : ''}`} style={{ width: `${eyeW}px`, height: `${eyeH}px`, '--depth': 30, '--eye-h': `${eyeH}px` } as never}>
-          <div class="ttl-eye__glow" aria-hidden="true" />
-          <div class="ttl-eye__frame">
-            <LivingEye width={eyeW} height={eyeH} reduced={reduced} focusCentre={zooming} onSweep={onSweep} />
-          </div>
-          <Flare elRef={flareRef} />
-          <div class="ttl-eye__burst" aria-hidden="true" style={{ '--burst': burst } as never} />
-        </div>
+        <nav class={`ttl-links ${zooming ? 'is-out' : ''}`} aria-label={t.secondary}>
+          <button type="button" class="ttl-link" onClick={() => { services.audio.play('click'); services.router.go('settings'); }}>
+            <Icon name="settings" size={16} /> {t.settings}
+          </button>
+          <button type="button" class="ttl-link" onClick={() => { services.audio.play('click'); setCredits(true); }}>
+            <Icon name="info" size={16} /> {t.credits}
+          </button>
+        </nav>
 
         <div class="ttl-copy">
-        <header class={`ttl-mark ${zooming ? 'is-out' : ''}`}>
-          <div class="lm-eyebrow ttl-mark__eyebrow lm-enter" style={{ '--lm-delay': '500ms' } as never}>{t.eyebrow}</div>
-          <h1 class="ttl-mark__word lm-enter" style={{ '--lm-delay': '650ms' } as never} aria-label={t.brandLabel}>
-            {t.brand.split('').map((c, i) => (
-              <span key={i} class="ttl-mark__ch" style={{ '--i': i } as never} aria-hidden="true">{c}</span>
-            ))}
-          </h1>
-          <p class="ttl-mark__sub lm-enter" style={{ '--lm-delay': '1000ms' } as never}>
-            <i /> {t.sub} <i />
-          </p>
-        </header>
+          <header class={`ttl-mark ${zooming ? 'is-out' : ''}`}>
+            <div class="ttl-mark__pill lm-enter" style={{ '--lm-delay': '150ms' } as never}>
+              <i aria-hidden="true" /> {t.eyebrow}
+            </div>
+            <div class="ttl-mark__lockup lm-enter" style={{ '--lm-delay': '250ms' } as never}>
+              <LumenMark />
+              <div class="ttl-mark__text">
+                <h1 class="ttl-mark__word">{t.brand}</h1>
+                <span class="ttl-mark__sub">{t.sub}</span>
+              </div>
+            </div>
+            <p class="ttl-mark__tag lm-enter" style={{ '--lm-delay': '380ms' } as never}>{t.tagline}</p>
+            <p class="ttl-mark__pitch lm-enter" style={{ '--lm-delay': '460ms' } as never}>{t.pitch}</p>
+          </header>
 
-        <div class={`ttl-cta ${zooming ? 'is-out' : ''} lm-enter`} style={{ '--lm-delay': '1300ms' } as never}>
-          <Button variant="primary" size="lg" icon="eye" sfx={false} onClick={open} class="ttl-cta__main" disabled={phase !== 'idle'}>
-            {first ? t.openFirst : t.openAgain}
-          </Button>
-          <div class="ttl-cta__hint">
-            {t.press} <kbd class="lm-num">Enter</kbd>
+          <div class={`ttl-cta ${zooming ? 'is-out' : ''} lm-enter`} style={{ '--lm-delay': '560ms' } as never}>
+            <Button variant="primary" size="lg" trailingIcon="arrow-right" sfx={false} onClick={open} class="ttl-cta__main" disabled={phase !== 'idle'}>
+              {first ? t.openFirst : t.openAgain}
+            </Button>
+            <div class="ttl-cta__hint">
+              {t.press} <kbd class="lm-num">Enter</kbd>
+            </div>
+            <div class="ttl-cta__touch">{t.touch}</div>
           </div>
-          <div class="ttl-cta__touch">{t.touch}</div>
-        </div>
         </div>
 
-      <nav class={`ttl-links ${zooming ? 'is-out' : ''}`} aria-label={t.secondary}>
-        <button type="button" class="ttl-link" onClick={() => { services.audio.play('click'); services.router.go('settings'); }}>
-          <Icon name="settings" size={16} /> {t.settings}
-        </button>
-        <button type="button" class="ttl-link" onClick={() => { services.audio.play('click'); setCredits(true); }}>
-          <Icon name="info" size={16} /> {t.credits}
-        </button>
-      </nav>
+        <div class={`ttl-eye ${zooming ? 'is-zoom' : ''}`} style={{ width: `${eyeW}px`, height: `${eyeH}px`, '--eye-h': `${eyeH}px` } as never}>
+          <svg class="ttl-eye__rings" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="49" />
+            <circle cx="50" cy="50" r="38" />
+            <circle cx="50" cy="50" r="27" />
+          </svg>
+          <div class="ttl-eye__frame">
+            <LivingEye width={eyeW} height={eyeH} reduced={reduced} focusCentre={zooming} onSweep={onSweep} />
+            <Flare elRef={flareRef} />
+          </div>
+          <div class="ttl-chip ttl-chip--a" aria-hidden="true">
+            <span class="ttl-chip__ico"><Icon name="check" size={16} /></span>
+            <span class="ttl-chip__txt"><b>{t.chipAcuityLabel}</b><em class="lm-num">{t.chipAcuityValue}</em></span>
+          </div>
+          <div class="ttl-chip ttl-chip--b" aria-hidden="true">
+            <span class="ttl-chip__ico ttl-chip__ico--sky"><Icon name="eye" size={16} /></span>
+            <span class="ttl-chip__txt"><b>{t.chipPupilsLabel}</b><em>{t.chipPupilsValue}</em></span>
+          </div>
+          <div class="ttl-eye__burst" aria-hidden="true" style={{ '--burst': burst } as never} />
+        </div>
       </div>
-      <div class="ttl__vignette" aria-hidden="true" />
-      <div class="ttl__layer ttl__pillars" aria-hidden="true" style={{ '--depth': 46 } as never} />
-      <RainGlass reduced={reduced} />
 
       {phase === 'intro' && <Intro onDone={finishIntro} />}
       <div class="ttl__veil" aria-hidden="true" />

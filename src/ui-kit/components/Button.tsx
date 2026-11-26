@@ -10,7 +10,7 @@ export type ButtonVariant = 'primary' | 'glass' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends Omit<JSX.HTMLAttributes<HTMLButtonElement>, 'icon' | 'size' | 'loading'> {
-  /** primary = candle-gold call to action */
+  /** primary = teal call to action */
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: IconName;

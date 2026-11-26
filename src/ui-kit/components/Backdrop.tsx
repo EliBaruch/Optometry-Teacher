@@ -46,8 +46,8 @@ function makeSprite(color: string, kind: 'bokeh' | 'spark'): HTMLCanvasElement {
 }
 
 /**
- * Animated scene background: daylight gradient + window light (CSS), a few slow
- * sunlit motes (canvas), paper-fine texture and a soft floor shade. Rain on glass
+ * Animated scene background: luminous daylight mesh (CSS), slow white light
+ * motes (canvas), paper-fine texture and a soft floor shade. Rain on glass
  * is still supported when a caller asks for it, but no variant enables it.
  * Cheap by design: sprite blits, DPR capped, pauses when hidden or offscreen,
  * static single frame when reduced motion is on.
@@ -102,7 +102,7 @@ export function Backdrop({ variant = 'hub', rain, grain = true, vignette = true,
       for (const m of motes) {
         const a = moteAlpha(m);
         if (a <= 0.003) continue;
-        ctx.globalAlpha = a * 0.55;
+        ctx.globalAlpha = a * 0.9;
         const spr = (m.bokeh ? bokehSprites : sparkSprites)[m.color]!;
         const d = m.bokeh ? m.r * 2 : m.r * 5;
         ctx.drawImage(spr, m.x - d / 2, m.y - d / 2, d, d);
