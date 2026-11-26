@@ -8,8 +8,8 @@ import { LivingEye } from './LivingEye';
 import './title.css';
 
 const ZOOM_MS = 1500;
-/** Hero card aspect (height / width): a friendly macro crop of the eye, not a thin slit. */
-const ASPECT = 0.74;
+/** The eye canvas is wider than the round lens that frames it, so the iris is cropped like a macro lens. */
+const CROP = 1.36;
 
 function useViewport() {
   const read = () => ({ w: window.innerWidth, h: window.innerHeight });
@@ -22,7 +22,7 @@ function useViewport() {
   return v;
 }
 
-/** Lumen logo mark: a teal tile with a lens ring and a bright pupil. */
+/** Lumen logo mark: an azure glass tile with a lens ring and a bright pupil. */
 function LumenMark() {
   return (
     <svg class="ttl-mark__logo" viewBox="0 0 48 48" aria-hidden="true">
@@ -57,19 +57,21 @@ export function TitleScene({ services }: SceneProps) {
   const narrow = vp.w < 640;
   const landscape = vp.h <= 520 && vp.w > vp.h;
   const split = landscape || vp.w >= 960;
-  const eyeW = Math.round(
+  // lens diameter, then a wider canvas behind it (the circle crops the lids like a macro view)
+  const lens = Math.round(
     landscape
-      ? Math.min(vp.w * 0.4, (vp.h * 0.66) / ASPECT)
+      ? Math.min(vp.w * 0.3, vp.h * 0.6)
       : split
-        ? Math.min(vp.w * 0.42, 640, (vp.h * 0.64) / ASPECT)
+        ? Math.min(vp.w * 0.36, 580, vp.h * 0.66)
         : narrow
-          ? Math.min(vp.w - 40, (vp.h * 0.33) / ASPECT)
-          : Math.min(vp.w * 0.7, 560, (vp.h * 0.36) / ASPECT),
+          ? Math.min(vp.w - 96, vp.h * 0.32)
+          : Math.min(vp.w * 0.5, 480, vp.h * 0.34),
   );
-  const eyeH = Math.round(eyeW * ASPECT);
+  const eyeW = Math.round(lens * CROP);
+  const eyeH = lens;
   dims.current = { w: eyeW, h: eyeH, reduced };
   const onSweep = useCallback((ph: number) => updateFlare(flareRef.current, ph, dims.current.w, dims.current.h, dims.current.reduced), []);
-  const burst = Math.ceil((Math.max(vp.w, vp.h) * 2.4) / Math.max(40, eyeH * 0.42));
+  const burst = Math.ceil((Math.max(vp.w, vp.h) * 2.4) / Math.max(40, lens * 0.42));
 
   // parallax: smoothed pointer offset written to CSS variables (no re-render)
   useEffect(() => {
@@ -103,7 +105,7 @@ export function TitleScene({ services }: SceneProps) {
     phaseRef.current = 'zoom';
     setPhase('zoom');
     services.audio.play('reveal');
-    services.fx.flash('#cdf2f1', 500);
+    services.fx.flash('#e4ecff', 500);
     timer.current = window.setTimeout(() => services.router.go('hub'), reduced ? 350 : ZOOM_MS);
   };
 
@@ -151,15 +153,16 @@ export function TitleScene({ services }: SceneProps) {
 
         <div class="ttl-copy">
           <header class={`ttl-mark ${zooming ? 'is-out' : ''}`}>
-            <div class="ttl-mark__pill lm-enter" style={{ '--lm-delay': '150ms' } as never}>
-              <i aria-hidden="true" /> {t.eyebrow}
-            </div>
-            <div class="ttl-mark__lockup lm-enter" style={{ '--lm-delay': '250ms' } as never}>
+            <div class="ttl-mark__top lm-enter" style={{ '--lm-delay': '120ms' } as never}>
               <LumenMark />
-              <div class="ttl-mark__text">
-                <h1 class="ttl-mark__word">{t.brand}</h1>
-                <span class="ttl-mark__sub">{t.sub}</span>
+              <div class="ttl-mark__pill">
+                <i aria-hidden="true" /> {t.eyebrow}
               </div>
+            </div>
+            <h1 class="ttl-mark__word lm-enter" style={{ '--lm-delay': '220ms' } as never}>{t.brand}</h1>
+            <div class="ttl-mark__rule lm-enter" style={{ '--lm-delay': '300ms' } as never}>
+              <span class="ttl-mark__sub">{t.sub}</span>
+              <i aria-hidden="true" />
             </div>
             <p class="ttl-mark__tag lm-enter" style={{ '--lm-delay': '380ms' } as never}>{t.tagline}</p>
             <p class="ttl-mark__pitch lm-enter" style={{ '--lm-delay': '460ms' } as never}>{t.pitch}</p>
@@ -176,25 +179,39 @@ export function TitleScene({ services }: SceneProps) {
           </div>
         </div>
 
-        <div class={`ttl-eye ${zooming ? 'is-zoom' : ''}`} style={{ width: `${eyeW}px`, height: `${eyeH}px`, '--eye-h': `${eyeH}px` } as never}>
+        <div class={`ttl-eye ${zooming ? 'is-zoom' : ''}`} style={{ width: `${lens}px`, height: `${lens}px`, '--lens': `${lens}px` } as never}>
+          <div class="ttl-eye__halo" aria-hidden="true"><i /><i /><i /></div>
           <svg class="ttl-eye__rings" viewBox="0 0 100 100" aria-hidden="true">
-            <circle cx="50" cy="50" r="49" />
-            <circle cx="50" cy="50" r="38" />
-            <circle cx="50" cy="50" r="27" />
+            <circle class="ttl-eye__ticks" cx="50" cy="50" r="49" pathLength="360" />
+            <circle class="ttl-eye__ticks ttl-eye__ticks--major" cx="50" cy="50" r="49" pathLength="360" />
+            <circle cx="50" cy="50" r="42" />
           </svg>
+          <div class="ttl-eye__bezel" aria-hidden="true" />
           <div class="ttl-eye__frame">
-            <LivingEye width={eyeW} height={eyeH} reduced={reduced} focusCentre={zooming} onSweep={onSweep} />
-            <Flare elRef={flareRef} />
-          </div>
-          <div class="ttl-chip ttl-chip--a" aria-hidden="true">
-            <span class="ttl-chip__ico"><Icon name="check" size={16} /></span>
-            <span class="ttl-chip__txt"><b>{t.chipAcuityLabel}</b><em class="lm-num">{t.chipAcuityValue}</em></span>
-          </div>
-          <div class="ttl-chip ttl-chip--b" aria-hidden="true">
-            <span class="ttl-chip__ico ttl-chip__ico--sky"><Icon name="eye" size={16} /></span>
-            <span class="ttl-chip__txt"><b>{t.chipPupilsLabel}</b><em>{t.chipPupilsValue}</em></span>
+            <div class="ttl-eye__stage" style={{ width: `${eyeW}px`, height: `${eyeH}px` }}>
+              <LivingEye width={eyeW} height={eyeH} reduced={reduced} focusCentre={zooming} onSweep={onSweep} />
+              <Flare elRef={flareRef} />
+            </div>
+            <i class="ttl-eye__gloss" aria-hidden="true" />
           </div>
           <div class="ttl-eye__burst" aria-hidden="true" style={{ '--burst': burst } as never} />
+
+          <div class="ttl-card ttl-card--va" aria-hidden="true">
+            <span class="ttl-card__k">{t.chipAcuityLabel}</span>
+            <span class="ttl-card__row">
+              <b class="ttl-card__num lm-num">{t.chipAcuityValue}</b>
+              <span class="ttl-tag ttl-tag--green"><i />{t.tagNormal}</span>
+            </span>
+          </div>
+          <div class="ttl-card ttl-card--pupils" aria-hidden="true">
+            <span class="ttl-card__ico"><Icon name="eye" size={16} /></span>
+            <span class="ttl-card__txt"><b>{t.chipPupilsLabel}</b><em>{t.chipPupilsValue}</em></span>
+          </div>
+          <div class="ttl-card ttl-card--triage" aria-hidden="true">
+            <span class="ttl-tag ttl-tag--green"><i />{t.tagNormal}</span>
+            <span class="ttl-tag ttl-tag--orange"><i />{t.tagMonitor}</span>
+            <span class="ttl-tag ttl-tag--red"><i />{t.tagUrgent}</span>
+          </div>
         </div>
       </div>
 

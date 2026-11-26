@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 import type { Diagnosis, DiagnosisCategory, GameServices } from '@core';
 import { Stars, useSfx, useStrings, useLocale } from '@ui-kit';
 import { CATEGORY_ORDER, starsOf } from '../model/mastery';
@@ -30,7 +30,7 @@ function viewOf(services: GameServices, s: RanksState, dx: Diagnosis): StarView 
   return { dx, stars, fading: (rec?.bestStars ?? 0) > stars, charted: !!rec || seen };
 }
 
-/** The mastery sky: one constellation per specialty; stars brighten as diagnoses are mastered. */
+/** The mastery map: one node graph per specialty; nodes turn from grey to yellow, blue and green as diagnoses are mastered. */
 export function Constellations({ services, s }: { services: GameServices; s: RanksState }) {
   const t = useStrings(S);
   const groups = useMemo(() => {
@@ -66,7 +66,6 @@ export function Constellations({ services, s }: { services: GameServices; s: Ran
 function ConstellationCard({ cat, stars, index }: { cat: DiagnosisCategory; stars: StarView[]; index: number }) {
   const t = useStrings(S);
   const locale = useLocale();
-  const uid = 'rk' + useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const play = useSfx();
   const [sel, setSel] = useState<number | null>(null);
   const { points, edges } = useMemo(() => layoutConstellation(stars.map((v) => v.dx.id), W, H), [stars.length, cat]);
@@ -92,19 +91,7 @@ function ConstellationCard({ cat, stars, index }: { cat: DiagnosisCategory; star
         </div>
       </header>
       <svg class="rk-const__sky" viewBox={`0 0 ${W} ${H}`} role="group" aria-label={t.chartLabel(constellationName(cat, locale))}>
-        <defs>
-          <radialGradient id={`${uid}-g`}>
-            <stop offset="0" stop-color="#fff8e6" />
-            <stop offset="0.25" stop-color="#ffd27a" stop-opacity="0.9" />
-            <stop offset="1" stop-color="#ffd27a" stop-opacity="0" />
-          </radialGradient>
-          <radialGradient id={`${uid}-v`}>
-            <stop offset="0" stop-color="#f4efff" />
-            <stop offset="0.3" stop-color="#a78bfa" stop-opacity="0.85" />
-            <stop offset="1" stop-color="#a78bfa" stop-opacity="0" />
-          </radialGradient>
-        </defs>
-        {/* faint background dust */}
+        {/* faint dot grid */}
         {Array.from({ length: 26 }, (_, i) => (
           <circle key={i} cx={hash01(cat, i * 3 + 101) * W} cy={hash01(cat, i * 3 + 102) * H} r={0.4 + hash01(cat, i * 3 + 103) * 0.8} class="rk-const__dust" />
         ))}
@@ -138,10 +125,7 @@ function ConstellationCard({ cat, stars, index }: { cat: DiagnosisCategory; star
               }}
             >
               <circle r="14" class="rk-star__hit" />
-              {glow > 0 && <circle r={glow} fill={`url(#${uid}-${v.stars >= 3 ? 'g' : 'v'})`} class="rk-star__glow" />}
-              {v.stars >= 3 && (
-                <path d={`M0 ${-glow - 3} L0.9 0 L0 ${glow + 3} L-0.9 0 Z M${-glow - 3} 0 L0 0.9 L${glow + 3} 0 L0 -0.9 Z`} class="rk-star__spike" />
-              )}
+              {glow > 0 && <circle r={glow * 0.55} class="rk-star__glow" />}
               {v.stars === 0 && <circle r={v.charted ? 5 : 4.4} class="rk-star__halo0" />}
               <circle r={r} class="rk-star__core" />
               {v.fading && <circle r={r + 4} class="rk-star__ring" />}

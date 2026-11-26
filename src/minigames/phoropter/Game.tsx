@@ -223,8 +223,8 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     ctx.audio.play(a.perfect ? 'success' : 'reveal');
     const r = recordBtn.current?.getBoundingClientRect();
     if (r) {
-      ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#ffd27a' });
-      if (a.perfect) ctx.fx.floatText(t.perfectFloat, r.left + r.width / 2, r.top - 10, { color: '#ffd27a' });
+      ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#8fb0ff' });
+      if (a.perfect) ctx.fx.floatText(t.perfectFloat, r.left + r.width / 2, r.top - 10, { color: '#8fb0ff' });
     }
     // Case mode has no recognition check: the findings go straight to the chart.
     if (ctx.mode === 'case') finish(a, null);

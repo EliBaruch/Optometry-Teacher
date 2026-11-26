@@ -15,7 +15,7 @@ export interface LivingEyeProps {
 }
 
 const BASE: EyeState = eyeState({
-  eye: 'OD', irisColor: '#3f8f9c', irisSeed: 11, pupilMm: 5, lighting: 'room', redness: 0.04, skinTone: '#caa086',
+  eye: 'OD', irisColor: '#3f86d6', irisSeed: 11, pupilMm: 5, lighting: 'room', redness: 0.04, skinTone: '#dbb399',
 });
 
 /** A single enormous eye: follows the pointer, blinks, pupil answers a sweeping light. */
@@ -95,9 +95,9 @@ export function LivingEye({ width, height, reduced, focusCentre, onSweep }: Livi
       if (phase >= 0) {
         const x = -0.25 * w + phase * 1.5 * w;
         const g = ctx.createLinearGradient(x - w * 0.18, 0, x + w * 0.18, 0);
-        g.addColorStop(0, 'rgba(255,236,190,0)');
-        g.addColorStop(0.5, 'rgba(255,236,190,0.34)');
-        g.addColorStop(1, 'rgba(255,236,190,0)');
+        g.addColorStop(0, 'rgba(240,246,255,0)');
+        g.addColorStop(0.5, 'rgba(240,246,255,0.34)');
+        g.addColorStop(1, 'rgba(240,246,255,0)');
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
         ctx.translate(w / 2, h / 2);

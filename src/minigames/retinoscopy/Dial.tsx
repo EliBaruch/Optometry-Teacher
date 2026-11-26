@@ -107,14 +107,14 @@ export function MeridianDial(p: MeridianDialProps) {
       aria-disabled={p.disabled || undefined} onKeyDown={onKey}
     >
       <defs>
-        <linearGradient id="rt-dial-brass" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#fff0c9" /><stop offset="0.45" stop-color="#d9a64a" /><stop offset="1" stop-color="#6b4512" />
+        <linearGradient id="rt-dial-metal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffffff" /><stop offset="0.5" stop-color="#d6dce8" /><stop offset="1" stop-color="#9aa5bb" />
         </linearGradient>
         <radialGradient id="rt-dial-face" cx="0.4" cy="0.35" r="0.8">
-          <stop offset="0" stop-color="#2a1a47" /><stop offset="1" stop-color="#0b0716" />
+          <stop offset="0" stop-color="#ffffff" /><stop offset="1" stop-color="#e3e9f5" />
         </radialGradient>
       </defs>
-      <circle cx="100" cy="100" r="97" fill="url(#rt-dial-brass)" />
+      <circle cx="100" cy="100" r="97" fill="url(#rt-dial-metal)" />
       <circle cx="100" cy="100" r="92" fill="url(#rt-dial-face)" />
       <g class="rt-dial__ticks">{ticks}</g>
       {labels}
@@ -125,8 +125,8 @@ export function MeridianDial(p: MeridianDialProps) {
         <path d="M178 100 l-12 -6 v12 z" class="rt-dial__arrow" />
         <path d="M22 100 l12 -6 v12 z" class="rt-dial__arrow" />
       </g>
-      <circle cx="100" cy="100" r="14" fill="url(#rt-dial-brass)" />
-      <circle cx="100" cy="100" r="9" fill="#150b26" />
+      <circle cx="100" cy="100" r="14" fill="url(#rt-dial-metal)" />
+      <circle cx="100" cy="100" r="9" fill="#2257f0" />
       <text x="100" y="104" class="rt-dial__read">{String(Math.round(v) || 180)}</text>
     </svg>
   );

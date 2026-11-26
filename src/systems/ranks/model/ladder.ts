@@ -24,7 +24,7 @@ export const RANKS: readonly RankDef[] = [
   { id: 'resident', title: 'Resident', motto: 'You trust your findings now.', color: '#5eead4', color2: '#d6fff6' },
   { id: 'associate', title: 'Associate', motto: 'Patients ask for you by name.', color: '#38bdf8', color2: '#d4f1ff' },
   { id: 'senior', title: 'Senior', motto: 'Colleagues bring you their hardest cases.', color: '#a78bfa', color2: '#efe8ff' },
-  { id: 'director', title: 'Clinic Director', motto: 'The observatory lights answer to you.', color: '#ffd27a', color2: '#fff6dc' },
+  { id: 'director', title: 'Clinic Director', motto: 'The whole clinic runs on your call.', color: '#f59e0b', color2: '#fde68a' },
   { id: 'legend', title: 'Living Legend', motto: 'Your pearls are taught in lecture halls.', color: '#f472b6', color2: '#ffe3f3' },
 ];
 

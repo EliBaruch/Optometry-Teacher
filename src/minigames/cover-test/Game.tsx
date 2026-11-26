@@ -209,7 +209,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
           drawEye(g, d.w, d.h, st, tt);
           // straight-ahead reference ring: makes small shifts easy to read
           g.save();
-          g.strokeStyle = 'rgba(255, 224, 160, 0.3)'; g.lineWidth = 1.2; g.setLineDash([4, 5]);
+          g.strokeStyle = 'rgba(10, 22, 51, 0.35)'; g.lineWidth = 1.2; g.setLineDash([4, 5]);
           g.beginPath(); g.arc(d.w / 2, d.h / 2, Math.min(d.ch * 0.27, d.cw * 0.2), 0, Math.PI * 2); g.stroke();
           g.setLineDash([]); g.beginPath();
           g.moveTo(d.w / 2, d.h / 2 - d.ch * 0.46); g.lineTo(d.w / 2, d.h / 2 - d.ch * 0.4); g.moveTo(d.w / 2, d.h / 2 + d.ch * 0.4); g.lineTo(d.w / 2, d.h / 2 + d.ch * 0.46);
@@ -313,7 +313,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const c: Call = { kind: draft.kind!, dir: draft.kind === 'ortho' ? 'none' : draft.dir!, eye: needEye ? draft.eye ?? undefined : undefined, prism: prism.mag > 0 ? { ...prism } : null };
     setCalls((o) => ({ ...o, [target]: c }));
     play('stamp', { volume: 0.7 });
-    fx.flash('#ffd27a', 140);
+    fx.flash('#ffffff', 140);
   };
 
   // guide the learner to the prism tab once the alternate cover is done, and back to the call once neutralised

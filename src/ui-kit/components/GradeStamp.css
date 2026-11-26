@@ -1,38 +1,39 @@
+/* GradeStamp — an editorial grade medal: vivid colour-coded glass disc, huge navy numeral. */
 .lm-stamp {
-  --stamp-c: var(--lm-accent);
+  --stamp-c: var(--lm-accent); --stamp-v: var(--lm-vivid-blue);
   position: relative; display: inline-grid; place-items: center; flex: none;
   max-width: 100%; aspect-ratio: 1;
   color: var(--stamp-c);
-  transform: rotate(-9deg);
 }
 .lm-stamp__svg {
   position: relative; z-index: 2; width: 100%; height: 100%; overflow: visible;
-  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--stamp-c) 25%, transparent));
+  filter: drop-shadow(0 1px 1px rgba(10, 22, 51, 0.1)) drop-shadow(0 14px 22px color-mix(in srgb, var(--stamp-v) 45%, transparent));
 }
-.lm-stamp__rim { font: 700 13px var(--lm-font-ui); direction: ltr; unicode-bidi: isolate; }
-.lm-stamp__letter { font-family: var(--lm-font-display); font-size: 118px; font-weight: 800; }
+.lm-stamp__letter {
+  font-family: var(--lm-font-display); font-size: 124px; font-weight: 800; letter-spacing: -0.04em;
+  fill: var(--lm-ink);
+}
 
-/* ── slam ─────────────────────────────────────────────────────────────── */
+/* ── pop: springs in from slightly small with a soft blur, one tiny overshoot ─── */
 .lm-stamp.is-anim { animation: lm-stamp-slam 760ms var(--d) both; }
 @keyframes lm-stamp-slam {
-  0% { opacity: 0; transform: scale(2.7) rotate(-26deg); filter: blur(8px); animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.4); }
-  39% { opacity: 1; transform: scale(0.9) rotate(-8deg); filter: blur(0); animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.25); }
-  58% { transform: scale(1.05) rotate(-9.5deg); }
-  78% { transform: scale(0.985) rotate(-8.8deg); }
-  100% { opacity: 1; transform: scale(1) rotate(-9deg); filter: blur(0); }
+  0% { opacity: 0; transform: scale(0.5) translateY(18px); filter: blur(8px); animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+  39% { opacity: 1; transform: scale(1.06); filter: blur(0); animation-timing-function: var(--lm-ease-in-out); }
+  62% { transform: scale(0.985); }
+  100% { opacity: 1; transform: none; filter: blur(0); }
 }
 .lm-stamp__shock {
   position: absolute; inset: 4%; border-radius: 50%; z-index: 1; pointer-events: none;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stamp-c) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stamp-v) 70%, transparent);
   opacity: 0;
 }
 .lm-stamp.is-anim .lm-stamp__shock { animation: lm-stamp-shock 700ms var(--lm-ease-out-expo) calc(var(--d) + 290ms) both; }
-@keyframes lm-stamp-shock { 0% { opacity: 0.95; transform: scale(0.95); } 100% { opacity: 0; transform: scale(1.65); } }
+@keyframes lm-stamp-shock { 0% { opacity: 0.95; transform: scale(0.95); } 100% { opacity: 0; transform: scale(1.55); } }
 
 .lm-stamp__dust { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .lm-stamp__dust i {
-  position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%;
-  background: var(--stamp-c); opacity: 0;
+  position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%;
+  background: var(--stamp-v); opacity: 0;
   transform: rotate(var(--a)) translateY(calc(var(--r) * -0.6));
 }
 .lm-stamp.is-anim .lm-stamp__dust i { animation: lm-stamp-dust 650ms var(--lm-ease-out-expo) calc(var(--d) + 290ms) both; }
@@ -41,37 +42,30 @@
   100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--r) * -1.25)) scale(0.3); }
 }
 
-/* ── S: iridescent gold with god-rays and a moving glare ──────────────── */
+/* ── S: gold medal with a soft iridescent aura and a moving glint ────────── */
 .lm-stamp__rays {
-  position: absolute; inset: -38%; z-index: 0; pointer-events: none; border-radius: 50%;
-  background: repeating-conic-gradient(from 0deg, rgba(233, 162, 11, 0.2) 0deg 5deg, transparent 5deg 18deg);
-  -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%); mask: radial-gradient(circle, #000 18%, transparent 68%);
-  animation: lm-spin 26s linear infinite;
+  position: absolute; inset: -22%; z-index: 0; pointer-events: none; border-radius: 50%;
+  background: conic-gradient(from 0deg, #ffe27a, #ff9ccf, #b69cff, #6fd6ff, #9ff0c2, #ffe27a);
+  opacity: 0.5; filter: blur(26px);
+  animation: lm-spin 18s linear infinite;
 }
-.lm-stamp--S::before {
-  content: ''; position: absolute; inset: -8%; z-index: 0; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, rgba(233, 162, 11, 0.2), rgba(124, 58, 237, 0.06) 45%, transparent 70%);
-  filter: blur(6px);
-}
-.lm-stamp.is-anim .lm-stamp__rays, .lm-stamp--S.is-anim::before { animation: lm-stamp-rays-in 900ms var(--lm-ease-out-expo) calc(var(--d) + 290ms) both, lm-spin 26s linear infinite; }
-.lm-stamp--S.is-anim::before { animation: lm-stamp-rays-in 900ms var(--lm-ease-out-expo) calc(var(--d) + 290ms) both; }
-@keyframes lm-stamp-rays-in { from { opacity: 0; scale: 0.4; } to { opacity: 1; scale: 1; } }
+.lm-stamp.is-anim .lm-stamp__rays { animation: lm-stamp-rays-in 900ms var(--lm-ease-out-expo) calc(var(--d) + 290ms) both, lm-spin 18s linear infinite; }
+@keyframes lm-stamp-rays-in { from { opacity: 0; scale: 0.5; } to { opacity: 0.5; scale: 1; } }
 .lm-stamp__glare {
-  position: absolute; inset: 8%; z-index: 3; border-radius: 50%; pointer-events: none; overflow: hidden;
+  position: absolute; inset: 2%; z-index: 3; border-radius: 50%; pointer-events: none; overflow: hidden;
 }
 .lm-stamp__glare::before {
-  content: ''; position: absolute; top: -20%; bottom: -20%; width: 30%;
-  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  content: ''; position: absolute; top: -20%; bottom: -20%; width: 28%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.85), transparent);
   transform: translateX(-200%) skewX(-16deg);
   animation: lm-stamp-glare 3.6s var(--lm-ease-in-out) calc(var(--d) + 700ms) infinite;
 }
-@keyframes lm-stamp-glare { 0% { transform: translateX(-220%) skewX(-16deg); } 45%, 100% { transform: translateX(420%) skewX(-16deg); } }
-.lm-stamp--S .lm-stamp__svg { filter: drop-shadow(0 4px 14px rgba(233, 162, 11, 0.3)); }
+@keyframes lm-stamp-glare { 0% { transform: translateX(-220%) skewX(-16deg); } 45%, 100% { transform: translateX(460%) skewX(-16deg); } }
 
-/* Off screen: freeze the decorative loops (no repaints for an invisible stamp). */
+/* Off screen: freeze the decorative loops (no repaints for an invisible medal). */
 .lm-stamp.is-idle .lm-stamp__rays, .lm-stamp.is-idle .lm-stamp__glare::before { animation-play-state: paused; }
-html.lm-lite .lm-stamp--S::before { filter: none; }
-/* Lite rendering (device could not keep up): rays land but do not spin; the glare sweeps twice, then rests. */
-html.lm-lite .lm-stamp__rays { animation: none; }
+/* Lite rendering (device could not keep up): the aura lands but does not spin or blur; the glare sweeps twice, then rests. */
+html.lm-lite .lm-stamp__rays { animation: none; filter: none; opacity: 0.35; }
 html.lm-lite .lm-stamp.is-anim .lm-stamp__rays { animation: lm-stamp-rays-in 900ms var(--lm-ease-out-expo) calc(var(--d) + 290ms) both; }
 html.lm-lite .lm-stamp__glare::before { animation-iteration-count: 2; }
+html.lm-lite .lm-stamp__svg { filter: none; }

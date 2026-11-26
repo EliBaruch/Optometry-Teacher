@@ -146,14 +146,14 @@ export function Dial(p: DialProps) {
         <svg viewBox="0 0 100 100" aria-hidden="true">
           <defs>
             <radialGradient id={`${p.id}-face`} cx="0.36" cy="0.3" r="0.85">
-              <stop offset="0" stop-color="#fff1c8" />
-              <stop offset="0.38" stop-color="#e2b25a" />
-              <stop offset="0.78" stop-color="#9a6418" />
-              <stop offset="1" stop-color="#5a3a0c" />
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="0.38" stop-color="#cfd7e6" />
+              <stop offset="0.78" stop-color="#8791a8" />
+              <stop offset="1" stop-color="#6b7690" />
             </radialGradient>
             <radialGradient id={`${p.id}-cap`} cx="0.4" cy="0.32" r="0.9">
-              <stop offset="0" stop-color="#3b2a4f" />
-              <stop offset="1" stop-color="#0d0815" />
+              <stop offset="0" stop-color="#3a4660" />
+              <stop offset="1" stop-color="#0b101f" />
             </radialGradient>
           </defs>
           <circle cx="50" cy="50" r="49" class="php-dial__shadow" />

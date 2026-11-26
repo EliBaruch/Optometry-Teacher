@@ -8,18 +8,20 @@
 }
 .lm-modal__scrim {
   position: absolute; inset: 0;
-  background: rgba(10, 22, 51, 0.35);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  background: radial-gradient(120% 90% at 50% 0%, rgba(34, 87, 240, 0.16), rgba(10, 22, 51, 0.32) 70%);
+  backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%);
 }
 .lm-modal__panel {
   position: relative; display: flex; flex-direction: column;
   width: min(var(--modal-w, 520px), 100%); max-height: min(88vh, 100%);
   border-radius: var(--lm-r-xl);
-  background: var(--lm-surface);
-  box-shadow: 0 0 0 1px var(--lm-border), var(--lm-shadow-3);
+  /* a Liquid Glass sheet: strong glass for reading, specular rim, deep soft shadow */
+  background: var(--lm-glass-sheen), linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 255, 0.88));
+  backdrop-filter: blur(36px) saturate(190%); -webkit-backdrop-filter: blur(36px) saturate(190%);
+  box-shadow: var(--lm-glass-highlight), 0 0 0 1px rgba(255, 255, 255, 0.6), 0 0 0 2px var(--lm-glass-edge), var(--lm-shadow-3);
   outline: none;
 }
-.lm-modal__panel:focus-visible { box-shadow: 0 0 0 1px var(--lm-border-strong), var(--lm-shadow-3); }
+.lm-modal__panel:focus-visible { box-shadow: var(--lm-glass-highlight), 0 0 0 1px var(--lm-border-strong), var(--lm-shadow-3); }
 .lm-modal__panel--sm { --modal-w: 400px; }
 .lm-modal__panel--lg { --modal-w: 760px; }
 .lm-modal__panel--xl { --modal-w: 1040px; }
@@ -27,10 +29,11 @@
 .lm-modal__header { display: flex; align-items: center; gap: var(--lm-sp-3); padding: var(--lm-sp-5) var(--lm-sp-5) var(--lm-sp-3) var(--lm-sp-6); }
 .lm-modal__header.is-bare { position: absolute; inset-inline-end: 0; top: 0; z-index: 2; padding: var(--lm-sp-3); }
 .lm-modal__titles { flex: 1; min-width: 0; }
-.lm-modal__title { font-size: var(--lm-fs-2xl); font-weight: 700; letter-spacing: var(--lm-tracking-display); color: var(--lm-ink); }
+.lm-modal__title { font-family: var(--lm-font-display); font-size: var(--lm-fs-2xl); font-weight: 800; line-height: 1.15; letter-spacing: var(--lm-tracking-display); color: var(--lm-ink); }
 .lm-modal__icon {
-  display: grid; place-items: center; width: 42px; height: 42px; flex: none; border-radius: 13px; color: var(--modal-c);
-  background: color-mix(in srgb, var(--modal-c) 11%, white);
+  display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 15px; color: var(--modal-c);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 60%), color-mix(in srgb, var(--modal-c) 14%, white);
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.95), 0 0 0 1px color-mix(in srgb, var(--modal-c) 16%, transparent);
 }
 .lm-modal__icon svg { width: 22px; height: 22px; }
 .lm-modal__close { align-self: flex-start; }
@@ -38,7 +41,7 @@
 .lm-modal__panel.is-flush .lm-modal__body { padding: 0; overflow: hidden; border-radius: 0 0 var(--lm-r-xl) var(--lm-r-xl); }
 .lm-modal__footer {
   display: flex; justify-content: flex-end; gap: var(--lm-sp-3); flex-wrap: wrap;
-  padding: var(--lm-sp-4) var(--lm-sp-6) var(--lm-sp-5); border-top: 1px solid var(--lm-border);
+  padding: var(--lm-sp-4) var(--lm-sp-6) var(--lm-sp-5); border-top: 1px solid var(--lm-rule);
 }
 @media (max-width: 560px) {
   .lm-modal { padding: 10px; }
@@ -50,15 +53,18 @@
 
 /* enter / exit */
 .lm-modal.is-open .lm-modal__scrim { animation: lm-modal-fade var(--lm-dur-med) var(--lm-ease-out) both; }
-.lm-modal.is-open .lm-modal__panel { animation: lm-modal-in 520ms var(--lm-ease-out-expo) both; }
+.lm-modal.is-open .lm-modal__panel { animation: lm-modal-in 560ms var(--lm-ease-out) both; }
 .lm-modal.is-closing .lm-modal__scrim { animation: lm-modal-fade 240ms var(--lm-ease-in-out) reverse both; }
 .lm-modal.is-closing .lm-modal__panel { animation: lm-modal-out 240ms var(--lm-ease-in-out) both; pointer-events: none; }
 @keyframes lm-modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes lm-modal-in {
-  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  0% { opacity: 0; transform: translateY(24px) scale(0.94); animation-timing-function: var(--lm-ease-out-expo); }
+  60% { opacity: 1; transform: translateY(-3px) scale(1.008); animation-timing-function: var(--lm-ease-in-out); }
   100% { opacity: 1; transform: none; }
 }
 @keyframes lm-modal-out { to { opacity: 0; transform: translateY(8px) scale(0.97); } }
 
 /* lite rendering: no live blur, a deeper scrim instead */
 html.lm-lite .lm-modal__scrim { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(10, 22, 51, 0.5); }
+html.lm-lite .lm-modal__panel, html.high-contrast .lm-modal__panel { background: var(--lm-surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+html.high-contrast .lm-modal__panel { box-shadow: 0 0 0 2px var(--lm-glass-edge), var(--lm-shadow-3); }

@@ -18,7 +18,7 @@ interface ToastItem extends ToastPayload {
 
 const TONE_ICON: Record<ToastTone, IconName> = { info: 'info', good: 'check', bad: 'warning', epic: 'sparkle' };
 const TONE_SFX: Record<ToastTone, SfxId> = { info: 'pop', good: 'success', bad: 'error', epic: 'rare' };
-const TONE_TINT: Record<ToastTone, string> = { info: TONE_COLOR.info, good: TONE_COLOR.good, bad: TONE_COLOR.bad, epic: '#e9a20b' };
+const TONE_TINT: Record<ToastTone, string> = { info: TONE_COLOR.info, good: TONE_COLOR.good, bad: TONE_COLOR.bad, epic: '#f5a524' };
 
 export interface ToastHostProps {
   /** Defaults to services.bus from the ServicesProvider. */

@@ -13,38 +13,39 @@
 .lm-toast {
   --toast-c: var(--lm-info);
   position: relative; overflow: hidden; pointer-events: auto;
-  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 10px 18px 10px 12px;
-  border-radius: 16px; text-align: start; color: var(--lm-ink);
-  background: var(--lm-surface);
-  box-shadow: 0 0 0 1px var(--lm-border), var(--lm-shadow-3);
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 20px 10px 10px;
+  border-radius: 22px; text-align: start; color: var(--lm-ink);
+  background: var(--lm-glass-sheen), var(--lm-glass-bg-strong);
+  backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow), 0 18px 40px -16px rgba(10, 22, 51, 0.3);
   animation: lm-toast-in 520ms var(--lm-ease-spring-soft) both;
   transition: opacity 280ms var(--lm-ease-out), transform 300ms var(--lm-ease-out), filter 300ms;
 }
 .lm-toasts--bottom .lm-toast { animation-name: lm-toast-in-up; }
 .lm-toast.is-leaving { opacity: 0; transform: scale(0.92) translateY(-6px); filter: blur(4px); }
 .lm-toast__icon {
-  display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 10px;
-  color: var(--toast-c); font-size: 18px;
-  background: color-mix(in srgb, var(--toast-c) 13%, white);
+  display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 50%;
+  color: #fff; font-size: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 55%), var(--toast-c);
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.55), 0 4px 10px -3px color-mix(in srgb, var(--toast-c) 70%, transparent);
 }
 .lm-toast__icon svg { width: 18px; height: 18px; }
-.lm-toast__msg { flex: 1; font-size: var(--lm-fs-sm); font-weight: 560; line-height: 1.35; }
+.lm-toast__msg { flex: 1; font-size: var(--lm-fs-sm); font-weight: 600; line-height: 1.35; letter-spacing: -0.005em; }
 .lm-toast__timer {
-  position: absolute; inset-inline-start: 0; bottom: 0; height: 2px; width: 100%; transform-origin: left; /* rtl: see below */
-  background: var(--toast-c); opacity: 0.55;
+  position: absolute; inset-inline: 18px; bottom: 5px; height: 2px; width: auto; border-radius: 2px; transform-origin: left; /* rtl: see below */
+  background: var(--toast-c); opacity: 0.45;
   animation: lm-toast-timer linear both;
 }
 @keyframes lm-toast-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 @keyframes lm-toast-in { 0% { opacity: 0; transform: translateY(-16px) scale(0.9); } 100% { opacity: 1; transform: none; } }
 @keyframes lm-toast-in-up { 0% { opacity: 0; transform: translateY(16px) scale(0.9); } 100% { opacity: 1; transform: none; } }
-/* epic: iridescent edge */
-/* epic: coin-gold accent */
+/* epic: coin-gold accent (reward moments) */
 .lm-toast--epic { --toast-c: var(--lm-coin); }
+.lm-toast--epic .lm-toast__icon { color: var(--lm-ink); }
 
-/* icon colour darkened so the glyph reads on its pale tint */
-.lm-toast__icon { color: color-mix(in srgb, var(--toast-c) 80%, #0d1b2a); }
 .lm-toast:focus-visible { --lm-focus-color: var(--toast-c); }
-html.high-contrast .lm-toast:focus-visible { --lm-focus-color: #fff; }
+html.high-contrast .lm-toast { background: var(--lm-surface); }
+html.high-contrast .lm-toast:focus-visible { --lm-focus-color: #000; }
 /* hovering or focusing the stack pauses auto-dismiss (and the timer bar) */
 .lm-toasts.is-paused .lm-toast__timer { animation-play-state: paused; opacity: 0.3; }
 [dir='rtl'] .lm-toast__timer { transform-origin: right; }

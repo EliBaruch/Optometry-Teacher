@@ -4,7 +4,7 @@ import { useInView } from '../hooks/useInView';
 import { useLiteRendering } from '../hooks/useLiteRendering';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useFx, useSfx } from '../hooks/useSfx';
-import { GRADE_COLOR } from '../lib/palette';
+import { GRADE_COLOR, GRADE_VIVID } from '../lib/palette';
 import { cx } from '../lib/cx';
 import './GradeStamp.css';
 import { useUiStrings } from '../strings';
@@ -17,7 +17,7 @@ export interface GradeStampProps {
   delay?: number;
   /** Shake the screen on impact via services.fx (default true for S/A/F). */
   shake?: boolean;
-  /** Text around the rim. */
+  /** @deprecated kept for API compatibility; the medal has no rim text. */
   rimText?: string;
   onImpact?: () => void;
   class?: string;
@@ -25,11 +25,9 @@ export interface GradeStampProps {
 
 /** Time from animation start to the stamp hitting the paper (ms). Matches CSS keyframes. */
 export const STAMP_IMPACT_MS = 300;
-/** Circumference of the rim text path (r = 77) minus a hair so the ends don't collide. */
-const RIM_LEN = Math.round(2 * Math.PI * 77) - 6;
 
-/** Rubber-stamp grade that slams onto the page. S is iridescent gold. */
-export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake, rimText, onImpact, class: klass }: GradeStampProps) {
+/** Editorial grade medal that pops onto the page: vivid colour-coded glass disc, huge navy numeral. S is gold with an iridescent rim. */
+export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake, onImpact, class: klass }: GradeStampProps) {
   const ui = useUiStrings();
   const reduced = useReducedMotion();
   const play = useSfx();
@@ -61,12 +59,12 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
     return () => clearTimeout(t);
   }, [grade, animate]);
 
-  const ink = isS ? `url(#${uid}-iri)` : 'currentColor';
+  const ink = isS ? `url(#${uid}-iri)` : 'none';
   return (
     <div
       ref={root}
       class={cx('lm-stamp', `lm-stamp--${grade}`, anim && 'is-anim', !inView && 'is-idle', klass)}
-      style={{ width: size, '--stamp-c': GRADE_COLOR[grade], '--d': `${delay}ms` }}
+      style={{ width: size, '--stamp-c': GRADE_COLOR[grade], '--stamp-v': GRADE_VIVID[grade], '--d': `${delay}ms` }}
       role="img"
       aria-label={ui.grade(grade, ui.gradeWord[grade])}
     >
@@ -79,38 +77,34 @@ export function GradeStamp({ grade, size = 168, animate = true, delay = 0, shake
       </span>
       <svg ref={svg} class="lm-stamp__svg" viewBox="0 0 200 200" aria-hidden="true">
         <defs>
-          <filter id={`${uid}-ink`} x="-10%" y="-10%" width="120%" height="120%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={grade.charCodeAt(0)} result="n" />
-            <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" result="d" />
-            <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="3" seed="11" result="blot" />
-            <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.75" result="mask" />
-            <feComposite in="d" in2="mask" operator="in" />
-          </filter>
-          <path id={`${uid}-rim`} d="M100 100 m-77 0 a77 77 0 1 1 154 0 a77 77 0 1 1 -154 0" />
+          <linearGradient id={`${uid}-fill`} x1="0.15" y1="0" x2="0.85" y2="1">
+            <stop offset="0" style={{ stopColor: 'color-mix(in srgb, var(--stamp-v) 55%, white)' }} />
+            <stop offset="1" style={{ stopColor: 'var(--stamp-v)' }} />
+          </linearGradient>
+          <linearGradient id={`${uid}-gloss`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity="0.75" />
+            <stop offset="1" stop-color="#fff" stop-opacity="0" />
+          </linearGradient>
           {isS && (
             <linearGradient id={`${uid}-iri`} x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse" spreadMethod="reflect">
-              <stop offset="0" stop-color="#f6c453" />
-              <stop offset="0.22" stop-color="#e9a20b" />
-              <stop offset="0.4" stop-color="#ec6aa8" />
-              <stop offset="0.58" stop-color="#8b6cf0" />
-              <stop offset="0.76" stop-color="#2bb3d6" />
-              <stop offset="1" stop-color="#f2b630" />
-              {/* The gradient sits inside the ink filter, so each frame of drift re-runs the
-                  turbulence. Drift for a few cycles after the slam, then hold (the glare keeps it alive). */}
+              <stop offset="0" stop-color="#ffe27a" />
+              <stop offset="0.25" stop-color="#ff9ccf" />
+              <stop offset="0.5" stop-color="#b69cff" />
+              <stop offset="0.75" stop-color="#6fd6ff" />
+              <stop offset="1" stop-color="#ffe27a" />
               {!reduced && !lite && <animateTransform attributeName="gradientTransform" type="translate" values="-200 -200; 0 0; -200 -200" dur="6s" begin={`${(delay + STAMP_IMPACT_MS) / 1000}s`} repeatCount="2" fill="freeze" />}
             </linearGradient>
           )}
         </defs>
-        <g filter={`url(#${uid}-ink)`} fill="none" stroke={ink}>
-          <circle cx="100" cy="100" r="92" stroke-width="6" />
-          <circle cx="100" cy="100" r="64" stroke-width="2" />
-          <text class="lm-stamp__rim" fill={ink} stroke="none">
-            <textPath href={`#${uid}-rim`} startOffset="0" textLength={RIM_LEN} lengthAdjust="spacing">{rimText ?? ui.stampRim}</textPath>
-          </text>
-          <text class="lm-stamp__letter" x="100" y="100" text-anchor="middle" dominant-baseline="central" fill={ink} stroke="none">
-            {grade}
-          </text>
-        </g>
+        {/* a vivid glass medal: colour-coded disc, specular dome, hairline inner ring, huge navy numeral */}
+        <circle class="lm-stamp__disc" cx="100" cy="100" r="92" fill={`url(#${uid}-fill)`} />
+        {isS && <circle cx="100" cy="100" r="92" fill="none" stroke={ink} stroke-width="5" />}
+        <circle cx="100" cy="100" r="91" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="1.5" />
+        <circle cx="100" cy="100" r="76" fill="none" stroke="#0a1633" stroke-opacity="0.14" stroke-width="1.5" />
+        <path d="M30 78a76 76 0 0 1 140 0c-20-12-46-16-70-16s-50 4-70 16z" fill={`url(#${uid}-gloss)`} />
+        <text class="lm-stamp__letter" x="100" y="104" text-anchor="middle" dominant-baseline="central">
+          {grade}
+        </text>
       </svg>
       {isS && <span class="lm-stamp__glare" aria-hidden="true" />}
     </div>

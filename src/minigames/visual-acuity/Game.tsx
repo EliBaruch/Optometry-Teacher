@@ -179,7 +179,7 @@ export function Game({ ctx, variant, finish }: GameProps) {
 
   const burstAt = (el: Element | null | undefined, kind: 'sparks' | 'stars' = 'sparks') => {
     const r = el?.getBoundingClientRect();
-    if (r && !ctx.reducedMotion) ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind, count: 14, color: '#ffd27a' });
+    if (r && !ctx.reducedMotion) ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind, count: 14, color: '#5c87ff' });
   };
 
   const occluderOkNow = () => (slot === 'OU' ? open.OD && open.OS : open[slot as Eye] && !open[slot === 'OD' ? 'OS' : 'OD']);

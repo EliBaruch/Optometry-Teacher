@@ -34,7 +34,7 @@ export function Chip({ children, icon, accent, selected, disabled, onClick, onRe
       {selected && onClick && <Icon name="check" class="lm-chip__check" />}
     </>
   );
-  const classes = cx('lm-chip', `lm-chip--${size}`, selected && 'is-selected', !!onClick && 'is-clickable', disabled && 'is-disabled', klass);
+  const classes = cx('lm-chip', `lm-chip--${size}`, selected && 'is-selected', accent && 'has-accent', !!onClick && 'is-clickable', disabled && 'is-disabled', klass);
   if (onClick) {
     return (
       <button

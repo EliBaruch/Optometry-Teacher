@@ -34,7 +34,7 @@ export function TrophyWall({ services, s }: { services: GameServices; s: RanksSt
   return (
     <div class="rk-wall">
       <div class="rk-wall__summary">
-        <ProgressBar value={unlocked} max={ACHIEVEMENTS.length} label={t.trophiesEarned} valueText={`\u2066${unlocked} / ${ACHIEVEMENTS.length}\u2069`} accent="#ffd27a" shimmer />
+        <ProgressBar value={unlocked} max={ACHIEVEMENTS.length} label={t.trophiesEarned} valueText={`\u2066${unlocked} / ${ACHIEVEMENTS.length}\u2069`} accent="#7c3aed" shimmer />
       </div>
       {GROUPS.map((g) => {
         const defs = ACHIEVEMENTS.filter((a) => a.group === g);

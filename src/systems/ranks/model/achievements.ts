@@ -72,7 +72,7 @@ const RANK_TROPHY: { title: string; description: string; rarity: Rarity }[] = [
   { title: 'On the Wards', description: 'Reach the rank of Resident.', rarity: 'rare' },
   { title: 'Name on the Door', description: 'Reach the rank of Associate.', rarity: 'rare' },
   { title: 'Trusted Second Opinion', description: 'Reach the rank of Senior.', rarity: 'epic' },
-  { title: 'Keys to the Observatory', description: 'Reach the rank of Clinic Director.', rarity: 'legendary' },
+  { title: 'Keys to the Clinic', description: 'Reach the rank of Clinic Director.', rarity: 'legendary' },
   { title: 'Living Legend', description: 'Reach the very top of the Career ladder.', rarity: 'legendary' },
 ];
 

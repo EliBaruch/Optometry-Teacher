@@ -41,12 +41,12 @@ function Paddle(props: { eye: Eye; age: number; on: boolean; pinhole: boolean; f
       <path d={`M${side * 6} 16 L${side * 15} 74 Q${side * 16} 80 ${side * 10} 80 L${side * 4} 80 Q${side * -1} 80 ${side * 0} 74 L${side * -3} 14 Z`} fill={`url(#${props.uid}-handle)`} />
       <g class={`va-paddle__face${props.flipping ? ' is-flipping' : ''}`}>
         <ellipse cx="0" cy="0" rx="23" ry="20" fill={`url(#${props.uid}-${props.pinhole ? 'phdisc' : 'disc'})`} mask={props.pinhole ? `url(#${props.uid}-holes)` : undefined} />
-        <ellipse cx="0" cy="0" rx="22.2" ry="19.2" fill="none" stroke="rgba(255,226,170,0.55)" stroke-width="0.9" />
+        <ellipse cx="0" cy="0" rx="22.2" ry="19.2" fill="none" stroke="rgba(190,215,255,0.8)" stroke-width="0.9" />
         <ellipse cx="-6" cy="-8" rx="11" ry="5.5" fill="rgba(255,255,255,0.13)" transform="rotate(-18)" />
         {props.pinhole && (
           <g>
             {[[0, 0], [-6, -3.5], [6, -3.5], [-6, 3.5], [6, 3.5], [0, -7], [0, 7]].map(([x, y], i) => (
-              <circle key={i} cx={x} cy={y} r="1.25" fill="none" stroke="rgba(255,214,150,0.65)" stroke-width="0.45" />
+              <circle key={i} cx={x} cy={y} r="1.25" fill="none" stroke="rgba(190,215,255,0.85)" stroke-width="0.45" />
             ))}
           </g>
         )}
@@ -97,19 +97,19 @@ export function PatientPane(p: PatientPaneProps) {
       <svg class="va-occ" viewBox="0 0 200 240" aria-hidden="true">
         <defs>
           <radialGradient id={`${uid}-disc`} cx="35%" cy="30%" r="80%">
-            <stop offset="0%" stop-color="#3a3146" />
-            <stop offset="55%" stop-color="#14101c" />
-            <stop offset="100%" stop-color="#050308" />
+            <stop offset="0%" stop-color="#4a5878" />
+            <stop offset="55%" stop-color="#1c2540" />
+            <stop offset="100%" stop-color="#0a1020" />
           </radialGradient>
           <radialGradient id={`${uid}-phdisc`} cx="35%" cy="30%" r="80%">
-            <stop offset="0%" stop-color="#6a3f86" />
-            <stop offset="55%" stop-color="#2c1640" />
-            <stop offset="100%" stop-color="#12081c" />
+            <stop offset="0%" stop-color="#5c87ff" />
+            <stop offset="55%" stop-color="#2257f0" />
+            <stop offset="100%" stop-color="#142c6e" />
           </radialGradient>
           <linearGradient id={`${uid}-handle`} x1="0" x2="1">
-            <stop offset="0%" stop-color="#7a5418" />
-            <stop offset="45%" stop-color="#f2c46b" />
-            <stop offset="100%" stop-color="#8f6420" />
+            <stop offset="0%" stop-color="#8e99ae" />
+            <stop offset="45%" stop-color="#eef2fa" />
+            <stop offset="100%" stop-color="#9aa5ba" />
           </linearGradient>
           <mask id={`${uid}-holes`} maskUnits="userSpaceOnUse" x="-30" y="-30" width="60" height="60">
             <rect x="-30" y="-30" width="60" height="60" fill="#fff" />

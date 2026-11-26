@@ -64,7 +64,7 @@ export function CareerScene({ services, params }: SceneProps) {
           label={t.tabsLabel}
           value={tab}
           onChange={(v) => setTab(v as Tab)}
-          accent="#a78bfa"
+          accent="#7c3aed"
           class="rk-tabs"
           items={[
             { id: 'sky', label: t.tabSky, icon: 'star', badge: `${diagnosed}/${dxTotal}` },

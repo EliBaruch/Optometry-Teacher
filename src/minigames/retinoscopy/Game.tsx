@@ -214,7 +214,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
 
   const burstAt = (el: HTMLElement | null, perfect = false) => {
     const r = el?.getBoundingClientRect();
-    if (r) ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: perfect ? 'stars' : 'sparks', count: perfect ? 28 : 14, color: '#ffd27a' });
+    if (r) ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: perfect ? 'stars' : 'sparks', count: perfect ? 28 : 14, color: '#2257f0' });
   };
 
   const pickReflex = (r: RetinoscopyReflex) => {
@@ -284,8 +284,8 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     ctx.audio.play(a.perfect ? 'levelup' : 'success');
     const r = recordRef.current?.getBoundingClientRect();
     if (r) {
-      ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#ffd27a' });
-      if (a.perfect) ctx.fx.floatText(t.perfectFloat, r.left + r.width / 2, r.top - 12, { color: '#ffd27a' });
+      ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#2257f0' });
+      if (a.perfect) ctx.fx.floatText(t.perfectFloat, r.left + r.width / 2, r.top - 12, { color: '#2257f0' });
     }
     setPhase(challenge ? 'challenge' : 'debrief');
   };

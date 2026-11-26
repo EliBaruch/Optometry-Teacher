@@ -41,7 +41,7 @@ export function Gauge(props: { value: number; onChange: (v: number) => void; lab
     >
       <svg viewBox={`0 0 ${W} 74`} preserveAspectRatio="none" aria-hidden="true">
         <defs>
-          <linearGradient id="pu-gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1330" /><stop offset="1" stop-color="#0a0614" /></linearGradient>
+          <linearGradient id="pu-gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121a2e" /><stop offset="1" stop-color="#070b16" /></linearGradient>
         </defs>
         {Array.from({ length: G_MAX - G_MIN + 1 }, (_, i) => {
           const mm = G_MIN + i;
@@ -50,15 +50,15 @@ export function Gauge(props: { value: number; onChange: (v: number) => void; lab
           const on = Math.abs(props.value - mm) < 0.26;
           return (
             <g key={mm}>
-              <path d={`M ${cx - r} 36 A ${r} ${r} 0 0 1 ${cx + r} 36 Z`} fill="url(#pu-gg)" stroke={on ? '#ffd27a' : 'rgba(255,226,160,0.28)'} stroke-width={on ? 1.6 : 1} />
-              <text x={cx} y="56" text-anchor="middle" class="pu-gauge__n" fill={on ? '#ffd27a' : '#a99bbd'}>{mm}</text>
+              <path d={`M ${cx - r} 36 A ${r} ${r} 0 0 1 ${cx + r} 36 Z`} fill="url(#pu-gg)" stroke={on ? '#2257f0' : 'rgba(10,22,51,0.3)'} stroke-width={on ? 1.6 : 1} />
+              <text x={cx} y="56" text-anchor="middle" class="pu-gauge__n" fill={on ? '#1b45c4' : '#56637d'}>{mm}</text>
             </g>
           );
         })}
-        <line x1="0" x2={W} y1="36" y2="36" stroke="rgba(255,226,160,0.3)" />
+        <line x1="0" x2={W} y1="36" y2="36" stroke="rgba(10,22,51,0.2)" />
         <g style={{ transform: `translateX(${markX}px)`, transition: 'transform 140ms cubic-bezier(.2,.8,.2,1)' }}>
-          <path d="M 0 40 l -6 10 h 12 z" fill="#ffd27a" />
-          <line x1="0" x2="0" y1="0" y2="36" stroke="#ffd27a" stroke-width="1.4" stroke-dasharray="3 3" opacity="0.8" />
+          <path d="M 0 40 l -6 10 h 12 z" fill="#2257f0" />
+          <line x1="0" x2="0" y1="0" y2="36" stroke="#2257f0" stroke-width="1.4" stroke-dasharray="3 3" opacity="0.8" />
         </g>
       </svg>
     </div>

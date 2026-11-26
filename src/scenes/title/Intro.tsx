@@ -85,9 +85,9 @@ export function Intro({ onDone }: IntroProps) {
         </div>
         <div class="ttl-intro__btns">
           <Button variant="ghost" size="sm" onClick={skip} sfx={false}>{t.skip}</Button>
-          <button type="button" class="ttl-intro__next" onClick={next}>
+          <Button variant="primary" size="md" class="ttl-intro__next" sfx={false} onClick={next}>
             {last ? t.begin : t.next}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,7 +1,8 @@
+/* Kbd — a keycap: white face, soft bottom edge. */
 .lm-kbd {
   display: inline-grid; place-items: center; min-width: 1.9em; height: 1.9em; padding: 0 0.5em; vertical-align: middle;
-  font: 600 0.75em/1 var(--lm-font-num); color: var(--lm-ink-2);
-  border-radius: 6px;
-  background: var(--lm-surface);
-  box-shadow: inset 0 0 0 1px var(--lm-border-strong), 0 1px 0 var(--lm-border-strong);
+  font: 650 0.75em/1 var(--lm-font-num); color: var(--lm-ink-2);
+  border-radius: 7px;
+  background: linear-gradient(180deg, #fff, #f1f4fb);
+  box-shadow: inset 0 1px 0.5px #fff, 0 0 0 1px var(--lm-border-strong), 0 2px 0 rgba(10, 22, 51, 0.14);
 }

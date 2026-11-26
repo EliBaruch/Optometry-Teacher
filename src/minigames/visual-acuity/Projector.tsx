@@ -181,9 +181,9 @@ export function Projector(p: ProjectorProps) {
       <svg class="va-proj__svg" viewBox={`0 0 ${W} ${H}`} width={W} height={H} onClick={pick} aria-hidden="true">
         <defs>
           <radialGradient id={`${uid}-lum`} cx="48%" cy="44%" r="75%">
-            <stop offset="0%" stop-color="#fffdf7" />
-            <stop offset="55%" stop-color="#f6f0e4" />
-            <stop offset="100%" stop-color="#d9cfbf" />
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="55%" stop-color="#f4f7fc" />
+            <stop offset="100%" stop-color="#d3dbe9" />
           </radialGradient>
           <radialGradient id={`${uid}-ph`} cx="50%" cy={`${FIX_Y * 100}%`} r="60%">
             <stop offset="0%" stop-color="#000" stop-opacity="0" />
@@ -192,21 +192,21 @@ export function Projector(p: ProjectorProps) {
             <stop offset="100%" stop-color="#05030a" stop-opacity="0.94" />
           </radialGradient>
           <radialGradient id={`${uid}-scot`}>
-            <stop offset="0%" stop-color="#9a9184" stop-opacity="0.92" />
-            <stop offset="55%" stop-color="#b7ad9f" stop-opacity="0.7" />
-            <stop offset="100%" stop-color="#d8cfc0" stop-opacity="0" />
+            <stop offset="0%" stop-color="#8c97ab" stop-opacity="0.92" />
+            <stop offset="55%" stop-color="#aab5c8" stop-opacity="0.7" />
+            <stop offset="100%" stop-color="#d3dbe9" stop-opacity="0" />
           </radialGradient>
           <linearGradient id={`${uid}-bar`} x1="0" x2="1">
-            <stop offset="0%" stop-color="#ffd27a" stop-opacity="0" />
-            <stop offset="18%" stop-color="#ffd27a" stop-opacity="0.1" />
-            <stop offset="82%" stop-color="#ffd27a" stop-opacity="0.1" />
-            <stop offset="100%" stop-color="#ffd27a" stop-opacity="0" />
+            <stop offset="0%" stop-color="#cfe0ff" stop-opacity="0" />
+            <stop offset="18%" stop-color="#cfe0ff" stop-opacity="0.1" />
+            <stop offset="82%" stop-color="#cfe0ff" stop-opacity="0.1" />
+            <stop offset="100%" stop-color="#cfe0ff" stop-opacity="0" />
           </linearGradient>
           <linearGradient id={`${uid}-edge`} x1="0" x2="1">
-            <stop offset="0%" stop-color="#d9cfbf" stop-opacity="1" />
-            <stop offset="7%" stop-color="#e6ddcf" stop-opacity="0" />
-            <stop offset="93%" stop-color="#e6ddcf" stop-opacity="0" />
-            <stop offset="100%" stop-color="#d9cfbf" stop-opacity="1" />
+            <stop offset="0%" stop-color="#d3dbe9" stop-opacity="1" />
+            <stop offset="7%" stop-color="#e3e9f4" stop-opacity="0" />
+            <stop offset="93%" stop-color="#e3e9f4" stop-opacity="0" />
+            <stop offset="100%" stop-color="#d3dbe9" stop-opacity="1" />
           </linearGradient>
           <radialGradient id={`${uid}-vig`} cx="50%" cy="46%" r="72%">
             <stop offset="0%" stop-color="#fff6dc" stop-opacity="0.12" />
@@ -256,8 +256,8 @@ export function Projector(p: ProjectorProps) {
         <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-sheen)`} pointer-events="none" />
         {/* examiner overlays: pointer chevrons + marks */}
         <g class="va-proj__ptr" filter={`url(#${uid}-glow)`}>
-          <path d={`M${W / 2 - selHalfW - selH * 0.75 - 14} ${selY - 8} l12 8 l-12 8z`} fill="#f5b942" />
-          <path d={`M${W / 2 + selHalfW + selH * 0.75 + 14} ${selY - 8} l-12 8 l12 8z`} fill="#f5b942" />
+          <path d={`M${W / 2 - selHalfW - selH * 0.75 - 14} ${selY - 8} l12 8 l-12 8z`} fill="#3b6bff" />
+          <path d={`M${W / 2 + selHalfW + selH * 0.75 + 14} ${selY - 8} l-12 8 l12 8z`} fill="#3b6bff" />
         </g>
         {visible.map((i) => {
           const m = p.marks.get(i);

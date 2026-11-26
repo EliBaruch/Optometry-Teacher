@@ -19,7 +19,7 @@ import { reportFor } from './report';
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const GAP = 14;
-const EYE_COLOR: Record<Eye, string> = { OD: '#ffd27a', OS: '#7fe3ff' };
+const EYE_COLOR: Record<Eye, string> = { OD: '#9ec2ff', OS: '#7fe3ff' };
 /** Below this stage width the eyes stack and the gauge docks under them. */
 const STACK_BELOW_PX = 620;
 const SETTLED_S = 1.2;
@@ -157,10 +157,10 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const good = sw.dwell >= DWELL_FULL_S;
     play(good ? 'flashlight' : 'tick', { pitch: good ? 1 : 0.8 });
     const fr = dom.current.field?.getBoundingClientRect();
-    if (fr) fx.floatText(good ? t.swing(all.length) : t.holdLonger, fr.left + eng.beam.x, fr.top + eng.beam.y - 40, { color: good ? '#ffd27a' : '#ffb36b', size: 22 });
+    if (fr) fx.floatText(good ? t.swing(all.length) : t.holdLonger, fr.left + eng.beam.x, fr.top + eng.beam.y - 40, { color: good ? '#2257f0' : '#fdab3d', size: 22 });
     say(good ? t.swingRecorded(all.length) : fixL(t.heldShort(sw.dwell.toFixed(1))), good ? 'ok' : 'warn');
     if (sw.transit > 1.6) say(t.swingFaster, 'warn');
-    if (good && goodSwings(all) === SWINGS_NEEDED) { play('success'); fx.burst(innerWidth / 2, innerHeight / 2, { kind: 'sparks', count: 20, color: '#ffd27a' }); }
+    if (good && goodSwings(all) === SWINGS_NEEDED) { play('success'); fx.burst(innerWidth / 2, innerHeight / 2, { kind: 'sparks', count: 20, color: '#2257f0' }); }
   };
 
   // ───────────── penlight pointer
@@ -193,7 +193,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
   const setRoomMode = (r: Room) => {
     if (r === live.current.room) return;
     play(r === 'bright' ? 'whoosh' : 'click');
-    if (r === 'bright' && !reduced) fx.flash('#fff6df', 240);
+    if (r === 'bright' && !reduced) fx.flash('#ffffff', 240);
     if (r === 'bright' && live.current.near) setNearMode(false);
     live.current.room = r;
     setRoom(r);
@@ -239,7 +239,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     const fr = rootRef.current?.getBoundingClientRect();
     if (Math.abs(err) <= GOOD_SIZE_MM && settled) {
       play('success', { volume: 0.7 });
-      if (fr) fx.burst(fr.left + fr.width / 2, fr.top + fr.height * 0.4, { kind: 'stars', count: 14, color: '#ffd27a' });
+      if (fr) fx.burst(fr.left + fr.width / 2, fr.top + fr.height * 0.4, { kind: 'stars', count: 14, color: '#2257f0' });
       say(fixL(t.spotOn(L.eye, t.cond[cond], mm.toFixed(1))), 'ok');
     } else if (!settled) say(fixL(t.stillMoving(L.eye, t.cond[cond], mm.toFixed(1))), 'warn');
     else if (Math.abs(err) > FAR_SIZE_MM) say(fixL(t.looksOff(L.eye, t.cond[cond], mm.toFixed(1), err > 0)), 'warn');

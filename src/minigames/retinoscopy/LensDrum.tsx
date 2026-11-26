@@ -13,7 +13,7 @@ export interface LensDrumProps {
 
 const PPD = 56; // px per dioptre
 
-/** Horizontal brass drum of trial lenses, 0.25 D per click. Drag, wheel, arrow keys. */
+/** Horizontal silver drum of trial lenses, 0.25 D per click. Drag, wheel, arrow keys. */
 export function LensDrum(p: LensDrumProps) {
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);

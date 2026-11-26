@@ -11,28 +11,28 @@
   --rk-r: var(--lm-rarity-rare);
   position: relative; overflow: hidden; pointer-events: auto; cursor: pointer;
   display: flex; align-items: center; gap: var(--lm-sp-3); width: 100%; padding: 12px 16px 12px 12px; border: 0; border-radius: var(--lm-r-lg);
-  font: inherit; text-align: start; color: var(--lm-ivory);
-  background: linear-gradient(120deg, color-mix(in srgb, var(--rk-r) 22%, #1a0f2e), rgba(20, 12, 38, 0.95) 55%);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rk-r) 55%, transparent), 0 0 34px -8px var(--rk-r), var(--lm-shadow-3);
+  font: inherit; text-align: start; color: var(--lm-ink);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--rk-r) 14%, #fff), rgba(255, 255, 255, 0.82) 60%);
+  box-shadow: var(--lm-glass-highlight), 0 0 0 1px color-mix(in srgb, var(--rk-r) 30%, transparent), 0 18px 40px -14px color-mix(in srgb, var(--rk-r) 45%, transparent), var(--lm-shadow-2);
   backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
   animation: rk-toast-in 620ms var(--lm-ease-spring-soft) both;
 }
 .rk-toast.is-leaving { animation: rk-toast-out 340ms var(--lm-ease-in-out) both; }
-.rk-toast:focus-visible { outline: none; box-shadow: var(--lm-focus-ring); }
+.rk-toast:focus-visible { outline: none; box-shadow: var(--lm-glass-highlight), var(--lm-focus-ring); }
 .rk-toast__medal {
-  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fffaf0;
-  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--rk-r) 70%, white), color-mix(in srgb, var(--rk-r) 35%, #1a0f2e) 75%);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rk-r) 60%, #fff6e0), 0 0 20px -2px var(--rk-r), inset 0 2px 4px rgba(255, 255, 255, 0.35);
+  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 55%), var(--rk-r);
+  box-shadow: 0 0 0 3px #fff, 0 8px 18px -6px var(--rk-r), inset 0 1px 0.5px rgba(255, 255, 255, 0.6);
   animation: rk-medal-spin 900ms var(--lm-ease-out-expo) both 120ms;
 }
 .rk-toast--legendary .rk-toast__medal { background: var(--lm-iridescent); animation: rk-medal-spin 900ms var(--lm-ease-out-expo) both 120ms, lm-hue 5s linear infinite; }
 .rk-toast__text { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
-.rk-toast__eyebrow { font-size: 10px; font-weight: 700; letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: var(--rk-r); }
-.rk-toast__title { font-family: var(--lm-font-display); font-size: var(--lm-fs-lg); font-weight: 560; line-height: 1.2; }
-.rk-toast__desc { font-size: var(--lm-fs-xs); color: var(--lm-muted); line-height: 1.4; }
+.rk-toast__eyebrow { font-size: 10px; font-weight: 700; letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: color-mix(in srgb, var(--rk-r) 75%, #0a1633); }
+.rk-toast__title { font-family: var(--lm-font-display); font-size: var(--lm-fs-lg); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; color: var(--lm-ink); }
+.rk-toast__desc { font-size: var(--lm-fs-xs); color: var(--lm-ink-3); line-height: 1.4; }
 .rk-toast__shine {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%);
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.7) 50%, transparent 65%);
   transform: translateX(-120%); animation: lm-shimmer 1.4s var(--lm-ease-out) 380ms both;
 }
 @keyframes rk-toast-in { from { opacity: 0; transform: translateX(40px) scale(0.92); } to { opacity: 1; transform: none; } }
@@ -45,46 +45,49 @@
 /* ── Promotion ceremony ─────────────────────────────────────────────────── */
 .rk-ceremony {
   --rk-c: var(--lm-career);
+  --rk-ink: color-mix(in srgb, var(--rk-c) 62%, #0a1633);
   position: fixed; inset: 0; z-index: var(--lm-z-modal); display: grid; place-items: center; padding: var(--lm-sp-5);
-  background: radial-gradient(60% 55% at 50% 42%, color-mix(in srgb, var(--rk-c) 30%, rgba(11, 7, 22, 0.75)), rgba(6, 3, 13, 0.94) 70%);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  background: radial-gradient(60% 55% at 50% 42%, color-mix(in srgb, var(--rk-c) 22%, rgba(255, 255, 255, 0.55)), rgba(238, 242, 250, 0.86) 72%);
+  backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%);
   animation: rk-fade 420ms var(--lm-ease-out) both;
 }
 .rk-ceremony.is-leaving { animation: rk-fade-out 420ms var(--lm-ease-in-out) both; }
 .rk-ceremony__rays {
   position: absolute; left: 50%; top: 42%; width: 160vmax; height: 160vmax; margin: -80vmax 0 0 -80vmax; pointer-events: none;
-  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rk-c) 16%, transparent) 0deg 5deg, transparent 5deg 15deg);
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rk-c) 14%, transparent) 0deg 5deg, transparent 5deg 15deg);
   mask-image: radial-gradient(circle, #000 0%, transparent 42%); -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 42%);
   animation: rk-spin 40s linear infinite, rk-fade 1.2s var(--lm-ease-out) both 300ms;
 }
-.rk-ceremony__card { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--lm-sp-2); max-width: 560px; }
+.rk-ceremony__card {
+  position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--lm-sp-2); max-width: 560px; padding: var(--lm-sp-8) var(--lm-sp-7);
+  border-radius: var(--lm-r-xl); background: var(--lm-glass-sheen), var(--lm-glass-bg-strong); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow), var(--lm-shadow-3);
+}
 .rk-ceremony__crest { position: relative; display: grid; place-items: center; margin-bottom: var(--lm-sp-6); animation: rk-crest-in 1100ms var(--lm-ease-spring-soft) both 200ms; }
-.rk-ceremony__crest .rk-crest { filter: drop-shadow(0 0 30px color-mix(in srgb, var(--rk-c) 70%, transparent)); }
+.rk-ceremony__crest .rk-crest { filter: drop-shadow(0 14px 24px color-mix(in srgb, var(--rk-c) 45%, transparent)); }
 .rk-ceremony__ring {
   position: absolute; inset: -18%; border-radius: 50%; pointer-events: none;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rk-c2) 70%, transparent), 0 0 60px 10px color-mix(in srgb, var(--rk-c) 45%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rk-c) 60%, transparent), 0 0 50px 8px color-mix(in srgb, var(--rk-c) 30%, transparent);
   animation: rk-ring 1400ms var(--lm-ease-out-expo) both 650ms;
 }
 .rk-ceremony__eyebrow {
-  font-size: var(--lm-fs-xs); font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--rk-c2);
+  font-size: var(--lm-fs-xs); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--rk-ink);
   animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 700ms;
 }
 .rk-ceremony__title {
-  margin: 0; font-family: var(--lm-font-display); font-weight: 520; font-size: var(--lm-fs-5xl); line-height: 1.02; letter-spacing: -0.02em;
-  background: linear-gradient(180deg, #fffaf0 0%, var(--lm-gold) 55%, #c98a26 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 30px rgba(255, 210, 122, 0.45));
+  margin: 0; font-family: var(--lm-font-display); font-weight: 800; font-size: var(--lm-fs-5xl); line-height: 1; letter-spacing: var(--lm-tracking-display);
+  color: var(--lm-ink);
   animation: rk-title-in 900ms var(--lm-ease-out-expo) both 800ms;
 }
-.rk-ceremony.is-rank .rk-ceremony__title { background: linear-gradient(180deg, #fffaf0 0%, var(--rk-c2) 35%, var(--lm-gold) 70%, #c98a26 100%); -webkit-background-clip: text; background-clip: text; }
+.rk-ceremony.is-rank .rk-ceremony__title { background: linear-gradient(135deg, var(--lm-ink) 30%, var(--rk-ink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .rk-ceremony__from {
   display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 10px;
-  font-size: var(--lm-fs-sm); color: var(--lm-muted); animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 1100ms;
+  font-size: var(--lm-fs-sm); color: var(--lm-ink-3); animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 1100ms;
 }
-.rk-ceremony__to { color: var(--lm-ivory); font-weight: 600; }
-.rk-ceremony__arrow { color: var(--lm-gold); }
-.rk-ceremony__lv { padding: 1px 9px; border-radius: var(--lm-r-pill); color: var(--lm-text-on-gold); font-weight: 700; font-size: var(--lm-fs-xs); background: linear-gradient(180deg, var(--lm-gold-200), var(--lm-gold-500)); }
+.rk-ceremony__to { color: var(--lm-ink); font-weight: 700; }
+.rk-ceremony__arrow { color: var(--lm-accent-text); }
+.rk-ceremony__lv { padding: 1px 9px; border-radius: var(--lm-r-pill); color: var(--lm-on-accent); font-weight: 700; font-size: var(--lm-fs-xs); background: var(--lm-accent-gradient); }
 .rk-ceremony__motto {
-  margin: var(--lm-sp-2) 0 var(--lm-sp-4); font-family: var(--lm-font-display); font-style: italic; font-size: var(--lm-fs-lg); color: var(--lm-ivory-dim);
+  margin: var(--lm-sp-2) 0 var(--lm-sp-4); font-family: var(--lm-font-ui); font-size: var(--lm-fs-lg); color: var(--lm-ink-2);
   animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 1250ms;
 }
 .rk-ceremony__btn { animation: lm-fade-up 600ms var(--lm-ease-out-expo) both 1450ms; }
@@ -112,35 +115,29 @@ html.reduced-motion .rk-ceremony__ring { opacity: 0; }
   position: fixed; z-index: var(--lm-z-toast); left: 50%; top: calc(var(--lm-topbar-h) + var(--lm-safe-top) + 12px);
   width: min(420px, calc(100vw - 32px)); transform: translateX(-50%);
   display: flex; align-items: center; gap: var(--lm-sp-4); padding: 12px 22px 12px 14px; overflow: hidden;
-  border: 0; border-radius: var(--lm-r-xl); cursor: pointer; font: inherit; text-align: start; color: var(--lm-ivory);
+  border: 0; border-radius: var(--lm-r-pill); cursor: pointer; font: inherit; text-align: start; color: var(--lm-ink);
   background:
-    radial-gradient(120% 140% at 12% 50%, color-mix(in srgb, var(--rk-c) 32%, transparent), transparent 60%),
-    linear-gradient(180deg, rgba(36, 22, 66, 0.94), rgba(14, 8, 28, 0.96));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rk-c) 55%, transparent), inset 0 1px 0 rgba(255, 245, 230, 0.12),
-    0 0 46px -10px var(--rk-c), var(--lm-shadow-3);
+    radial-gradient(120% 160% at 8% 50%, color-mix(in srgb, var(--rk-c) 22%, transparent), transparent 60%),
+    var(--lm-glass-sheen), var(--lm-glass-bg-strong);
+  box-shadow: var(--lm-glass-highlight), 0 0 0 1px color-mix(in srgb, var(--rk-c) 30%, transparent), 0 20px 44px -14px color-mix(in srgb, var(--rk-c) 50%, transparent), var(--lm-shadow-2);
   backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
   animation: rk-banner-in 720ms var(--lm-ease-spring-soft) both;
 }
 .rk-banner.is-leaving { animation: rk-banner-out 380ms var(--lm-ease-in-out) both; }
-.rk-banner:focus-visible { outline: none; box-shadow: var(--lm-focus-ring); }
-.rk-banner::before {
-  content: ''; position: absolute; left: 22px; right: 22px; top: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--lm-gold), transparent); opacity: 0.8;
-}
+.rk-banner:focus-visible { outline: none; box-shadow: var(--lm-glass-highlight), var(--lm-focus-ring); }
 .rk-banner__crest { flex: none; display: grid; place-items: center; animation: rk-crest-in 900ms var(--lm-ease-spring-soft) both 120ms; }
-.rk-banner__crest .rk-crest { filter: drop-shadow(0 0 14px color-mix(in srgb, var(--rk-c) 70%, transparent)); }
+.rk-banner__crest .rk-crest { filter: drop-shadow(0 6px 10px color-mix(in srgb, var(--rk-c) 40%, transparent)); }
 .rk-banner__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.rk-banner__eyebrow { font-size: 10px; font-weight: 700; letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: var(--rk-c2); }
-.rk-banner__eyebrow b { color: var(--lm-gold); }
+.rk-banner__eyebrow { font-size: 10px; font-weight: 700; letter-spacing: var(--lm-tracking-caps); text-transform: uppercase; color: color-mix(in srgb, var(--rk-c) 62%, #0a1633); }
+.rk-banner__eyebrow b { color: var(--lm-accent-text); }
 .rk-banner__title {
-  font-family: var(--lm-font-display); font-size: var(--lm-fs-2xl); font-weight: 560; line-height: 1.1; white-space: nowrap;
-  background: linear-gradient(180deg, #fffaf0, var(--lm-gold) 70%, #d9a040); -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-family: var(--lm-font-display); font-size: var(--lm-fs-2xl); font-weight: 800; letter-spacing: var(--lm-tracking-display); line-height: 1.1; white-space: nowrap; color: var(--lm-ink);
   animation: rk-title-in 700ms var(--lm-ease-out-expo) both 260ms;
 }
-.rk-banner__next { font-size: var(--lm-fs-xs); color: var(--lm-muted); animation: lm-fade-up 500ms var(--lm-ease-out-expo) both 480ms; }
+.rk-banner__next { font-size: var(--lm-fs-xs); color: var(--lm-ink-3); animation: lm-fade-up 500ms var(--lm-ease-out-expo) both 480ms; }
 .rk-banner__shine {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(105deg, transparent 35%, rgba(255, 246, 220, 0.24) 50%, transparent 65%);
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.7) 50%, transparent 65%);
   transform: translateX(-120%); animation: lm-shimmer 1.5s var(--lm-ease-out) 420ms both;
 }
 @keyframes rk-banner-in { from { opacity: 0; transform: translate(-50%, -30px) scale(0.9); } to { opacity: 1; transform: translate(-50%, 0); } }
@@ -151,4 +148,3 @@ html.reduced-motion .rk-ceremony__ring { opacity: 0; }
 html.reduced-motion .rk-banner, html.reduced-motion .rk-banner__crest, html.reduced-motion .rk-banner__title,
 html.reduced-motion .rk-banner__next, html.reduced-motion .rk-banner__shine { animation: none; }
 
-:lang(he) .rk-ceremony__motto { font-style: normal; }

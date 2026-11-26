@@ -1,17 +1,18 @@
 .lm-tip { position: relative; display: inline-flex; }
 .lm-tip__bubble {
   position: absolute; z-index: var(--lm-z-tooltip); pointer-events: none;
-  width: max-content; max-width: min(260px, 80vw); padding: 8px 12px; border-radius: 10px;
-  font: 500 var(--lm-fs-xs)/1.45 var(--lm-font-ui); color: #fff; text-align: start; white-space: normal;
-  background: #0d1b2a;
-  box-shadow: var(--lm-shadow-2);
+  width: max-content; max-width: min(260px, 80vw); padding: 8px 12px; border-radius: 12px;
+  font: 560 var(--lm-fs-xs)/1.45 var(--lm-font-ui); letter-spacing: 0; color: #fff; text-align: start; white-space: normal;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 50%), rgba(10, 22, 51, 0.94);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.18), 0 10px 24px -8px rgba(10, 22, 51, 0.5);
   opacity: 0; visibility: hidden;
   transition: opacity var(--lm-dur-fast) var(--lm-ease-out), transform var(--lm-dur-ui) var(--lm-ease-spring), visibility 0s linear var(--lm-dur-fast);
 }
 .lm-tip__bubble.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
 .lm-tip__bubble::after {
-  content: ''; position: absolute; width: 8px; height: 8px; transform: rotate(45deg);
-  background: #0d1b2a;
+  content: ''; position: absolute; width: 8px; height: 8px; transform: rotate(45deg); border-radius: 2px;
+  background: rgba(10, 22, 51, 0.94);
 }
 .lm-tip__bubble--top, .lm-tip__bubble--bottom { left: 50%; --tx: calc(-50% + var(--tip-shift, 0px)); }
 .lm-tip__bubble--left, .lm-tip__bubble--right { top: 50%; --ty: calc(-50% + var(--tip-shift, 0px)); }

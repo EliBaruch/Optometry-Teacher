@@ -50,8 +50,8 @@ function AxisScale({ cx }: { cx: number }) {
 function Screw({ x, y, a = 30 }: { x: number; y: number; a?: number }) {
   return (
     <g transform={`translate(${x} ${y}) rotate(${a})`}>
-      <circle r="4.2" fill="url(#php-brass-r)" stroke="#5a3a0c" stroke-width="0.8" />
-      <line x1="-3" y1="0" x2="3" y2="0" stroke="#4a2e06" stroke-width="1.2" />
+      <circle r="4.2" fill="url(#php-brass-r)" stroke="#6b7690" stroke-width="0.8" />
+      <line x1="-3" y1="0" x2="3" y2="0" stroke="#3a4660" stroke-width="1.2" />
     </g>
   );
 }
@@ -64,11 +64,11 @@ function Drum({ x, value }: { x: number; value: number }) {
     const y = CY - 50 + (i + phase / 2) * 7.5;
     if (y < CY - 50 || y > CY + 50) continue;
     const t = Math.abs(y - CY) / 50; // curvature shading
-    ridges.push(<rect key={i} x={x - 13} y={y} width="26" height="2.6" rx="1" fill={`rgba(60,34,4,${0.55 - t * 0.3})`} />);
+    ridges.push(<rect key={i} x={x - 13} y={y} width="26" height="2.6" rx="1" fill={`rgba(40,50,80,${0.55 - t * 0.3})`} />);
   }
   return (
     <g class="php-drum">
-      <rect x={x - 15} y={CY - 54} width="30" height="108" rx="9" fill="url(#php-drum)" stroke="#6b4310" stroke-width="1.2" />
+      <rect x={x - 15} y={CY - 54} width="30" height="108" rx="9" fill="url(#php-drum)" stroke="#6b7690" stroke-width="1.2" />
       {ridges}
       <rect x={x - 15} y={CY - 54} width="30" height="108" rx="9" fill="url(#php-drum-shade)" />
     </g>
@@ -93,11 +93,11 @@ function Battery(props: { eye: Eye; lens: Lens; on: boolean; occluded: boolean; 
       <circle cx={cx} cy={CY} r={R + 16} class="php-bat__aura" />
       <Drum x={cx + outer * (R + 10)} value={lens.sphere} />
       {/* housing */}
-      <circle cx={cx} cy={CY + 4} r={R} fill="rgba(0,0,0,0.55)" filter="url(#php-soft)" />
+      <circle cx={cx} cy={CY + 4} r={R} fill="rgba(10,22,51,0.3)" filter="url(#php-soft)" />
       <circle cx={cx} cy={CY} r={R} fill="url(#php-enamel)" stroke="url(#php-brass)" stroke-width="5" />
-      <circle cx={cx} cy={CY} r={R - 10} fill="none" stroke="rgba(255,222,160,0.16)" stroke-width="1" />
-      <circle cx={cx} cy={CY} r={R - 13} fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1" />
-      <path d={`M ${cx - R + 8} ${CY - 20} A ${R - 8} ${R - 8} 0 0 1 ${cx + R - 8} ${CY - 20}`} fill="none" stroke="rgba(255,240,210,0.08)" stroke-width="10" />
+      <circle cx={cx} cy={CY} r={R - 10} fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1" />
+      <circle cx={cx} cy={CY} r={R - 13} fill="none" stroke="rgba(10,22,51,0.28)" stroke-width="1" />
+      <path d={`M ${cx - R + 8} ${CY - 20} A ${R - 8} ${R - 8} 0 0 1 ${cx + R - 8} ${CY - 20}`} fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
       {[45, 135, 225, 315].map((a) => { const [x, y] = pt(cx, CY, R - 20, a); return <Screw key={a} x={x} y={y} a={a} />; })}
       <AxisScale cx={cx} />
       {/* windows */}
@@ -111,7 +111,7 @@ function Battery(props: { eye: Eye; lens: Lens; on: boolean; occluded: boolean; 
       </g>
       <text x={cx} y={CY + 106} text-anchor="middle" class="php-eye-label">{eye}</text>
       {/* aperture */}
-      <circle cx={cx} cy={CY} r="45.5" fill="#07050b" stroke="url(#php-brass)" stroke-width="3.5" />
+      <circle cx={cx} cy={CY} r="45.5" fill="#0b101f" stroke="url(#php-brass)" stroke-width="3.5" />
       <circle cx={cx} cy={CY} r="40" fill="url(#php-glass)" />
       <circle cx={cx} cy={CY} r="40" fill="url(#php-glass-plus)" style={{ opacity: Math.min(0.9, plus / 5) }} class="php-fade" />
       <circle cx={cx} cy={CY} r={40 - Math.min(8, minus * 0.9) / 2} fill="none" stroke="rgba(150,170,255,0.55)" stroke-width={Math.min(8, minus * 0.9)} class="php-fade" />
@@ -169,36 +169,36 @@ export function Phoropter(p: PhoropterProps) {
     <svg class="php-phoropter" dir="ltr" viewBox="0 0 640 404" role="img" aria-label={t.phoropterAria(fmt(p.lenses.OD), fmt(p.lenses.OS))}>
       <defs>
         <linearGradient id="php-brass" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#fff0c2" />
-          <stop offset="0.25" stop-color="#e6b960" />
-          <stop offset="0.55" stop-color="#a8701c" />
-          <stop offset="0.8" stop-color="#d9a648" />
-          <stop offset="1" stop-color="#6b4310" />
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.25" stop-color="#dfe5f0" />
+          <stop offset="0.55" stop-color="#9ba7bd" />
+          <stop offset="0.8" stop-color="#cfd7e6" />
+          <stop offset="1" stop-color="#6b7690" />
         </linearGradient>
         <radialGradient id="php-brass-r" cx="0.35" cy="0.3" r="0.8">
-          <stop offset="0" stop-color="#fff1c8" />
-          <stop offset="0.5" stop-color="#d29a3c" />
-          <stop offset="1" stop-color="#6b4310" />
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.5" stop-color="#c9d2e3" />
+          <stop offset="1" stop-color="#6b7690" />
         </radialGradient>
         <radialGradient id="php-enamel" cx="0.4" cy="0.3" r="0.85">
-          <stop offset="0" stop-color="#2c2140" />
-          <stop offset="0.55" stop-color="#160f24" />
-          <stop offset="1" stop-color="#07040c" />
+          <stop offset="0" stop-color="#3a4660" />
+          <stop offset="0.55" stop-color="#1c2438" />
+          <stop offset="1" stop-color="#0b101f" />
         </radialGradient>
         <radialGradient id="php-glass" cx="0.42" cy="0.38" r="0.7">
-          <stop offset="0" stop-color="#3a4a78" stop-opacity="0.95" />
+          <stop offset="0" stop-color="#4a64a8" stop-opacity="0.95" />
           <stop offset="0.6" stop-color="#1a1f3e" />
           <stop offset="1" stop-color="#0b0b1e" />
         </radialGradient>
         <radialGradient id="php-glass-plus" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stop-color="#ffe7b3" stop-opacity="0.55" />
-          <stop offset="1" stop-color="#ffe7b3" stop-opacity="0" />
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.55" />
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
         </radialGradient>
         <linearGradient id="php-drum" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#8a5a16" />
-          <stop offset="0.35" stop-color="#ffe2a0" />
-          <stop offset="0.6" stop-color="#d7a24a" />
-          <stop offset="1" stop-color="#5a3a0c" />
+          <stop offset="0" stop-color="#8791a8" />
+          <stop offset="0.35" stop-color="#f4f7fc" />
+          <stop offset="0.6" stop-color="#c3cde0" />
+          <stop offset="1" stop-color="#6b7690" />
         </linearGradient>
         <linearGradient id="php-drum-shade" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#000" stop-opacity="0.55" />
@@ -207,57 +207,57 @@ export function Phoropter(p: PhoropterProps) {
           <stop offset="1" stop-color="#000" stop-opacity="0.6" />
         </linearGradient>
         <radialGradient id="php-occ" cx="0.4" cy="0.35" r="0.8">
-          <stop offset="0" stop-color="#2a2233" />
-          <stop offset="1" stop-color="#050307" />
+          <stop offset="0" stop-color="#3a4660" />
+          <stop offset="1" stop-color="#0b101f" />
         </radialGradient>
         <radialGradient id="php-aura" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0.72" stop-color="#ffd27a" stop-opacity="0" />
-          <stop offset="0.86" stop-color="#ffd27a" stop-opacity="0.28" />
-          <stop offset="1" stop-color="#ffd27a" stop-opacity="0" />
+          <stop offset="0.72" stop-color="#8fb0ff" stop-opacity="0" />
+          <stop offset="0.86" stop-color="#8fb0ff" stop-opacity="0.28" />
+          <stop offset="1" stop-color="#8fb0ff" stop-opacity="0" />
         </radialGradient>
         <radialGradient id="php-floor" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stop-color="#ffd27a" stop-opacity="0.28" />
-          <stop offset="0.6" stop-color="#a78bfa" stop-opacity="0.1" />
-          <stop offset="1" stop-color="#a78bfa" stop-opacity="0" />
+          <stop offset="0" stop-color="#8fb0ff" stop-opacity="0.28" />
+          <stop offset="0.6" stop-color="#5c87ff" stop-opacity="0.1" />
+          <stop offset="1" stop-color="#5c87ff" stop-opacity="0" />
         </radialGradient>
         <filter id="php-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8" /></filter>
       </defs>
 
       {/* suspension arm & bridge */}
       <rect x="311" y="0" width="18" height="40" fill="url(#php-drum)" />
-      <rect x="34" y="40" width="572" height="26" rx="13" fill="url(#php-brass)" stroke="#5a3a0c" stroke-width="1" />
+      <rect x="34" y="40" width="572" height="26" rx="13" fill="url(#php-brass)" stroke="#6b7690" stroke-width="1" />
       <rect x="40" y="44" width="560" height="4" rx="2" fill="rgba(255,255,255,0.35)" />
       <g>
-        <rect x="286" y="45" width="68" height="16" rx="8" fill="#0d1a14" stroke="#5a3a0c" />
+        <rect x="286" y="45" width="68" height="16" rx="8" fill="#10201c" stroke="#6b7690" />
         <rect x="290" y="48" width="60" height="10" rx="5" fill="rgba(120,230,170,0.35)" />
         <circle cx="320" cy="53" r="4" fill="rgba(240,255,245,0.85)" />
-        <line x1="312" y1="47" x2="312" y2="59" stroke="#2a1a05" />
-        <line x1="328" y1="47" x2="328" y2="59" stroke="#2a1a05" />
+        <line x1="312" y1="47" x2="312" y2="59" stroke="#2a3550" />
+        <line x1="328" y1="47" x2="328" y2="59" stroke="#2a3550" />
       </g>
       {Array.from({ length: 21 }, (_, i) => (
-        <line key={i} x1={226 + i * 9.4} y1="62" x2={226 + i * 9.4} y2={i % 5 === 0 ? 54 : 58} stroke="#4a2e06" stroke-width="1" />
+        <line key={i} x1={226 + i * 9.4} y1="62" x2={226 + i * 9.4} y2={i % 5 === 0 ? 54 : 58} stroke="#3a4660" stroke-width="1" />
       ))}
       <text x="214" y="61" text-anchor="end" class="php-pd">PD 64</text>
 
       {/* face opening between the batteries */}
-      <path d="M 284 330 C 286 284, 300 252, 320 250 C 340 252, 354 284, 356 330" fill="rgba(5,3,9,0.92)" stroke="url(#php-brass)" stroke-width="2" />
+      <path d="M 284 330 C 286 284, 300 252, 320 250 C 340 252, 354 284, 356 330" fill="rgba(14,20,38,0.94)" stroke="url(#php-brass)" stroke-width="2" />
 
       {/* forehead rest: rod, pad and thumbwheel between the batteries */}
       <g class="php-forehead">
-        <rect x="311" y="66" width="18" height="40" fill="url(#php-drum)" stroke="#5a3a0c" stroke-width="0.8" />
-        <rect x="296" y="104" width="48" height="26" rx="13" fill="url(#php-brass)" stroke="#5a3a0c" stroke-width="1" />
-        <rect x="302" y="108" width="36" height="14" rx="7" fill="#1c1228" stroke="rgba(255,226,170,0.35)" />
-        <circle cx="320" cy="138" r="9" fill="url(#php-brass-r)" stroke="#5a3a0c" stroke-width="1" />
-        <line x1="314" y1="138" x2="326" y2="138" stroke="#4a2e06" stroke-width="1.4" />
+        <rect x="311" y="66" width="18" height="40" fill="url(#php-drum)" stroke="#6b7690" stroke-width="0.8" />
+        <rect x="296" y="104" width="48" height="26" rx="13" fill="url(#php-brass)" stroke="#6b7690" stroke-width="1" />
+        <rect x="302" y="108" width="36" height="14" rx="7" fill="#1c2438" stroke="rgba(190,215,255,0.35)" />
+        <circle cx="320" cy="138" r="9" fill="url(#php-brass-r)" stroke="#6b7690" stroke-width="1" />
+        <line x1="314" y1="138" x2="326" y2="138" stroke="#3a4660" stroke-width="1.4" />
       </g>
 
       {/* base: maker's rail, engraved plaque and a warm pool of light */}
       <ellipse cx="320" cy="372" rx="262" ry="26" fill="url(#php-floor)" />
       <g class="php-base">
-        <rect x="150" y="344" width="340" height="30" rx="15" fill="rgba(0,0,0,0.5)" filter="url(#php-soft)" transform="translate(0 4)" />
-        <rect x="150" y="340" width="340" height="30" rx="15" fill="url(#php-brass)" stroke="#5a3a0c" stroke-width="1" />
+        <rect x="150" y="344" width="340" height="30" rx="15" fill="rgba(10,22,51,0.28)" filter="url(#php-soft)" transform="translate(0 4)" />
+        <rect x="150" y="340" width="340" height="30" rx="15" fill="url(#php-brass)" stroke="#6b7690" stroke-width="1" />
         <rect x="158" y="343" width="324" height="4" rx="2" fill="rgba(255,255,255,0.35)" />
-        <rect x="204" y="350" width="232" height="15" rx="4" fill="#120c1c" stroke="rgba(255,226,170,0.4)" />
+        <rect x="204" y="350" width="232" height="15" rx="4" fill="#1c2438" stroke="rgba(190,215,255,0.4)" />
         <text x="320" y="361" text-anchor="middle" class="php-plaque">LUMEN · REFRACTOR · MODEL IV</text>
         {[170, 470].map((x) => <Screw key={x} x={x} y={355} a={x} />)}
       </g>

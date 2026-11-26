@@ -1,29 +1,36 @@
+/* ProgressBar — a rounded glass-well track and a liquid fill with a specular top. */
 .lm-progress { --prog-c: var(--lm-accent); --prog-h: 10px; width: 100%; }
 .lm-progress--sm { --prog-h: 6px; }
-.lm-progress--lg { --prog-h: 14px; }
-.lm-progress__row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--lm-sp-3); margin-bottom: 7px; }
-.lm-progress__label { font-size: var(--lm-fs-sm); font-weight: 560; color: var(--lm-ink-2); }
-.lm-progress__value { font-size: var(--lm-fs-sm); color: color-mix(in srgb, var(--prog-c) 70%, #0d1b2a); }
+.lm-progress--lg { --prog-h: 16px; }
+.lm-progress__row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--lm-sp-3); margin-bottom: 8px; }
+.lm-progress__label { font-size: var(--lm-fs-sm); font-weight: 600; color: var(--lm-ink-2); }
+.lm-progress__value { font-size: var(--lm-fs-sm); font-weight: 650; color: var(--lm-ink); }
 .lm-progress__track {
   position: relative; height: var(--prog-h); border-radius: 999px; overflow: hidden;
-  background: var(--lm-surface-3);
-  box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.04);
+  background: linear-gradient(180deg, rgba(10, 22, 51, 0.09), rgba(10, 22, 51, 0.05));
+  box-shadow: inset 0 1px 2px rgba(10, 22, 51, 0.1), 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 .lm-progress__fill {
-  position: absolute; inset-inline-start: 0; top: 0; bottom: 0; min-width: var(--prog-h); border-radius: inherit;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--prog-c) 82%, white), var(--prog-c));
+  position: absolute; inset-inline-start: 0; top: 0; bottom: 0; min-width: var(--prog-h); border-radius: inherit; overflow: hidden;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--prog-c) 70%, white), var(--prog-c));
+  box-shadow: inset 0 -1px 1px color-mix(in srgb, var(--prog-c) 60%, #0a1633), 0 0 0 0.5px color-mix(in srgb, var(--prog-c) 55%, transparent);
   transition: width 900ms var(--lm-ease-out-expo), opacity var(--lm-dur-ui);
+}
+/* liquid highlight along the top half */
+.lm-progress__fill::before {
+  content: ''; position: absolute; inset-inline: 3px; top: 1px; height: 42%; border-radius: 999px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.08));
 }
 .lm-progress__fill.is-empty { opacity: 0; }
 .lm-progress__tip {
-  position: absolute; inset-inline-end: 0; top: 0; bottom: 0; width: 16px; border-radius: inherit;
-  background: radial-gradient(ellipse at right center, rgba(255, 255, 255, 0.55), transparent 72%);
+  position: absolute; inset-inline-end: 0; top: 0; bottom: 0; width: 18px; border-radius: inherit;
+  background: radial-gradient(ellipse at right center, rgba(255, 255, 255, 0.5), transparent 72%);
 }
-.lm-progress__fill.is-shimmer { overflow: hidden; }
 .lm-progress__fill.is-shimmer::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit;
-  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%);
   animation: lm-shimmer 2.2s var(--lm-ease-in-out) infinite;
 }
 html.lm-lite .lm-progress__fill.is-shimmer::after { animation-iteration-count: 2; }
-[dir='rtl'] .lm-progress__tip { background: radial-gradient(ellipse at left center, rgba(255, 255, 255, 0.55), transparent 72%); }
+[dir='rtl'] .lm-progress__tip { background: radial-gradient(ellipse at left center, rgba(255, 255, 255, 0.5), transparent 72%); }
+html.high-contrast .lm-progress__track { box-shadow: inset 0 0 0 1.5px var(--lm-ink-2); }

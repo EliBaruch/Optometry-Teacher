@@ -11,8 +11,8 @@ import './ui/widgets.css';
 
 /** Lobby tile text, chosen per edition at install time. */
 const HUB_TEXT = defineStrings({
-  en: { title: 'Career', subtitle: 'Your rank, mastery sky and trophy wall', fresh: (n: number) => `${n} NEW` },
-  he: { title: 'קריירה', subtitle: 'הדרגה שלכם, שמי השליטה וקיר הגביעים', fresh: (n: number) => (n === 1 ? 'חדש' : `${n} חדשים`) },
+  en: { title: 'Career', subtitle: 'Your rank, mastery map and trophy wall', fresh: (n: number) => `${n} NEW` },
+  he: { title: 'קריירה', subtitle: 'הדרגה שלכם, מפת השליטה וקיר הגביעים', fresh: (n: number) => (n === 1 ? 'חדש' : `${n} חדשים`) },
 });
 
 /**

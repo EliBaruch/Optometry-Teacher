@@ -42,7 +42,7 @@ export function paintFrame(dom: Dom, eng: Engine, L: Live, eyeStates: Record<Eye
   if (dom.ringBox) { dom.ringBox.style.transform = `translate(${x}px, ${y}px)`; dom.ringBox.style.opacity = eng.penOn && eng.curEye ? '1' : '0'; }
   if (dom.ring) {
     dom.ring.style.strokeDashoffset = String(100 - Math.min(1, eng.dwell / DWELL_RING_S) * 100);
-    dom.ring.style.stroke = eng.dwell >= DWELL_FULL_S ? '#ffd27a' : 'rgba(255,255,255,0.85)';
+    dom.ring.style.stroke = eng.dwell >= DWELL_FULL_S ? '#9ec2ff' : 'rgba(255,255,255,0.85)';
   }
   for (const e of EYES) {
     const path = dom.gaugePaths[e];

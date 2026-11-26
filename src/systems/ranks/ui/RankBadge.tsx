@@ -33,7 +33,7 @@ function RankBadgeInner({ services }: { services: GameServices }) {
     const el = ref.current;
     if (el && !reduced) {
       const r = el.getBoundingClientRect();
-      if (r.width > 0) services.fx.floatText(`+${formatNumber(delta)} XP`, r.left + r.width / 2, r.bottom + 6, { color: '#c4b5fd', size: 15 });
+      if (r.width > 0) services.fx.floatText(`+${formatNumber(delta)} XP`, r.left + r.width / 2, r.bottom + 6, { color: '#7c3aed', size: 15 });
     }
     setPulse(levelled ? 'level' : 'gain');
     const t = setTimeout(() => setPulse(null), levelled ? 1600 : 900);

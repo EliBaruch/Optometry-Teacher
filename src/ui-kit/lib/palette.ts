@@ -37,6 +37,9 @@ export const palette = {
   vividBlue: '#579bfc',
   vividPink: '#ff6ec7',
   vividSky: '#4eccf5',
+  vividYellow: '#ffcb00',
+  vividLime: '#9cd326',
+  vividTeal: '#2dd4bf',
   // Clinical states
   normal: '#059669',
   abnormal: '#d97706',
@@ -79,6 +82,38 @@ export const TONE_COLOR: Record<Tone, string> = {
   normal: '#059669',
   abnormal: '#d97706',
   critical: '#e11d48',
+};
+
+/** Monday-style vivid label fill for each tone: pair with navy ink text (never white). */
+export const TONE_VIVID: Record<Tone, string> = {
+  neutral: '#c4ccdb',
+  gold: '#579bfc',
+  info: '#4eccf5',
+  good: '#00c875',
+  warn: '#fdab3d',
+  bad: '#ff5a6e',
+  epic: '#a25ddc',
+  normal: '#00c875',
+  abnormal: '#fdab3d',
+  critical: '#ff5a6e',
+};
+
+/** Vivid medal fills for the grade badge (navy letter on top). */
+export const GRADE_VIVID: Record<Grade, string> = {
+  S: '#ffcb00',
+  A: '#00c875',
+  B: '#579bfc',
+  C: '#a25ddc',
+  D: '#fdab3d',
+  F: '#ff5a6e',
+};
+
+/** Vivid label fill per rarity (rarity pills on reward chips). */
+export const RARITY_VIVID: Record<Rarity, string> = {
+  common: '#c4ccdb',
+  rare: '#579bfc',
+  epic: '#a25ddc',
+  legendary: '#ffcb00',
 };
 
 /** "#rrggbb" + alpha → "rgba(r,g,b,a)". Falls back to the input for non-hex colours. */

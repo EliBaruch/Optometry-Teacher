@@ -1,50 +1,52 @@
-/* Subjective refraction — a brass-and-glass refractor at midnight. */
+/* Subjective refraction — Clinic Glass: a white-and-silver refractor in a bright exam room. */
 
 .php-root {
-  --php-brass: #e6b960;
-  --php-brass-hi: #fff0c2;
-  --php-brass-lo: #6b4310;
-  --php-violet: #c4b5fd;
-  --php-ice: #7dd3fc;
-  --php-panel: linear-gradient(165deg, rgba(52, 34, 88, 0.42), rgba(18, 11, 34, 0.66));
+  --php-brass: var(--lm-brand-500);
+  --php-brass-hi: var(--lm-brand-500);
+  --php-brass-lo: #1b45c4;
+  --php-violet: #7c3aed;
+  --php-ice: #0284c7;
+  --php-panel: var(--lm-glass);
   position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   container-type: size; container-name: php;
-  color: var(--lm-ivory, #f6efe4); font-family: var(--lm-font-ui, system-ui, sans-serif);
+  color: var(--lm-ivory, var(--lm-ink)); font-family: var(--lm-font-ui, system-ui, sans-serif);
   background:
-    radial-gradient(90% 70% at 28% 42%, rgba(120, 78, 190, 0.22), transparent 62%),
-    radial-gradient(60% 55% at 82% 30%, rgba(255, 210, 122, 0.07), transparent 60%),
-    radial-gradient(70% 50% at 70% 110%, rgba(56, 189, 248, 0.07), transparent 60%),
-    linear-gradient(180deg, #0e0819, #07040e);
+    radial-gradient(55% 50% at 10% 6%, rgba(120, 160, 255, 0.34), transparent 70%),
+    radial-gradient(45% 45% at 94% 10%, rgba(110, 220, 235, 0.28), transparent 70%),
+    radial-gradient(50% 50% at 86% 96%, rgba(190, 160, 255, 0.26), transparent 70%),
+    radial-gradient(40% 40% at 6% 96%, rgba(255, 190, 160, 0.2), transparent 70%),
+    var(--lm-canvas);
   overflow: hidden; outline: none;
 }
 .php-root button { font: inherit; color: inherit; }
 .php-num { font-family: var(--lm-font-num, sans-serif); font-variant-numeric: tabular-nums; }
 .php-eyebrow {
   margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--lm-muted, #a99bbd);
+  color: var(--lm-muted, var(--lm-ink-3));
 }
 
 /* ── header ─────────────────────────────────────────────────────────────── */
 .php-head {
   display: flex; align-items: center; gap: 14px; padding: 9px 16px; min-width: 0;
-  border-bottom: 1px solid var(--lm-hairline, rgba(255, 236, 210, 0.09));
-  background: linear-gradient(180deg, rgba(30, 18, 54, 0.8), rgba(16, 9, 30, 0.35));
+  margin: 12px 14px 0; border-radius: 24px;
+  background: var(--lm-glass); backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow);
 }
 .php-head__title {
   display: flex; align-items: center; gap: 8px; flex: none;
-  font: 560 1.05rem/1.1 var(--lm-font-display, Georgia, serif); letter-spacing: 0.01em;
+  font: 780 1.15rem/1.1 var(--lm-font-display); letter-spacing: var(--lm-tracking-display);
 }
-.php-head__title .lm-icon, .php-head__title svg { color: var(--lm-gold); filter: drop-shadow(0 0 6px rgba(255, 210, 122, 0.5)); }
+.php-head__title .lm-icon, .php-head__title svg { color: var(--lm-brand-600); }
 .php-head__hint {
   flex: 1; min-width: 0; margin: 0; padding-inline-start: 14px; border-inline-start: 1px solid var(--lm-hairline);
-  font-size: var(--lm-fs-sm, 13.5px); line-height: 1.35; color: var(--lm-ivory-dim, #ddd3c4);
+  font-size: var(--lm-fs-sm, 13.5px); line-height: 1.35; color: var(--lm-ivory-dim, var(--lm-ink-2));
   animation: php-fade-in var(--lm-dur-med, 380ms) var(--lm-ease-out) both;
 }
 
 /* segmented control (eye selector, JCC mode) */
 .php-seg {
   display: flex; align-items: center; gap: 3px; padding: 3px; border-radius: 12px; flex: none;
-  background: rgba(8, 4, 16, 0.62); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1), inset 0 2px 6px rgba(0, 0, 0, 0.4);
+  background: rgba(10, 22, 51, 0.074); box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.1), inset 0 2px 6px rgba(10, 22, 51, 0.2);
 }
 .php-seg__k { padding: 0 6px 0 7px; font: 700 0.66rem/1 var(--lm-font-ui); letter-spacing: 0.14em; color: var(--lm-muted); }
 .php-seg__b {
@@ -55,16 +57,16 @@
   transition: background var(--lm-dur-ui) var(--lm-ease-out), color var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-ui) var(--lm-ease-out);
 }
 .php-seg--sm .php-seg__b { min-height: 30px; padding: 0 10px; font-size: 0.78rem; }
-.php-seg__b:hover:not(:disabled) { color: var(--lm-ivory) !important; background: rgba(255, 255, 255, 0.05); }
+.php-seg__b:hover:not(:disabled) { color: var(--lm-ivory) !important; background: rgba(10, 22, 51, 0.025); }
 .php-seg__b.is-on {
-  color: var(--lm-text-on-gold, #2a1a05) !important; background: linear-gradient(180deg, #fff0c9, #ffd98c 40%, #f5b942);
-  box-shadow: 0 0 0 1px rgba(255, 214, 140, 0.7), 0 4px 14px -4px rgba(245, 170, 50, 0.7);
+  color: var(--lm-text-on-gold, #fff) !important; background: var(--lm-accent-gradient);
+  box-shadow: 0 0 0 1px rgba(34, 87, 240, 0.7), 0 4px 14px -4px rgba(34, 87, 240, 0.6);
 }
 .php-seg__b:disabled { cursor: default; opacity: 0.55; }
 .php-seg__b.is-on:disabled { opacity: 1; }
 .php-seg__b:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
 .php-seg__ok { width: 14px; height: 14px; color: var(--lm-normal); }
-.php-seg__b.is-on .php-seg__ok { color: #0f5b4f; }
+.php-seg__b.is-on .php-seg__ok { color: var(--lm-ink); }
 
 /* ── stage ──────────────────────────────────────────────────────────────── */
 .php-stage {
@@ -75,54 +77,52 @@
 /* instrument column */
 .php-instr {
   position: relative; display: flex; flex-direction: column; min-height: 0; min-width: 0; border-radius: var(--lm-r-lg, 20px);
-  background:
-    radial-gradient(80% 70% at 50% 40%, rgba(255, 210, 122, 0.06), transparent 70%),
-    linear-gradient(180deg, rgba(20, 12, 36, 0.55), rgba(8, 4, 16, 0.7));
-  box-shadow: inset 0 0 0 1px var(--lm-hairline), inset 0 1px 0 rgba(255, 245, 230, 0.05), var(--lm-shadow-2);
+  background: var(--lm-glass); backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); border-radius: 28px; overflow: hidden;
 }
 .php-instr__head { display: flex; justify-content: center; padding: 8px 10px 0; }
 .php-instr__body {
   position: relative; flex: 1; min-height: 180px;
   background:
-    radial-gradient(46% 38% at 50% 50%, rgba(255, 214, 140, 0.13), transparent 72%),
+    radial-gradient(46% 38% at 50% 50%, rgba(34, 87, 240, 0.13), transparent 72%),
     radial-gradient(70% 16% at 50% 100%, rgba(167, 139, 250, 0.16), transparent 75%),
-    repeating-linear-gradient(90deg, rgba(255, 236, 200, 0.018) 0 1px, transparent 1px 38px);
+    repeating-linear-gradient(90deg, rgba(10, 22, 51, 0.018) 0 1px, transparent 1px 38px);
 }
 .php-instr__body::after {
   content: ''; position: absolute; left: 6%; right: 6%; bottom: 0; height: 1px; pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255, 210, 122, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(34, 87, 240, 0.5), transparent);
 }
 .php-instr__body > .php-phoropter { position: absolute; inset: 4px 8px; width: calc(100% - 16px); height: calc(100% - 8px); }
 
 .php-slip {
   display: flex; align-items: center; gap: 12px; padding: 5px 12px; border-radius: 8px; max-width: 100%; overflow: hidden;
-  background: linear-gradient(180deg, #f8f0dd, #eadbbb); color: #3a2410;
-  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.8), inset 0 -1px 0 rgba(120, 80, 30, 0.25);
-  font-size: 0.74rem; white-space: nowrap; transform: rotate(-0.6deg);
+  background: color-mix(in srgb, var(--lm-vivid-yellow) 55%, #fff); color: var(--lm-ink); border-radius: 999px; padding: 6px 16px;
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.8), 0 8px 18px -10px rgba(10, 22, 51, 0.35);
+  font-size: 0.74rem; white-space: nowrap;
 }
-.php-slip__k { font: 700 0.62rem/1 var(--lm-font-ui); letter-spacing: 0.13em; text-transform: uppercase; color: #8a5a1c; }
+.php-slip__k { font: 700 0.62rem/1 var(--lm-font-ui); letter-spacing: 0.13em; text-transform: uppercase; color: var(--lm-ink-2); }
 .php-slip__v { font-family: var(--lm-font-num); font-variant-numeric: tabular-nums; }
-.php-slip__v b { color: #8a5a1c; margin-inline-end: 2px; }
+.php-slip__v b { color: var(--lm-ink); margin-inline-end: 2px; }
 
 /* refractor SVG */
 .php-phoropter { display: block; width: 100%; height: 100%; max-height: 100%; overflow: visible; user-select: none; }
-.php-tick { stroke: rgba(255, 236, 200, 0.4); stroke-width: 1; }
-.php-tick--major { stroke: rgba(255, 226, 170, 0.85); stroke-width: 1.6; }
-.php-scale-num { font: 600 9px var(--lm-font-num, sans-serif); fill: rgba(255, 232, 190, 0.75); }
-.php-win rect { fill: #0b0812; stroke: rgba(255, 214, 140, 0.45); stroke-width: 1; }
-.php-win__k { font: 700 9px var(--lm-font-ui); fill: rgba(255, 214, 140, 0.7); letter-spacing: 0.1em; }
-.php-win__v { font: 700 12.5px var(--lm-font-num, sans-serif); fill: #fff4da; }
-.php-eye-label { font: 600 15px var(--lm-font-display, serif); fill: rgba(255, 232, 190, 0.55); letter-spacing: 0.12em; transition: fill var(--lm-dur-ui); }
-.php-plaque { font: 700 8.5px var(--lm-font-ui); letter-spacing: 0.2em; fill: rgba(255, 220, 160, 0.78); }
-.php-pd { font: 700 9px var(--lm-font-num); fill: rgba(42, 26, 5, 0.85); letter-spacing: 0.08em; }
+.php-tick { stroke: rgba(255, 255, 255, 0.4); stroke-width: 1; }
+.php-tick--major { stroke: rgba(34, 87, 240, 0.85); stroke-width: 1.6; }
+.php-scale-num { font: 600 9px var(--lm-font-num, sans-serif); fill: rgba(34, 87, 240, 0.75); }
+.php-win rect { fill: #10172b; stroke: rgba(34, 87, 240, 0.45); stroke-width: 1; }
+.php-win__k { font: 700 9px var(--lm-font-ui); fill: rgba(190, 215, 255, 0.8); letter-spacing: 0.1em; }
+.php-win__v { font: 700 12.5px var(--lm-font-num, sans-serif); fill: #e4ecff; }
+.php-eye-label { font: 700 15px var(--lm-font-display); fill: rgba(205, 222, 255, 0.9); letter-spacing: 0.12em; transition: fill var(--lm-dur-ui); }
+.php-plaque { font: 700 8.5px var(--lm-font-ui); letter-spacing: 0.2em; fill: rgba(34, 87, 240, 0.78); }
+.php-pd { font: 700 9px var(--lm-font-num); fill: rgba(255, 255, 255, 0.86); letter-spacing: 0.08em; }
 .php-bat__aura { fill: url(#php-aura); opacity: 0; transition: opacity var(--lm-dur-med) var(--lm-ease-out); }
 .php-bat.is-on .php-bat__aura { opacity: 1; animation: php-breathe 3.6s ease-in-out infinite; }
 .php-bat.is-on .php-eye-label { fill: var(--lm-gold); }
 .php-fade { transition: opacity var(--lm-dur-med) var(--lm-ease-out), stroke-width var(--lm-dur-med) var(--lm-ease-out), r var(--lm-dur-med) var(--lm-ease-out); }
 .php-cyl-line { stroke: rgba(196, 181, 253, 0.55); stroke-width: 1.4; stroke-dasharray: 4 3; }
 .php-needle path { fill: var(--php-ice); filter: drop-shadow(0 0 3px rgba(125, 211, 252, 0.8)); }
-.php-dot { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.8; }
-.php-dot--red { fill: #f43f5e; filter: drop-shadow(0 0 3px rgba(244, 63, 94, 0.9)); }
+.php-dot { stroke: rgba(10, 22, 51, 0.25); stroke-width: 0.8; }
+.php-dot--red { fill: #e11d48; filter: drop-shadow(0 0 3px rgba(225, 29, 72, 0.9)); }
 .php-dot--white { fill: #fdfaf2; }
 .php-jcc { opacity: 0; transform: translateY(-36px) scale(0.92); pointer-events: none;
   transition: opacity var(--lm-dur-med) var(--lm-ease-out), transform var(--lm-dur-med) var(--lm-ease-spring-soft); }
@@ -134,42 +134,42 @@
 .php-occ { transform: translateX(var(--php-occ-x, 120px)); opacity: 0;
   transition: transform var(--lm-dur-med) var(--lm-ease-out), opacity var(--lm-dur-med) var(--lm-ease-out); }
 .php-occ.is-in { transform: none; opacity: 1; }
-.php-occ__t { font: 700 12px var(--lm-font-num); fill: rgba(255, 220, 160, 0.4); letter-spacing: 0.2em; }
-.php-badge circle { fill: rgba(11, 7, 22, 0.85); stroke: var(--lm-gold); stroke-width: 2; filter: drop-shadow(0 0 10px rgba(255, 210, 122, 0.6)); }
+.php-occ__t { font: 700 12px var(--lm-font-num); fill: rgba(34, 87, 240, 0.4); letter-spacing: 0.2em; }
+.php-badge circle { fill: rgba(255, 255, 255, 0.86); stroke: var(--lm-gold); stroke-width: 2; filter: drop-shadow(0 0 10px rgba(34, 87, 240, 0.6)); }
 .php-badge text { font: 700 26px var(--lm-font-display, serif); fill: var(--lm-gold); }
 .php-badge { animation: php-pop 320ms var(--lm-ease-spring) both; transform-box: fill-box; transform-origin: center; }
 
 /* control deck */
 .php-deck {
   display: flex; align-items: center; justify-content: center; gap: 22px; flex-wrap: wrap;
-  padding: 14px 16px 16px; border-top: 1px solid rgba(255, 210, 122, 0.22);
-  background: radial-gradient(70% 120% at 50% 0%, rgba(255, 210, 122, 0.07), transparent 70%), linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.34));
+  padding: 14px 16px 16px; border-top: 1px solid rgba(34, 87, 240, 0.22);
+  background: radial-gradient(70% 120% at 50% 0%, rgba(34, 87, 240, 0.07), transparent 70%), linear-gradient(180deg, rgba(10, 22, 51, 0.05), rgba(10, 22, 51, 0.17));
   border-radius: 0 0 var(--lm-r-lg, 20px) var(--lm-r-lg, 20px);
 }
 .php-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; }
 .php-toggle {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 0 12px;
   border: 0; border-radius: 10px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
-  background: rgba(255, 245, 230, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.14);
+  background: rgba(10, 22, 51, 0.05); box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.14);
   transition: background var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-ui) var(--lm-ease-out);
 }
-.php-toggle:hover:not(:disabled) { background: rgba(255, 245, 230, 0.09); }
-.php-toggle.is-on { background: rgba(255, 210, 122, 0.14); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.7), 0 0 18px -4px rgba(255, 210, 122, 0.55); }
+.php-toggle:hover:not(:disabled) { background: rgba(10, 22, 51, 0.09); }
+.php-toggle.is-on { background: rgba(34, 87, 240, 0.14); box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.7), 0 0 18px -4px rgba(34, 87, 240, 0.55); }
 .php-toggle:disabled { opacity: 0.55; cursor: default; }
 .php-toggle:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
 .php-duo-swatch {
   width: 18px; height: 12px; border-radius: 3px; flex: none;
-  background: linear-gradient(90deg, #b3122a 50%, #0f7a3c 50%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(90deg, #b3122a 50%, var(--lm-ink) 50%); box-shadow: 0 0 0 1px rgba(10, 22, 51, 0.25);
 }
 .php-nudges { display: flex; flex-direction: column; gap: 6px; }
 .php-nudge { display: flex; align-items: center; gap: 6px; }
-.php-nudge__eye { width: 26px; font: 700 0.8rem var(--lm-font-num); color: var(--lm-gold); }
+.php-nudge__eye { width: 26px; font: 700 0.8rem var(--lm-font-num); color: var(--lm-brand-700); }
 .php-nudge button {
   min-height: 32px; padding: 0 9px; border: 0; border-radius: 8px; cursor: pointer;
   font: 600 0.78rem var(--lm-font-num) !important;
-  background: rgba(255, 245, 230, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.14);
+  background: rgba(10, 22, 51, 0.06); box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.14);
 }
-.php-nudge button:hover:not(:disabled) { background: rgba(255, 245, 230, 0.12); }
+.php-nudge button:hover:not(:disabled) { background: rgba(10, 22, 51, 0.12); }
 .php-nudge button:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
 .php-nudge output { min-width: 50px; text-align: center; font-weight: 700; }
 
@@ -179,12 +179,12 @@
 }
 .php-readout__eye {
   flex: 1; display: grid; grid-template-columns: 1fr auto; gap: 1px 10px; align-items: baseline; padding: 8px 12px; border-radius: 10px;
-  background: linear-gradient(180deg, rgba(8, 4, 16, 0.85), rgba(20, 12, 36, 0.7)); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.18), 0 8px 18px -10px #000;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(10, 22, 51, 0.08)); box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.18), 0 8px 18px -10px #000;
   opacity: 0.55; transition: opacity var(--lm-dur-med) var(--lm-ease-out), box-shadow var(--lm-dur-med) var(--lm-ease-out);
 }
-.php-readout__eye.is-on { opacity: 1; box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.6), 0 0 22px -8px rgba(255, 210, 122, 0.55); }
+.php-readout__eye.is-on { opacity: 1; box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.6), 0 0 22px -8px rgba(34, 87, 240, 0.55); }
 .php-readout__k { grid-column: 1 / -1; font: 700 0.6rem/1.2 var(--lm-font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--php-brass); }
-.php-readout__v { font-weight: 700; font-size: 1rem; color: #fff8e8; text-shadow: 0 0 12px rgba(255, 210, 122, 0.35); white-space: nowrap; }
+.php-readout__v { font-weight: 700; font-size: 1rem; color: var(--lm-brand-500);  white-space: nowrap; }
 .php-readout__va { font-size: 0.74rem; color: var(--lm-muted); }
 
 /* phone-only controls */
@@ -194,7 +194,7 @@
 .php-recorded > span {
   display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; white-space: nowrap;
   font-weight: 600; font-size: 0.9rem; color: var(--lm-normal);
-  background: rgba(10, 6, 20, 0.92); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.5), 0 0 24px -4px rgba(94, 234, 212, 0.5);
+  background: rgba(255, 255, 255, 0.86); box-shadow: inset 0 0 0 1px rgba(0, 168, 112, 0.5), 0 0 24px -4px rgba(0, 168, 112, 0.5);
   animation: php-rise var(--lm-dur-reveal) var(--lm-ease-out-expo) both;
 }
 
@@ -209,42 +209,42 @@
 .php-dial__knob:hover { filter: brightness(1.08); }
 .php-dial__knob.is-grabbed { cursor: grabbing; transform: scale(0.97); }
 .php-dial__knob:focus-visible { box-shadow: 0 0 0 2px var(--lm-ink-900, #0b0716), 0 0 0 4px var(--php-accent), 0 0 22px 4px color-mix(in srgb, var(--php-accent) 45%, transparent); }
-.php-dial__shadow { fill: rgba(0, 0, 0, 0.55); filter: blur(3px); transform: translateY(3px); }
-.php-dial__rim { fill: #1a1024; stroke: color-mix(in srgb, var(--php-accent) 55%, #5a3a0c); stroke-width: 1.5; }
+.php-dial__shadow { fill: rgba(10, 22, 51, 0.275); filter: blur(3px); transform: translateY(3px); }
+.php-dial__rim { fill: #1c2438; stroke: color-mix(in srgb, var(--php-accent) 55%, #fff); stroke-width: 1.5; }
 .php-dial__rot { transform-origin: 50px 50px; transition: transform 160ms var(--lm-ease-out); }
-.php-dial__knurl line { stroke: #b78633; stroke-width: 2.2; stroke-linecap: round; }
-.php-dial__face { stroke: #5a3a0c; stroke-width: 1; }
-.php-dial__groove { fill: none; stroke: rgba(60, 34, 4, 0.55); stroke-width: 1.2; }
-.php-dial__cap { stroke: rgba(255, 226, 170, 0.4); stroke-width: 1; }
-.php-dial__mark { fill: var(--php-accent); stroke: rgba(30, 16, 2, 0.7); stroke-width: 0.8; filter: drop-shadow(0 0 4px var(--php-accent)); }
+.php-dial__knurl line { stroke: #aab4c8; stroke-width: 2.2; stroke-linecap: round; }
+.php-dial__face { stroke: #fff; stroke-width: 1; }
+.php-dial__groove { fill: none; stroke: rgba(10, 22, 51, 0.066); stroke-width: 1.2; }
+.php-dial__cap { stroke: rgba(34, 87, 240, 0.4); stroke-width: 1; }
+.php-dial__mark { fill: var(--php-accent); stroke: rgba(10, 22, 51, 0.08); stroke-width: 0.8; filter: drop-shadow(0 0 4px var(--php-accent)); }
 .php-dial__mark--tail { opacity: 0.55; }
 .php-dial__gloss { fill: rgba(255, 255, 255, 0.2); pointer-events: none; }
 .php-dial__meta { display: flex; flex-direction: column; gap: 1px; min-width: 74px; }
 .php-dial__label { font: 700 0.68rem/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--php-brass); }
 .php-dial__value {
-  font: 700 1.5rem/1.1 var(--lm-font-num); font-variant-numeric: tabular-nums; color: #fff8e8;
-  text-shadow: 0 0 14px color-mix(in srgb, var(--php-accent) 45%, transparent);
+  font: 700 1.5rem/1.1 var(--lm-font-num); font-variant-numeric: tabular-nums; color: var(--lm-brand-500);
+  
 }
 .php-dial--lg .php-dial__value { font-size: 1.85rem; }
-.php-dial__sub { font-size: 0.7rem; color: var(--lm-muted, #a99bbd); }
+.php-dial__sub { font-size: 0.7rem; color: var(--lm-muted, var(--lm-ink-3)); }
 .php-dial.is-disabled .php-dial__knob { cursor: not-allowed; filter: saturate(0.4) brightness(0.7); }
-.php-dial.is-disabled .php-dial__value { color: var(--lm-muted); text-shadow: none; }
+.php-dial.is-disabled .php-dial__value { color: var(--lm-muted);  }
 
 /* ── patient view column ────────────────────────────────────────────────── */
 .php-view { display: flex; flex-direction: column; gap: 8px; min-height: 0; min-width: 0; }
 .php-patient { display: flex; align-items: flex-start; gap: 10px; min-height: 76px; }
-.php-patient__avatar { flex: none; width: 64px; height: 64px; border-radius: 50%; filter: drop-shadow(0 0 14px rgba(255, 210, 122, 0.25)); }
+.php-patient__avatar { flex: none; width: 64px; height: 64px; border-radius: 50%; filter: drop-shadow(0 0 14px rgba(34, 87, 240, 0.25)); }
 .php-patient__say { flex: 1; min-width: 0; }
 .php-patient__say .lm-speech { padding: 9px 13px 10px; border-radius: 16px; }
 .php-patient__say .lm-speech__text { font-size: 0.98rem; line-height: 1.35; }
 .php-patient__say .lm-speech__speaker { margin-bottom: 2px; }
 .php-you {
   margin: 8px 0 0; padding: 9px 13px; border-radius: 14px; font: italic 500 0.96rem/1.3 var(--lm-font-display, serif);
-  color: var(--lm-gold-200, #ffe7b3); background: rgba(255, 210, 122, 0.07); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.25);
+  color: var(--lm-gold-200, var(--lm-brand-500)); background: rgba(34, 87, 240, 0.07); box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.25);
   animation: php-fade-in var(--lm-dur-ui) var(--lm-ease-out) both;
 }
-.php-thinking { display: inline-flex; gap: 5px; margin: 18px 0 0 6px; padding: 10px 14px; border-radius: 14px; background: rgba(248, 241, 229, 0.9); }
-.php-thinking span { width: 7px; height: 7px; border-radius: 50%; background: #8a5a1c; animation: php-dot 1s ease-in-out infinite; }
+.php-thinking { display: inline-flex; gap: 5px; margin: 18px 0 0 6px; padding: 10px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.9); }
+.php-thinking span { width: 7px; height: 7px; border-radius: 50%; background: var(--lm-brand-500); animation: php-dot 1s ease-in-out infinite; }
 .php-thinking span:nth-child(2) { animation-delay: 0.15s; }
 .php-thinking span:nth-child(3) { animation-delay: 0.3s; }
 
@@ -254,32 +254,32 @@
 
 /* the projected chart inside a brass bezel */
 .php-chart {
-  position: relative; flex: 1; min-height: 150px; border-radius: 14px; overflow: hidden;
-  background: #efe9de;
+  position: relative; flex: 1; min-height: 150px; border-radius: 20px; overflow: hidden;
+  background: #f6f8fc;
   box-shadow:
-    0 0 0 3px #1a0f24, 0 0 0 5px rgba(230, 185, 96, 0.75), 0 0 0 6px rgba(60, 34, 4, 0.9),
-    0 24px 50px -18px rgba(0, 0, 0, 0.9), 0 0 60px -10px rgba(255, 230, 180, 0.22);
+    0 0 0 1px rgba(10, 22, 51, 0.18), 0 0 0 4px rgba(255, 255, 255, 0.75),
+    0 24px 50px -18px rgba(10, 22, 51, 0.35);
   margin: 6px;
 }
 .php-chart__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .php-chart__vignette {
   position: absolute; inset: 0; pointer-events: none;
   background:
-    radial-gradient(120% 95% at 50% 45%, transparent 58%, rgba(30, 18, 40, 0.38) 100%),
-    linear-gradient(125deg, rgba(255, 255, 255, 0.12), transparent 30%);
+    radial-gradient(120% 95% at 50% 45%, transparent 58%, rgba(10, 22, 51, 0.046) 100%),
+    linear-gradient(125deg, rgba(10, 22, 51, 0.06), transparent 30%);
 }
 .php-chart__labels { position: absolute; inset: 0 auto 0 0; width: 0; pointer-events: none; }
 .php-chart__labels span {
   position: absolute; left: 7px; transform: translateY(-50%); white-space: nowrap;
-  font: 600 9px var(--lm-font-num); letter-spacing: 0.04em; color: rgba(70, 50, 40, 0.5);
+  font: 600 9px var(--lm-font-num); letter-spacing: 0.04em; color: rgba(10, 22, 51, 0.06);
 }
 .php-chart__labels--balance { inset: 0; width: auto; }
-.php-chart__labels--balance span { left: 50%; transform: translate(-50%, -50%); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(70, 50, 40, 0.6); }
+.php-chart__labels--balance span { left: 50%; transform: translate(-50%, -50%); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(10, 22, 51, 0.072); }
 .php-chart__dark { position: absolute; inset: 0; display: grid; place-items: center; color: var(--lm-muted-2); font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; }
 .php-chart__badge {
   position: absolute; top: 10px; inset-inline-end: 10px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
   font: 700 1.4rem/1 var(--lm-font-display, serif); color: var(--lm-gold);
-  background: rgba(11, 7, 22, 0.85); box-shadow: 0 0 0 2px var(--lm-gold), 0 0 18px rgba(255, 210, 122, 0.6);
+  background: rgba(255, 255, 255, 0.86); box-shadow: 0 0 0 2px var(--lm-gold), 0 0 18px rgba(34, 87, 240, 0.6);
   animation: php-pop 320ms var(--lm-ease-spring) both;
 }
 
@@ -294,27 +294,28 @@
 .php-foot {
   display: flex; align-items: center; gap: 14px; padding: 9px 16px;
   padding-bottom: max(9px, var(--lm-safe-bottom, 0px));
-  border-top: 1px solid var(--lm-hairline);
-  background: linear-gradient(0deg, rgba(30, 18, 54, 0.85), rgba(16, 9, 30, 0.4));
+  margin: 0 14px 12px; border-radius: 999px;
+  background: var(--lm-glass); backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow);
 }
 .php-progress { flex: 1; display: flex; gap: 16px; flex-wrap: wrap; min-width: 0; }
 .php-pips { display: flex; align-items: center; gap: 4px; opacity: 0.72; transition: opacity var(--lm-dur-ui); }
 .php-pips.is-active { opacity: 1; }
-.php-pips__eye { margin-inline-end: 4px; font: 700 0.8rem var(--lm-font-num); color: var(--lm-gold); }
+.php-pips__eye { margin-inline-end: 4px; font: 700 0.8rem var(--lm-font-num); color: var(--lm-brand-700); }
 .php-pip {
   display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px 3px 5px; border-radius: 999px;
-  font-size: 0.68rem; color: var(--lm-muted); background: rgba(255, 245, 230, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.08);
+  font-size: 0.68rem; color: var(--lm-muted); background: rgba(10, 22, 51, 0.04); box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.08);
   transition: color var(--lm-dur-ui), background var(--lm-dur-ui), box-shadow var(--lm-dur-ui);
 }
-.php-pip i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 236, 210, 0.2); transition: background var(--lm-dur-ui), box-shadow var(--lm-dur-ui); }
-.php-pip.is-done { color: var(--lm-ivory); background: rgba(94, 234, 212, 0.08); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.35); }
+.php-pip i { width: 7px; height: 7px; border-radius: 50%; background: rgba(10, 22, 51, 0.2); transition: background var(--lm-dur-ui), box-shadow var(--lm-dur-ui); }
+.php-pip.is-done { color: var(--lm-ink); background: var(--lm-vivid-green); box-shadow: none; }
 .php-pip.is-done i { background: var(--lm-normal); box-shadow: 0 0 8px var(--lm-normal); animation: php-pop 360ms var(--lm-ease-spring) both; }
 .php-steps { font-size: 0.82rem; color: var(--lm-muted); white-space: nowrap; }
 
 /* ── overlays (tutorial, debrief) ───────────────────────────────────────── */
 .php-tut, .php-debrief {
   position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px;
-  background: radial-gradient(80% 80% at 50% 45%, rgba(20, 10, 40, 0.55), rgba(5, 2, 10, 0.84));
+  background: radial-gradient(80% 80% at 50% 45%, rgba(10, 22, 51, 0.066), rgba(255, 255, 255, 0.86));
   backdrop-filter: blur(4px);
   animation: php-fade-in var(--lm-dur-med) var(--lm-ease-out) both;
 }
@@ -325,14 +326,14 @@
 }
 .php-tut__card::before, .php-debrief__card::before {
   content: ''; position: absolute; inset: 0 0 auto; height: 3px; border-radius: 28px 28px 0 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 210, 122, 0.85), transparent);
+  background: linear-gradient(90deg, transparent, rgba(34, 87, 240, 0.85), transparent);
 }
 .php-tut__title { margin: 6px 0 8px; font: 560 1.45rem/1.15 var(--lm-font-display, serif); }
 .php-tut__body { margin: 0; color: var(--lm-ivory-dim); line-height: 1.55; font-size: 0.93rem; }
 .php-tut__keys { display: flex; gap: 6px; margin: 12px 0 0; }
 .php-tut__dots { display: flex; gap: 6px; justify-content: center; margin: 16px 0 12px; }
-.php-tut__dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 236, 210, 0.2); transition: all var(--lm-dur-ui) var(--lm-ease-out); }
-.php-tut__dots span.is-on { width: 22px; border-radius: 4px; background: var(--lm-gold); box-shadow: 0 0 10px rgba(255, 210, 122, 0.6); }
+.php-tut__dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(10, 22, 51, 0.2); transition: all var(--lm-dur-ui) var(--lm-ease-out); }
+.php-tut__dots span.is-on { width: 22px; border-radius: 4px; background: var(--lm-gold); box-shadow: 0 0 10px rgba(34, 87, 240, 0.6); }
 .php-tut__actions { display: flex; justify-content: space-between; gap: 8px; }
 
 .php-debrief__card { width: min(640px, 100%); padding: 22px 24px 20px; display: flex; flex-direction: column; overflow: hidden; }
@@ -346,24 +347,24 @@
 .php-challenge__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .php-opt {
   display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 8px 12px; border: 0; border-radius: 12px; cursor: pointer; text-align: start;
-  font-size: 0.86rem; line-height: 1.3; background: rgba(255, 245, 230, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.14);
+  font-size: 0.86rem; line-height: 1.3; background: rgba(10, 22, 51, 0.05); box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.14);
   transition: background var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-ui) var(--lm-ease-out), transform var(--lm-dur-fast) var(--lm-ease-out);
 }
-.php-opt:hover:not(:disabled) { background: rgba(255, 245, 230, 0.1); transform: translateY(-1px); }
+.php-opt:hover:not(:disabled) { background: rgba(10, 22, 51, 0.1); transform: translateY(-1px); }
 .php-opt:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
 .php-opt:disabled { cursor: default; }
 .php-opt__key {
   flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px;
-  font: 700 0.72rem var(--lm-font-num); color: var(--lm-gold); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.45);
+  font: 700 0.72rem var(--lm-font-num); color: var(--lm-gold); box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.45);
 }
-.php-opt.is-right { background: rgba(94, 234, 212, 0.13); box-shadow: inset 0 0 0 1.5px var(--lm-normal), 0 0 18px -4px rgba(94, 234, 212, 0.6); animation: php-pop 360ms var(--lm-ease-spring) both; }
-.php-opt.is-wrong { background: rgba(244, 63, 94, 0.12); box-shadow: inset 0 0 0 1.5px var(--lm-critical); animation: php-shake 360ms var(--lm-ease-out) both; }
+.php-opt.is-right { background: rgba(0, 168, 112, 0.13); box-shadow: inset 0 0 0 1.5px var(--lm-normal), 0 0 18px -4px rgba(0, 168, 112, 0.6); animation: php-pop 360ms var(--lm-ease-spring) both; }
+.php-opt.is-wrong { background: rgba(225, 29, 72, 0.12); box-shadow: inset 0 0 0 1.5px var(--lm-critical); animation: php-shake 360ms var(--lm-ease-out) both; }
 .php-challenge__explain {
   display: flex; gap: 8px; align-items: flex-start; margin: 2px 0 6px; padding: 10px 12px; border-radius: 12px; font-size: 0.86rem; line-height: 1.5;
-  color: var(--lm-ivory-dim); background: rgba(251, 191, 36, 0.08); box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.3);
+  color: var(--lm-ivory-dim); background: rgba(217, 119, 6, 0.08); box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.3);
   animation: php-fade-in var(--lm-dur-med) var(--lm-ease-out) both;
 }
-.php-challenge__explain.is-right { background: rgba(94, 234, 212, 0.08); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.3); }
+.php-challenge__explain.is-right { background: rgba(0, 168, 112, 0.08); box-shadow: inset 0 0 0 1px rgba(0, 168, 112, 0.3); }
 .php-challenge__explain svg { flex: none; margin-top: 2px; }
 
 .php-result { display: flex; flex-direction: column; gap: 14px; animation: php-rise var(--lm-dur-reveal) var(--lm-ease-out-expo) both; }
@@ -373,20 +374,20 @@
 .php-result__title { margin: 4px 0 0; font: 560 1.3rem/1.2 var(--lm-font-display, serif); }
 .php-result__eyes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .php-rx {
-  position: relative; padding: 10px 12px; border-radius: 14px; background: rgba(8, 4, 16, 0.45);
-  box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.1);
+  position: relative; padding: 10px 12px; border-radius: 14px; background: rgba(10, 22, 51, 0.054);
+  box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.1);
 }
-.php-rx.is-exact { box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.55), 0 0 20px -6px rgba(255, 210, 122, 0.5); }
+.php-rx.is-exact { box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.55), 0 0 20px -6px rgba(34, 87, 240, 0.5); }
 .php-rx__eye { font: 700 0.9rem var(--lm-font-num); color: var(--lm-gold); margin-bottom: 4px; }
 .php-rx dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; font-size: 0.8rem; }
 .php-rx dt { color: var(--lm-muted); }
 .php-rx dd { margin: 0; text-align: end; white-space: nowrap; }
 .php-rx__err { display: flex; gap: 6px; margin-top: 8px; }
 .php-rx__err span { padding: 2px 8px; border-radius: 999px; font: 600 0.7rem var(--lm-font-num); }
-.php-rx__err .ok { color: var(--lm-normal); background: rgba(94, 234, 212, 0.1); }
-.php-rx__err .off { color: var(--lm-abnormal); background: rgba(251, 191, 36, 0.1); }
+.php-rx__err .ok { color: var(--lm-normal); background: rgba(0, 168, 112, 0.1); }
+.php-rx__err .off { color: var(--lm-abnormal); background: rgba(217, 119, 6, 0.1); }
 .php-lessons { margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 5px; font-size: 0.84rem; line-height: 1.5; color: var(--lm-ivory-dim); }
-.php-lessons li::marker { color: var(--lm-gold); }
+.php-lessons li::marker { color: var(--lm-brand-700); }
 .php-result__foot { display: flex; justify-content: flex-end; }
 
 /* ── motion ─────────────────────────────────────────────────────────────── */
@@ -444,7 +445,7 @@
   .php-view__label { display: none; }
   .php-chart__cap {
     display: block; position: absolute; z-index: 2; inset-inline-end: 6px; bottom: 5px; padding: 2px 9px; border-radius: 999px; pointer-events: none;
-    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em; color: var(--lm-gold); background: rgba(11, 7, 22, 0.82); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.4);
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em; color: var(--lm-gold); background: rgba(255, 255, 255, 0.86); box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.4);
   }
   .php-chart { order: 3; flex: 1 1 0; min-height: 96px; height: auto; margin: 3px 4px; }
   .php-chart__labels span { font-size: 8.5px; left: 5px; }
@@ -453,16 +454,16 @@
   .php-asks .lm-btn { min-height: 38px; }
   .php-deck {
     order: 5; flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 6px; padding: 6px 7px 7px; border: 0; border-radius: 16px;
-    background: linear-gradient(180deg, rgba(20, 12, 36, 0.6), rgba(8, 4, 16, 0.78)); box-shadow: inset 0 0 0 1px var(--lm-hairline);
+    background: linear-gradient(180deg, rgba(10, 22, 51, 0.072), rgba(10, 22, 51, 0.08)); box-shadow: inset 0 0 0 1px var(--lm-hairline);
   }
   /* tabbed deck: only the chosen control is on screen, so the chart keeps its height */
-  .php-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 2px; border-radius: 11px; background: rgba(8, 4, 16, 0.6); box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.08); }
+  .php-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 2px; border-radius: 11px; background: rgba(10, 22, 51, 0.072); box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.08); }
   .php-tab {
     min-height: 30px; padding: 0 4px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; white-space: nowrap;
     font: 700 0.7rem var(--lm-font-ui); letter-spacing: 0.06em; text-transform: uppercase; color: var(--lm-muted);
     transition: background var(--lm-dur-ui) var(--lm-ease-out), color var(--lm-dur-ui) var(--lm-ease-out);
   }
-  .php-tab.is-on { color: var(--lm-text-on-gold, #2a1a05); background: linear-gradient(180deg, #fff0c9, #ffd98c 45%, #f5b942); box-shadow: 0 2px 10px -3px rgba(245, 170, 50, 0.7); }
+  .php-tab.is-on { color: var(--lm-text-on-gold, #fff); background: var(--lm-accent-gradient); box-shadow: 0 2px 10px -3px rgba(217, 119, 6, 0.7); }
   .php-tab:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 1px; }
   .php-deck[data-tab="sph"] > [data-pane]:not([data-pane="sph"]),
   .php-deck[data-tab="cyl"] > [data-pane]:not([data-pane="cyl"]),
@@ -481,11 +482,11 @@
   .php-step {
     min-width: 46px; height: 42px; padding: 0 8px; border: 0; border-radius: 11px; cursor: pointer; touch-action: manipulation;
     font: 700 1.25rem/1 var(--lm-font-num) !important; color: var(--lm-ivory) !important;
-    background: linear-gradient(180deg, rgba(255, 245, 230, 0.12), rgba(255, 245, 230, 0.04)); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.3);
+    background: linear-gradient(180deg, rgba(10, 22, 51, 0.12), rgba(10, 22, 51, 0.04)); box-shadow: inset 0 0 0 1px rgba(34, 87, 240, 0.3);
     transition: transform var(--lm-dur-fast) var(--lm-ease-out), background var(--lm-dur-ui) var(--lm-ease-out);
   }
-  .php-step--fine { min-width: 38px; font-size: 0.82rem !important; color: var(--lm-muted) !important; box-shadow: inset 0 0 0 1px rgba(255, 236, 210, 0.14); }
-  .php-step:active:not(:disabled) { transform: scale(0.94); background: rgba(255, 210, 122, 0.22); }
+  .php-step--fine { min-width: 38px; font-size: 0.82rem !important; color: var(--lm-muted) !important; box-shadow: inset 0 0 0 1px rgba(10, 22, 51, 0.14); }
+  .php-step:active:not(:disabled) { transform: scale(0.94); background: rgba(34, 87, 240, 0.22); }
   .php-step:disabled { opacity: 0.4; }
   .php-step:focus-visible { outline: 2px solid var(--lm-gold); outline-offset: 2px; }
   .php-tools { flex-direction: row; flex-wrap: nowrap; justify-content: center; flex-basis: auto; gap: 6px; min-height: 52px; }

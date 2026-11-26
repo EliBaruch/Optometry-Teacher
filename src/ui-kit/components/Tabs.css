@@ -16,15 +16,17 @@
 .lm-tabs.fade-end { --fade-b: 36px; }
 .lm-tabs--block { display: flex; }
 .lm-tabs--block .lm-tabs__tab { flex: 1; justify-content: center; }
+/* iOS-style segmented control: a glass track with a sliding white specular thumb */
 .lm-tabs--pill {
   padding: 4px; border-radius: 999px;
-  background: var(--lm-surface-3);
-  box-shadow: inset 0 0 0 1px var(--lm-border);
+  background: linear-gradient(180deg, rgba(10, 22, 51, 0.07), rgba(10, 22, 51, 0.035));
+  backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+  box-shadow: inset 0 1px 2px rgba(10, 22, 51, 0.1), inset 0 0 0 1px var(--lm-glass-edge), 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 .lm-tabs__tab {
   position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; flex: none;
-  height: 36px; padding: 0 16px; border-radius: 999px;
-  font: 600 var(--lm-fs-sm)/1 var(--lm-font-ui); color: var(--lm-ink-3); white-space: nowrap;
+  height: 36px; padding: 0 17px; border-radius: 999px;
+  font: 620 var(--lm-fs-sm)/1 var(--lm-font-ui); color: var(--lm-ink-3); white-space: nowrap;
   transition: color var(--lm-dur-ui) var(--lm-ease-out);
 }
 .lm-tabs__tab:hover:not(:disabled) { color: var(--lm-ink); }
@@ -35,22 +37,21 @@
   min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center;
   font-size: 10px; font-weight: 700; color: var(--lm-ink-2); background: var(--lm-surface-3);
 }
-.lm-tabs__tab.is-active .lm-tabs__badge { background: color-mix(in srgb, var(--tabs-c) 14%, white); color: var(--lm-accent-text); }
+.lm-tabs__tab.is-active .lm-tabs__badge { background: var(--lm-accent); color: var(--lm-on-accent); }
+.lm-tabs__tab.is-active .lm-tabs__icon { color: var(--lm-accent-text); }
 .lm-tabs__ind {
   position: absolute; z-index: 0; left: 0; top: 4px; bottom: 4px; border-radius: 999px;
-  background: var(--lm-surface);
-  box-shadow: 0 0 0 1px var(--lm-border), 0 1px 2px rgba(10, 22, 51, 0.08), 0 3px 8px -2px rgba(10, 22, 51, 0.1);
-  transition: transform var(--lm-dur-med) var(--lm-ease-spring-soft), width var(--lm-dur-med) var(--lm-ease-spring-soft);
+  background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.86));
+  box-shadow: inset 0 1px 0.5px #fff, 0 0 0 0.5px rgba(10, 22, 51, 0.06), 0 1px 2px rgba(10, 22, 51, 0.1), 0 6px 14px -6px rgba(10, 22, 51, 0.22);
+  transition: transform 460ms var(--lm-ease-spring-soft), width 460ms var(--lm-ease-spring-soft);
 }
-/* underline variant */
-.lm-tabs--underline { gap: var(--lm-sp-4); border-bottom: 1px solid var(--lm-border); }
-.lm-tabs--underline .lm-tabs__tab { padding: 0 2px; height: 42px; border-radius: 0; }
+/* underline variant: McKinsey hairline with an azure rule under the active tab */
+.lm-tabs--underline { gap: var(--lm-sp-5); border-bottom: 1px solid var(--lm-rule); }
+.lm-tabs--underline .lm-tabs__tab { padding: 0 2px; height: 44px; border-radius: 0; font-weight: 650; }
 .lm-tabs--underline .lm-tabs__tab.is-active { color: var(--lm-accent-text); }
 .lm-tabs--underline .lm-tabs__ind {
-  position: absolute; z-index: 0; left: 0; top: 4px; bottom: 4px; border-radius: 999px;
-  background: var(--lm-surface);
-  box-shadow: 0 0 0 1px var(--lm-border), 0 1px 2px rgba(10, 22, 51, 0.08), 0 3px 8px -2px rgba(10, 22, 51, 0.1);
-  transition: transform var(--lm-dur-med) var(--lm-ease-spring-soft), width var(--lm-dur-med) var(--lm-ease-spring-soft);
+  top: auto; bottom: 0; height: 3px; border-radius: 3px 3px 0 0;
+  background: var(--lm-accent-gradient); box-shadow: none;
 }
 .lm-tabpanel { animation: lm-fade-up var(--lm-dur-med) var(--lm-ease-out-expo) both; }
 .lm-tabpanel:focus-visible { --lm-focus-offset: 4px; border-radius: var(--lm-r-sm); }
