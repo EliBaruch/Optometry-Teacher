@@ -5,3 +5,4 @@
 .lm-divider__line--r { background: var(--lm-rule); }
 .lm-divider--line { gap: 0; }
 .lm-divider__label { display: inline-flex; align-items: center; gap: 10px; color: var(--lm-ink-3); }
+.lm-divider .lm-ornament rect:first-child { display: none; }

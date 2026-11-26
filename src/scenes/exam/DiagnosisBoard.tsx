@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ClinicalCase, Confidence, Diagnosis, GameServices, Urgency } from '@core';
-import { Backdrop, Button, Icon, IconButton, Ornament, useFocusTrap, useReducedMotion, useSfx } from '@ui-kit';
+import { Backdrop, Button, Icon, IconButton, useFocusTrap, useReducedMotion, useSfx } from '@ui-kit';
 import { pickStrings } from '@core';
 import { S } from './strings';
 import {
@@ -83,7 +83,7 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
       setTimeout(() => {
         play('stamp');
         services.fx.shake(0.9, 360);
-        services.fx.flash('#ffd27a', 260);
+        services.fx.flash('#bcd0ff', 260);
       }, reduced ? 0 : 330),
       setTimeout(onFinished, reduced ? 500 : STAMP_HOLD_MS),
     );
@@ -109,11 +109,10 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
           </div>
           {clock && <span class="exm-clock exm-clock--red lm-num" aria-label={t.timeLeft}>{clock}</span>}
         </header>
-        <Ornament class="exm-board__orn" width={170} />
 
         <form class="exm-board__form" onSubmit={(e) => { e.preventDefault(); commit(); }}>
           <fieldset class="exm-step">
-            <legend><span class="exm-step__n lm-num">1</span> {t.step1}</legend>
+            <legend><span class="exm-step__n lm-num">01</span> {t.step1}</legend>
             <div class="exm-dx-grid" role="radiogroup" aria-label={t.dxAria}>
               {ids.map((id, i) => {
                 const d = dxOf(id);
@@ -147,7 +146,7 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
           </fieldset>
 
           <fieldset class="exm-step" ref={step2} disabled={!dx}>
-            <legend><span class="exm-step__n lm-num">2</span> {t.step2}</legend>
+            <legend><span class="exm-step__n lm-num">02</span> {t.step2}</legend>
             <div class="exm-urg-grid" role="radiogroup" aria-label={t.urgencyAria}>
               {URGENCY_LIST.map((u) => {
                 const info = URGENCY_INFO[u];
@@ -181,7 +180,7 @@ export function DiagnosisBoard({ services, kase, pinned, clock, pressure, onClos
           </fieldset>
 
           <fieldset class="exm-step" ref={step3} disabled={!dx || !urgency}>
-            <legend><span class="exm-step__n lm-num">3</span> {t.step3}</legend>
+            <legend><span class="exm-step__n lm-num">03</span> {t.step3}</legend>
             <div class="exm-conf" role="radiogroup" aria-label={t.confAria}>
               {CONFIDENCE_LIST.map((c) => {
                 const info = CONFIDENCE_INFO[c];

@@ -60,11 +60,11 @@ export function TitleScene({ services }: SceneProps) {
   // lens diameter, then a wider canvas behind it (the circle crops the lids like a macro view)
   const lens = Math.round(
     landscape
-      ? Math.min(vp.w * 0.3, vp.h * 0.6)
+      ? Math.min(vp.w * 0.3, vp.h * (vp.h < 450 ? 0.48 : 0.6))
       : split
         ? Math.min(vp.w * 0.36, 580, vp.h * 0.66)
         : narrow
-          ? Math.min(vp.w - 100, vp.h * 0.33)
+          ? Math.min(vp.w - 110, vp.h * 0.3)
           : Math.min(vp.w * 0.5, 480, vp.h * 0.34),
   );
   const eyeW = Math.round(lens * CROP);
@@ -164,7 +164,7 @@ export function TitleScene({ services }: SceneProps) {
               <span class="ttl-mark__sub">{t.sub}</span>
               <i aria-hidden="true" />
             </div>
-            <p class="ttl-mark__tag lm-enter" style={{ '--lm-delay': '380ms' } as never}>{t.tagline}</p>
+            <p class="ttl-mark__tag lm-enter" style={{ '--lm-delay': '380ms' } as never}>{t.tagline}<span class="ttl-mark__hi"> {t.taglineHi}</span></p>
             <p class="ttl-mark__pitch lm-enter" style={{ '--lm-delay': '460ms' } as never}>{t.pitch}</p>
           </header>
 
@@ -180,7 +180,7 @@ export function TitleScene({ services }: SceneProps) {
         </div>
 
         <div class={`ttl-eye ${zooming ? 'is-zoom' : ''}`} style={{ width: `${lens}px`, height: `${lens}px`, '--lens': `${lens}px` } as never}>
-          <div class="ttl-eye__halo" aria-hidden="true"><i /><i /><i /></div>
+          <div class="ttl-eye__halo" aria-hidden="true"><i /><i /><i /><i /></div>
           <svg class="ttl-eye__rings" viewBox="0 0 100 100" aria-hidden="true">
             <circle class="ttl-eye__ticks" cx="50" cy="50" r="49" pathLength="360" />
             <circle class="ttl-eye__ticks ttl-eye__ticks--major" cx="50" cy="50" r="49" pathLength="360" />

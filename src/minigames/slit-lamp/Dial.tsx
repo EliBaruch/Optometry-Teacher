@@ -24,7 +24,7 @@ export interface DialProps {
 const SWEEP = 270;
 const TICKS = 29;
 
-/** A brass knob: drag (↔ / ↕), mouse wheel or arrow keys. */
+/** A silver knob: drag (↔ / ↕), mouse wheel or arrow keys. */
 export function Dial(p: DialProps) {
   const norm = (v: number) => {
     const c = Math.max(p.min, Math.min(p.max, v));

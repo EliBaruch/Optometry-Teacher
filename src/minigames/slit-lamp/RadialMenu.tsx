@@ -17,7 +17,7 @@ export interface RadialMenuProps {
 }
 
 const TINT: Record<string, string> = {
-  lids: '#fbbf77', conj: '#f9a8c9', cornea: '#8fd3ff', chamber: '#c4b5fd', iris: '#5eead4', lens: '#ffd27a',
+  lids: '#fbbf77', conj: '#f9a8c9', cornea: '#8fd3ff', chamber: '#c4b5fd', iris: '#5eead4', lens: '#e08a00',
 };
 const W = 180; // petal width
 const H = 36;
@@ -34,7 +34,7 @@ export function RadialMenu(p: RadialMenuProps) {
   const root = useRef<HTMLDivElement>(null);
   const items = stack.length ? stack[stack.length - 1]!.children ?? [] : p.roots;
   const narrow = p.stage.w < 560;
-  const tint = TINT[stack[0]?.id ?? ''] ?? '#ffd27a';
+  const tint = TINT[stack[0]?.id ?? ''] ?? '#2257f0';
 
   useEffect(() => {
     p.sfx?.('pop');

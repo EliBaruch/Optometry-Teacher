@@ -20,19 +20,19 @@ export interface WingInfo {
 
 export const WINGS: Record<DiagnosisCategory, WingInfo> = {
   refractive: { label: 'Refractive', wing: 'Hall of Lenses', color: '#38bdf8' },
-  binocular: { label: 'Binocular', wing: 'Binocular Gallery', color: '#a78bfa' },
-  anterior: { label: 'Anterior Segment', wing: 'Anterior Arcade', color: '#f472b6' },
-  cornea: { label: 'Cornea', wing: 'Corneal Rotunda', color: '#5eead4' },
-  glaucoma: { label: 'Glaucoma', wing: 'Pressure Chamber', color: '#4ade80' },
-  lens: { label: 'Lens', wing: 'Crystal Room', color: '#fde68a' },
-  retina: { label: 'Retina', wing: 'Retina Nave', color: '#fb7185' },
+  binocular: { label: 'Binocular', wing: 'Binocular Gallery', color: '#a25ddc' },
+  anterior: { label: 'Anterior Segment', wing: 'Anterior Arcade', color: '#ff6ec7' },
+  cornea: { label: 'Cornea', wing: 'Corneal Rotunda', color: '#2dd4bf' },
+  glaucoma: { label: 'Glaucoma', wing: 'Pressure Chamber', color: '#00c875' },
+  lens: { label: 'Lens', wing: 'Crystal Room', color: '#ffcb00' },
+  retina: { label: 'Retina', wing: 'Retina Nave', color: '#ff5a6e' },
   neuro: { label: 'Neuro-ophthalmic', wing: 'Neuro Observatory', color: '#c084fc' },
   systemic: { label: 'Systemic', wing: 'Systemic Study', color: '#fb923c' },
-  normal: { label: 'Healthy Eyes', wing: 'Healthy Eye Alcove', color: '#ffd27a' },
+  normal: { label: 'Healthy Eyes', wing: 'Healthy Eye Alcove', color: '#ffcb00' },
 };
 
 export function wingOf(category: DiagnosisCategory | undefined): WingInfo {
-  return (category && WINGS[category]) || { label: 'Clinic', wing: 'Main Hall', color: '#f472b6' };
+  return (category && WINGS[category]) || { label: 'Clinic', wing: 'Main Hall', color: '#ff6ec7' };
 }
 
 /** All diagnoses in Gallery order: by category, then by name. */

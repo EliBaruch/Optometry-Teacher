@@ -250,8 +250,8 @@ export function Projector(p: ProjectorProps) {
         {b.scotoma > 0.01 && <circle cx={W / 2} cy={selY} r={scotR} fill={`url(#${uid}-scot)`} opacity={Math.min(1, b.scotoma + 0.15)} />}
         {veil > 0.01 && <rect x="0" y="0" width={W} height={H} fill="#fffaf0" opacity={veil * 0.42} />}
         {p.pinhole && <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-ph)`} />}
-        {b.luminance < 1 && <rect x="0" y="0" width={W} height={H} fill="#0b0716" opacity={(1 - b.luminance) * 0.55} />}
-        {b.dark && <rect class="va-proj__dark" x="0" y="0" width={W} height={H} fill="#06030d" opacity="0.94" />}
+        {b.luminance < 1 && <rect x="0" y="0" width={W} height={H} fill="#0b1220" opacity={(1 - b.luminance) * 0.55} />}
+        {b.dark && <rect class="va-proj__dark" x="0" y="0" width={W} height={H} fill="#0b1220" opacity="0.94" />}
 
         <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}-sheen)`} pointer-events="none" />
         {/* examiner overlays: pointer chevrons + marks */}

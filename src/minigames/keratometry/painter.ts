@@ -52,7 +52,7 @@ export function renderIris(size: number, color: string, seed: number, pupilFrac:
   try {
     paintIris(rc, R, R, R, R * pupilFrac, { color, seed });
   } catch {
-    rc.fillStyle = '#2a2030';
+    rc.fillStyle = '#1c2438';
     rc.beginPath();
     rc.arc(R, R, R, 0, TAU);
     rc.fill();
@@ -159,7 +159,7 @@ export function paintView(ctx: CanvasRenderingContext2D, size: number, s: ViewSc
   ctx.clip();
 
   // ── deep background + the iris far behind the mire image
-  ctx.fillStyle = '#05030a';
+  ctx.fillStyle = '#050810';
   ctx.fillRect(0, 0, size, size);
   if (s.iris) {
     const ir = R * 1.32;
@@ -170,8 +170,8 @@ export function paintView(ctx: CanvasRenderingContext2D, size: number, s: ViewSc
   // instrument illumination: a warm pool of light, cooler at the edges
   const lamp = ctx.createRadialGradient(c - R * 0.1, c - R * 0.12, R * 0.05, c, c, R);
   lamp.addColorStop(0, 'rgba(255, 214, 150, 0.16)');
-  lamp.addColorStop(0.55, 'rgba(60, 30, 80, 0.18)');
-  lamp.addColorStop(1, 'rgba(4, 2, 10, 0.86)');
+  lamp.addColorStop(0.55, 'rgba(40, 70, 140, 0.18)');
+  lamp.addColorStop(1, 'rgba(3, 6, 16, 0.86)');
   ctx.fillStyle = lamp;
   ctx.fillRect(0, 0, size, size);
 
@@ -211,8 +211,8 @@ export function paintView(ctx: CanvasRenderingContext2D, size: number, s: ViewSc
   // ── glass: vignette, chromatic field stop and a soft reflection
   const vig = ctx.createRadialGradient(c, c, R * 0.62, c, c, R);
   vig.addColorStop(0, 'rgba(0,0,0,0)');
-  vig.addColorStop(0.86, 'rgba(6,2,14,0.45)');
-  vig.addColorStop(1, 'rgba(2,1,6,0.95)');
+  vig.addColorStop(0.86, 'rgba(4,8,22,0.45)');
+  vig.addColorStop(1, 'rgba(2,4,12,0.95)');
   ctx.fillStyle = vig;
   ctx.fillRect(0, 0, size, size);
   const sheen = ctx.createLinearGradient(c - R, c - R, c + R * 0.2, c + R * 0.2);

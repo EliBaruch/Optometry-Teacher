@@ -14,37 +14,38 @@ const KINDS: { kind: Kind; label: string; sfx: SfxId; color: string }[] = [
 ];
 
 const CSS = `
-.sbfx { position: absolute; inset: 0; overflow: hidden; color: var(--lm-ink, #0f2a3a); font-family: 'Inter Variable', system-ui, sans-serif;
-  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f1f8f9 55%, #e3f1f3 100%); user-select: none; touch-action: manipulation; }
+.sbfx { position: absolute; inset: 0; overflow: hidden; color: var(--lm-ink, #0a1633); font-family: 'Inter Variable', system-ui, sans-serif;
+  background: radial-gradient(60% 50% at 15% 10%, rgba(78,204,245,.35), transparent 70%), radial-gradient(55% 50% at 90% 15%, rgba(162,93,220,.22), transparent 70%), radial-gradient(60% 50% at 70% 95%, rgba(253,171,61,.22), transparent 70%), #eef2fa; user-select: none; touch-action: manipulation; }
 .sbfx-stage { position: absolute; inset: 0; cursor: crosshair; }
 .sbfx-stars { display: none; }
-.sbfx-window { position: absolute; left: 50%; top: 46%; width: min(62vmin, 520px); transform: translate(-50%, -50%); opacity: .8; pointer-events: none; }
+.sbfx-window { position: absolute; left: 50%; top: 46%; width: min(62vmin, 520px); transform: translate(-50%, -50%); opacity: 1; border-radius: 50%; background: rgba(255,255,255,.45); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 20px 60px rgba(34,87,240,.16); padding: 2%; box-sizing: border-box; pointer-events: none; }
 .sbfx-title { position: absolute; top: 22px; left: 0; right: 0; text-align: center; pointer-events: none; }
-.sbfx-title h1 { font: 700 clamp(24px, 4vw, 38px)/1.1 'Inter Variable', system-ui, sans-serif; margin: 0; letter-spacing: -.02em; color: var(--lm-ink, #0f2a3a); }
-.sbfx-title p { margin: 6px 0 0; color: var(--lm-ink-2, #44606f); font-size: 13px; }
+.sbfx-title h1 { font: 800 clamp(28px, 5vw, 52px)/1.05 'Inter Variable', system-ui, sans-serif; margin: 0; letter-spacing: -.02em; color: var(--lm-ink, #0a1633); }
+.sbfx-title p { margin: 6px 0 0; color: var(--lm-ink-3, #4a5878); font-size: 13px; }
 .sbfx-panel { position: absolute; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(960px, calc(100% - 24px));
-  box-sizing: border-box; padding: 14px; border-radius: 20px; background: var(--lm-surface, #fff);
-  border: 1px solid var(--lm-border, #dbe6ea); box-shadow: 0 12px 40px rgba(15, 40, 60, .10), 0 2px 6px rgba(15, 40, 60, .05); }
+  box-sizing: border-box; padding: 14px; border-radius: 28px; background: var(--lm-glass); -webkit-backdrop-filter: var(--lm-glass-blur); backdrop-filter: var(--lm-glass-blur); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); }
 .sbfx-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.sbfx-row + .sbfx-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--lm-border, #dbe6ea); }
-.sbfx-label { font: 600 10px/1 'Inter Variable', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--lm-ink-2, #44606f); min-width: 64px; }
-.sbfx-btn { appearance: none; border: 1px solid var(--lm-border, #dbe6ea); background: var(--lm-surface, #fff); color: var(--lm-ink, #0f2a3a);
-  font: 600 13px/1 'Inter Variable', sans-serif; padding: 10px 14px; border-radius: 12px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center;
+.sbfx-row + .sbfx-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--lm-rule, rgba(10,22,51,.08)); }
+.sbfx-label { font: 600 10px/1 'Inter Variable', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--lm-ink-3, #4a5878); min-width: 64px; }
+.sbfx-btn { appearance: none; border: 1px solid var(--lm-border, #dbe6ea); background: rgba(255,255,255,.7); color: var(--lm-ink, #0a1633);
+  font: 600 13px/1 'Inter Variable', sans-serif; padding: 10px 16px; border-radius: 999px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center;
   transition: transform .18s cubic-bezier(.2,.8,.2,1), border-color .18s, background .18s, box-shadow .18s; min-height: 40px; }
-.sbfx-btn:hover { border-color: #3b6bff; box-shadow: 0 4px 14px rgba(59, 107, 255, .14); transform: translateY(-1px); }
+.sbfx-btn:hover { border-color: #3b6bff; background: #fff; box-shadow: 0 8px 20px rgba(59, 107, 255, .20); transform: translateY(-2px); }
 .sbfx-btn:active { transform: translateY(1px) scale(.97); }
 .sbfx-btn:focus-visible { outline: 2px solid #3b6bff; outline-offset: 2px; }
-.sbfx-btn[aria-pressed="true"] { background: #e6f7f8; border-color: #3b6bff; color: #07676d; }
-.sbfx-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
-.sbfx-kbd { font: 500 10px/1 'Space Grotesk', monospace; color: var(--lm-ink-2, #44606f); border: 1px solid var(--lm-border, #dbe6ea); border-radius: 4px; padding: 2px 4px; }
-.sbfx-btn--good { border-color: #34d39988; } .sbfx-btn--bad { border-color: #fb718588; } .sbfx-btn--red { border-color: #ef444488; }
-.sbfx-meta { margin-left: auto; font: 500 12px 'Space Grotesk', monospace; color: var(--lm-ink-2, #44606f); }
-@media (max-width: 600px) { .sbfx-btn { padding: 9px 10px; font-size: 12px; } .sbfx-label { display: none; } .sbfx-panel { padding: 10px; } .sbfx-row { gap: 6px; } .sbfx-row + .sbfx-row { margin-top: 6px; padding-top: 6px; } .sbfx-btn { min-height: 36px; } .sbfx-kbd { display: none; } .sbfx-meta { margin-left: 0; } }
+.sbfx-btn[aria-pressed="true"] { background: linear-gradient(180deg,#5b86ff,#2257f0); border-color: transparent; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 6px 16px rgba(34,87,240,.3); }
+.sbfx-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 2px rgba(255,255,255,.9); }
+.sbfx-btn[aria-pressed="true"] .sbfx-dot { background: #fff !important; box-shadow: none; }
+.sbfx-btn[aria-pressed="true"] .sbfx-kbd { color: #fff; background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.4); }
+.sbfx-kbd { font: 500 10px/1 'Space Grotesk', monospace; color: var(--lm-ink-3, #4a5878); border: 1px solid var(--lm-border, #dbe6ea); border-radius: 4px; padding: 2px 4px; }
+.sbfx-btn--good { background: #b6f0d4; border-color: transparent; } .sbfx-btn--bad { background: #ffd0d6; border-color: transparent; } .sbfx-btn--red { background: #ffc2cb; border-color: transparent; }
+.sbfx-meta { margin-left: auto; font: 500 12px 'Space Grotesk', monospace; color: var(--lm-ink-3, #4a5878); }
+@media (max-width: 600px) { .sbfx { overflow-y: auto; } .sbfx-stage { position: relative; inset: auto; height: 50vh; min-height: 300px; } .sbfx-window { top: 62%; width: min(62vw, 280px); } .sbfx-panel { position: relative; left: auto; bottom: auto; transform: none; margin: 8px 12px 16px; width: auto; } .sbfx-btn { padding: 9px 10px; font-size: 12px; } .sbfx-label { display: none; } .sbfx-panel { padding: 10px; } .sbfx-row { gap: 6px; } .sbfx-row + .sbfx-row { margin-top: 6px; padding-top: 6px; } .sbfx-btn { min-height: 36px; } .sbfx-kbd { display: none; } .sbfx-meta { margin-left: 0; } }
 `;
 
 function RoseWindow() {
   const petals = Array.from({ length: 12 }, (_, i) => i * 30);
-  const jewels = ['#3b6bff', '#38bdf8', '#a78bfa', '#fb7185', '#34d399', '#f59e0b'];
+  const jewels = ['#3b6bff', '#4eccf5', '#a25ddc', '#ff5a6e', '#00c875', '#fdab3d'];
   return (
     <svg class="sbfx-window" viewBox="-100 -100 200 200" aria-hidden="true">
       <defs>
@@ -53,8 +54,8 @@ function RoseWindow() {
       <circle r="98" fill="url(#sbfx-glow)" opacity=".35" />
       {petals.map((a, i) => (
         <g key={a} transform={`rotate(${a})`}>
-          <path d="M0,-22 C14,-40 14,-70 0,-92 C-14,-70 -14,-40 0,-22Z" fill={jewels[i % jewels.length]} opacity=".28" stroke="#3b6bff" stroke-opacity=".45" stroke-width=".8" />
-          <circle cy="-80" r="5" fill={jewels[(i + 3) % jewels.length]} opacity=".3" stroke="#3b6bff" stroke-opacity=".5" stroke-width=".6" />
+          <path d="M0,-22 C14,-40 14,-70 0,-92 C-14,-70 -14,-40 0,-22Z" fill={jewels[i % jewels.length]} opacity=".5" stroke="#3b6bff" stroke-opacity=".45" stroke-width=".8" />
+          <circle cy="-80" r="5" fill={jewels[(i + 3) % jewels.length]} opacity=".6" stroke="#3b6bff" stroke-opacity=".5" stroke-width=".6" />
         </g>
       ))}
       <circle r="22" fill="#3b6bff" opacity=".12" stroke="#3b6bff" stroke-opacity=".6" stroke-width="1" />
@@ -119,31 +120,31 @@ function RenderFxPage({ services }: { services: GameServices }) {
   const correct = () => {
     const c = centre();
     fx().hitstop(110);
-    fx().flash('#dff3f4', 280);
+    fx().flash('#eaf0ff', 280);
     fx().burst(c.x, c.y, { kind: 'stars', count: 22 });
     fx().burst(c.x, c.y, { kind: 'confetti', count: 90 });
     fx().floatText('+120', c.x, c.y - 30, { size: 44 });
     sfx('success');
     setTimeout(() => {
       fx()?.burst(c.x, c.y + 40, { kind: 'coins', count: 16 });
-      fx()?.floatText('✦ 35', c.x + 70, c.y + 10, { color: '#d98a0b', size: 28 });
+      fx()?.floatText('✦ 35', c.x + 70, c.y + 10, { color: '#e08a00', size: 28 });
       sfx('coins');
     }, 260);
   };
   const wrong = () => {
     fx().shake(14, 420);
-    fx().vignette('#f43f5e', 700);
+    fx().vignette('#ff5a6e', 700);
     const c = centre();
-    fx().floatText('Missed', c.x, c.y, { color: '#f43f5e', size: 30 });
+    fx().floatText('Missed', c.x, c.y, { color: '#ff5a6e', size: 30 });
     sfx('fail');
   };
   const codeRed = () => {
-    fx().vignette('#ef4444', 1800);
+    fx().vignette('#ff5a6e', 1800);
     fx().shake(6, 900);
     // embers rise from the bottom edge, so they read above any control panel
     const w = window.innerWidth;
     const y = window.innerHeight - 6;
-    for (let i = 0; i < 5; i++) fx().burst(w * (0.1 + i * 0.2), y, { kind: 'embers', count: 10, color: i % 2 ? '#f97316' : '#ef4444' });
+    for (let i = 0; i < 5; i++) fx().burst(w * (0.1 + i * 0.2), y, { kind: 'embers', count: 10, color: i % 2 ? '#f97316' : '#ff5a6e' });
     sfx('alarm');
   };
 
@@ -172,8 +173,8 @@ function RenderFxPage({ services }: { services: GameServices }) {
           <span class="sbfx-label">Feel</span>
           <button class="sbfx-btn" data-fx="float" onClick={() => { const c = centre(); fx().floatText(`+${10 + Math.floor(Math.random() * 190)}`, c.x, c.y); sfx('pop'); }}>Float text</button>
           <button class="sbfx-btn" data-fx="shake" onClick={() => { fx().shake(12, 420); sfx('thud'); }}>Shake</button>
-          <button class="sbfx-btn" data-fx="flash" onClick={() => { fx().flash('#dff3f4', 300); sfx('reveal'); }}>Flash</button>
-          <button class="sbfx-btn" data-fx="vignette" onClick={() => { fx().vignette('#38bdf8', 1100); sfx('whoosh'); }}>Vignette</button>
+          <button class="sbfx-btn" data-fx="flash" onClick={() => { fx().flash('#eaf0ff', 300); sfx('reveal'); }}>Flash</button>
+          <button class="sbfx-btn" data-fx="vignette" onClick={() => { fx().vignette('#4eccf5', 1100); sfx('whoosh'); }}>Vignette</button>
           <button class="sbfx-btn" data-fx="hitstop" onClick={() => { const c = centre(); fx().burst(c.x, c.y, { kind: 'sparks' }); fx().hitstop(140); sfx('stamp'); }}>Hit-stop</button>
         </div>
         <div class="sbfx-row">

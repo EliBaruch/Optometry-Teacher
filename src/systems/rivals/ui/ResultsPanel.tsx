@@ -90,7 +90,7 @@ function CasePanel({ services, routeId }: { services: GameServices; routeId: str
           const who = r.rival ? (r.rival.avatar.sex === 'F' ? 'f' : 'm') : 'you';
           const dx = r.correct ? t.dxCorrect : r.chosen ? t.dxCalled(ctl.diagnosisName(r.chosen), who) : t.dxMissed(who);
           return (
-            <li key={r.id} class={`rv-rrow${r.id === 'you' ? ' is-you' : ''}${r.correct ? '' : ' is-wrong'}`} style={{ '--rv-i': i, '--rv-c': r.rival?.color ?? '#ffd27a' }}>
+            <li key={r.id} class={`rv-rrow${r.id === 'you' ? ' is-you' : ''}${r.correct ? '' : ' is-wrong'}`} style={{ '--rv-i': i, '--rv-c': r.rival?.color ?? '#2257f0' }}>
               <div class="rv-rrow__main">
                 <span class="rv-rrow__place lm-num" aria-hidden="true">{i + 1}</span>
                 {r.rival ? <RivalPortrait rival={r.rival} size={40} /> : <PlayerPortrait name={settings.playerName} size={40} />}

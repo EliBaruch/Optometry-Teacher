@@ -17,9 +17,10 @@ import { EyePatch, Rash, ShieldHand, TearStreaks, TemporalArtery, templeMask } f
 import type { AttrMap } from './rig';
 
 export function Defs({ c, grain }: { c: PaintCtx; grain: boolean }) {
-  // Photo-studio backdrop: a pastel of the outfit hue, pulled toward clinic teal-white.
-  const bg = mix(mix(c.spec.outfit, '#ffffff', 0.8), '#e3f3f4', 0.45);
-  const edge = mix(mix(c.spec.outfit, '#ffffff', 0.62), '#d3e9eb', 0.4);
+  // Luminous studio backdrop (Clinic Glass): pale azure -> lilac mesh with a soft peach key glow,
+  // only whispered toward the outfit hue so every skin tone stays flattered.
+  const bg = mix('#dbe7ff', c.spec.outfit, 0.06);
+  const edge = mix('#e6dcfb', c.spec.outfit, 0.08);
   const url = grain ? grainDataUrl() : null;
   return (
     <defs>
@@ -33,7 +34,8 @@ export function Defs({ c, grain }: { c: PaintCtx; grain: boolean }) {
         <stop offset="1" stop-color={edge} />
       </radialGradient>
       <radialGradient id={c.id('key')}>
-        <stop offset="0" stop-color="#ffffff" stop-opacity="0.7" />
+        <stop offset="0" stop-color="#ffe2cf" stop-opacity="0.5" />
+        <stop offset="0.6" stop-color="#fff1e8" stop-opacity="0.22" />
         <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
       </radialGradient>
       {url && (
@@ -49,7 +51,7 @@ export function Backdrop({ c, grain }: { c: PaintCtx; grain: boolean }) {
   return (
     <g>
       <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill={c.url('bg')} />
-      <circle cx="172" cy="34" r="90" fill={c.url('key')} />
+      <circle cx="170" cy="40" r="170" fill={c.url('key')} />
       {grain && <rect x="0" y="0" width={VIEW_W} height={VIEW_H} fill={c.url('grain')} opacity="0.07" />}
     </g>
   );

@@ -8,7 +8,7 @@ import { weekMilestone } from './milestones';
 import { planResume, runPlan, type ResumePlan } from './resume';
 
 export const SYSTEM_ID = 'comfort';
-export const ACCENT = '#38bdf8';
+export const ACCENT = '#0284c7';
 /** Heartbeat interval: how often "last seen" is refreshed while the game is visible. */
 export const HEARTBEAT_MS = 60_000;
 

@@ -102,11 +102,11 @@ export function Face({ dy = 0 }: { dy?: number }) {
         <filter id="mf-b4" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6" /></filter>
         <filter id="mf-b9" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.4" /></filter>
         <linearGradient id="mf-bridge" x1="0" x2="1">
-          <stop offset="0" stop-color="#1a0a0c" stop-opacity="0.45" /><stop offset="0.5" stop-color="#fff0dc" stop-opacity="0.14" /><stop offset="1" stop-color="#1a0a0c" stop-opacity="0.45" />
+          <stop offset="0" stop-color="#1a0a0c" stop-opacity="0.16" /><stop offset="0.5" stop-color="#fff0dc" stop-opacity="0.14" /><stop offset="1" stop-color="#1a0a0c" stop-opacity="0.16" />
         </linearGradient>
       </defs>
       <g transform={`translate(0 ${dy})`}>
-        <g filter="url(#mf-b9)" fill="#1a0a0c"><ellipse cx="25" cy="22" rx="20" ry="4.5" opacity="0.42" /><ellipse cx="75" cy="22" rx="20" ry="4.5" opacity="0.42" /></g>
+        <g filter="url(#mf-b9)" fill="#1a0a0c"><ellipse cx="25" cy="22" rx="20" ry="4.5" opacity="0.14" /><ellipse cx="75" cy="22" rx="20" ry="4.5" opacity="0.14" /></g>
         <g filter="url(#mf-b4)" fill="none" stroke="#2a1410" stroke-linecap="round">
           <path d="M8 31 Q25 22.5 43 29" stroke-width="2.4" opacity="0.36" vector-effect="non-scaling-stroke" />
           <path d="M92 31 Q75 22.5 57 29" stroke-width="2.4" opacity="0.36" vector-effect="non-scaling-stroke" />

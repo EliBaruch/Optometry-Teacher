@@ -7,7 +7,7 @@ export type ResumePlan =
   | { kind: 'next'; modeId: string; title: string; detail: string; accent: string }
   | { kind: 'mode'; modeId: string; title: string; detail: string; accent: string };
 
-const FALLBACK_ACCENT = '#38bdf8';
+const FALLBACK_ACCENT = '#0284c7';
 
 function lockReason(services: GameServices, m: ModeModule | undefined): string | undefined {
   if (!m) return 'missing';

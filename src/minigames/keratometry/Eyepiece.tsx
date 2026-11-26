@@ -164,15 +164,15 @@ export function Eyepiece(p: EyepieceProps) {
         <defs>
           <radialGradient id="kr-bezel-face" cx="0.5" cy="0.5" r="0.5">
             <stop offset={FIELD} stop-color="#000" />
-            <stop offset={FIELD + 0.01} stop-color="#2a1b10" />
-            <stop offset="0.88" stop-color="#1a1020" />
-            <stop offset="0.95" stop-color="#120a18" />
-            <stop offset="1" stop-color="#07040c" />
+            <stop offset={FIELD + 0.01} stop-color="#0e1424" />
+            <stop offset="0.88" stop-color="#10172b" />
+            <stop offset="0.95" stop-color="#0b1020" />
+            <stop offset="1" stop-color="#050810" />
           </radialGradient>
           <linearGradient id="kr-bezel-gold" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#fff2c8" />
-            <stop offset="0.45" stop-color="#e8b65a" />
-            <stop offset="1" stop-color="#8a5a16" />
+            <stop offset="0" stop-color="#ffffff" />
+            <stop offset="0.45" stop-color="#c9d2e3" />
+            <stop offset="1" stop-color="#6b7690" />
           </linearGradient>
         </defs>
         <path

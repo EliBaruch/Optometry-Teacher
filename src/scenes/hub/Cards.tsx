@@ -1,7 +1,7 @@
 import { Badge, GlassPanel, Icon, IconOrText, useLocale, useSfx, useStrings } from '@ui-kit';
 import { modeText, type ModeModule } from '@core';
 import { S } from './strings';
-import { rulesSummary, type WingView } from './logic';
+import { ruleChips, type WingView } from './logic';
 
 function deny(el: HTMLElement) {
   el.classList.remove('is-denied');
@@ -16,8 +16,14 @@ export function ModeCard({ mode, index, onStart, pending }: {
   const locale = useLocale();
   const t = useStrings(S);
   const mt = modeText(mode, locale);
-  const rules = rulesSummary(mode.rules, locale);
+  const chips = ruleChips(mode.rules, locale);
+  const rules = chips.map((c) => c.text);
   const featured = index === 0;
+  const labels = (
+    <ul class="hub-mode__rules" aria-hidden="true">
+      {chips.map((c) => <li key={c.text} class="lm-label hub-label" data-tone={c.tone}>{c.text}</li>)}
+    </ul>
+  );
   return (
     <GlassPanel
       interactive glow={featured} accent={mode.accent} padding="none" sfx="select"
@@ -29,10 +35,9 @@ export function ModeCard({ mode, index, onStart, pending }: {
       <div class="hub-mode__text">
         <h3 class="hub-mode__title">{mt.title}</h3>
         <p class="hub-mode__tag">{mt.tagline}</p>
+        {featured && labels}
       </div>
-      <ul class="hub-mode__rules" aria-hidden="true">
-        {rules.map((r) => <li key={r}>{r}</li>)}
-      </ul>
+      {!featured && labels}
       <span class="hub-mode__go" aria-hidden="true">
         {featured && <span class="hub-mode__go-label">{t.start}</span>}
         <Icon name="arrow-right" size={18} />

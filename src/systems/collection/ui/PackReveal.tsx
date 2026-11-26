@@ -87,7 +87,7 @@ function Reveal({ store, pull }: { store: CollectionStore; pull: Pull }) {
         if (rarityRank(pull.rarity) >= 2) later(() => fx.burst(x, y, { kind: 'sparks', count: 30, color: '#fff3c4' }), 260);
       }
       if (pull.rarity === 'legendary') {
-        fx.flash('#ffd27a', 260);
+        fx.flash('#ffcb00', 260);
         fx.hitstop(90);
       } else if (pull.rarity === 'epic') fx.flash('#c084fc', 160);
       later(() => setFlipped(false), 380);

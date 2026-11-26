@@ -56,7 +56,7 @@ export function RivalPortrait(props: { rival: Rival; size?: number; animated?: b
   );
 }
 
-/** The player's medallion: a candle-gold lens with their initial. */
+/** The player's medallion: an azure disc with their initial. */
 export function PlayerPortrait(props: { name: string; size?: number; class?: string }) {
   const t = useStrings(S);
   const size = props.size ?? 44;
@@ -66,14 +66,15 @@ export function PlayerPortrait(props: { name: string; size?: number; class?: str
       <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
         <defs>
           <radialGradient id="rv-you-g" cx="50%" cy="32%" r="70%">
-            <stop offset="0" stop-color="#fff4da" />
-            <stop offset="0.45" stop-color="#ffd27a" />
-            <stop offset="1" stop-color="#a86d17" />
+            <stop offset="0" stop-color="#5c87ff" />
+            <stop offset="0.55" stop-color="#2257f0" />
+            <stop offset="1" stop-color="#1b45c4" />
           </radialGradient>
         </defs>
-        <circle cx="24" cy="24" r="22.5" fill="#1a0f2e" stroke="url(#rv-you-g)" stroke-width="2.5" />
-        <circle cx="24" cy="24" r="17" fill="none" stroke="#ffd27a" stroke-opacity="0.25" stroke-dasharray="1.5 3" />
-        <text x="24" y="31" text-anchor="middle" font-family="Fraunces Variable, Georgia, serif" font-size="21" font-weight="600" fill="url(#rv-you-g)">
+        <circle cx="24" cy="24" r="23" fill="url(#rv-you-g)" />
+        <circle cx="24" cy="24" r="23" fill="none" stroke="#fff" stroke-opacity="0.6" stroke-width="1" />
+        <ellipse cx="19" cy="12" rx="12" ry="6" fill="#fff" opacity="0.22" />
+        <text x="24" y="31" text-anchor="middle" font-family="Plus Jakarta Sans Variable, Inter Variable, system-ui, sans-serif" font-size="21" font-weight="800" fill="#ffffff">
           {initial}
         </text>
       </svg>
@@ -109,8 +110,8 @@ export function Sparkline(props: { series: Series[]; t0: number; t1: number; hei
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#ffd27a" stop-opacity="0.34" />
-            <stop offset="1" stop-color="#ffd27a" stop-opacity="0" />
+            <stop offset="0" stop-color="#2257f0" stop-opacity="0.22" />
+            <stop offset="1" stop-color="#2257f0" stop-opacity="0" />
           </linearGradient>
         </defs>
         {props.days &&
@@ -175,7 +176,7 @@ export function Rich(props: { text: string; color?: string }): ComponentChildren
     <>
       {parts.map((p, i) =>
         p.startsWith('**') ? <b key={i} class="lm-num" dir="ltr">{p.slice(2, -2)}</b>
-        : p.startsWith('__') ? <b key={i} style={props.color ? { color: props.color } : undefined}>{p.slice(2, -2)}</b>
+        : p.startsWith('__') ? <b key={i} style={props.color ? { color: `color-mix(in srgb, ${props.color} 62%, #0a1633)` } : undefined}>{p.slice(2, -2)}</b>
         : p,
       )}
     </>

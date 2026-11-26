@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { beginRun, modeText, type ModeModule, type SceneProps } from '@core';
-import { Divider, HudSlot, IconButton, Screen, useReducedMotion, useRegistry, useSignal, useStrings } from '@ui-kit';
+import { HudSlot, IconButton, Screen, useReducedMotion, useRegistry, useSignal, useStrings } from '@ui-kit';
 import { S } from './strings';
 import { useNarrow } from './useNarrow';
 import { ModeCard, SoonCard, WingTile } from './Cards';
@@ -10,6 +10,17 @@ import { buildWings, greetingFor, splitModes, type WingView } from './logic';
 import './hub.css';
 
 const DOOR_MS = 760;
+
+/** Editorial section header: numeral, title, hairline rule. */
+function SectionHead({ n, title, id }: { n: number; title: string; id?: string }) {
+  return (
+    <div class="hub-sec" id={id}>
+      <span class="hub-sec__num" aria-hidden="true">{String(n).padStart(2, '0')}</span>
+      <h2 class="hub-sec__title">{title}</h2>
+      <span class="hub-sec__rule" aria-hidden="true" />
+    </div>
+  );
+}
 
 export function HubScene({ services }: SceneProps) {
   const t = useStrings(S);
@@ -68,6 +79,7 @@ export function HubScene({ services }: SceneProps) {
 
   const name = (settings.playerName && settings.playerName !== 'Doctor' ? settings.playerName : t.doctor);
   const none = modes.length === 0;
+  const now = useMemo(() => new Date(), []);
 
   return (
     <Screen
@@ -80,19 +92,29 @@ export function HubScene({ services }: SceneProps) {
     >
       <div class="hub-grid">
         <header class="hub-hero">
-          <div class="lm-eyebrow">{t.eyebrow}</div>
-          <h1 class="hub-hero__title">{greetingFor(new Date().getHours(), locale)}, <span class="hub-hero__name">{name}</span></h1>
-          <p class="hub-hero__sub">{t.sub}</p>
+          <div class="hub-hero__copy">
+            <div class="lm-eyebrow hub-hero__eyebrow">{t.eyebrow}</div>
+            <h1 class="hub-hero__title">{greetingFor(now.getHours(), locale)}, <span class="hub-hero__name">{name}</span></h1>
+            <p class="hub-hero__sub">{t.sub}</p>
+          </div>
+          <time class="hub-hero__date lm-glass" dateTime={now.toISOString().slice(0, 10)}>
+            <span class="hub-hero__day">{now.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric' })}</span>
+            <span class="hub-hero__month">
+              <b>{now.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { weekday: 'long' })}</b>
+              {now.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', { month: 'long' })}
+            </span>
+          </time>
         </header>
 
         <section class="hub-modes" aria-label={t.chooseSession}>
+          <SectionHead n={1} title={t.chooseSession} />
           {none && <p class="hub-empty">{t.preparing}</p>}
           {playable.map((m, i) => <ModeCard key={m.id} mode={m} index={i} pending={!!door} onStart={start} />)}
         </section>
 
         {soon.length > 0 && (
           <section class="hub-soon-wrap" aria-label={t.comingUp}>
-            <div class="hub-soon-head lm-eyebrow">{t.comingUp}</div>
+            <SectionHead n={2} title={t.comingUp} />
             <div class="hub-soon-list">
               {soon.map((s) => <SoonCard key={s.mode.id} mode={s.mode} reason={s.reason} onDenied={(m, r) => setSoonNote(`${modeText(m, locale).title}: ${r}`)} />)}
             </div>
@@ -102,7 +124,7 @@ export function HubScene({ services }: SceneProps) {
 
         {wings.length > 0 && (
           <section class="hub-wings-wrap" aria-label={t.wingsLabel}>
-            <Divider label={t.wingsHeading} />
+            <SectionHead n={soon.length > 0 ? 3 : 2} title={t.wingsHeading} />
             <div class="hub-wings">
               {wings.map((w, i) => <WingTile key={w.key} wing={w} index={i + playable.length} onOpen={open} />)}
             </div>

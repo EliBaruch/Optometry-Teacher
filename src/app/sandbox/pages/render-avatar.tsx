@@ -13,36 +13,35 @@ const SEXES: AvatarSex[] = ['F', 'M', 'X', 'M', 'F', 'F', 'M', 'X', 'F', 'M', 'F
 const FIRST = ['Ava', 'Kofi', 'Rin', 'Mateo', 'Priya', 'Lena', 'Omar', 'Sky', 'Hana', 'Jonas', 'Amara', 'Diego', 'Noor', 'Edith', 'Walter', 'Rosa'];
 
 const CSS = `
-.sbav { position: absolute; inset: 0; overflow: auto; color: var(--lm-ink, #0f2a3a); font-family: 'Inter Variable', system-ui, sans-serif;
-  background: linear-gradient(180deg, #f7fbfc 0%, #eaf4f6 100%); }
+.sbav { position: absolute; inset: 0; overflow: auto; color: var(--lm-ink, #0a1633); font-family: 'Inter Variable', system-ui, sans-serif;
+  background: radial-gradient(60% 40% at 10% 0%, rgba(78,204,245,.35), transparent 70%), radial-gradient(50% 40% at 95% 10%, rgba(162,93,220,.22), transparent 70%), radial-gradient(60% 40% at 80% 100%, rgba(255,190,150,.28), transparent 70%), #eef2fa; background-attachment: fixed; }
 .sbav-wrap { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 24px; padding: 24px; max-width: 1400px; margin: 0 auto; box-sizing: border-box; }
-.sbav h1 { font: 700 30px/1.1 'Inter Variable', system-ui, sans-serif; letter-spacing: -.02em; margin: 0 0 4px; color: var(--lm-ink, #0f2a3a); }
-.sbav-sub { color: var(--lm-ink-2, #44606f); font-size: 13px; margin: 0 0 16px; }
-.sbav-card { border-radius: 22px; padding: 16px; background: var(--lm-surface, #fff); border: 1px solid var(--lm-border, #dbe6ea);
-  box-shadow: 0 12px 40px rgba(15, 40, 60, .08), 0 2px 6px rgba(15, 40, 60, .04); }
-.sbav-portrait { border-radius: 18px; overflow: hidden; border: 1px solid var(--lm-border, #dbe6ea); box-shadow: 0 8px 24px rgba(15, 40, 60, .10); aspect-ratio: 5 / 6; }
+.sbav h1 { font: 800 40px/1.05 'Inter Variable', system-ui, sans-serif; letter-spacing: -.02em; margin: 0 0 4px; color: var(--lm-ink, #0a1633); }
+.sbav-sub { color: var(--lm-ink-3, #4a5878); font-size: 13px; margin: 0 0 16px; }
+.sbav-card { border-radius: 28px; padding: 18px; background: var(--lm-glass); -webkit-backdrop-filter: var(--lm-glass-blur); backdrop-filter: var(--lm-glass-blur); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); }
+.sbav-portrait { border-radius: 22px; overflow: hidden; border: 1px solid rgba(10,22,51,.10); box-shadow: 0 8px 24px rgba(15, 40, 60, .10); aspect-ratio: 5 / 6; }
 .sbav-name { display: flex; align-items: baseline; justify-content: space-between; margin: 12px 2px 8px; }
 .sbav-name b { font: 650 20px 'Inter Variable', sans-serif; }
-.sbav-name span { font: 500 13px 'Space Grotesk', monospace; color: var(--lm-ink-2, #44606f); }
-.sbav-label { font: 600 10px/1 'Inter Variable', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--lm-ink-2, #44606f); margin: 14px 0 8px; }
+.sbav-name span { font: 500 13px 'Space Grotesk', monospace; color: var(--lm-ink-3, #4a5878); }
+.sbav-label { text-align: start; font: 600 10px/1 'Inter Variable', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--lm-ink-3, #4a5878); margin: 14px 0 8px; }
 .sbav-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.sbav-chip { appearance: none; border: 1px solid var(--lm-border, #dbe6ea); background: var(--lm-surface, #fff); color: var(--lm-ink, #0f2a3a); font: 600 12px/1 'Inter Variable', sans-serif;
-  padding: 8px 11px; border-radius: 999px; cursor: pointer; min-height: 32px; transition: all .18s cubic-bezier(.2,.8,.2,1); }
+.sbav-chip { appearance: none; border: 1px solid var(--lm-border, #dbe6ea); background: rgba(255,255,255,.7); color: var(--lm-ink, #0a1633); font: 600 12px/1 'Inter Variable', sans-serif;
+  padding: 8px 13px; border-radius: 999px; cursor: pointer; min-height: 32px; transition: all .18s cubic-bezier(.2,.8,.2,1); }
 .sbav-chip:hover { border-color: #3b6bff; }
 .sbav-chip:focus-visible { outline: 2px solid #3b6bff; outline-offset: 2px; }
-.sbav-chip[aria-pressed="true"] { background: #e6f7f8; border-color: #3b6bff; color: #07676d; }
-.sbav-chip--sign[aria-pressed="true"] { background: #fff4dc; border-color: #f59e0b; color: #8a5300; }
+.sbav-chip[aria-pressed="true"] { background: linear-gradient(180deg,#5b86ff,#2257f0); border-color: transparent; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 4px 12px rgba(34,87,240,.3); }
+.sbav-chip--sign[aria-pressed="true"] { background: #fdab3d; border-color: transparent; color: #0a1633; box-shadow: none; }
 .sbav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 14px; }
-.sbav-tile { appearance: none; border: 1px solid var(--lm-border, #dbe6ea); background: var(--lm-surface, #fff); border-radius: 16px; padding: 0; cursor: pointer; overflow: hidden; color: inherit;
+.sbav-tile { appearance: none; border: 1px solid var(--lm-border, #dbe6ea); background: var(--lm-surface, #fff); border-radius: 20px; padding: 0; cursor: pointer; overflow: hidden; color: inherit;
   transition: transform .2s cubic-bezier(.2,.8,.2,1), border-color .2s, box-shadow .2s; text-align: left; }
 .sbav-tile:hover { transform: translateY(-3px); border-color: #7aa2ff; box-shadow: 0 10px 26px rgba(15, 40, 60, .12); }
 .sbav-tile:focus-visible { outline: 2px solid #3b6bff; outline-offset: 2px; }
 .sbav-tile[aria-current="true"] { border-color: #3b6bff; box-shadow: 0 0 0 2px #3b6bff33, 0 8px 22px rgba(59, 107, 255, .16); }
-.sbav-tile small { display: flex; justify-content: space-between; padding: 7px 10px 9px; font: 500 12px 'Space Grotesk', monospace; color: var(--lm-ink-2, #44606f); }
-.sbav-tile small b { color: var(--lm-ink, #0f2a3a); font: 600 12px 'Inter Variable', sans-serif; }
+.sbav-tile small { display: flex; justify-content: space-between; padding: 7px 10px 9px; font: 500 12px 'Space Grotesk', monospace; color: var(--lm-ink-3, #4a5878); }
+.sbav-tile small b { color: var(--lm-ink, #0a1633); font: 600 12px 'Inter Variable', sans-serif; }
 .sbav-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
-.sbav-bust { display: flex; flex-direction: column; align-items: center; gap: 6px; font: 500 11px 'Space Grotesk', monospace; color: var(--lm-ink-2, #44606f); }
-.sbav-select { background: var(--lm-surface, #fff); color: var(--lm-ink, #0f2a3a); border: 1px solid var(--lm-border, #dbe6ea); border-radius: 10px; padding: 7px 10px; font: 500 12px 'Inter Variable', sans-serif; }
+.sbav-bust { display: flex; flex-direction: column; align-items: center; gap: 6px; font: 500 11px 'Space Grotesk', monospace; color: var(--lm-ink-3, #4a5878); }
+.sbav-select { background: var(--lm-surface, #fff); color: var(--lm-ink, #0a1633); border: 1px solid var(--lm-border, #dbe6ea); border-radius: 10px; padding: 7px 10px; font: 500 12px 'Inter Variable', sans-serif; }
 @media (max-width: 860px) { .sbav-wrap { grid-template-columns: 1fr; padding: 16px; } .sbav-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; } }
 `;
 
@@ -116,7 +115,7 @@ function RenderAvatarPage(_: { services: GameServices }) {
               <PatientAvatar spec={p.spec} age={p.age} sex={p.sex} expression={expr} external={external} strabismus={strabismus}
                 pupils={aniso ? { OD: 1.65 } : undefined} lookAt={follow ? look : null} animated={animated} reducedMotion={reduced} />
             </div>
-            <div class="sbav-name"><b>{p.name}</b><span>{p.age} y · {p.sex} · {p.spec.hair}</span></div>
+            <div class="sbav-name"><b>{p.name}</b><span><bdi dir="ltr">{p.age} y</bdi> · {p.sex} · {p.spec.hair}</span></div>
             <div class="sbav-label">Expression</div>
             <div class="sbav-chips">
               {AVATAR_EXPRESSIONS.map((x) => (
@@ -165,7 +164,7 @@ function RenderAvatarPage(_: { services: GameServices }) {
               const age = h === 'bald' ? 62 : Math.max(q.age, 9);
               return (
                 <div key={h} class="sbav-bust">
-                  <AvatarBust spec={{ ...q.spec, hair: h, headwear: 'none' }} age={age} sex={q.sex} size={64} ring={['#a78bfa', '#f5b942', '#4ade80', '#fb923c', '#f472b6', '#38bdf8'][i % 6]} />
+                  <AvatarBust spec={{ ...q.spec, hair: h, headwear: 'none' }} age={age} sex={q.sex} size={64} ring={['#a25ddc', '#f5b942', '#4ade80', '#fb923c', '#f472b6', '#38bdf8'][i % 6]} />
                   {h}
                 </div>
               );

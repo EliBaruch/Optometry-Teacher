@@ -29,8 +29,8 @@ export function Pathway({ value, truth, onChange, disabled }: PathwayProps) {
       <svg viewBox="0 0 220 150" class="vf-path__svg" aria-hidden="true" dir="ltr">
         <defs>
           <radialGradient id="vf-path-eye" cx="40%" cy="35%" r="70%">
-            <stop offset="0" stop-color="#f6efe4" />
-            <stop offset="1" stop-color="#a99bbd" />
+            <stop offset="0" stop-color="#ffffff" />
+            <stop offset="1" stop-color="#c9d6ee" />
           </radialGradient>
         </defs>
         <text x="16" y="12" class="vf-path__lr">{t.pathL}</text>

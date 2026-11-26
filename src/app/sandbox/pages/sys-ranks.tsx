@@ -199,8 +199,8 @@ const CSS = `
 .sb-ranks__grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr) minmax(0, 1fr); gap: 20px; max-width: 1360px; margin: 0 auto; align-items: start; }
 .sb-ranks__col, .sb-ranks__col .hud-slot { display: flex; flex-direction: column; gap: 16px; }
 .sb-ranks__btns { display: flex; flex-wrap: wrap; gap: 8px; }
-.sb-ranks__meta { margin-top: 12px; font-size: 12px; color: var(--lm-muted); }
-.sb-ranks__log { margin: 10px 0 0; padding-inline-start: 18px; font-size: 11px; color: var(--lm-muted); max-height: 220px; overflow: auto; }
+.sb-ranks__meta { margin-top: 12px; font-size: 12px; color: var(--lm-ink-3); }
+.sb-ranks__log { margin: 10px 0 0; padding-inline-start: 18px; font-size: 11px; color: var(--lm-ink-3); max-height: 220px; overflow: auto; }
 @media (max-width: 1100px) { .sb-ranks__grid { grid-template-columns: 1fr; } }
 `;
 

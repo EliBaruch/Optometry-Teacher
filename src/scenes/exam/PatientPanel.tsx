@@ -57,7 +57,7 @@ export function PatientPanel(props: { kase: ClinicalCase; expression: AvatarExpr
         />
       </div>
       {kase.triageNote && (
-        <GlassPanel class="exm-triage" padding="sm" accent="#38bdf8" eyebrow={t.triageEyebrow} title={t.triageTitle} icon="info" strong>
+        <GlassPanel class="exm-triage" padding="sm" accent="var(--lm-vivid-orange)" eyebrow={t.triageEyebrow} title={t.triageTitle} icon="info" strong>
           <p>{kase.triageNote}</p>
         </GlassPanel>
       )}

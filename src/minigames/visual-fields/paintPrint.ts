@@ -70,7 +70,7 @@ export interface PrintoutOpts {
 
 export function paintPrintout(ctx: CanvasRenderingContext2D, w: number, h: number, dpr: number, o: PrintoutOpts): void {
   const f = frameFor(w, h, 0.04);
-  const ink = '#1c1524';
+  const ink = '#0a1633';
   ctx.clearRect(0, 0, w, h);
 
   // truth overlay (debrief)
@@ -88,7 +88,7 @@ export function paintPrintout(ctx: CanvasRenderingContext2D, w: number, h: numbe
   }
 
   // axes & ticks
-  ctx.strokeStyle = 'rgba(28, 21, 36, 0.55)';
+  ctx.strokeStyle = 'rgba(10, 22, 51, 0.55)';
   ctx.lineWidth = Math.max(1, 0.8 * dpr);
   ctx.beginPath();
   ctx.moveTo(f.cx - f.R, f.cy);
@@ -107,7 +107,7 @@ export function paintPrintout(ctx: CanvasRenderingContext2D, w: number, h: numbe
     ctx.stroke();
   }
   ctx.setLineDash([1.5 * dpr, 3 * dpr]);
-  ctx.strokeStyle = 'rgba(28, 21, 36, 0.22)';
+  ctx.strokeStyle = 'rgba(10, 22, 51, 0.22)';
   ctx.beginPath();
   ctx.arc(f.cx, f.cy, f.R, 0, Math.PI * 2);
   ctx.stroke();
@@ -165,8 +165,8 @@ export function paintGlyph(ctx: CanvasRenderingContext2D, size: number, defect: 
   const g = c.getContext('2d');
   if (!g) return;
   const img = g.createImageData(N, N);
-  const lit = tone === 'gold' ? [255, 226, 160] : [205, 190, 240];
-  const off = [24, 14, 40];
+  const lit = tone === 'gold' ? [170, 200, 255] : [205, 222, 255];
+  const off = [14, 22, 52];
   for (let j = 0; j < N; j++) {
     for (let i = 0; i < N; i++) {
       const x = ((i - 20) / 20) * FIELD_RADIUS;
@@ -198,7 +198,7 @@ export function paintGlyph(ctx: CanvasRenderingContext2D, size: number, defect: 
   ctx.restore();
   ctx.beginPath();
   ctx.arc(r, r, r - 1, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255, 214, 140, 0.55)';
+  ctx.strokeStyle = 'rgba(34, 87, 240, 0.4)';
   ctx.lineWidth = Math.max(1, size / 30);
   ctx.stroke();
 }

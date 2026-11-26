@@ -16,8 +16,8 @@ import {
 export const SYSTEM_ID = 'collection';
 export const SAVE_KEY = 'sys:collection';
 export const SAVE_VERSION = 1;
-export const GALLERY_COLOR = '#f472b6';
-export const RARITY_HEX = { common: '#cbd5e1', rare: '#38bdf8', epic: '#c084fc', legendary: '#ffd27a' } as const;
+export const GALLERY_COLOR = '#ff6ec7';
+export const RARITY_HEX = { common: '#b6c2d9', rare: '#579bfc', epic: '#a25ddc', legendary: '#ffcb00' } as const;
 export const RARITY_NAME = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' } as const;
 export const DEFAULT_IRIS = '#4a6b8a';
 

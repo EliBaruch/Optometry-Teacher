@@ -14,7 +14,7 @@ export interface PracticeOutcome {
   bestAccuracy: number;
 }
 
-const FLAG_COLOR = { normal: '#5eead4', abnormal: '#fbbf24', critical: '#f43f5e' } as const;
+const FLAG_COLOR = { normal: '#059669', abnormal: '#d97706', critical: '#e11d48' } as const;
 
 /** The verdict card shown over the stage after a practice run. */
 export function ResultPanel(props: {
@@ -30,7 +30,7 @@ export function ResultPanel(props: {
   const { result, scenario, score, isBest, firstPlay, previousBest, bestAccuracy } = props.outcome;
   const acc = Math.max(0, Math.min(1, result.accuracy || 0));
   const medal = medalFor(bestAccuracy);
-  const ring = acc >= 0.85 ? '#5eead4' : acc >= 0.6 ? '#ffd27a' : '#fb923c';
+  const ring = acc >= 0.85 ? '#059669' : acc >= 0.6 ? '#2257f0' : '#ea580c';
   const againRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

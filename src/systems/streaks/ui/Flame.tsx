@@ -1,5 +1,5 @@
 /**
- * Procedural candle-flame (SVG): three layered tongues + glow + rising embers.
+ * Procedural flame icon (SVG): three layered tongues + glow + rising embers.
  * Intensity 0..3 follows the combo tier; variants for a protected (iced) or resting flame.
  */
 import { useRef } from 'preact/hooks';
@@ -15,9 +15,9 @@ const MID = 'M32 20C35 30 43 37 44.5 49C46 62 40 72 32 72C24 72 18.5 65 18.5 56C
 const CORE = 'M32.5 40C34.5 48 40 52 40 60C40 66.5 36.5 71 32 71C27.5 71 24.5 67 24.5 61.5C24.5 55 30 51 32.5 40Z';
 
 const PALETTE: Record<FlameVariant, { glow: string; o: [string, string, string]; m: [string, string]; c: [string, string] }> = {
-  fire: { glow: '#fb923c', o: ['#7f1d1d', '#ea580c', '#fdba74'], m: ['#f97316', '#ffd27a'], c: ['#ffe7b3', '#fffaf0'] },
-  ice: { glow: '#7dd3fc', o: ['#1e3a8a', '#3b82f6', '#bae6fd'], m: ['#60a5fa', '#e0f2fe'], c: ['#e0f2fe', '#ffffff'] },
-  ember: { glow: '#9a3412', o: ['#2a0f0a', '#7c2d12', '#c2410c'], m: ['#9a3412', '#ea580c'], c: ['#c2410c', '#fdba74'] },
+  fire: { glow: '#fb923c', o: ['#ef4444', '#f97316', '#fbbf24'], m: ['#fb923c', '#fde047'], c: ['#fff3a8', '#ffffff'] },
+  ice: { glow: '#4eccf5', o: ['#2257f0', '#3b9bff', '#a5e3fb'], m: ['#4eccf5', '#e0f7ff'], c: ['#e0f7ff', '#ffffff'] },
+  ember: { glow: '#9a3412', o: ['#9ca3af', '#ea580c', '#fdba74'], m: ['#c2410c', '#fb923c'], c: ['#fb923c', '#fed7aa'] },
 };
 
 export interface FlameProps {
@@ -52,17 +52,17 @@ export function Flame({ size = 48, intensity = 1, variant = 'fire', embers = tru
       <svg viewBox="0 0 64 80" width="100%" height="100%" overflow="visible">
         <defs>
           <radialGradient id={`${id}g`} cx="50%" cy="68%" r="55%">
-            <stop offset="0%" stop-color={p.glow} stop-opacity={0.55 + lvl * 0.12} />
+            <stop offset="0%" stop-color={p.glow} stop-opacity={0.28 + lvl * 0.08} />
             <stop offset="100%" stop-color={p.glow} stop-opacity="0" />
           </radialGradient>
           <linearGradient id={`${id}o`} x1="0" y1="1" x2="0" y2="0">
             <stop offset="0%" stop-color={p.o[0]} />
             <stop offset="45%" stop-color={p.o[1]} />
-            <stop offset="100%" stop-color={hot ? '#ffe7b3' : p.o[2]} />
+            <stop offset="100%" stop-color={hot ? '#fde047' : p.o[2]} />
           </linearGradient>
           <linearGradient id={`${id}m`} x1="0" y1="1" x2="0" y2="0">
             <stop offset="0%" stop-color={p.m[0]} />
-            <stop offset="100%" stop-color={hot ? '#fff4da' : p.m[1]} />
+            <stop offset="100%" stop-color={hot ? '#fef9c3' : p.m[1]} />
           </linearGradient>
           <radialGradient id={`${id}c`} cx="50%" cy="78%" r="70%">
             <stop offset="0%" stop-color={hot ? '#ffffff' : p.c[1]} />
@@ -70,8 +70,8 @@ export function Flame({ size = 48, intensity = 1, variant = 'fire', embers = tru
             <stop offset="100%" stop-color={p.c[0]} stop-opacity="0.2" />
           </radialGradient>
           <radialGradient id={`${id}b`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#a5b4fc" stop-opacity="0.95" />
-            <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+            <stop offset="0%" stop-color="#93c5fd" stop-opacity="0.95" />
+            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
           </radialGradient>
         </defs>
         <ellipse class="sk-flame__halo" cx="32" cy="54" rx={30 + lvl * 4} ry={30 + lvl * 4} fill={`url(#${id}g)`} />

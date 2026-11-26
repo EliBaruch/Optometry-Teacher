@@ -102,7 +102,7 @@ describeCss('keyboard focus ring (stylesheets)', () => {
       for (const d of decls) {
         expect(d).not.toMatch(/outline:\s*none/);
         const shadow = /box-shadow:\s*([^;]+)/.exec(d)?.[1];
-        if (shadow && shadow.trim() !== 'none') expect(shadow).toMatch(/--lm-focus-glow|0 0 18px|0 0 24px/);
+        if (shadow && shadow.trim() !== 'none') expect(shadow).toMatch(/--lm-focus-glow|0 0 0 4px|0 0 18px|0 0 24px/);
       }
     }
   });

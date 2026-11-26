@@ -345,7 +345,7 @@ export function MotilityGame({ ctx, done }: { ctx: MiniGameContext; done: MiniGa
       </div>
       {nudge ? <div class="mot-toast" role="status" key={nudge}>{fixBidi(nudge, loc)}</div> : null}
       <footer class="mot-foot">
-        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{t.positionsLabel(visited.length)}<em>{t.gradedLabel(touched.length)}</em></span><ProgressBar value={visited.length} max={9} ariaLabel={t.positionsAria} accent="#ffd27a" size="sm" /></div>
+        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{t.positionsLabel(visited.length)}<em>{t.gradedLabel(touched.length)}</em></span><ProgressBar value={visited.length} max={9} ariaLabel={t.positionsAria} accent="#2257f0" size="sm" /></div>
         {!canRecord && !tutorial ? <span class="mot-foot__note" id="mot-gate">{fixBidi(gateHint, loc)}</span> : null}
         <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief || !canRecord} aria-describedby={canRecord ? undefined : 'mot-gate'}>{t.recordFindings}</Button>
       </footer>

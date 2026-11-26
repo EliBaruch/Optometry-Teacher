@@ -16,7 +16,7 @@ export interface CardInspectProps {
   onClose: () => void;
 }
 
-/** Full-size card on a velvet stage: 3D tilt, flip (F), browse (← →), the card's story. */
+/** Full-size card on a bright glass stage: 3D tilt, flip (F), browse (← →), the card's story. */
 export function CardInspect({ store, list, current, study, onNavigate, onClose }: CardInspectProps) {
   const play = useSfx();
   const t = useStrings(S);
@@ -78,7 +78,6 @@ export function CardInspect({ store, list, current, study, onNavigate, onClose }
     >
       <div class="gi">
         <div class="gi-stage" style={{ '--c': RARITY_HEX[card.rarity] }}>
-          <div class="gi-spot" aria-hidden="true" />
           <IrisCard key={shown.dxId} view={shown} size="lg" flipped={flipped} study={study} device sway={!flipped} onActivate={flip} class="gi-card" />
           <div class="gi-controls">
             <IconButton icon="chevron-left" label={t.prev} onClick={() => go(-1)} disabled={list.length < 2} sfx={false} />
@@ -89,7 +88,7 @@ export function CardInspect({ store, list, current, study, onNavigate, onClose }
         <aside class="gi-info">
           <div class="gi-badges">
             <Badge color={RARITY_HEX[card.rarity]} icon="gem">{t.rarity[card.rarity]}</Badge>
-            <Badge color={frame === 'prismatic' ? '#ffb3e6' : frame === 'gold' ? '#ffd27a' : frame === 'silver' ? '#dfe6f2' : '#e0a26c'} variant="outline">{t.frameBadge(t.frame[frame])}</Badge>
+            <Badge color={frame === 'prismatic' ? '#ff6ec7' : frame === 'gold' ? '#ffcb00' : frame === 'silver' ? '#b6c2d9' : '#fdab3d'} variant="outline">{t.frameBadge(t.frame[frame])}</Badge>
             <Badge color={GRADE_COLOR[card.bestGrade]} variant="outline">{t.bestGrade(card.bestGrade)}</Badge>
           </div>
 
@@ -100,7 +99,7 @@ export function CardInspect({ store, list, current, study, onNavigate, onClose }
                 max={next.to - next.from}
                 label={t.polishTo(t.frame[next.tier])}
                 valueText={t.shineOf(card.shine, next.to)}
-                accent={next.tier === 'gold' ? '#ffd27a' : next.tier === 'silver' ? '#dfe6f2' : '#ffb3e6'}
+                accent={next.tier === 'gold' ? '#ffcb00' : next.tier === 'silver' ? '#b6c2d9' : '#ff6ec7'}
                 size="sm"
                 shimmer
               />

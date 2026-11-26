@@ -89,7 +89,7 @@ export const S = defineStrings({
     steps: {
       acuity: [
         { title: 'One eye at a time', body: 'Tap the patient’s eye to cover it with the occluder (or press C). Test the right eye (OD) first with the left eye covered, then swap.' },
-        { title: 'Point to a line', body: 'Turn the brass knob, scroll, or use ↑ ↓ to move down the projector chart, then ask them to read (Space). Green ticks are letters read correctly.' },
+        { title: 'Point to a line', body: 'Turn the dial, scroll, or use ↑ ↓ to move down the projector chart, then ask them to read (Space). Green ticks are letters read correctly.' },
         { title: 'Find the threshold', body: 'Chart the smallest line they read with more than half right (Enter) — and prove it by failing the line below. Past the top letter: count fingers, hand motion, light.' },
       ],
       pinhole: [
@@ -249,7 +249,7 @@ export const S = defineStrings({
     steps: {
       acuity: [
         { title: 'עין אחת בכל פעם', body: 'לחצו על עין המטופל כדי לכסות אותה במכסה (או הקישו C). בודקים קודם את העין הימנית (OD) כשהשמאלית מכוסה, ואז מחליפים.' },
-        { title: 'מצביעים על שורה', body: 'סובבו את כפתור הפליז, גללו או השתמשו ב־↑ ↓ כדי לרדת בלוח המקרן, ואז בקשו מהמטופל לקרוא (רווח). וי ירוק מסמן אות שנקראה נכון.' },
+        { title: 'מצביעים על שורה', body: 'סובבו את הכפתור, גללו או השתמשו ב־↑ ↓ כדי לרדת בלוח המקרן, ואז בקשו מהמטופל לקרוא (רווח). וי ירוק מסמן אות שנקראה נכון.' },
         { title: 'מוצאים את הסף', body: 'רשמו את השורה הקטנה ביותר שבה יותר ממחצית האותיות נקראו נכון (Enter) — והוכיחו אותה בכך שהשורה שמתחתיה נכשלת. אם גם האות העליונה לא נקראת: ספירת אצבעות, תנועת יד, אור.' },
       ],
       pinhole: [

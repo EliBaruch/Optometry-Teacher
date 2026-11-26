@@ -15,9 +15,9 @@ export interface Difficulty {
 }
 
 export const DIFFICULTIES: readonly Difficulty[] = [
-  { id: 'easy', label: 'Easy', value: 0.2, mult: 1, blurb: 'Clear-cut findings and generous tolerances.', accent: '#5eead4' },
-  { id: 'clinical', label: 'Clinical', value: 0.55, mult: 1.5, blurb: 'Real-world patients: subtle signs, normal tolerances.', accent: '#ffd27a' },
-  { id: 'expert', label: 'Expert', value: 0.9, mult: 2, blurb: 'Borderline findings, tight tolerances, no mercy.', accent: '#f43f5e' },
+  { id: 'easy', label: 'Easy', value: 0.2, mult: 1, blurb: 'Clear-cut findings and generous tolerances.', accent: '#059669' },
+  { id: 'clinical', label: 'Clinical', value: 0.55, mult: 1.5, blurb: 'Real-world patients: subtle signs, normal tolerances.', accent: '#2257f0' },
+  { id: 'expert', label: 'Expert', value: 0.9, mult: 2, blurb: 'Borderline findings, tight tolerances, no mercy.', accent: '#e11d48' },
 ];
 
 export function difficultyById(id: string | undefined): Difficulty {
@@ -25,13 +25,13 @@ export function difficultyById(id: string | undefined): Difficulty {
 }
 
 export const CATEGORY_ACCENT: Record<TestCategory, string> = {
-  acuity: '#ffd27a',
-  refraction: '#a78bfa',
-  binocular: '#f472b6',
-  neuro: '#c084fc',
-  anterior: '#38bdf8',
-  posterior: '#fb923c',
-  pressure: '#4ade80',
+  acuity: '#2257f0',
+  refraction: '#7c3aed',
+  binocular: '#db2777',
+  neuro: '#9333ea',
+  anterior: '#0284c7',
+  posterior: '#ea580c',
+  pressure: '#059669',
 };
 
 export const CATEGORY_LABEL: Record<TestCategory, string> = {
@@ -140,7 +140,7 @@ export function medalFor(bestAccuracy: number): Medal | null {
   return null;
 }
 
-export const MEDAL_COLOR: Record<Medal, string> = { gold: '#ffd27a', silver: '#d8dee9', bronze: '#d08a4f' };
+export const MEDAL_COLOR: Record<Medal, string> = { gold: '#f5a524', silver: '#94a3b8', bronze: '#c2733a' };
 
 export function accuracyWord(acc: number): string {
   if (acc >= 0.97) return 'Flawless';

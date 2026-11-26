@@ -82,14 +82,14 @@ export function Dial({ value, min, max, step, label, format, onChange, size = 58
         <svg viewBox="-50 -50 100 100" aria-hidden="true">
           <defs>
             <radialGradient id="amsler-knob-face" cx="35%" cy="30%" r="80%">
-              <stop offset="0" stop-color="#fff0c8" />
-              <stop offset="0.35" stop-color="#d8a648" />
-              <stop offset="0.75" stop-color="#7a5418" />
-              <stop offset="1" stop-color="#3b2808" />
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="0.35" stop-color="#dfe5f0" />
+              <stop offset="0.75" stop-color="#9ba7bd" />
+              <stop offset="1" stop-color="#6b7690" />
             </radialGradient>
             <radialGradient id="amsler-knob-cap" cx="40%" cy="35%" r="70%">
-              <stop offset="0" stop-color="#3a2a52" />
-              <stop offset="1" stop-color="#120b20" />
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="1" stop-color="#dde3ef" />
             </radialGradient>
           </defs>
           {Array.from({ length: ticks + 1 }, (_, i) => {
@@ -102,16 +102,16 @@ export function Dial({ value, min, max, step, label, format, onChange, size = 58
                 y1={Math.sin(a) * 44}
                 x2={Math.cos(a) * 48}
                 y2={Math.sin(a) * 48}
-                stroke={on ? '#ffd27a' : 'rgba(169,155,189,0.35)'}
+                stroke={on ? '#2257f0' : 'rgba(10,22,51,0.25)'}
                 stroke-width={on ? 2.4 : 1.6}
                 stroke-linecap="round"
               />
             );
           })}
           <circle r="38" fill="url(#amsler-knob-face)" />
-          <circle r="30" fill="url(#amsler-knob-cap)" stroke="rgba(255,226,170,0.35)" stroke-width="1" />
+          <circle r="30" fill="url(#amsler-knob-cap)" stroke="rgba(10,22,51,0.15)" stroke-width="1" />
           <g style={{ transform: `rotate(${angle}deg)` }} class="amsler-dial__pointer">
-            <line x1="0" y1="-12" x2="0" y2="-26" stroke="#ffd27a" stroke-width="3.2" stroke-linecap="round" />
+            <line x1="0" y1="-12" x2="0" y2="-26" stroke="#2257f0" stroke-width="3.2" stroke-linecap="round" />
           </g>
         </svg>
       </div>

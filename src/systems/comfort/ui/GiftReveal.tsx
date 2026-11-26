@@ -65,7 +65,7 @@ export function GiftReveal(props: { services: GameServices; open: boolean; onClo
       setPhase('open');
       const c = centerOf(boxRef.current);
       safePlay(services, 'chest-open');
-      services.fx.flash('#e0f2fe', 160);
+      services.fx.flash('#ffffff', 160);
       // Light sparks from the open box; the heavy coin shower rises from the
       // counter below it so the dialog title stays readable.
       services.fx.burst(c.x, c.y + 10, { kind: 'sparks', count: 24, color: ACCENT });

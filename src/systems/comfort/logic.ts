@@ -59,8 +59,8 @@ export const GIFT_CALENDAR: readonly GiftDay[] = [
   { day: 2, coins: 30, satchel: false, label: 'Tucked in a warm scarf' },
   { day: 3, coins: 40, satchel: true, label: 'Supply satchel' },
   { day: 4, coins: 50, satchel: false, label: 'Polished with a lens cloth' },
-  { day: 5, coins: 60, satchel: false, label: 'Wrapped in midnight velvet' },
-  { day: 6, coins: 75, satchel: false, label: 'Lit by a little candle' },
+  { day: 5, coins: 60, satchel: false, label: 'Tied with a sunny ribbon' },
+  { day: 6, coins: 75, satchel: false, label: 'Topped with a bright bow' },
   { day: 7, coins: 120, satchel: true, label: 'Grand satchel' },
 ];
 

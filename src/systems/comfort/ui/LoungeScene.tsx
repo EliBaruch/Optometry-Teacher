@@ -86,7 +86,7 @@ export function LoungeScene({ services }: SceneProps) {
     if (paid <= 0) return;
     safePlay(services, 'coins');
     services.fx.burst(c.x, c.y - 30, { kind: 'coins', count: Math.min(36, 8 + Math.round(paid / 5)) });
-    services.fx.floatText(`+${paid} ✦`, c.x, c.y - 70, { color: '#ffd27a', size: 32 });
+    services.fx.floatText(`+${paid} ✦`, c.x, c.y - 70, { color: '#f5a524', size: 32 });
   };
 
   const toggleQuiet = () => {
@@ -139,12 +139,12 @@ export function LoungeScene({ services }: SceneProps) {
             onCoffee={(p) => {
               safePlay(services, 'pop', { pitch: 0.8, volume: 0.6 });
               setSip((n) => n + 1);
-              services.fx.floatText(t.ahh, p.x, p.y - 30, { color: '#f6efe4', size: 20 });
+              services.fx.floatText(t.ahh, p.x, p.y - 30, { color: '#2257f0', size: 20 });
             }}
             onCat={(p) => {
               safePlay(services, 'sparkle', { volume: 0.5 });
               setPet((n) => n + 1);
-              services.fx.burst(p.x, p.y - 20, { kind: 'hearts', count: 7, color: '#f9a8d4' });
+              services.fx.burst(p.x, p.y - 20, { kind: 'hearts', count: 7, color: '#ff6ec7' });
             }}
           />
           <div class="cf-hero__shade" aria-hidden="true" />
@@ -187,7 +187,7 @@ export function LoungeScene({ services }: SceneProps) {
             <GiftCalendar next={state.gift.next} ready={ready} totalClaims={state.gift.totalClaims} />
           </GlassPanel>
 
-          <GlassPanel class="cf-card cf-card--jar" accent="#ffd27a" eyebrow={t.whileAway} title={t.earnings} icon="coin">
+          <GlassPanel class="cf-card cf-card--jar" accent="#d97706" eyebrow={t.whileAway} title={t.earnings} icon="coin">
             <div class="cf-card__jarrow">
               <div ref={jarRef} class="cf-card__jar">
                 <Jar fill={cap > 0 ? state.jar / cap : 0} size={118} />
@@ -223,7 +223,7 @@ export function LoungeScene({ services }: SceneProps) {
 
           <GlassPanel
             class="cf-card cf-card--pearl"
-            accent="#a78bfa"
+            accent="#7c3aed"
             eyebrow={t.pearlEyebrow}
             title={pearl?.diagnosisName ?? t.pearlsTitle}
             icon="sparkle"

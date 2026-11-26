@@ -105,10 +105,10 @@ describe('codex scene', () => {
     expect(button('Practise a case')).toBeUndefined();
   });
 
-  it('names the category of sealed look-alikes instead of a blank chip', () => {
+  it('names the category of locked look-alikes instead of a blank chip', () => {
     mount({ diagnosisId: 'myopia' });
     const chip = document.querySelector('.codex-confused__chip.is-locked');
-    expect(chip?.textContent).toContain('Sealed');
+    expect(chip?.textContent).toContain('Locked');
     expect(chip?.textContent).toContain('Refraction');
     expect(chip?.textContent).not.toContain('Hyperopia');
   });

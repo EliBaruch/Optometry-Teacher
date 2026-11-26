@@ -67,7 +67,7 @@ function Page({ services }: { services: GameServices }) {
     };
   }, []);
 
-  if (!ready) return <p style={{ padding: 24 }}>Lighting the lamps…</p>;
+  if (!ready) return <p style={{ padding: 24 }}>Opening the lounge…</p>;
   const ctl = comfortOf(services)!;
 
   const away = (ms: number) => {
@@ -136,11 +136,12 @@ function Page({ services }: { services: GameServices }) {
 }
 
 const CSS = `
+.cfsb { position: fixed; inset: 0; overflow: auto; color: var(--lm-ink); background-color: var(--lm-canvas); background-image: radial-gradient(60% 55% at 92% 2%, rgba(122,162,255,.55), transparent 70%), radial-gradient(50% 50% at 6% 10%, rgba(111,214,255,.42), transparent 70%), radial-gradient(55% 50% at 70% 100%, rgba(196,181,253,.45), transparent 70%), radial-gradient(45% 45% at 10% 95%, rgba(255,200,170,.4), transparent 70%), linear-gradient(180deg,#f3f6fd,var(--lm-canvas)); }
 .cfsb-hub { max-width: 1100px; margin: 0 auto; padding: 32px 16px 280px; display: flex; flex-direction: column; gap: 18px; }
-.cfsb-h { font-size: 22px; color: var(--lm-ivory); } .cfsb-h span { color: var(--lm-muted); font-size: 14px; }
-.cfsb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(460px, calc(100vw - 24px)); padding: 10px; border-radius: 14px;
-  background: rgba(10, 6, 20, 0.88); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--lm-muted); }
-.cfsb-dock summary { cursor: pointer; color: var(--lm-ivory); font-weight: 600; }
+.cfsb-h { font-size: 34px; font-weight: 800; letter-spacing: var(--lm-tracking-display); color: var(--lm-ink); margin: 0; } .cfsb-h span { color: var(--lm-ink-3); font-size: 14px; font-weight: 500; letter-spacing: 0; }
+.cfsb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(460px, calc(100vw - 24px)); padding: 10px; border-radius: 22px;
+  background: var(--lm-glass); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); backdrop-filter: var(--lm-glass-blur); display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--lm-ink-3); }
+.cfsb-dock summary { cursor: pointer; color: var(--lm-ink); font-weight: 600; }
 .cfsb-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .cfsb-meta { font-family: var(--lm-font-num); font-size: 11px; max-height: 70px; overflow: auto; }
 .cfsb-rewards { display: flex; flex-wrap: wrap; gap: 4px; }

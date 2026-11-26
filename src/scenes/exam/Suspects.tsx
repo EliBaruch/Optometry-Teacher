@@ -27,7 +27,7 @@ export function Suspects(props: {
       <GlassPanel
         class="exm-suspects"
         title={t.suspectsTitle}
-        eyebrow={t.suspectsEyebrow}
+        eyebrow={<><span class="exm-no">04</span>{t.suspectsEyebrow}</>}
         icon="target"
         padding="md"
         actions={<span class="exm-count lm-num">{pinned.length}/{MAX_SUSPECTS}</span>}

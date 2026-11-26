@@ -33,7 +33,7 @@ export interface RadialProps {
 }
 
 const TONES: Record<string, string> = {
-  disc: '#ffd27a', vessels: '#f87171', macula: '#5eead4', bleeds: '#ef4444', bright: '#fde68a', vascular: '#fb7185', macular: '#c4b5fd', periphery: '#7dd3fc',
+  disc: '#e08a00', vessels: '#f87171', macula: '#10b981', bleeds: '#ef4444', bright: '#d9a400', vascular: '#fb7185', macular: '#8b5cf6', periphery: '#0ea5e9',
 };
 
 /** Two-level radial tag wheel anchored on the tapped spot. */
@@ -104,7 +104,7 @@ export function Radial({ x, y, stageW, stageH, group, nearTag, reducedMotion, on
             const p = lay.pos[i]!;
             return <line key={`${group}-${it.id}`} x1="0" y1="0" x2={p.x} y2={p.y} stroke={it.tone} stroke-opacity="0.38" stroke-width="1.2" stroke-dasharray="3 4" />;
           })}
-          {shifted && <line x1="0" y1="0" x2={x - cx} y2={y - cy} stroke="#ffd27a" stroke-opacity="0.8" stroke-width="1.5" />}
+          {shifted && <line x1="0" y1="0" x2={x - cx} y2={y - cy} stroke="#2257f0" stroke-opacity="0.8" stroke-width="1.5" />}
         </svg>
         {shifted && <span class="oph-radial__tap" aria-hidden="true" style={{ left: `${x - cx}px`, top: `${y - cy}px` }} />}
         {items.map((it, i) => {

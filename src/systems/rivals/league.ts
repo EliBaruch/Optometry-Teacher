@@ -172,7 +172,7 @@ export function nextScale(prev: RivalsState): number {
 
 /** Division name for the current field strength. */
 export function divisionName(scale: number): string {
-  if (scale < 0.75) return 'Lantern Division';
+  if (scale < 0.75) return 'Spark Division';
   if (scale < 1.05) return 'Prism Division';
   return 'Aurora Division';
 }
@@ -349,6 +349,6 @@ export function boardSeries(state: RivalsState, now: number, roster: readonly Ri
   const you: { t: number; p: number }[] = [{ t: weekStart(now), p: 0 }];
   for (const e of state.log) if (e.t <= now) you.push({ t: e.t, p: e.p });
   you.push({ t: now, p: state.points });
-  out.push({ id: PLAYER_ID, color: '#ffd27a', points: you });
+  out.push({ id: PLAYER_ID, color: '#2257f0', points: you });
   return out;
 }

@@ -100,7 +100,7 @@ export const S = defineStrings({
     flagCritical: 'Critical',
 
     suspectsTitle: 'Suspects',
-    suspectsEyebrow: 'Your working differential',
+    suspectsEyebrow: 'Working differential',
     suspectsEmpty: 'Pin up to four conditions you suspect. They are your own notes: nothing here is marked right or wrong until you diagnose.',
     moveUp: (name: string) => `Move ${name} up`,
     moveDown: (name: string) => `Move ${name} down`,
@@ -252,7 +252,7 @@ export const S = defineStrings({
     flagCritical: 'קריטי',
 
     suspectsTitle: 'אבחנות חשודות',
-    suspectsEyebrow: 'האבחנה המבדלת שלכם',
+    suspectsEyebrow: 'אבחנה מבדלת',
     suspectsEmpty: 'הצמידו עד ארבע אבחנות שאתם חושדים בהן. זו רשימה פרטית שלכם: שום דבר בה לא נחשב נכון או שגוי עד שתאבחנו.',
     moveUp: (name: string) => `העלאת ${name} ברשימה`,
     moveDown: (name: string) => `הורדת ${name} ברשימה`,

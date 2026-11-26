@@ -34,23 +34,23 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
 
   // soft halo behind the instrument
   const halo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, Math.min(w, h) / 2);
-  halo.addColorStop(0, 'rgba(255, 196, 110, 0.12)');
-  halo.addColorStop(0.6, 'rgba(255, 196, 110, 0.03)');
-  halo.addColorStop(1, 'rgba(255, 196, 110, 0)');
+  halo.addColorStop(0, 'rgba(140, 170, 255, 0.12)');
+  halo.addColorStop(0.6, 'rgba(140, 170, 255, 0.03)');
+  halo.addColorStop(1, 'rgba(140, 170, 255, 0)');
   ctx.fillStyle = halo;
   ctx.fillRect(0, 0, w, h);
 
   // brass bezel
   const bez = ctx.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
-  bez.addColorStop(0, '#fbe3a6');
-  bez.addColorStop(0.22, '#a87528');
-  bez.addColorStop(0.5, '#4d310b');
-  bez.addColorStop(0.75, '#c39042');
-  bez.addColorStop(1, '#f6d895');
+  bez.addColorStop(0, '#ffffff');
+  bez.addColorStop(0.22, '#aab4c8');
+  bez.addColorStop(0.5, '#5d6884');
+  bez.addColorStop(0.75, '#cfd7e6');
+  bez.addColorStop(1, '#f4f7fc');
   ctx.beginPath();
   ctx.arc(cx, cy, R * 1.13, 0, Math.PI * 2);
   ctx.fillStyle = bez;
-  ctx.shadowColor = 'rgba(0,0,0,0.75)';
+  ctx.shadowColor = 'rgba(10,22,51,0.5)';
   ctx.shadowBlur = 40 * dpr;
   ctx.shadowOffsetY = 16 * dpr;
   ctx.fill();
@@ -60,11 +60,11 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
   // engraved inner lip
   ctx.beginPath();
   ctx.arc(cx, cy, R * 1.07, 0, Math.PI * 2);
-  ctx.fillStyle = '#1a1006';
+  ctx.fillStyle = '#0e1428';
   ctx.fill();
   ctx.beginPath();
   ctx.arc(cx, cy, R * 1.1, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(40, 24, 4, 0.75)';
+  ctx.strokeStyle = 'rgba(40, 50, 80, 0.6)';
   ctx.lineWidth = 1.2 * dpr;
   ctx.stroke();
 
@@ -78,7 +78,7 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
     ctx.beginPath();
     ctx.moveTo(Math.cos(rad) * r0, Math.sin(rad) * r0);
     ctx.lineTo(Math.cos(rad) * R * 1.12, Math.sin(rad) * R * 1.12);
-    ctx.strokeStyle = major ? 'rgba(60, 36, 6, 0.9)' : 'rgba(60, 36, 6, 0.45)';
+    ctx.strokeStyle = major ? 'rgba(40, 50, 80, 0.85)' : 'rgba(40, 50, 80, 0.4)';
     ctx.lineWidth = (major ? 1.6 : 0.9) * dpr;
     ctx.stroke();
   }
@@ -86,10 +86,10 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
 
   // bowl interior — deep, luminous, slightly lit from the top
   const bowl = ctx.createRadialGradient(cx, cy - R * 0.18, R * 0.05, cx, cy, R * 1.07);
-  bowl.addColorStop(0, '#2a2044');
-  bowl.addColorStop(0.45, '#170f2b');
-  bowl.addColorStop(0.85, '#0b0717');
-  bowl.addColorStop(1, '#040208');
+  bowl.addColorStop(0, '#1f2c58');
+  bowl.addColorStop(0.45, '#111a3c');
+  bowl.addColorStop(0.85, '#080d24');
+  bowl.addColorStop(1, '#03050f');
   ctx.beginPath();
   ctx.arc(cx, cy, R * 1.065, 0, Math.PI * 2);
   ctx.fillStyle = bowl;
@@ -105,7 +105,7 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
   for (let i = 0; i < n; i++) {
     const px = hash(i) * w;
     const py = hash(i + 9301) * h;
-    ctx.fillStyle = `rgba(255,240,220,${0.015 + hash(i + 77) * 0.03})`;
+    ctx.fillStyle = `rgba(225,235,255,${0.015 + hash(i + 77) * 0.03})`;
     ctx.fillRect(px, py, dpr, dpr);
   }
 
@@ -114,12 +114,12 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
   for (const deg of [10, 20, 30]) {
     ctx.beginPath();
     ctx.arc(cx, cy, deg * f.k, 0, Math.PI * 2);
-    ctx.strokeStyle = deg === 30 ? 'rgba(255, 228, 190, 0.12)' : 'rgba(255, 228, 190, 0.075)';
+    ctx.strokeStyle = deg === 30 ? 'rgba(215, 228, 255, 0.12)' : 'rgba(215, 228, 255, 0.075)';
     ctx.lineWidth = dpr;
     ctx.stroke();
   }
   ctx.setLineDash([]);
-  ctx.strokeStyle = 'rgba(255, 228, 190, 0.07)';
+  ctx.strokeStyle = 'rgba(215, 228, 255, 0.07)';
   ctx.lineWidth = dpr;
   ctx.beginPath();
   ctx.moveTo(cx - R * 1.06, cy);
@@ -129,7 +129,7 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
   ctx.stroke();
 
   // labels
-  ctx.fillStyle = 'rgba(255, 228, 190, 0.32)';
+  ctx.fillStyle = 'rgba(215, 228, 255, 0.32)';
   ctx.font = `${Math.round(9.5 * dpr)}px "Space Grotesk", sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
@@ -140,8 +140,8 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
   ctx.translate(cx, cy - R * 0.62);
   ctx.scale(1, 0.42);
   const sheen = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.85);
-  sheen.addColorStop(0, 'rgba(255, 240, 220, 0.075)');
-  sheen.addColorStop(1, 'rgba(255, 240, 220, 0)');
+  sheen.addColorStop(0, 'rgba(225, 235, 255, 0.075)');
+  sheen.addColorStop(1, 'rgba(225, 235, 255, 0)');
   ctx.fillStyle = sheen;
   ctx.beginPath();
   ctx.arc(0, 0, R * 0.85, 0, Math.PI * 2);
@@ -151,8 +151,8 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
   ctx.translate(cx, cy + R * 0.98);
   ctx.scale(1, 0.25);
   const bounce = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.7);
-  bounce.addColorStop(0, 'rgba(255, 200, 120, 0.10)');
-  bounce.addColorStop(1, 'rgba(255, 200, 120, 0)');
+  bounce.addColorStop(0, 'rgba(150, 180, 255, 0.10)');
+  bounce.addColorStop(1, 'rgba(150, 180, 255, 0)');
   ctx.fillStyle = bounce;
   ctx.beginPath();
   ctx.arc(0, 0, R * 0.7, 0, Math.PI * 2);
@@ -222,14 +222,14 @@ export function paintBowlLive(ctx: CanvasRenderingContext2D, w: number, h: numbe
     } else {
       ctx.beginPath();
       ctx.arc(x, y, 1.5 * dpr, 0, Math.PI * 2);
-      ctx.fillStyle = s.interactive ? 'rgba(255, 236, 210, 0.26)' : 'rgba(255, 236, 210, 0.14)';
+      ctx.fillStyle = s.interactive ? 'rgba(225, 235, 255, 0.26)' : 'rgba(225, 235, 255, 0.14)';
       ctx.fill();
     }
     if (queued.has(k)) {
       const pulse = s.reduced ? 0.7 : 0.55 + 0.45 * Math.sin(t * 6 + p.x * 0.3);
       ctx.beginPath();
       ctx.arc(x, y, 7 * dpr, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255, 210, 122, ${0.35 + 0.4 * pulse})`;
+      ctx.strokeStyle = `rgba(150, 185, 255, ${0.35 + 0.4 * pulse})`;
       ctx.setLineDash([2.5 * dpr, 2.5 * dpr]);
       ctx.lineWidth = 1.2 * dpr;
       ctx.stroke();
@@ -243,8 +243,8 @@ export function paintBowlLive(ctx: CanvasRenderingContext2D, w: number, h: numbe
     const { x, y } = toPx(f, ret.x, ret.y);
     const rr = 11 * dpr;
     ctx.save();
-    ctx.strokeStyle = 'rgba(255, 210, 122, 0.9)';
-    ctx.shadowColor = 'rgba(255, 210, 122, 0.8)';
+    ctx.strokeStyle = 'rgba(150, 185, 255, 0.9)';
+    ctx.shadowColor = 'rgba(150, 185, 255, 0.8)';
     ctx.shadowBlur = 10 * dpr;
     ctx.lineWidth = 1.4 * dpr;
     ctx.beginPath();
@@ -263,15 +263,15 @@ export function paintBowlLive(ctx: CanvasRenderingContext2D, w: number, h: numbe
   // fixation light (amber LED)
   const pulse = s.reduced ? 1 : 0.85 + 0.15 * Math.sin(t * 2.4);
   const glow = ctx.createRadialGradient(f.cx, f.cy, 0, f.cx, f.cy, 16 * dpr);
-  glow.addColorStop(0, `rgba(255, 196, 90, ${0.55 * pulse})`);
-  glow.addColorStop(1, 'rgba(255, 196, 90, 0)');
+  glow.addColorStop(0, `rgba(255, 244, 214, ${0.55 * pulse})`);
+  glow.addColorStop(1, 'rgba(255, 244, 214, 0)');
   ctx.fillStyle = glow;
   ctx.beginPath();
   ctx.arc(f.cx, f.cy, 16 * dpr, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
   ctx.arc(f.cx, f.cy, 2.6 * dpr, 0, Math.PI * 2);
-  ctx.fillStyle = '#ffe3a1';
+  ctx.fillStyle = '#fff6dc';
   ctx.fill();
 
   // the stimulus (Goldmann III, exaggerated for visibility); brighter = lower dB

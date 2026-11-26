@@ -19,7 +19,7 @@ export interface CardView {
 }
 
 const ART_PX = { xs: 192, sm: 256, md: 384, lg: 560 } as const;
-const URGENCY: Record<Urgency, string> = { routine: '#5eead4', soon: '#38bdf8', urgent: '#fbbf24', emergency: '#f43f5e' };
+const URGENCY: Record<Urgency, string> = { routine: '#00c875', soon: '#579bfc', urgent: '#fdab3d', emergency: '#ff5a6e' };
 
 export function cardLabel(v: CardView, t: typeof S.en = S.en): string {
   const name = v.dx?.name ?? v.dxId;

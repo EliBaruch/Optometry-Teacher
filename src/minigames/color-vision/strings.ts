@@ -35,7 +35,7 @@ export const S = defineStrings({
     sheetAria: 'Record sheet', sheetKey: 'Key', correct: 'correct', error: 'error',
     // tutorial
     tutSteps: [
-      { title: 'Show the plates', body: ['Turn the brass dial — or press ', { k: '←' }, ' ', { k: '→' }, ' — to show each plate. The patient reads it aloud; the answer key is on your record sheet.'] as Seg[] },
+      { title: 'Show the plates', body: ['Turn the dial — or press ', { k: '←' }, ' ', { k: '→' }, ' — to show each plate. The patient reads it aloud; the answer key is on your record sheet.'] as Seg[] },
       { title: 'One eye at a time', body: ['Switch the occluder with ', { b: 'OD' }, ' / ', { b: 'OS' }, ' (', { k: 'R' }, ' / ', { k: 'L' }, '). Congenital defects match in both eyes; acquired ones usually don’t.'] as Seg[] },
       { title: 'Compare reds, then record', body: ['If an eye looks suspicious, compare red saturation with the ', { b: 'red cap' }, '. Then record your interpretation: type and eye.'] as Seg[] },
     ],
@@ -163,7 +163,7 @@ export const S = defineStrings({
     flawless: 'מושלם',
     sheetAria: 'גיליון רישום', sheetKey: 'מפתח', correct: 'נכון', error: 'שגוי',
     tutSteps: [
-      { title: 'מציגים את הלוחות', body: ['סובבו את גלגל הפליז, או לחצו ', { k: '←' }, ' ', { k: '→' }, ', כדי להציג כל לוח. המטופל מקריא אותו בקול; מפתח התשובות מופיע בגיליון הרישום שלכם.'] as Seg[] },
+      { title: 'מציגים את הלוחות', body: ['סובבו את הגלגל, או לחצו ', { k: '←' }, ' ', { k: '→' }, ', כדי להציג כל לוח. המטופל מקריא אותו בקול; מפתח התשובות מופיע בגיליון הרישום שלכם.'] as Seg[] },
       { title: 'עין אחת בכל פעם', body: ['מחליפים עין עם ', { b: 'OD' }, ' / ', { b: 'OS' }, ' (', { k: 'R' }, ' / ', { k: 'L' }, '). ליקויים מולדים זהים בשתי העיניים; נרכשים בדרך כלל לא.'] as Seg[] },
       { title: 'משווים אדומים, ואז רושמים', body: ['אם עין נראית חשודה, השוו את רוויית האדום בעזרת ', { b: 'המכסה האדום' }, '. אחר כך רשמו את הפרשנות: סוג הליקוי והעין.'] as Seg[] },
     ],

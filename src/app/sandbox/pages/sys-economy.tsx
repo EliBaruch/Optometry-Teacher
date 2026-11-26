@@ -17,10 +17,10 @@ const CSS = `
 .sbe { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; grid-template-columns: 1fr 1fr; align-items: start; }
 .sbe-full { grid-column: 1 / -1; }
 .sbe-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.sbe-sub { font: 600 10px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-muted-2); margin: 14px 0 8px; }
+.sbe-sub { font: 600 10px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-ink-3); margin: 14px 0 8px; }
 .sbe-sub:first-child { margin-top: 0; }
 .sbe-chips { display: grid; gap: 8px; }
-.sbe-empty { color: var(--lm-muted); font-size: 13px; }
+.sbe-empty { color: var(--lm-ink-3); font-size: 13px; }
 @media (max-width: 860px) { .sbe { grid-template-columns: 1fr; } }
 `;
 

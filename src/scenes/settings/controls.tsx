@@ -4,7 +4,7 @@ import { Icon, cx, useSfx, useStrings, type IconName } from '@ui-kit';
 import { S } from './strings';
 import { percent, snapVolume } from './logic';
 
-/* ── Brass slider: a native range input (accessible, touch-friendly) dressed as an instrument dial ── */
+/* ── Slider: a native range input (accessible, touch-friendly) styled like an iOS slider ── */
 export function VolumeSlider(props: {
   id: string;
   label: string;
@@ -23,7 +23,7 @@ export function VolumeSlider(props: {
   const v = snapVolume(props.value);
   const muted = v === 0;
   return (
-    <div class={cx('settings-slider', muted && 'is-muted', props.disabled && 'is-disabled')} style={{ '--val': v, '--acc': props.accent ?? 'var(--lm-gold)' }}>
+    <div class={cx('settings-slider', muted && 'is-muted', props.disabled && 'is-disabled')} style={{ '--val': v, '--acc': props.accent ?? 'var(--lm-brand-600)' }}>
       <div class="settings-slider__head">
         <label for={props.id} class="settings-slider__label">
           <span class="settings-slider__icon"><Icon name={props.icon} /></span>
@@ -66,7 +66,7 @@ export function VolumeSlider(props: {
   );
 }
 
-/* ── Switch row: label, description, optional live preview, and a jewelled toggle ── */
+/* ── Switch row: label, description, optional live preview, and an iOS-style toggle ── */
 export function SwitchRow(props: {
   id: string;
   label: string;
@@ -75,12 +75,14 @@ export function SwitchRow(props: {
   checked: boolean;
   onChange: (next: boolean) => void;
   preview?: ComponentChildren;
+  /** Icon tile colour (iOS-style settings glyph). */
+  tint?: string;
 }) {
   const play = useSfx();
   const labelId = `${props.id}-label`;
   const descId = `${props.id}-desc`;
   return (
-    <div class={cx('settings-switch', props.checked && 'is-on')}>
+    <div class={cx('settings-switch', props.checked && 'is-on')} style={props.tint ? { '--tint': props.tint } : undefined}>
       <span class="settings-switch__icon" aria-hidden="true"><Icon name={props.icon} /></span>
       <div class="settings-switch__text">
         <span id={labelId} class="settings-switch__label">{props.label}</span>

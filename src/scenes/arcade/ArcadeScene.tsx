@@ -77,13 +77,13 @@ export function ArcadeScene({ services, params }: SceneProps) {
       services.fx.burst(cx_, cy, { kind: 'confetti', count: 60 });
     } else if (acc >= 0.85) {
       services.audio.play('success');
-      services.fx.burst(cx_, cy, { kind: 'stars', count: 24, color: '#ffd27a' });
+      services.fx.burst(cx_, cy, { kind: 'stars', count: 24, color: '#f5a524' });
     } else if (acc >= 0.5) {
       services.audio.play('pop');
     } else {
       services.audio.play('fail', { volume: 0.7 });
     }
-    services.fx.floatText(`+${rec.score.toLocaleString()}`, cx_, cy - 40, { color: '#ffd27a', size: 30 });
+    services.fx.floatText(`+${rec.score.toLocaleString()}`, cx_, cy - 40, { color: '#d97706', size: 30 });
     const show = () =>
       setOutcome({ result, scenario, score: rec.score, previousBest: rec.previousBest, isBest: rec.isBest, firstPlay: rec.firstPlay, bestAccuracy: rec.save.games[mg.id]!.bestAccuracy });
     if (reduced) show();
@@ -151,7 +151,7 @@ function GameCard(props: { locale: Locale; mg: MiniGameModule; record?: GameReco
   const text = miniGameText(mg, props.locale);
   const info = TEST_CATALOG[mg.id];
   const infoText = info ? testText(mg.id as TestId, props.locale) : null;
-  const accent = info ? CATEGORY_ACCENT[info.category] : '#ffd27a';
+  const accent = info ? CATEGORY_ACCENT[info.category] : '#2257f0';
   const medal = record ? medalFor(record.bestAccuracy) : null;
   const tierBest = record?.bestByDifficulty[props.diffId];
   return (

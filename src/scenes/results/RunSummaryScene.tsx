@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { modeText, beginRun, type GameServices, type RunSnapshot, type SceneProps } from '@core';
 import { AvatarBust } from '@render';
 import {
-  Button, CountUp, Divider, GRADE_COLOR, GlassPanel, HudSlot, Icon, Ornament, RingMeter, Screen, cx, palette, useLocale, useReducedMotion, useRegistry, useStrings,
+  Button, CountUp, Divider, GRADE_COLOR, GlassPanel, HudSlot, Icon, RingMeter, Screen, cx, palette, useLocale, useReducedMotion, useRegistry, useStrings,
 } from '@ui-kit';
 import { demoRun } from './demo';
 import { prettyId } from './model';
@@ -147,8 +147,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               </>
             ) : null}
           </div>
-          <Ornament width={160} class="sm-hero__orn" />
-        </header>
+          </header>
 
         <section class="sm-stats" aria-label={t.runStats}>
           <GlassPanel class="sm-stat" style={{ '--n': 0 }} strong>
@@ -201,7 +200,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               <span class="sm-row__n lm-num">{i + 1}</span>
               {r.avatar ? (
                 <Safe fallback={<span class="sm-row__ph" />}>
-                  <AvatarBust spec={r.avatar.avatar} age={r.avatar.age} sex={r.avatar.sex} size={44} ring={r.correct ? palette.gold : '#6b5a88'} />
+                  <AvatarBust spec={r.avatar.avatar} age={r.avatar.age} sex={r.avatar.sex} size={44} ring={r.correct ? palette.gold : '#8a95ab'} />
                 </Safe>
               ) : (
                 <span class="sm-row__ph" />
@@ -213,7 +212,7 @@ function Summary({ services, snapshot, entries, demo }: { services: GameServices
               <span class="sm-row__res" title={r.correct ? t.rowCorrect : r.timeout ? t.rowTimeout : t.rowMissed}>
                 <Icon name={r.correct ? 'check' : r.timeout ? 'clock' : 'x'} label={r.correct ? t.rowCorrectShort : r.timeout ? t.rowTimeout : t.rowMissedShort} />
               </span>
-              <span class="sm-row__grade" style={{ '--g': r.grade ? GRADE_COLOR[r.grade] : '#54486b' }}>
+              <span class="sm-row__grade" style={{ '--g': r.grade ? GRADE_COLOR[r.grade] : '#8a95ab' }}>
                 {r.grade ?? '–'}
               </span>
               <span class="sm-row__pts lm-num">{r.points ? <bdi dir="ltr">{`+${r.points.toLocaleString('en-US')}`}</bdi> : '—'}</span>

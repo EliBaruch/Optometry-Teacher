@@ -172,7 +172,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     update((x) => ({ ...x, locked: reading }));
     ctx.audio.play('select', { pitch: 1.2 });
     const r = lockRef.current?.getBoundingClientRect();
-    if (r) ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: 'sparks', count: 14, color: '#ffd27a' });
+    if (r) ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: 'sparks', count: 14, color: '#5c87ff' });
     const other = otherEye(eye);
     if (!live.current[other].locked) later(ctx.reducedMotion ? 150 : 520, () => switchEyeRef.current(other));
   };
@@ -189,8 +189,8 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     ctx.audio.play(a.perfect ? 'levelup' : 'success');
     const r = recordRef.current?.getBoundingClientRect();
     if (r) {
-      ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#ffd27a' });
-      if (a.perfect) ctx.fx.floatText(t.perfect, r.left + r.width / 2, r.top - 12, { color: '#ffd27a' });
+      ctx.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: a.perfect ? 'stars' : 'sparks', count: a.perfect ? 40 : 18, color: '#5c87ff' });
+      if (a.perfect) ctx.fx.floatText(t.perfect, r.left + r.width / 2, r.top - 12, { color: '#5c87ff' });
     }
     setPhase(challenge ? 'challenge' : 'debrief');
   };

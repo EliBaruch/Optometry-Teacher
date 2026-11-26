@@ -185,19 +185,19 @@ function Page({ services }: { services: GameServices }) {
 const CSS = `
 .crsb { position: absolute; inset: 0; overflow: auto; color: var(--lm-ivory); font-family: var(--lm-font-ui); }
 .crsb-main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 28px 16px 300px; display: grid; gap: 22px; }
-.crsb-head h1 { margin: 4px 0 0; font-size: var(--lm-fs-3xl); }
+.crsb-head h1 { margin: 4px 0 0; font-size: var(--lm-fs-3xl); font-weight: 800; letter-spacing: var(--lm-tracking-display); }
 .crsb-label { font: 600 10px/1 var(--lm-font-num); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-muted-2); margin-bottom: 8px; }
 .crsb-label span { text-transform: none; letter-spacing: 0; }
-.crsb-exam { position: relative; border-radius: 20px; padding: 16px; background: rgba(6,3,13,.35); box-shadow: inset 0 0 0 1px var(--lm-hairline); }
+.crsb-exam { position: relative; border-radius: 20px; padding: 16px; background: var(--lm-glass); backdrop-filter: var(--lm-glass-blur); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); }
 .crsb-overlay { display: flex; justify-content: flex-end; min-height: 96px; margin-bottom: 12px; }
 .crsb-room { padding-top: 0; color: var(--lm-ivory-dim); }
 .crsb-two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
 .crsb-hint { font-size: 13px; }
-.crsb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(470px, calc(100vw - 24px)); box-sizing: border-box; padding: 10px; border-radius: 14px;
-  background: rgba(10, 6, 20, 0.9); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(10px); display: grid; gap: 6px; }
+.crsb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(470px, calc(100vw - 24px)); box-sizing: border-box; padding: 10px; border-radius: 22px;
+  background: var(--lm-glass); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); backdrop-filter: var(--lm-glass-blur); display: grid; gap: 6px; }
 .crsb-dock[hidden] { display: none; }
 .crsb-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.crsb-dock select { width: 100%; background: #1a0f2e; color: var(--lm-ivory); border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 6px; font: 12px var(--lm-font-num); }
+.crsb-dock select { width: 100%; background: var(--lm-surface); color: var(--lm-ink); border: 1px solid var(--lm-border-strong); border-radius: 10px; padding: 6px; font: 12px var(--lm-font-num); }
 @media (max-width: 760px) {
   .crsb-two { grid-template-columns: 1fr; }
   .crsb-overlay { justify-content: flex-start; }

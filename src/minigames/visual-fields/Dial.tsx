@@ -85,14 +85,14 @@ export function Dial({ value, min, max, step, label, format, onChange, size = 64
         <svg viewBox="-50 -50 100 100" aria-hidden="true">
           <defs>
             <radialGradient id="vf-knob-face" cx="35%" cy="30%" r="80%">
-              <stop offset="0" stop-color="#fff0c8" />
-              <stop offset="0.35" stop-color="#d8a648" />
-              <stop offset="0.75" stop-color="#7a5418" />
-              <stop offset="1" stop-color="#3b2808" />
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="0.35" stop-color="#dfe5f0" />
+              <stop offset="0.75" stop-color="#9ba7bd" />
+              <stop offset="1" stop-color="#6b7690" />
             </radialGradient>
             <radialGradient id="vf-knob-cap" cx="40%" cy="35%" r="70%">
-              <stop offset="0" stop-color="#3a2a52" />
-              <stop offset="1" stop-color="#120b20" />
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="1" stop-color="#dde3ef" />
             </radialGradient>
           </defs>
           {Array.from({ length: ticks + 1 }, (_, i) => {
@@ -106,7 +106,7 @@ export function Dial({ value, min, max, step, label, format, onChange, size = 64
                 y1={Math.sin(a) * (major ? 42 : 44)}
                 x2={Math.cos(a) * 48}
                 y2={Math.sin(a) * 48}
-                stroke={on ? '#ffd27a' : 'rgba(169,155,189,0.35)'}
+                stroke={on ? '#2257f0' : 'rgba(10,22,51,0.25)'}
                 stroke-width={major ? 2.4 : 1.4}
                 stroke-linecap="round"
               />
@@ -115,11 +115,11 @@ export function Dial({ value, min, max, step, label, format, onChange, size = 64
           <circle r="37" fill="url(#vf-knob-face)" />
           {Array.from({ length: 24 }, (_, i) => {
             const a = (i / 24) * Math.PI * 2;
-            return <line key={`k${i}`} x1={Math.cos(a) * 34} y1={Math.sin(a) * 34} x2={Math.cos(a) * 37} y2={Math.sin(a) * 37} stroke="rgba(40,24,4,0.45)" stroke-width="1.2" />;
+            return <line key={`k${i}`} x1={Math.cos(a) * 34} y1={Math.sin(a) * 34} x2={Math.cos(a) * 37} y2={Math.sin(a) * 37} stroke="rgba(10,22,51,0.3)" stroke-width="1.2" />;
           })}
-          <circle r="29" fill="url(#vf-knob-cap)" stroke="rgba(255,226,170,0.35)" stroke-width="1" />
+          <circle r="29" fill="url(#vf-knob-cap)" stroke="rgba(10,22,51,0.15)" stroke-width="1" />
           <g style={{ transform: `rotate(${angle}deg)` }} class="vf-dial__pointer">
-            <line x1="0" y1="-11" x2="0" y2="-25" stroke="#ffd27a" stroke-width="3.2" stroke-linecap="round" />
+            <line x1="0" y1="-11" x2="0" y2="-25" stroke="#2257f0" stroke-width="3.2" stroke-linecap="round" />
           </g>
         </svg>
       </div>

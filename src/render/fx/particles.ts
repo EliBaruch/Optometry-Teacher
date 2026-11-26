@@ -35,7 +35,7 @@ export interface Particle {
   seed: number;
 }
 
-export const PALETTE = ['#3b6bff', '#a78bfa', '#fb7185', '#38bdf8', '#34d399', '#f59e0b', '#7aa2ff', '#f472b6'] as const;
+export const PALETTE = ['#3b6bff', '#4eccf5', '#00c875', '#fdab3d', '#ff5a6e', '#a25ddc', '#ff6ec7', '#ffcb00'] as const;
 
 export const DEFAULT_COUNT: Record<ParticleKind, number> = {
   confetti: 70,
@@ -48,11 +48,11 @@ export const DEFAULT_COUNT: Record<ParticleKind, number> = {
 
 export const DEFAULT_COLOR: Record<ParticleKind, string> = {
   confetti: '#3b6bff',
-  sparks: '#f59e0b',
-  coins: '#f5a524',
-  stars: '#f59e0b',
-  hearts: '#fb7185',
-  embers: '#f97316',
+  sparks: '#fdab3d',
+  coins: '#ffcb00',
+  stars: '#ffcb00',
+  hearts: '#ff5a6e',
+  embers: '#fdab3d',
 };
 
 /** Kinds drawn with additive blending. */
@@ -117,7 +117,7 @@ export class ParticlePool {
     if (made > 0 && kind !== 'embers' && kind !== 'hearts') {
       const r = this.acquire();
       if (r) {
-        init(r, 'ring', x, y, kind === 'coins' ? '#f5a524' : base, false, rand, scale, 0, 1);
+        init(r, 'ring', x, y, kind === 'coins' ? '#ffcb00' : base, false, rand, scale, 0, 1);
         r.alive = true;
         this.live++;
       }
@@ -166,7 +166,7 @@ function init(p: Particle, kind: InternalKind, x: number, y: number, color: stri
   p.variant = 0;
   p.wobble = 0;
   p.color = color;
-  p.color2 = shade(color, -0.35);
+  p.color2 = shade(color, 0.4);
   switch (kind) {
     case 'confetti': {
       const a = -Math.PI / 2 + r(-1.25, 1.25);
@@ -183,8 +183,8 @@ function init(p: Particle, kind: InternalKind, x: number, y: number, color: stri
       p.life = r(2.2, 3.4);
       p.variant = rand() < 0.3 ? 1 : 0;
       if (paletteMode) p.color = PALETTE[Math.floor(rand() * PALETTE.length)]!;
-      else p.color = rand() < 0.35 ? shade(color, 0.35) : rand() < 0.2 ? '#7aa2ff' : color;
-      p.color2 = shade(p.color, -0.38);
+      else p.color = rand() < 0.35 ? shade(color, 0.35) : rand() < 0.2 ? '#4eccf5' : color;
+      p.color2 = shade(p.color, 0.4);
       break;
     }
     case 'sparks': {

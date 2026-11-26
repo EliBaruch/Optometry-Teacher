@@ -189,7 +189,7 @@ export function Game({ ctx, finish }: GameProps) {
     return best;
   };
 
-  const flyText = (text: string, color = '#ffd27a') => {
+  const flyText = (text: string, color = '#2257f0') => {
     const rect = rootRef.current?.getBoundingClientRect();
     if (!rect || !radial) return;
     ctx.fx.floatText(text, rect.left + radial.x, rect.top + radial.y - 24, { color });
@@ -272,7 +272,7 @@ export function Game({ ctx, finish }: GameProps) {
     play('reveal');
     if (perfect) {
       const r = rootRef.current?.getBoundingClientRect();
-      if (r) ctx.fx.burst(r.left + r.width / 2, r.top + r.height * 0.4, { kind: 'sparks', count: 32, color: '#ffd27a' });
+      if (r) ctx.fx.burst(r.left + r.width / 2, r.top + r.height * 0.4, { kind: 'sparks', count: 32, color: '#2257f0' });
       play('sparkle');
     }
   };
@@ -507,7 +507,7 @@ export function Game({ ctx, finish }: GameProps) {
                     w.disc = c;
                     setSheet(null);
                     play('select');
-                    ctx.fx.floatText(`C/D ${c.cdr.toFixed(2)}`, window.innerWidth / 2, window.innerHeight / 2.4, { color: '#ffd27a' });
+                    ctx.fx.floatText(`C/D ${c.cdr.toFixed(2)}`, window.innerWidth / 2, window.innerHeight / 2.4, { color: '#2257f0' });
                     rerender();
                   }}
                 />

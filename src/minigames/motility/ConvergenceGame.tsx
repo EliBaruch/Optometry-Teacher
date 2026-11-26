@@ -170,7 +170,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
     if (tutorial || debrief) return;
     const d = c.current.d, st = sim.current.state;
     const h = handleRef.current?.getBoundingClientRect();
-    const burst = () => h && fx.burst(h.left + h.width / 2, h.top, { kind: 'sparks', count: 8, color: '#ffd27a' });
+    const burst = () => h && fx.burst(h.left + h.width / 2, h.top, { kind: 'sparks', count: 8, color: '#2257f0' });
     setNudge('');
     if (phase === 'brk') {
       if (st !== 'broken') { setNudge(t.nudgeFused); play('error', { volume: 0.5 }); return; }
@@ -327,7 +327,7 @@ export function ConvergenceGame({ ctx, done }: { ctx: MiniGameContext; done: Min
       </div>
       {nudge ? <div class="mot-toast" role="status" key={nudge}>{fixBidi(nudge, loc)}</div> : null}
       <footer class="mot-foot">
-        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{t.measuredLabel(stepsDone)}</span><ProgressBar value={stepsDone} max={4} ariaLabel={t.measuredAria} accent="#ffd27a" size="sm" /></div>
+        <div class="mot-foot__bar"><span class="mot-foot__lab mot-num">{t.measuredLabel(stepsDone)}</span><ProgressBar value={stepsDone} max={4} ariaLabel={t.measuredAria} accent="#2257f0" size="sm" /></div>
         {!canRecord && !tutorial ? <span class="mot-foot__note" id="mot-gate">{fixBidi(gateHint, loc)}</span> : null}
         <Button variant="primary" icon="check" onClick={record} disabled={tutorial || !!debrief || !canRecord} aria-describedby={canRecord ? undefined : 'mot-gate'}>{t.recordFindings}</Button>
       </footer>

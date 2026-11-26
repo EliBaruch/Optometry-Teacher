@@ -23,7 +23,7 @@ export function InstrumentTray(props: {
     <GlassPanel
       class="exm-tray"
       title={t.trayTitle}
-      eyebrow={t.trayEyebrow}
+      eyebrow={<><span class="exm-no">01</span>{t.trayEyebrow}</>}
       icon="eye"
       padding="md"
       actions={<span class="exm-count lm-num" aria-label={t.trayCount(doneCount, instruments.length)}>{doneCount}/{instruments.length}</span>}

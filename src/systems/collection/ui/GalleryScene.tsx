@@ -63,12 +63,9 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
       class="gs-screen"
       contentClass="gs-content"
     >
-      <div class="gs-lights" aria-hidden="true">
-        {[0, 1, 2].map((i) => <span key={i} style={{ '--i': i }} />)}
-      </div>
 
       <section class="gs-hero">
-        <RingMeter value={total ? owned / total : 0} size={128} thickness={7} accent={GALLERY_COLOR} accent2="#ffd27a" ariaLabel={t.ringLabel(owned, total)}>
+        <RingMeter value={total ? owned / total : 0} size={128} thickness={7} accent={GALLERY_COLOR} accent2="#ffcb00" ariaLabel={t.ringLabel(owned, total)}>
           <div class="gs-ring">
             <CountUp value={owned} class="gs-ring__n" />
             <span class="gs-ring__of">{t.ringOf(total)}</span>
@@ -89,7 +86,7 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
               <span class="gs-tally__l">{t.rarity[r]}</span>
             </li>
           ))}
-          <li style={{ '--c': '#dfe6f2' }}>
+          <li style={{ '--c': '#b6c2d9' }}>
             <Icon name="sparkle" class="gs-tally__icon" />
             <span class="gs-tally__n lm-num">{polished}</span>
             <span class="gs-tally__l">{t.polished}</span>
@@ -128,7 +125,7 @@ export function GalleryScene({ store, services }: { store: CollectionStore; serv
         </div>
         <div class="gs-tools__group">
           <Chip size="sm" icon="eye" selected={ownedOnly} onClick={() => setOwnedOnly(!ownedOnly)}>{t.collectedOnly}</Chip>
-          <Chip size="sm" icon="book" accent="#ffd27a" selected={study} onClick={() => setStudy(!study)}>{t.flashMode}</Chip>
+          <Chip size="sm" icon="book" accent="#ffcb00" selected={study} onClick={() => setStudy(!study)}>{t.flashMode}</Chip>
         </div>
       </div>
 

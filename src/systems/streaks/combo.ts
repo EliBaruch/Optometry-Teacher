@@ -18,10 +18,10 @@ export interface ComboTier {
 }
 
 export const TIERS: readonly ComboTier[] = [
-  { key: 'steady', min: 0, mult: 1, name: 'Steady hands', color: '#fcd9a8' },
+  { key: 'steady', min: 0, mult: 1, name: 'Steady hands', color: '#94a3b8' },
   { key: 'kindled', min: 2, mult: 1.5, name: 'Kindled', color: '#fb923c' },
   { key: 'blazing', min: 3, mult: 2, name: 'Blazing', color: '#f97316' },
-  { key: 'white-hot', min: 5, mult: 3, name: 'White-hot', color: '#ffe7b3' },
+  { key: 'white-hot', min: 5, mult: 3, name: 'White-hot', color: '#ef4444' },
 ];
 
 /** Base XP a perfect case earns per +1 of multiplier. ×3 on a 95% case ≈ +76 XP. */

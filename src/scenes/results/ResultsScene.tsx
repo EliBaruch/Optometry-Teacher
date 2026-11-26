@@ -139,7 +139,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
       if (!instant) {
         fx.hitstop(110);
         fx.burst(cx0, cy0, { kind: 'sparks', count: 48, color: palette.gold });
-        fx.burst(cx0, cy0, { kind: 'stars', count: 12, color: '#fff4da' });
+        fx.burst(cx0, cy0, { kind: 'stars', count: 12, color: '#ffffff' });
         fx.flash('rgba(255,210,122,0.18)', 260);
       }
     } else if (review.verdict === 'wrong') {

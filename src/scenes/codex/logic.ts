@@ -14,33 +14,33 @@ export const CATEGORY_ORDER: DiagnosisCategory[] = [
 ];
 
 export const CATEGORY_META: Record<DiagnosisCategory, CategoryMeta> = {
-  refractive: { label: 'Refraction', blurb: 'How light is focused — and how lenses set it right.', icon: 'phoropter', accent: '#ffd27a' },
-  binocular: { label: 'Binocular Vision', blurb: 'Two eyes, one picture: alignment, focusing and the nerves that steer.', icon: 'cover-test', accent: '#a78bfa' },
-  anterior: { label: 'Lids & Anterior Eye', blurb: 'Lids, lashes, conjunctiva and sclera — the red eyes of the world.', icon: 'slit-lamp', accent: '#f472b6' },
-  cornea: { label: 'Cornea', blurb: 'The clear window: abrasions, infections and shape.', icon: 'fluorescein', accent: '#38bdf8' },
-  glaucoma: { label: 'Glaucoma & Uvea', blurb: 'Pressure, drainage angles and inflammation inside the eye.', icon: 'tonometry', accent: '#4ade80' },
-  lens: { label: 'Lens', blurb: 'The crystalline lens and its slow clouding.', icon: 'eye', accent: '#fde68a' },
-  retina: { label: 'Retina & Vitreous', blurb: 'The living film: vessels, macula and detachments.', icon: 'ophthalmoscopy', accent: '#fb923c' },
-  neuro: { label: 'Neuro-Ophthalmology', blurb: 'Optic nerves, pupils, pathways and the brain behind the eye.', icon: 'visual-fields', accent: '#c084fc' },
-  systemic: { label: 'Systemic Disease', blurb: 'When the body speaks through the eye.', icon: 'heart', accent: '#ef4444' },
-  normal: { label: 'Healthy Eyes', blurb: 'Knowing normal is half of every diagnosis.', icon: 'star', accent: '#5eead4' },
+  refractive: { label: 'Refraction', blurb: 'How light is focused — and how lenses set it right.', icon: 'phoropter', accent: '#2257f0' },
+  binocular: { label: 'Binocular Vision', blurb: 'Two eyes, one picture: alignment, focusing and the nerves that steer.', icon: 'cover-test', accent: '#7c3aed' },
+  anterior: { label: 'Lids & Anterior Eye', blurb: 'Lids, lashes, conjunctiva and sclera — the red eyes of the world.', icon: 'slit-lamp', accent: '#db2777' },
+  cornea: { label: 'Cornea', blurb: 'The clear window: abrasions, infections and shape.', icon: 'fluorescein', accent: '#0284c7' },
+  glaucoma: { label: 'Glaucoma & Uvea', blurb: 'Pressure, drainage angles and inflammation inside the eye.', icon: 'tonometry', accent: '#059669' },
+  lens: { label: 'Lens', blurb: 'The crystalline lens and its slow clouding.', icon: 'eye', accent: '#a16207' },
+  retina: { label: 'Retina & Vitreous', blurb: 'The living film: vessels, macula and detachments.', icon: 'ophthalmoscopy', accent: '#ea580c' },
+  neuro: { label: 'Neuro-Ophthalmology', blurb: 'Optic nerves, pupils, pathways and the brain behind the eye.', icon: 'visual-fields', accent: '#9333ea' },
+  systemic: { label: 'Systemic Disease', blurb: 'When the body speaks through the eye.', icon: 'heart', accent: '#e11d48' },
+  normal: { label: 'Healthy Eyes', blurb: 'Knowing normal is half of every diagnosis.', icon: 'star', accent: '#0d9488' },
 };
 
 export const URGENCY_META: Record<Urgency, { label: string; when: string; color: string; rank: number }> = {
-  routine: { label: 'Routine', when: 'Book a normal appointment — weeks to months.', color: '#5eead4', rank: 0 },
-  soon: { label: 'Soon', when: 'See within days.', color: '#38bdf8', rank: 1 },
-  urgent: { label: 'Urgent', when: 'Same day, or within 24 hours.', color: '#fbbf24', rank: 2 },
-  emergency: { label: 'Emergency', when: 'Immediately — sight- or life-threatening.', color: '#f43f5e', rank: 3 },
+  routine: { label: 'Routine', when: 'Book a normal appointment — weeks to months.', color: '#0d9488', rank: 0 },
+  soon: { label: 'Soon', when: 'See within days.', color: '#0284c7', rank: 1 },
+  urgent: { label: 'Urgent', when: 'Same day, or within 24 hours.', color: '#d97706', rank: 2 },
+  emergency: { label: 'Emergency', when: 'Immediately — sight- or life-threatening.', color: '#e11d48', rank: 3 },
 };
 
 export const RARITY_META: Record<Diagnosis['rarity'], { label: string; color: string }> = {
-  common: { label: 'Common', color: '#cbd5e1' },
-  uncommon: { label: 'Uncommon', color: '#38bdf8' },
-  rare: { label: 'Rare', color: '#c084fc' },
+  common: { label: 'Common', color: '#64748b' },
+  uncommon: { label: 'Uncommon', color: '#0284c7' },
+  rare: { label: 'Rare', color: '#9333ea' },
 };
 
 export function categoryMeta(c: string): CategoryMeta {
-  return CATEGORY_META[c as DiagnosisCategory] ?? { label: c.charAt(0).toUpperCase() + c.slice(1), blurb: '', icon: 'book', accent: '#ffd27a' };
+  return CATEGORY_META[c as DiagnosisCategory] ?? { label: c.charAt(0).toUpperCase() + c.slice(1), blurb: '', icon: 'book', accent: '#2257f0' };
 }
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');

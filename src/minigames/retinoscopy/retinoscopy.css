@@ -11,7 +11,7 @@
   background: transparent;
   overflow: hidden; outline: none;
 }
-.rt-root button { font: inherit; color: inherit; }
+.rt-root button:not(.lm-btn) { font: inherit; color: inherit; }
 .rt-num { font-family: var(--lm-font-num, sans-serif); font-variant-numeric: tabular-nums; }
 .rt-eyebrow { margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-ink-3); }
 .rt-k { margin: 0; font: 700 0.64rem/1 var(--lm-font-ui); letter-spacing: 0.13em; text-transform: uppercase; color: var(--lm-ink-3); }
@@ -323,3 +323,4 @@
 :lang(he) .rt-root, :lang(he) .rt-root * { letter-spacing: 0; }
 /* Signed numbers, Rx strings and the instrument faces are Latin/LTR content: keep minus signs and × on the right side. */
 .rt-root .rt-jewel, .rt-root .rt-lens__v, .rt-root .rt-crossv, .rt-root .rt-dial, .rt-root .rt-drum { direction: ltr; unicode-bidi: isolate; }
+@container rt (max-width: 760px) { .rt-head { border-radius: 26px; margin-inline: 10px; } .rt-foot { margin-inline: 10px; } }

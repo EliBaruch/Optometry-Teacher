@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { createRng } from '@core';
-import { useReducedMotion } from '@ui-kit';
+import { useReducedMotion, useStrings } from '@ui-kit';
 import { PatientAvatar, generateAvatar } from '@render';
 import { clockAngles, pickSitters } from './logic';
+import { S } from './strings';
 
 const SLOTS = [
   { left: '5%', w: '28%', delay: '0s', idle: 'a' },
@@ -21,22 +22,23 @@ type Gaze = { x: number; y: number } | null;
 /** Ambient vignette: a bright daylight waiting area: sunny window, wall clock, eye chart, parallax depth and three patients idling. */
 export function WaitingRoom({ compact }: { compact?: boolean }) {
   const reduced = useReducedMotion();
+  const t = useStrings(S);
   const [now, setNow] = useState(() => new Date());
   const [glance, setGlance] = useState<Gaze>(null);
   const room = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const t = window.setInterval(() => setNow(new Date()), reduced ? 30_000 : 1000);
-    return () => window.clearInterval(t);
+    const id = window.setInterval(() => setNow(new Date()), reduced ? 30_000 : 1000);
+    return () => window.clearInterval(id);
   }, [reduced]);
   // The first patient now and then glances up at the wall clock.
   useEffect(() => {
     if (reduced) return;
     let off = 0;
-    const t = window.setInterval(() => {
+    const id = window.setInterval(() => {
       setGlance({ x: 0.7, y: -0.6 });
       off = window.setTimeout(() => setGlance(null), 1800);
     }, 9000);
-    return () => { window.clearInterval(t); window.clearTimeout(off); };
+    return () => { window.clearInterval(id); window.clearTimeout(off); };
   }, [reduced]);
 
   const people = useMemo(
@@ -56,7 +58,9 @@ export function WaitingRoom({ compact }: { compact?: boolean }) {
   const leave = () => { room.current?.style.setProperty('--px', '0'); room.current?.style.setProperty('--py', '0'); };
 
   return (
-    <div ref={room} class={`hub-room${compact ? ' hub-room--compact' : ''}`} aria-hidden="true" onPointerMove={move} onPointerLeave={leave}>
+    <div class="hub-room-frame lm-glass" aria-hidden="true">
+    <span class="lm-label hub-room-frame__tag"><i />{t.waitingRoom}</span>
+    <div ref={room} class={`hub-room${compact ? ' hub-room--compact' : ''}`} onPointerMove={move} onPointerLeave={leave}>
       <div class="hub-room__layer hub-room__layer--back">
         <div class="hub-room__wall" />
         <div class="hub-room__window">
@@ -113,6 +117,7 @@ export function WaitingRoom({ compact }: { compact?: boolean }) {
         </svg>
       </div>
 
+    </div>
     </div>
   );
 }

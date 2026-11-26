@@ -7,7 +7,7 @@ import { GOLD } from './palette';
 export interface AvatarBustProps extends AvatarModelProps {
   /** Diameter in px. Default 48. */
   size?: number;
-  /** Ring colour (rank / rarity / rival accent). Default candle gold. */
+  /** Ring colour (rank / rarity / rival accent). Default brand gold. */
   ring?: string;
   /** Static by default — list rows shouldn't all be blinking at you. */
   animated?: boolean;
@@ -49,7 +49,7 @@ export function AvatarBust(props: AvatarBustProps) {
       </defs>
       <g clip-path={`url(#${clip})`}>
         <rect x={CX - R} y={cy - R} width={R * 2} height={R * 2} fill={c.url('bg')} />
-        <circle cx={CX + 40} cy={cy - 46} r="60" fill={c.url('key')} />
+        <circle cx={CX + 40} cy={cy - 46} r="90" fill={c.url('key')} />
         <g data-r="body">
           <BodyContent c={c} />
         </g>
@@ -59,7 +59,7 @@ export function AvatarBust(props: AvatarBustProps) {
           <FaceTop c={c} a={a} hair={hair} />
         </g>
       </g>
-      <circle cx={CX} cy={cy} r={R - 2} fill="none" stroke="#0f283c" stroke-opacity="0.12" stroke-width="5" />
+      <circle cx={CX} cy={cy} r={R - 2} fill="none" stroke="#0a1633" stroke-opacity="0.12" stroke-width="5" />
       <circle cx={CX} cy={cy} r={R - 3} fill="none" stroke={ring} stroke-width="3.2" />
       <circle cx={CX} cy={cy} r={R - 1} fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="0.8" />
     </svg>

@@ -29,7 +29,7 @@ export function HistoryPanel(props: {
     <GlassPanel
       class="exm-history"
       title={t.historyTitle}
-      eyebrow={t.historyEyebrow}
+      eyebrow={<><span class="exm-no">02</span>{t.historyEyebrow}</>}
       icon="book"
       padding="md"
       actions={<span class="exm-count lm-num" aria-label={t.historyCount(asked.length, total)}>{asked.length}/{total}</span>}

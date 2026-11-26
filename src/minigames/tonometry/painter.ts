@@ -215,11 +215,11 @@ export class FieldPainter {
     ctx.moveTo(mid, mid - 7);
     ctx.lineTo(mid, mid + 7);
     ctx.stroke();
-    // brass eyepiece rim
+    // silver eyepiece rim
     const rim = ctx.createLinearGradient(0, 0, S, S);
-    rim.addColorStop(0, '#f5d58a');
-    rim.addColorStop(0.5, '#6b4a1a');
-    rim.addColorStop(1, '#e9bf6a');
+    rim.addColorStop(0, '#ffffff');
+    rim.addColorStop(0.5, '#8a95ab');
+    rim.addColorStop(1, '#e4e9f3');
     ctx.strokeStyle = rim;
     ctx.lineWidth = 5;
     ctx.beginPath();

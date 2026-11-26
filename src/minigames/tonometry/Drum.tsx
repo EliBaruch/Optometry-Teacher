@@ -1,5 +1,5 @@
 /**
- * The Goldmann measuring drum: a brass knob whose engraved scale (grams; one
+ * The Goldmann measuring drum: a silver knob whose engraved scale (grams; one
  * division = 1 mmHg) turns under a fixed gold index. Drag round it, scroll, or
  * use the arrow keys (Shift = x5, PageUp/PageDown = x10).
  */
@@ -96,12 +96,12 @@ export function Drum({ value, onChange, disabled, label }: DrumProps) {
     const a = (ang * Math.PI) / 180;
     ticks.push(
       <line key={k} x1={100 + Math.cos(a) * r1} y1={100 + Math.sin(a) * r1} x2={100 + Math.cos(a) * r2} y2={100 + Math.sin(a) * r2}
-        stroke={major ? '#ffe3a0' : '#c9a35a'} stroke-width={major ? 2.4 : half ? 1.6 : 1} stroke-linecap="round" />,
+        stroke={major ? '#0a1633' : '#56637d'} stroke-width={major ? 2.4 : half ? 1.6 : 1} stroke-linecap="round" />,
     );
     if (half) {
       const rt = major ? 57 : 62;
       ticks.push(
-        <text key={`t${k}`} x={100 + Math.cos(a) * rt} y={100 + Math.sin(a) * rt} fill={major ? '#ffe3a0' : '#c9a35a'}
+        <text key={`t${k}`} x={100 + Math.cos(a) * rt} y={100 + Math.sin(a) * rt} fill={major ? '#0a1633' : '#56637d'}
           font-size={major ? 12 : 9} font-family="var(--lm-font-num, sans-serif)" font-weight="700" text-anchor="middle" dominant-baseline="central">
           {(k / 10).toFixed(k % 10 === 0 ? 0 : 1)}
         </text>,
@@ -111,7 +111,7 @@ export function Drum({ value, onChange, disabled, label }: DrumProps) {
   const grip = [];
   for (let i = 0; i < 36; i++) {
     const a = ((i * 10 - value * 4.5) * Math.PI) / 180;
-    grip.push(<line key={i} x1={100 + Math.cos(a) * 91} y1={100 + Math.sin(a) * 91} x2={100 + Math.cos(a) * 97} y2={100 + Math.sin(a) * 97} stroke="rgba(0,0,0,0.55)" stroke-width="2.6" />);
+    grip.push(<line key={i} x1={100 + Math.cos(a) * 91} y1={100 + Math.sin(a) * 91} x2={100 + Math.cos(a) * 97} y2={100 + Math.sin(a) * 97} stroke="rgba(10,22,51,0.22)" stroke-width="2.6" />);
   }
   return (
     <div
@@ -129,25 +129,25 @@ export function Drum({ value, onChange, disabled, label }: DrumProps) {
     >
       <svg viewBox="0 0 200 200" aria-hidden="true">
         <defs>
-          <radialGradient id="tn-brass" cx="35%" cy="30%" r="85%">
-            <stop offset="0" stop-color="#ffe9b3" />
-            <stop offset="0.45" stop-color="#c8963c" />
-            <stop offset="1" stop-color="#4a3010" />
+          <radialGradient id="tn-metal" cx="35%" cy="30%" r="85%">
+            <stop offset="0" stop-color="#ffffff" />
+            <stop offset="0.5" stop-color="#d6dce8" />
+            <stop offset="1" stop-color="#8a95ab" />
           </radialGradient>
           <radialGradient id="tn-face" cx="50%" cy="45%" r="60%">
-            <stop offset="0" stop-color="#241640" />
-            <stop offset="1" stop-color="#0a0516" />
+            <stop offset="0" stop-color="#ffffff" />
+            <stop offset="1" stop-color="#e3e9f5" />
           </radialGradient>
         </defs>
-        <circle cx="100" cy="100" r="99" fill="url(#tn-brass)" />
+        <circle cx="100" cy="100" r="99" fill="url(#tn-metal)" />
         {grip}
-        <circle cx="100" cy="100" r="88" fill="url(#tn-face)" stroke="#1a0f08" stroke-width="2" />
+        <circle cx="100" cy="100" r="88" fill="url(#tn-face)" stroke="rgba(10,22,51,0.18)" stroke-width="2" />
         {ticks}
-        <circle cx="100" cy="100" r="40" fill="url(#tn-brass)" opacity="0.92" />
-        <circle cx="100" cy="100" r="34" fill="#12091f" stroke="rgba(255,226,160,0.35)" />
-        <text x="100" y="96" text-anchor="middle" font-size="22" font-weight="800" fill="#ffe3a0" font-family="var(--lm-font-num, sans-serif)">{Math.round(value)}</text>
-        <text x="100" y="114" text-anchor="middle" font-size="8.5" fill="#c9a35a" letter-spacing="1" font-family="var(--lm-font-ui, sans-serif)">mmHg</text>
-        <path d="M100 4 L93 -7 L107 -7 Z" transform="translate(0 14)" fill="#ffd27a" stroke="#4a3010" stroke-width="1" />
+        <circle cx="100" cy="100" r="40" fill="url(#tn-metal)" opacity="0.92" />
+        <circle cx="100" cy="100" r="34" fill="#0a1633" stroke="rgba(255,255,255,0.6)" />
+        <text x="100" y="96" text-anchor="middle" font-size="22" font-weight="800" fill="#ffffff" font-family="var(--lm-font-num, sans-serif)">{Math.round(value)}</text>
+        <text x="100" y="114" text-anchor="middle" font-size="8.5" fill="#b9c6e4" letter-spacing="1" font-family="var(--lm-font-ui, sans-serif)">mmHg</text>
+        <path d="M100 4 L93 -7 L107 -7 Z" transform="translate(0 14)" fill="#2257f0" stroke="#fff" stroke-width="1" />
       </svg>
     </div>
   );

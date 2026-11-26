@@ -1,17 +1,25 @@
 import { pickStrings, type HubEntry, type Locale, type ModeModule, type ModeRules } from '@core';
 import { S } from './strings';
 
+export type RuleTone = 'blue' | 'teal' | 'red' | 'orange' | 'yellow' | 'purple';
+export interface RuleChip { text: string; tone: RuleTone }
+
+/** Rule chips with a colour-coded meaning (Monday-style labels): caseload blue, endless teal, lives red, clock orange, score yellow, no-hints purple. */
+export function ruleChips(rules: ModeRules, locale: Locale = 'en'): RuleChip[] {
+  const t = pickStrings(S, locale);
+  const out: RuleChip[] = [];
+  if (rules.length === 'endless') out.push({ text: t.endless, tone: 'teal' });
+  else out.push({ text: t.patients(rules.length), tone: 'blue' });
+  if (rules.lives != null) out.push({ text: t.lives(rules.lives), tone: 'red' });
+  if (rules.timeLimitSec) out.push({ text: rules.timeLimitSec >= 120 && rules.timeLimitSec % 60 === 0 ? t.minEach(rules.timeLimitSec / 60) : t.secEach(rules.timeLimitSec), tone: 'orange' });
+  if (rules.scoreMultiplier && rules.scoreMultiplier !== 1) out.push({ text: t.scoreMult(+rules.scoreMultiplier.toFixed(2)), tone: 'yellow' });
+  if (rules.hints === false) out.push({ text: t.noHints, tone: 'purple' });
+  return out;
+}
+
 /** Short rule chips for a mode card: '5 patients', 'Endless', '3 lives', '90 s each', '×1.5 score'. */
 export function rulesSummary(rules: ModeRules, locale: Locale = 'en'): string[] {
-  const t = pickStrings(S, locale);
-  const out: string[] = [];
-  if (rules.length === 'endless') out.push(t.endless);
-  else out.push(t.patients(rules.length));
-  if (rules.lives != null) out.push(t.lives(rules.lives));
-  if (rules.timeLimitSec) out.push(rules.timeLimitSec >= 120 && rules.timeLimitSec % 60 === 0 ? t.minEach(rules.timeLimitSec / 60) : t.secEach(rules.timeLimitSec));
-  if (rules.scoreMultiplier && rules.scoreMultiplier !== 1) out.push(t.scoreMult(+rules.scoreMultiplier.toFixed(2)));
-  if (rules.hints === false) out.push(t.noHints);
-  return out;
+  return ruleChips(rules, locale).map((c) => c.text);
 }
 
 export const byOrder = <T extends { order: number; id: string }>(list: readonly T[]): T[] =>

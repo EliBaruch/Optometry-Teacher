@@ -1,6 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { AvatarBust, EyeCanvas, eyeStateFromFindings } from '@render';
-import { Badge, Icon, cx, useLocale, useStrings } from '@ui-kit';
+import { Badge, Icon, cx, palette, useLocale, useStrings } from '@ui-kit';
 import { Safe } from './Safe';
 import { affectedEye, type ReviewModel } from './model';
 import { S } from './strings';
@@ -75,7 +75,7 @@ export function VerdictCard({ review, flipped, landed, reduced, settled, cardRef
           </div>
           <div class="rs-card__patient">
             <Safe fallback={<span class="rs-card__avatar-ph" />}>
-              <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={52} ring={verdict === 'correct' ? '#ffd27a' : '#a99bbd'} reducedMotion={reduced} label={p.name} />
+              <AvatarBust spec={p.avatar} age={p.age} sex={p.sex} size={52} ring={verdict === 'correct' ? palette.gold : '#8a95ab'} reducedMotion={reduced} label={p.name} />
             </Safe>
             <div class="rs-card__patient-text">
               <strong>{p.name}</strong>

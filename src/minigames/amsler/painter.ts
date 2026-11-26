@@ -228,7 +228,7 @@ export class CardPainter {
     const dr = l.g * 0.012;
     const glow = lc.createRadialGradient(cx, cy, 0, cx, cy, dr * 5);
     glow.addColorStop(0, 'rgba(255, 226, 160, 0.55)');
-    glow.addColorStop(1, 'rgba(255, 210, 122, 0)');
+    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
     lc.fillStyle = glow;
     lc.beginPath();
     lc.arc(cx, cy, dr * 5, 0, Math.PI * 2);
@@ -310,9 +310,9 @@ export class CardPainter {
     const R = s.ripple * 17 * scale;
     const a = 0.5 * (1 - s.ripple) ** 1.4;
     const g = ctx.createRadialGradient(cx, cy, Math.max(0, R - 14 * l.dpr), cx, cy, R + 14 * l.dpr);
-    g.addColorStop(0, 'rgba(255,210,122,0)');
+    g.addColorStop(0, 'rgba(255,255,255,0)');
     g.addColorStop(0.5, `rgba(255,226,170,${a})`);
-    g.addColorStop(1, 'rgba(255,210,122,0)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     ctx.fillStyle = g;

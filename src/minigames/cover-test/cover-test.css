@@ -5,7 +5,7 @@
   position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; outline: none; overflow: hidden;
   color: var(--lm-ink); font-family: var(--lm-font-ui, system-ui, sans-serif); background: transparent;
 }
-.cvt-root button { font: inherit; color: inherit; }
+.cvt-root button:not(.lm-btn) { font: inherit; color: inherit; }
 .cvt-num { font-family: var(--lm-font-num, sans-serif); font-variant-numeric: tabular-nums; }
 .cvt-eyebrow { margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-ink-3); }
 .cvt-root :focus-visible { outline: 2px solid var(--lm-brand-600); outline-offset: 2px; }
@@ -213,3 +213,4 @@
 .cvt-num { unicode-bidi: isolate; }
 :lang(he) .cvt-eyebrow, :lang(he) .cvt-step, :lang(he) .cvt-chip { letter-spacing: 0; }
 :lang(he) .cvt-fix__lab, :lang(he) .cvt-eyelab { direction: rtl; }
+@media (max-width: 760px) { .cvt-head, .cvt-foot { margin-inline: 10px; } }

@@ -13,7 +13,7 @@ const CSS = `
   color: var(--lfx-c, #3b6bff);
   -webkit-text-stroke: 3px rgba(255, 255, 255, 0.92);
   paint-order: stroke fill;
-  text-shadow: 0 4px 14px rgba(15, 40, 60, 0.18);
+  text-shadow: 0 4px 16px rgba(10, 22, 51, 0.16);
   opacity: 0; transform: translate(-50%, -50%);
 }
 .lfx-flash {
@@ -23,9 +23,9 @@ const CSS = `
 .lfx-vignette {
   position: absolute; inset: 0; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 52%,
-    color-mix(in srgb, var(--lfx-c, #ef4444) 32%, transparent) 82%,
-    color-mix(in srgb, var(--lfx-c, #ef4444) 62%, transparent) 115%);
-  box-shadow: inset 0 0 120px 10px color-mix(in srgb, var(--lfx-c, #ef4444) 34%, transparent);
+    color-mix(in srgb, var(--lfx-c, #ff5a6e) 32%, transparent) 82%,
+    color-mix(in srgb, var(--lfx-c, #ff5a6e) 62%, transparent) 115%);
+  box-shadow: inset 0 0 120px 10px color-mix(in srgb, var(--lfx-c, #ff5a6e) 34%, transparent);
   mix-blend-mode: normal;
 }
 .fx-hitstop { scale: 1.006; filter: saturate(1.06); transition: none !important; }

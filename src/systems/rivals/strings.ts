@@ -97,7 +97,7 @@ export const S = defineStrings({
     // scene
     sceneTitle: 'Rivals',
     sceneEyebrow: (div: string, week: number) => `${div} · Week ${week}`,
-    divisions: ['Lantern Division', 'Prism Division', 'Aurora Division'],
+    divisions: ['Spark Division', 'Prism Division', 'Aurora Division'],
     yourPlace: 'Your place this week',
     heroOf: (n: number) => `of ${n}`,
     heroNone: 'Not on the board yet',
@@ -252,7 +252,7 @@ export const S = defineStrings({
     pathYourRoute: 'המסלול שלכם · ',
     sceneTitle: 'עמיתים',
     sceneEyebrow: (div: string, week: number) => `${div} · שבוע ${week}`,
-    divisions: ['ליגת הפנס', 'ליגת המנסרה', 'ליגת הזוהר'],
+    divisions: ['ליגת הניצוץ', 'ליגת המנסרה', 'ליגת הזוהר'],
     yourPlace: 'המקום שלכם השבוע',
     heroOf: (n: number) => `מתוך ${n}`,
     heroNone: 'עוד לא על הלוח',

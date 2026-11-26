@@ -71,9 +71,9 @@ export function ProfileScene({ services }: SceneProps) {
 
   const go = (id: string) => scenes.some((s) => s.id === id) && services.router.go(id);
   const links: { id: string; title: string; sub: string; icon: IconName; accent: string }[] = [
-    { id: 'codex', title: t.links.codex![0], sub: t.links.codex![1], icon: 'book', accent: '#ffd27a' },
-    { id: 'arcade', title: t.links.arcade![0], sub: t.links.arcade![1], icon: 'target', accent: '#5eead4' },
-    { id: 'settings', title: t.links.settings![0], sub: t.links.settings![1], icon: 'settings', accent: '#a78bfa' },
+    { id: 'codex', title: t.links.codex![0], sub: t.links.codex![1], icon: 'book', accent: '#2257f0' },
+    { id: 'arcade', title: t.links.arcade![0], sub: t.links.arcade![1], icon: 'target', accent: '#059669' },
+    { id: 'settings', title: t.links.settings![0], sub: t.links.settings![1], icon: 'settings', accent: '#56637d' },
   ].filter((l) => scenes.some((s) => s.id === l.id)) as typeof links;
 
   const d = (i: number) => ({ '--lm-delay': `${reduced ? 0 : 120 + i * 80}ms` });
@@ -123,8 +123,8 @@ export function ProfileScene({ services }: SceneProps) {
       <Divider />
 
       <section class="profile-stats" aria-label={t.learning}>
-        <GlassPanel class="profile-stat lm-enter" style={d(1)} accent="#5eead4" glow>
-          <RingMeter value={total ? stats.seen / total : 0} size={ring} accent="#5eead4" ariaLabel={t.encounteredAria}>
+        <GlassPanel class="profile-stat lm-enter" style={d(1)} accent="#2257f0" glow>
+          <RingMeter value={total ? stats.seen / total : 0} size={ring} accent="#2257f0" ariaLabel={t.encounteredAria}>
             <CountUp value={stats.seen} class="profile-stat__num" delay={reduced ? 0 : 300} />
           </RingMeter>
           <div class="profile-stat__text">
@@ -132,8 +132,8 @@ export function ProfileScene({ services }: SceneProps) {
             <div class="profile-stat__sub">{total ? <>{t.ofTotal} <span class="lm-num">{total}</span> {t.conditionsInCodex}</> : t.conditionsMet}</div>
           </div>
         </GlassPanel>
-        <GlassPanel class="profile-stat lm-enter" style={d(2)} accent="#ffd27a" glow>
-          <RingMeter value={stats.seen ? stats.mastered / stats.seen : 0} size={ring} accent="#ffd27a" ariaLabel={t.masteredAria}>
+        <GlassPanel class="profile-stat lm-enter" style={d(2)} accent="#7c3aed" glow>
+          <RingMeter value={stats.seen ? stats.mastered / stats.seen : 0} size={ring} accent="#7c3aed" ariaLabel={t.masteredAria}>
             <CountUp value={stats.mastered} class="profile-stat__num" delay={reduced ? 0 : 420} />
           </RingMeter>
           <div class="profile-stat__text">
@@ -141,8 +141,8 @@ export function ProfileScene({ services }: SceneProps) {
             <div class="profile-stat__sub">{t.masteredSub}</div>
           </div>
         </GlassPanel>
-        <GlassPanel class={cx('profile-stat lm-enter', stats.due > 0 && 'is-due')} style={d(3)} accent="#38bdf8" glow={stats.due > 0}>
-          <RingMeter value={stats.seen ? Math.min(1, stats.due / stats.seen) : 0} size={ring} accent="#38bdf8" ariaLabel={t.dueAria}>
+        <GlassPanel class={cx('profile-stat lm-enter', stats.due > 0 && 'is-due')} style={d(3)} accent="#ea580c" glow={stats.due > 0}>
+          <RingMeter value={stats.seen ? Math.min(1, stats.due / stats.seen) : 0} size={ring} accent="#ea580c" ariaLabel={t.dueAria}>
             <CountUp value={stats.due} class="profile-stat__num" delay={reduced ? 0 : 540} />
           </RingMeter>
           <div class="profile-stat__text">

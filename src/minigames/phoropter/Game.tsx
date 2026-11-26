@@ -413,7 +413,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
             <Button variant="glass" size="md" sfx={false} onClick={ask} disabled={busy} class="php-ask">
               <span class="php-ask__n">1·2</span> {askLabel} <Kbd>A</Kbd>
             </Button>
-            <Button variant="ghost" size="md" sfx={false} onClick={read} disabled={busy} icon="eye">
+            <Button variant="glass" size="md" sfx={false} onClick={read} disabled={busy} icon="eye" class="php-ask">
               {t.read} <Kbd>R</Kbd>
             </Button>
           </div>

@@ -95,15 +95,6 @@ export function CodexScene({ services, params }: SceneProps) {
   return (
     <Screen title={t.title} eyebrow={t.eyebrow} onBack={() => services.router.back()} escToBack hud={!narrow} backdrop="calm" class="codex-scene" contentClass="codex-content">
       <div class="codex-hero" ref={heroRef}>
-        <svg class="codex-hero__chart" viewBox="0 0 400 200" aria-hidden="true">
-          <g class="codex-hero__rings">
-            {[30, 58, 86, 114].map((r) => <circle key={r} cx="330" cy="40" r={r} />)}
-          </g>
-          <g class="codex-hero__stars">
-            <path d="M40 150 90 120 140 135 175 95 230 110" />
-            {[[40, 150], [90, 120], [140, 135], [175, 95], [230, 110], [300, 160], [260, 60], [60, 70]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.2 : 1.4} />)}
-          </g>
-        </svg>
         <div class="codex-hero__text lm-enter">
           <p class="codex-hero__lede">{t.lede}</p>
           <div class="codex-hero__progress">
@@ -158,7 +149,7 @@ export function CodexScene({ services, params }: SceneProps) {
 
       {all.length === 0 && (
         <div class="codex-empty lm-enter">
-          <Illumination letter="L" accent="#ffd27a" size={88} />
+          <Illumination letter="L" accent="#2257f0" size={88} />
           <h2>{t.emptyTitle}</h2>
           <p>{t.emptyBody}</p>
         </div>

@@ -362,7 +362,7 @@ function drawPins(c: CanvasRenderingContext2D, p: FrameParams, toS: (x: number, 
   if (p.pending) {
     const o = toS(p.pending.x, p.pending.y);
     c.save();
-    c.strokeStyle = 'rgba(255,210,122,0.95)';
+    c.strokeStyle = 'rgba(255,255,255,0.95)';
     c.lineWidth = 1.5;
     c.setLineDash([4, 3]);
     c.beginPath();
@@ -416,12 +416,12 @@ function drawMiniMap(c: CanvasRenderingContext2D, p: FrameParams, d: number): vo
   c.save();
   c.globalAlpha = 0.9;
   c.fillStyle = 'rgba(8,4,18,0.62)';
-  c.strokeStyle = 'rgba(255,230,190,0.28)';
+  c.strokeStyle = 'rgba(255,255,255,0.35)';
   c.lineWidth = 1;
   roundRect(c, x0 - 6, y0 - 6, mw + 12, mh + 12, 9);
   c.fill();
   c.stroke();
-  c.strokeStyle = 'rgba(255,230,190,0.55)';
+  c.strokeStyle = 'rgba(255,255,255,0.6)';
   c.beginPath();
   c.ellipse(cx, cy, 15 * k, 5.6 * k, 0, 0, TAU);
   c.stroke();
@@ -433,7 +433,7 @@ function drawMiniMap(c: CanvasRenderingContext2D, p: FrameParams, d: number): vo
   c.beginPath();
   c.arc(cx, cy, 1.6 * k, 0, TAU);
   c.fill();
-  c.strokeStyle = 'rgba(255,210,122,0.95)';
+  c.strokeStyle = 'rgba(126,170,255,0.98)';
   c.lineWidth = 1.2;
   const wx = cx + (pan.x - half) * k;
   const wy = cy + (pan.y - half) * k;

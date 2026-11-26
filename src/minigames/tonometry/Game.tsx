@@ -215,7 +215,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
 
   const burstAtScope = (kind: 'sparks' | 'stars' | 'confetti') => {
     const r = canvasRef.current?.getBoundingClientRect();
-    if (r) fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind, count: 26, color: '#ffd27a' });
+    if (r) fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind, count: 26, color: '#2257f0' });
   };
 
   const lock = () => {
@@ -232,7 +232,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
     play('lens-click');
     glow();
     const err = Math.abs(m.reading - T);
-    if (err <= 1 && alignQuality(m.centreErr) > 0.85) { play('success'); burstAtScope('stars'); fx.floatText(`${m.reading} mmHg`, innerWidth / 2, innerHeight / 2, { color: '#ffd27a', size: 28 }); }
+    if (err <= 1 && alignQuality(m.centreErr) > 0.85) { play('success'); burstAtScope('stars'); fx.floatText(`${m.reading} mmHg`, innerWidth / 2, innerHeight / 2, { color: '#2257f0', size: 28 }); }
     setMeasures((p) => ({ ...p, [e]: m }));
     const other = EYES.find((x) => x !== e)!;
     if (!live.current.measures[other]) switchEye(other, true);

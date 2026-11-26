@@ -93,11 +93,11 @@ function drawConfetti(g: Ctx, p: Particle, a: number): void {
   g.globalAlpha = a;
   g.translate(p.x, p.y);
   g.rotate(p.rot);
-  const s = p.size * popScale(p);
+  const s = p.size * 1.18 * popScale(p);
   if (p.variant === 1) {
     // curling ribbon
     g.strokeStyle = flip > 0 ? p.color : p.color2;
-    g.lineWidth = Math.max(1.2, s * 0.32);
+    g.lineWidth = Math.max(1.8, s * 0.4);
     g.lineCap = 'round';
     g.beginPath();
     const curl = Math.sin(p.phase * 0.7) * s * 0.9;
@@ -109,7 +109,7 @@ function drawConfetti(g: Ctx, p: Particle, a: number): void {
     g.fillStyle = flip > 0 ? p.color : p.color2;
     g.fillRect(-s * 0.7, -s * 0.32, s * 1.4, s * 0.64);
     if (flip > 0.6) {
-      g.fillStyle = 'rgba(255,255,255,0.35)';
+      g.fillStyle = 'rgba(255,255,255,0.55)';
       g.fillRect(-s * 0.7, -s * 0.32, s * 1.4, s * 0.16);
     }
   }

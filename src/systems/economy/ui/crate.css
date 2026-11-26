@@ -4,12 +4,12 @@
 @property --leak { syntax: '<number>'; inherits: true; initial-value: 0.12; }
 .eco-crate { display: block; overflow: visible; --leak: 0.12; }
 .eco-crate__seam { opacity: var(--leak); filter: drop-shadow(0 0 4px var(--trim)) drop-shadow(0 0 10px var(--trim)); transition: opacity 300ms; }
-.eco-crate__shafts { opacity: calc((var(--leak) - 0.3) * 1.4); mix-blend-mode: screen; transform-box: view-box; transform-origin: 100px 84px; }
+.eco-crate__shafts { opacity: calc((var(--leak) - 0.3) * 1.4); transform-box: view-box; transform-origin: 100px 84px; }
 .eco-crate__cracks { opacity: calc((var(--leak) - 0.45) * 1.8); filter: drop-shadow(0 0 3px var(--trim)) drop-shadow(0 0 8px var(--trim)); }
 .eco-crate__keyhole { opacity: calc((var(--leak) - 0.2) * 1.2); filter: drop-shadow(0 0 4px #fff6d6) drop-shadow(0 0 10px var(--trim)); }
 .eco-crate__inner { opacity: 0; transform-box: fill-box; transform-origin: center; }
 .eco-crate__lid, .eco-crate__body { transform-box: view-box; transform-origin: 100px 84px; }
-.eco-crate__emblem { filter: drop-shadow(0 0 3px var(--trim)); }
+.eco-crate__emblem { }
 .eco-crate__glint { transform-box: fill-box; transform-origin: center; opacity: 0; animation: eco-glint 3.2s var(--lm-ease-in-out) infinite; }
 @keyframes eco-glint { 0%, 70%, 100% { opacity: 0; transform: scale(0.3) rotate(0); } 80% { opacity: 1; transform: scale(1) rotate(45deg); } }
 
@@ -19,30 +19,30 @@
 /* ── Opening overlay ───────────────────────────────────────────────────── */
 .eco-open {
   position: fixed; inset: 0; z-index: var(--lm-z-modal); display: grid; place-items: center; overflow: hidden;
-  color: var(--lm-ivory); font-family: var(--lm-font-ui); outline: none;
+  color: var(--lm-ink); font-family: var(--lm-font-ui); outline: none;
   animation: eco-fade-in 320ms var(--lm-ease-out) both;
 }
 @keyframes eco-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .eco-open__scrim {
   position: absolute; inset: 0;
-  background: radial-gradient(60% 50% at 50% 45%, color-mix(in srgb, var(--rc) 16%, rgba(20, 10, 36, 0.86)), rgba(4, 2, 10, 0.94) 75%);
-  backdrop-filter: blur(10px) saturate(130%); -webkit-backdrop-filter: blur(10px) saturate(130%);
+  background: radial-gradient(60% 50% at 50% 45%, color-mix(in srgb, var(--rc) 16%, rgba(255, 255, 255, 0.96)), rgba(238, 242, 250, 0.985) 75%);
+  backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%);
   transition: background 600ms var(--lm-ease-out);
 }
 .eco-open__rays {
   position: absolute; left: 50%; top: 44%; width: 150vmax; height: 150vmax; margin: -75vmax 0 0 -75vmax; will-change: transform, opacity; pointer-events: none;
-  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rc) 34%, transparent) 0deg 3deg, transparent 6deg 14deg, color-mix(in srgb, var(--trim) 22%, transparent) 16deg 18deg, transparent 20deg 24deg);
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rc) 24%, transparent) 0deg 3deg, transparent 6deg 14deg, color-mix(in srgb, var(--trim) 16%, transparent) 16deg 18deg, transparent 20deg 24deg);
   -webkit-mask: radial-gradient(circle, #000 0, rgba(0, 0, 0, 0.55) 10%, transparent 36%); mask: radial-gradient(circle, #000 0, rgba(0, 0, 0, 0.55) 10%, transparent 36%);
   opacity: 0; transform: scale(0.6); transition: opacity 700ms var(--lm-ease-out), transform 900ms var(--lm-ease-out-expo);
   animation: eco-rays 26s linear infinite;
 }
 @keyframes eco-rays { to { rotate: 360deg; } }
 .eco-open__stage { position: relative; display: grid; justify-items: center; gap: 14px; padding: 24px 16px; width: min(560px, 100%); text-align: center; }
-.eco-open__eyebrow { color: var(--trim); text-shadow: 0 0 14px color-mix(in srgb, var(--trim) 60%, transparent); }
-.eco-open__crate { cursor: pointer; position: relative; filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.6)); -webkit-tap-highlight-color: transparent; }
+.eco-open__eyebrow { color: var(--trim); font-weight: 700; }
+.eco-open__crate { cursor: pointer; position: relative; filter: drop-shadow(0 24px 26px rgba(10, 22, 51, 0.22)); -webkit-tap-highlight-color: transparent; }
 .eco-open__actions { display: grid; justify-items: center; gap: 10px; min-height: 92px; }
-.eco-open__hint { font-size: var(--lm-fs-xs); color: var(--lm-muted); max-width: 40ch; }
-.eco-open__hint--skip { letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.7; animation: eco-blink 1.4s ease-in-out infinite; }
+.eco-open__hint { font-size: var(--lm-fs-xs); color: var(--lm-ink-3); max-width: 40ch; }
+.eco-open__hint--skip { letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.8; animation: eco-blink 1.4s ease-in-out infinite; }
 @keyframes eco-blink { 50% { opacity: 0.3; } }
 .eco-open__buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; animation: eco-rise 600ms var(--lm-ease-out-expo) 500ms both; }
 
@@ -87,7 +87,7 @@
 @keyframes eco-inner { 0% { opacity: 0; transform: scale(0.6); } 40% { opacity: 1; transform: scale(2.4, 3.2); } 100% { opacity: 1; transform: scale(3.2, 5); } }
 .eco-open--burst .eco-open__stage::after {
   content: ''; position: absolute; left: 50%; top: 40%; width: 20px; height: 20px; margin: -10px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, #fff, color-mix(in srgb, var(--rc) 70%, transparent) 40%, transparent 70%);
+  background: radial-gradient(circle, #fff, color-mix(in srgb, var(--rc) 55%, transparent) 40%, transparent 70%);
   animation: eco-shock 480ms var(--lm-ease-out) both;
 }
 @keyframes eco-shock { from { transform: scale(1); opacity: 1; } to { transform: scale(40); opacity: 0; } }
@@ -95,7 +95,7 @@
 /* reveal */
 .eco-open--reveal .eco-open__rays { opacity: 0.55; transform: scale(1.1); }
 .eco-open--legendary.eco-open--reveal .eco-open__rays {
-  background: repeating-conic-gradient(from 0deg, rgba(255, 210, 122, 0.6) 0 4deg, transparent 4deg 10deg, rgba(185, 162, 255, 0.5) 10deg 14deg, transparent 14deg 20deg);
+  background: repeating-conic-gradient(from 0deg, rgba(245, 165, 36, 0.4) 0 4deg, transparent 4deg 10deg, rgba(162, 93, 220, 0.34) 10deg 14deg, transparent 14deg 20deg);
 }
 
 /* ── Prize card ───────────────────────────────────────────────────────── */
@@ -105,14 +105,13 @@
   60% { opacity: 1; }
   100% { opacity: 1; transform: none; }
 }
-.eco-prize__glow { position: absolute; inset: -30%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--rc) 45%, transparent), transparent 62%); filter: blur(10px); animation: eco-breathe 2.8s ease-in-out infinite; }
+.eco-prize__glow { position: absolute; inset: -30%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--rc) 35%, transparent), transparent 62%); filter: blur(10px); animation: eco-breathe 2.8s ease-in-out infinite; }
 @keyframes eco-breathe { 50% { transform: scale(1.08); opacity: 0.8; } }
 .eco-prize__card {
   position: relative; isolation: isolate; overflow: hidden; display: grid; justify-items: center; gap: 8px;
   width: min(320px, 84vw); padding: 30px 22px 22px; border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 40%), linear-gradient(160deg, rgba(62, 41, 102, 0.9), rgba(17, 10, 32, 0.95));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rc) 60%, transparent), inset 0 0 40px -10px color-mix(in srgb, var(--rc) 50%, transparent),
-    0 0 60px -10px color-mix(in srgb, var(--rc) 70%, transparent), var(--lm-shadow-3);
+  background: var(--lm-glass-sheen), var(--lm-glass-bg-strong);
+  box-shadow: var(--lm-glass-highlight), 0 0 0 1px color-mix(in srgb, var(--rc) 40%, transparent), 0 30px 60px -20px color-mix(in srgb, var(--rc) 55%, transparent), var(--lm-shadow-3);
 }
 .eco-prize--legendary .eco-prize__card::before {
   content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 2px;
@@ -123,7 +122,7 @@
 .eco-prize__rarity {
   position: absolute; top: 10px; left: 50%; transform: translateX(-50%); white-space: nowrap;
   padding: 3px 12px; border-radius: 999px; font: 700 10px/1.4 var(--lm-font-ui); letter-spacing: 0.2em; text-transform: uppercase;
-  color: #120a1c; background: var(--rc); box-shadow: 0 0 16px var(--rc);
+  color: var(--lm-ink); background: var(--rc); box-shadow: 0 6px 14px -4px var(--rc);
   animation: eco-stamp 520ms var(--lm-ease-spring) 280ms both;
 }
 @keyframes eco-stamp { from { opacity: 0; transform: translateX(-50%) scale(2.2); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
@@ -131,15 +130,15 @@
 .eco-prize__art .eco-swatch { height: 140px; }
 .eco-prize__art .eco-frame { width: 92%; }
 .eco-prize__coins, .eco-prize__notes { display: grid; place-items: center; width: 132px; height: 132px; border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--rc) 30%, transparent), transparent 70%); }
-.eco-prize__notes { color: var(--rc); filter: drop-shadow(0 0 12px var(--rc)); }
-.eco-prize__title { font-family: var(--lm-font-display); font-weight: 540; font-size: var(--lm-fs-2xl); color: var(--lm-ivory); line-height: 1.1; }
-.eco-prize__title .lm-countup { font-family: var(--lm-font-num); font-weight: 700; color: #ffe1a0; }
-.eco-prize__glyph { color: var(--lm-gold); }
-.eco-prize__sub { font-size: var(--lm-fs-sm); color: var(--lm-muted); max-width: 30ch; }
+  background: radial-gradient(circle, color-mix(in srgb, var(--rc) 24%, transparent), transparent 70%); }
+.eco-prize__notes { color: color-mix(in srgb, var(--rc) 70%, #0a1633); }
+.eco-prize__title { font-family: var(--lm-font-display); font-weight: 800; letter-spacing: var(--lm-tracking-display); font-size: var(--lm-fs-2xl); color: var(--lm-ink); line-height: 1.1; }
+.eco-prize__title .lm-countup { font-family: var(--lm-font-num); font-weight: 700; color: var(--lm-coin-deep); }
+.eco-prize__glyph { color: var(--lm-coin); }
+.eco-prize__sub { font-size: var(--lm-fs-sm); color: var(--lm-ink-3); max-width: 30ch; }
 .eco-prize__shine {
   position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.28) 48%, rgba(255, 255, 255, 0.05) 54%, transparent 62%);
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.7) 48%, rgba(255, 255, 255, 0.1) 54%, transparent 62%);
   transform: translateX(-120%); animation: eco-shine 2.6s var(--lm-ease-in-out) 700ms infinite;
 }
 @keyframes eco-shine { 0% { transform: translateX(-120%); } 55%, 100% { transform: translateX(120%); } }
@@ -159,8 +158,8 @@
 }
 html.reduced-motion .eco-crate--idle, html.reduced-motion .eco-crate__glint { animation: none !important; }
 
-/* brass specular sweep (idle crates only; parked off-screen otherwise) */
-.eco-crate__sheen { opacity: 0.55; mix-blend-mode: overlay; }
+/* specular sweep (idle crates only; parked off-screen otherwise) */
+.eco-crate__sheen { opacity: 0.7; }
 .eco-crate--idle .eco-crate__sheen, .eco-open--ready .eco-crate__sheen { animation: eco-sheen 4.6s var(--lm-ease-in-out) infinite; }
 @keyframes eco-sheen { 0%, 55% { transform: skewX(-18deg) translateX(0); } 100% { transform: skewX(-18deg) translateX(260px); } }
 .eco-open--burst .eco-crate__sheen-clip, .eco-open--shaking .eco-crate__sheen-clip { opacity: 0; }

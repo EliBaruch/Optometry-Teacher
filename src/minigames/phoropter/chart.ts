@@ -86,8 +86,8 @@ export class ChartPainter {
       c.fillRect(W / 2, 0, W / 2, H);
     } else {
       const g = c.createRadialGradient(W / 2, H * 0.45, 10, W / 2, H / 2, Math.max(W, H) * 0.7);
-      g.addColorStop(0, '#fffdf8');
-      g.addColorStop(1, '#ece6da');
+      g.addColorStop(0, '#ffffff');
+      g.addColorStop(1, '#eef2f8');
       c.fillStyle = g;
       c.fillRect(0, 0, W, H);
     }
@@ -130,7 +130,7 @@ export class ChartPainter {
     const H = this.canvas.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (f.dark) {
-      ctx.fillStyle = '#050309';
+      ctx.fillStyle = '#0b1220';
       ctx.fillRect(0, 0, W, H);
       return [];
     }
@@ -142,7 +142,7 @@ export class ChartPainter {
     ctx.scale(f.scale, f.scale);
     ctx.translate(-W / 2, -H / 2);
     if (f.scale < 1) {
-      ctx.fillStyle = f.layout === 'duochrome' ? '#222' : '#efe9de';
+      ctx.fillStyle = f.layout === 'duochrome' ? '#222' : '#eef2f8';
       ctx.fillRect(-W, -H, W * 3, H * 3);
     }
     if (f.layout === 'full') {
@@ -156,11 +156,11 @@ export class ChartPainter {
     }
     ctx.restore();
     if (f.haze > 0) {
-      ctx.fillStyle = `rgba(236, 228, 214, ${Math.min(0.75, f.haze)})`;
+      ctx.fillStyle = `rgba(238, 242, 248, ${Math.min(0.75, f.haze)})`;
       ctx.fillRect(0, 0, W, H);
     }
     if (f.dim > 0) {
-      ctx.fillStyle = `rgba(20, 12, 30, ${Math.min(0.16, f.dim * 0.16)})`;
+      ctx.fillStyle = `rgba(10, 22, 51, ${Math.min(0.16, f.dim * 0.16)})`;
       ctx.fillRect(0, 0, W, H);
     }
     return this.lineYs.map((l) => ({

@@ -11,7 +11,7 @@ import { dayKey, timeLeftLabel, weekEnd, weekNumber, weekStart } from '../week';
 import { S, rivalText, text } from '../strings';
 import { PlayerPortrait, Rich, RivalPortrait, Sparkline, useOrdinal, useRivals } from './shared';
 
-const MEDAL = ['#ffd27a', '#d9e2ef', '#e0a36b'];
+const MEDAL = ['#ffcb00', '#c3ccdb', '#fdab3d'];
 
 export function RivalsScene({ services }: SceneProps) {
   const { ctl, state, now } = useRivals(services, 20_000);
@@ -84,7 +84,7 @@ export function RivalsScene({ services }: SceneProps) {
           <div class="rv-hero__chart">
             <Sparkline series={series} t0={weekStart(now)} t1={weekEnd(now)} height={170} days nowAt={now} label={t.sparkAria} />
             <ul class="rv-legend">
-              <li style={{ '--rv-c': '#ffd27a' }}>{t.you}</li>
+              <li style={{ '--rv-c': '#2257f0' }}>{t.you}</li>
               {ROSTER.map((r) => <li key={r.id} style={{ '--rv-c': r.color }}>{rivalText(r, locale).short}</li>)}
             </ul>
           </div>
@@ -161,7 +161,7 @@ function BoardRow(props: { row: Standing; i: number; state: RivalsState; playerN
     </>
   );
   return (
-    <li class={`rv-brow${you ? ' is-you' : ''}${props.focused ? ' is-focused' : ''}`} style={{ '--rv-i': i, '--rv-c': r?.color ?? '#ffd27a' }}>
+    <li class={`rv-brow${you ? ' is-you' : ''}${props.focused ? ' is-focused' : ''}`} style={{ '--rv-i': i, '--rv-c': r?.color ?? '#2257f0' }}>
       {r ? (
         <button type="button" class="rv-brow__btn" onClick={() => props.onPick(r.id)} aria-label={t.rowAria(rivalText(r, locale).name, ordinal(row.rank), row.points)}>
           {body}

@@ -95,9 +95,9 @@ function Battery(props: { eye: Eye; lens: Lens; on: boolean; occluded: boolean; 
       {/* housing */}
       <circle cx={cx} cy={CY + 4} r={R} fill="rgba(10,22,51,0.3)" filter="url(#php-soft)" />
       <circle cx={cx} cy={CY} r={R} fill="url(#php-enamel)" stroke="url(#php-brass)" stroke-width="5" />
-      <circle cx={cx} cy={CY} r={R - 10} fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1" />
-      <circle cx={cx} cy={CY} r={R - 13} fill="none" stroke="rgba(10,22,51,0.28)" stroke-width="1" />
-      <path d={`M ${cx - R + 8} ${CY - 20} A ${R - 8} ${R - 8} 0 0 1 ${cx + R - 8} ${CY - 20}`} fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
+      <circle cx={cx} cy={CY} r={R - 10} fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1" />
+      <circle cx={cx} cy={CY} r={R - 13} fill="none" stroke="rgba(10,22,51,0.14)" stroke-width="1" />
+      <path d={`M ${cx - R + 8} ${CY - 20} A ${R - 8} ${R - 8} 0 0 1 ${cx + R - 8} ${CY - 20}`} fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="10" />
       {[45, 135, 225, 315].map((a) => { const [x, y] = pt(cx, CY, R - 20, a); return <Screw key={a} x={x} y={y} a={a} />; })}
       <AxisScale cx={cx} />
       {/* windows */}
@@ -109,7 +109,7 @@ function Battery(props: { eye: Eye; lens: Lens; on: boolean; occluded: boolean; 
         <text x={cx - 25} y={CY + 86} class="php-win__k">C</text>
         <text x={cx + 26} y={CY + 87} text-anchor="end" class="php-win__v">{hasCyl ? formatDiopters(lens.cyl) : '0.00'}</text>
       </g>
-      <text x={cx} y={CY + 106} text-anchor="middle" class="php-eye-label">{eye}</text>
+      <text x={cx} y={CY + 101} text-anchor="middle" class="php-eye-label">{eye}</text>
       {/* aperture */}
       <circle cx={cx} cy={CY} r="45.5" fill="#0b101f" stroke="url(#php-brass)" stroke-width="3.5" />
       <circle cx={cx} cy={CY} r="40" fill="url(#php-glass)" />
@@ -181,9 +181,9 @@ export function Phoropter(p: PhoropterProps) {
           <stop offset="1" stop-color="#6b7690" />
         </radialGradient>
         <radialGradient id="php-enamel" cx="0.4" cy="0.3" r="0.85">
-          <stop offset="0" stop-color="#3a4660" />
-          <stop offset="0.55" stop-color="#1c2438" />
-          <stop offset="1" stop-color="#0b101f" />
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.55" stop-color="#eef2f9" />
+          <stop offset="1" stop-color="#d3dbea" />
         </radialGradient>
         <radialGradient id="php-glass" cx="0.42" cy="0.38" r="0.7">
           <stop offset="0" stop-color="#4a64a8" stop-opacity="0.95" />
@@ -207,8 +207,8 @@ export function Phoropter(p: PhoropterProps) {
           <stop offset="1" stop-color="#000" stop-opacity="0.6" />
         </linearGradient>
         <radialGradient id="php-occ" cx="0.4" cy="0.35" r="0.8">
-          <stop offset="0" stop-color="#3a4660" />
-          <stop offset="1" stop-color="#0b101f" />
+          <stop offset="0" stop-color="#f4f7fc" />
+          <stop offset="1" stop-color="#b8c3d8" />
         </radialGradient>
         <radialGradient id="php-aura" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0.72" stop-color="#8fb0ff" stop-opacity="0" />
@@ -240,13 +240,13 @@ export function Phoropter(p: PhoropterProps) {
       <text x="214" y="61" text-anchor="end" class="php-pd">PD 64</text>
 
       {/* face opening between the batteries */}
-      <path d="M 284 330 C 286 284, 300 252, 320 250 C 340 252, 354 284, 356 330" fill="rgba(14,20,38,0.94)" stroke="url(#php-brass)" stroke-width="2" />
+      <path d="M 284 330 C 286 284, 300 252, 320 250 C 340 252, 354 284, 356 330" fill="#e6ebf5" stroke="url(#php-brass)" stroke-width="2" />
 
       {/* forehead rest: rod, pad and thumbwheel between the batteries */}
       <g class="php-forehead">
         <rect x="311" y="66" width="18" height="40" fill="url(#php-drum)" stroke="#6b7690" stroke-width="0.8" />
         <rect x="296" y="104" width="48" height="26" rx="13" fill="url(#php-brass)" stroke="#6b7690" stroke-width="1" />
-        <rect x="302" y="108" width="36" height="14" rx="7" fill="#1c2438" stroke="rgba(190,215,255,0.35)" />
+        <rect x="302" y="108" width="36" height="14" rx="7" fill="#dfe6f2" stroke="rgba(190,215,255,0.35)" />
         <circle cx="320" cy="138" r="9" fill="url(#php-brass-r)" stroke="#6b7690" stroke-width="1" />
         <line x1="314" y1="138" x2="326" y2="138" stroke="#3a4660" stroke-width="1.4" />
       </g>
@@ -257,7 +257,7 @@ export function Phoropter(p: PhoropterProps) {
         <rect x="150" y="344" width="340" height="30" rx="15" fill="rgba(10,22,51,0.28)" filter="url(#php-soft)" transform="translate(0 4)" />
         <rect x="150" y="340" width="340" height="30" rx="15" fill="url(#php-brass)" stroke="#6b7690" stroke-width="1" />
         <rect x="158" y="343" width="324" height="4" rx="2" fill="rgba(255,255,255,0.35)" />
-        <rect x="204" y="350" width="232" height="15" rx="4" fill="#1c2438" stroke="rgba(190,215,255,0.4)" />
+        <rect x="204" y="350" width="232" height="15" rx="7" fill="#dfe6f2" stroke="rgba(10,22,51,0.18)" />
         <text x="320" y="361" text-anchor="middle" class="php-plaque">LUMEN · REFRACTOR · MODEL IV</text>
         {[170, 470].map((x) => <Screw key={x} x={x} y={355} a={x} />)}
       </g>

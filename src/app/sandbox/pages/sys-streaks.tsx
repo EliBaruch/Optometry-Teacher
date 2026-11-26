@@ -244,13 +244,13 @@ const CSS = `
 .sksb-grid { max-width: 1120px; margin: 0 auto; padding: 20px 16px 300px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr); gap: 24px; }
 .sksb-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .sksb-col .hud-slot { display: flex; flex-direction: column; gap: 14px; }
-.sksb-h { margin: 6px 0 0; font: 650 11px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-muted-2); }
-.sksb-exam { position: relative; min-height: 120px; border-radius: 18px; padding: 14px; background: radial-gradient(120% 90% at 30% 20%, rgba(80, 52, 130, .35), rgba(10, 6, 20, .5)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.sksb-h { margin: 6px 0 0; font: 650 11px/1 var(--lm-font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--lm-ink-3); }
+.sksb-exam { position: relative; min-height: 120px; border-radius: 18px; padding: 14px; background: var(--lm-glass); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); }
 .sksb-exam__overlay { display: flex; justify-content: flex-end; min-height: 40px; }
-.sksb-exam__hint { margin: 30px 0 0; color: var(--lm-muted); font-size: 13px; }
-.sksb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(470px, calc(100vw - 24px)); padding: 10px; border-radius: 14px;
-  background: rgba(10, 6, 20, 0.9); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--lm-muted); }
-.sksb-dock summary { cursor: pointer; color: var(--lm-ivory); font-weight: 600; }
+.sksb-exam__hint { margin: 30px 0 0; color: var(--lm-ink-3); font-size: 13px; }
+.sksb-dock { position: fixed; z-index: 900; right: 12px; bottom: 12px; width: min(470px, calc(100vw - 24px)); padding: 12px; border-radius: var(--lm-r-md);
+  background: var(--lm-glass-bg-strong); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); backdrop-filter: var(--lm-glass-blur); display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--lm-ink-2); }
+.sksb-dock summary { cursor: pointer; color: var(--lm-ink); font-weight: 600; }
 .sksb-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
 .sksb-meta { font-family: var(--lm-font-num); font-size: 11px; max-height: 64px; overflow: auto; }
 .sksb-rewards { display: flex; flex-wrap: wrap; gap: 4px; }

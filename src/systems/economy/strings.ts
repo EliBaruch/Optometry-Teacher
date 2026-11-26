@@ -7,12 +7,12 @@ import type { CrateKind, ItemKind } from './catalog';
  */
 
 export const ITEM_HE: Record<string, { name: string; blurb: string }> = {
-  candlelight: { name: 'אור נרות', blurb: 'המצפה כמו שמצאתם אותו: זהב חם על דיו של חצות.' },
-  moonstone: { name: 'אבן ירח', blurb: 'אור כסוף-כחלחל, כמו קרן מנורת סדק על קרנית צלולה.' },
-  'rose-quartz': { name: 'קוורץ ורוד', blurb: 'עיטורי זהב ורוד וסומק של שחר מעל הכיפה.' },
-  'jade-lantern': { name: 'פנס ירקן', blurb: 'ירוק רגוע של פנס, כמו מסנן ה-red-free במצלמת קרקעית.' },
-  'amethyst-hour': { name: 'שעת האמטיסט', blurb: 'הסגול של אחרי שהמטופל האחרון יוצא מהדלת.' },
-  aurora: { name: 'זוהר צפוני', blurb: 'אורות הצפון מתנועעים על כיפת הזכוכית. נדיר מאוד לראות.' },
+  candlelight: { name: 'תכלת לומן', blurb: 'המראה המקורי של Clinic Glass: תכלת חשמלי מעל רקע שטוף שמש.' },
+  moonstone: { name: 'אבן ירח', blurb: 'כחול-אפור קריר, כמו קרן מנורת סדק על קרנית צלולה.' },
+  'rose-quartz': { name: 'קוורץ ורוד', blurb: 'גוונים ורודים רכים וסומק של אור בוקר.' },
+  'jade-lantern': { name: 'ירקן', blurb: 'ירוק קליני רגוע, כמו מסנן ה-red-free במצלמת קרקעית.' },
+  'amethyst-hour': { name: 'אמטיסט', blurb: 'סגול עשיר עם זוהר לילך עדין.' },
+  aurora: { name: 'זוהר צפוני', blurb: 'אור טורקיז וסגול מתנועע על הזכוכית. נדיר מאוד לראות.' },
 
   'clinic-classic': { name: 'קלאסי של מרפאה', blurb: 'מלבנים מלאים וסולידיים. אף פעם לא יוצאים מהאופנה.' },
   'half-eye': { name: 'חצי-עין לקריאה', blurb: 'לעבודה מקרוב, עם מבט מעל הקצה. פרסביופי-שיק.' },
@@ -23,12 +23,12 @@ export const ITEM_HE: Record<string, { name: string; blurb: string }> = {
   'tortoise-keyhole': { name: 'שריון צב, גשר חור מנעול', blurb: 'שריון צב מלוטש ביד, עם גשר בצורת חור מנעול.' },
   'gilded-pince-nez': { name: 'משקפי אף מוזהבים', blurb: 'עדשות סגלגלות על האף, ושרשרת זהב. תיאטרון טהור.' },
 
-  'ivory-card': { name: 'כרטיס שנהב', blurb: 'כרטיס חרוט, חד ונקי.' },
-  'brass-plaque': { name: 'שלט פליז', blurb: 'מוברג על דלת חדר הבדיקה.' },
-  'velvet-sash': { name: 'סרט קטיפה', blurb: 'קטיפה בורדו עמוק, עם אותיות רקומות בזהב.' },
-  'stained-glass': { name: 'ויטראז׳', blurb: 'זכוכית אבני חן שתופסת את אור הנרות.' },
-  'star-chart': { name: 'מפת כוכבים', blurb: 'השם שלכם בין קבוצות הכוכבים של הכיפה.' },
-  'gilded-marquee': { name: 'שלט תאורה מוזהב', blurb: 'אותיות מוארות בנורות. השם שלכם בראש הכרזה.' },
+  'ivory-card': { name: 'כרטיס נקי', blurb: 'כרטיס שם לבן, חד ונקי.' },
+  'brass-plaque': { name: 'שלט פלדה', blurb: 'פלדה מוברשת, מורכבת על דלת חדר הבדיקה.' },
+  'velvet-sash': { name: 'סרט כרזה', blurb: 'סרט ארגמן בולט עם אותיות לבנות וחדות.' },
+  'stained-glass': { name: 'זכוכית פריזמה', blurb: 'זכוכית בצבעי אבני חן שמפצלת את האור לצבעים.' },
+  'star-chart': { name: 'מפת כוכבים', blurb: 'השם שלכם בין הכוכבים של מפת השליטה.' },
+  'gilded-marquee': { name: 'שלט זרקור', blurb: 'אותיות מוארות בנורות. השם שלכם בראש הכרזה.' },
 };
 
 export const CRATE_HE: Record<CrateKind, { name: string; earn: string }> = {
@@ -81,8 +81,8 @@ export const S = defineStrings({
     wallet: 'Wallet',
     // scene
     sceneTitle: 'The Boutique',
-    sceneEyebrow: 'Lumen · after hours',
-    closed: 'The Boutique is closed tonight.',
+    sceneEyebrow: 'Lumen · the shop',
+    closed: 'The Boutique is closed right now.',
     tabThemes: 'Clinic themes',
     tabEyewear: 'Eyewear',
     tabNameplates: 'Nameplates',
@@ -191,8 +191,8 @@ export const S = defineStrings({
     later: 'או שמשאירים להמשך. הם מחכים לכם בבוטיק.',
     wallet: 'ארנק',
     sceneTitle: 'הבוטיק',
-    sceneEyebrow: 'לומן · אחרי שעות הפעילות',
-    closed: 'הבוטיק סגור הערב.',
+    sceneEyebrow: 'לומן · החנות',
+    closed: 'הבוטיק סגור כרגע.',
     tabThemes: 'עיצובי מרפאה',
     tabEyewear: 'משקפיים',
     tabNameplates: 'שלטי שם',

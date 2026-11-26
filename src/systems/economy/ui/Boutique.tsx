@@ -26,7 +26,7 @@ const TABS: { id: Tab; icon: 'sparkle' | 'eye' | 'user' | 'book' }[] = [
   { id: 'ledger', icon: 'book' },
 ];
 
-/** Scene 'boutique': velvet, brass and glass cases — cosmetics for lumens only. */
+/** Scene 'boutique': glass product cards — cosmetics for lumens only. */
 export function BoutiqueScene({ services }: SceneProps) {
   const store = useEconomy(services);
   const back = () => services.router.back();
@@ -323,7 +323,7 @@ function OddsTable({ pity }: { pity: number }) {
         <thead>
           <tr>
             <th scope="col">{t.crateCol}</th>
-            {publishedOdds('case').map((o) => <th key={o.rarity} scope="col" style={{ color: RARITY_COLOR[o.rarity] }}>{T.rarity[o.rarity]}</th>)}
+            {publishedOdds('case').map((o) => <th key={o.rarity} scope="col" style={{ color: `color-mix(in srgb, ${RARITY_COLOR[o.rarity]} 72%, #0a1633)` }}>{T.rarity[o.rarity]}</th>)}
           </tr>
         </thead>
         <tbody>

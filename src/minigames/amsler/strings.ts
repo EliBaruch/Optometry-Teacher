@@ -17,7 +17,7 @@ export const S = defineStrings({
     tutSteps: [
       { icon: 'eye', title: 'One eye at a time', body: 'Near glasses on, card at 33 cm, the other eye covered. Each square is 1° — the whole grid is the central 20° of vision.' },
       { icon: 'target', title: 'Eyes on the dot', body: 'Ask the patient to fixate the centre dot. You will see the grid through their eye: wavy lines are metamorphopsia; a missing or grey patch is a scotoma.' },
-      { icon: 'amsler', title: 'Map it, name it', body: 'Paint over the affected area (drag, or arrows + Space; the wheel or the brass knob sizes the brush), choose what they report, then test the other eye and record.' },
+      { icon: 'amsler', title: 'Map it, name it', body: 'Paint over the affected area (drag, or arrows + Space; the wheel or the knob sizes the brush), choose what they report, then test the other eye and record.' },
     ] as { icon: 'eye' | 'target' | 'amsler'; title: string; body: string }[],
     tutAria: 'How the Amsler grid works',
     tutStep: (i: number, n: number) => `Step ${i} of ${n}`,
@@ -117,7 +117,7 @@ export const S = defineStrings({
     tutSteps: [
       { icon: 'eye', title: 'עין אחת בכל פעם', body: 'עם משקפי קרוב, הכרטיס במרחק 33 ס״מ, והעין השנייה מכוסה. כל משבצת היא 1°, וכל הרשת היא 20° המרכזיים של שדה הראייה.' },
       { icon: 'target', title: 'המבט על הנקודה', body: 'בקשו מהמטופל לקבע מבט על הנקודה שבמרכז. אתם רואים את הרשת דרך העין שלו: קווים גליים הם מטמורפופסיה, וכתם חסר או אפור הוא סקוטומה.' },
-      { icon: 'amsler', title: 'ממפים ונותנים שם', body: 'צבעו את האזור הפגוע (גרירה, או חצים + רווח; גלגלת העכבר או כפתור הפליז משנים את גודל המכחול), בחרו מה המטופל מדווח, ואז בדקו את העין השנייה ורשמו.' },
+      { icon: 'amsler', title: 'ממפים ונותנים שם', body: 'צבעו את האזור הפגוע (גרירה, או חצים + רווח; גלגלת העכבר או הכפתור משנים את גודל המכחול), בחרו מה המטופל מדווח, ואז בדקו את העין השנייה ורשמו.' },
     ] as { icon: 'eye' | 'target' | 'amsler'; title: string; body: string }[],
     tutAria: 'איך עובדת רשת אמסלר',
     tutStep: (i: number, n: number) => `שלב ${i} מתוך ${n}`,

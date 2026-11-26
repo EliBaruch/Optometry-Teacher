@@ -96,18 +96,18 @@ export function strongestWeakest(stats: readonly CategoryStat[]): { strongest: C
 }
 
 export const CATEGORY_LABEL: Record<string, { label: string; accent: string }> = {
-  refractive: { label: 'Refraction', accent: '#ffd27a' },
-  binocular: { label: 'Binocular Vision', accent: '#a78bfa' },
-  anterior: { label: 'Lids & Anterior Eye', accent: '#f472b6' },
-  cornea: { label: 'Cornea', accent: '#38bdf8' },
-  glaucoma: { label: 'Glaucoma & Uvea', accent: '#4ade80' },
-  lens: { label: 'Lens', accent: '#fde68a' },
-  retina: { label: 'Retina & Vitreous', accent: '#fb923c' },
-  neuro: { label: 'Neuro-Ophthalmology', accent: '#c084fc' },
-  systemic: { label: 'Systemic Disease', accent: '#ef4444' },
-  normal: { label: 'Healthy Eyes', accent: '#5eead4' },
+  refractive: { label: 'Refraction', accent: '#2257f0' },
+  binocular: { label: 'Binocular Vision', accent: '#7c3aed' },
+  anterior: { label: 'Lids & Anterior Eye', accent: '#db2777' },
+  cornea: { label: 'Cornea', accent: '#0284c7' },
+  glaucoma: { label: 'Glaucoma & Uvea', accent: '#059669' },
+  lens: { label: 'Lens', accent: '#a16207' },
+  retina: { label: 'Retina & Vitreous', accent: '#ea580c' },
+  neuro: { label: 'Neuro-Ophthalmology', accent: '#9333ea' },
+  systemic: { label: 'Systemic Disease', accent: '#e11d48' },
+  normal: { label: 'Healthy Eyes', accent: '#0d9488' },
 };
 
 export function categoryLabel(c: string) {
-  return CATEGORY_LABEL[c] ?? { label: c.charAt(0).toUpperCase() + c.slice(1), accent: '#ffd27a' };
+  return CATEGORY_LABEL[c] ?? { label: c.charAt(0).toUpperCase() + c.slice(1), accent: '#2257f0' };
 }

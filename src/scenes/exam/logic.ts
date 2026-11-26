@@ -242,10 +242,10 @@ export const CATEGORY_INFO: Record<DiagnosisCategory, { label: string; icon: Ico
 };
 
 export const URGENCY_INFO: Record<Urgency, { label: string; blurb: string; detail: string; color: string; level: number }> = {
-  routine: { label: 'Routine', blurb: 'Book a regular visit', detail: 'No danger to sight. A normal appointment in the coming weeks or months is fine.', color: '#5eead4', level: 1 },
-  soon: { label: 'Soon', blurb: 'Within a few days', detail: 'Needs attention, but a short wait is safe. See the patient again or refer within days.', color: '#38bdf8', level: 2 },
-  urgent: { label: 'Urgent', blurb: 'Same day', detail: 'Could threaten vision if it waits. Treat or refer today, within 24 hours.', color: '#fbbf24', level: 3 },
-  emergency: { label: 'Emergency', blurb: 'Immediately', detail: 'Sight- or life-threatening. Send to the emergency department or on-call specialist right now.', color: '#f43f5e', level: 4 },
+  routine: { label: 'Routine', blurb: 'Book a regular visit', detail: 'No danger to sight. A normal appointment in the coming weeks or months is fine.', color: 'var(--lm-vivid-green)', level: 1 },
+  soon: { label: 'Soon', blurb: 'Within a few days', detail: 'Needs attention, but a short wait is safe. See the patient again or refer within days.', color: 'var(--lm-vivid-blue)', level: 2 },
+  urgent: { label: 'Urgent', blurb: 'Same day', detail: 'Could threaten vision if it waits. Treat or refer today, within 24 hours.', color: 'var(--lm-vivid-orange)', level: 3 },
+  emergency: { label: 'Emergency', blurb: 'Immediately', detail: 'Sight- or life-threatening. Send to the emergency department or on-call specialist right now.', color: 'var(--lm-vivid-red)', level: 4 },
 };
 
 export const URGENCY_LIST: readonly Urgency[] = URGENCIES;

@@ -237,7 +237,7 @@ export function createFxController(layer: HTMLElement, shakeTarget: HTMLElement,
       wake();
     },
 
-    flash(color = '#e6f7f8', ms = 260) {
+    flash(color = '#eaf0ff', ms = 260) {
       if (destroyed || reduced()) return;
       const el = doc.createElement('div');
       el.className = 'lfx-flash';

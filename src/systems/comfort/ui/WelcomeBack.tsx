@@ -63,7 +63,7 @@ export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }
     if (paid > 0) {
       safePlay(services, 'coins');
       services.fx.burst(c.x, c.y - 20, { kind: 'coins', count: Math.min(40, 10 + Math.round(paid / 6)) });
-      services.fx.floatText(`+${paid} ✦`, c.x, c.y - 60, { color: '#ffd27a', size: 34 });
+      services.fx.floatText(`+${paid} ✦`, c.x, c.y - 60, { color: '#f5a524', size: 34 });
     }
     timer.current = setTimeout(() => {
       setClosing(false);

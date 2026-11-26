@@ -62,7 +62,7 @@ export function SettingsScene({ services }: SceneProps) {
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  const burstAt = (el: Element | null, color = '#ffd27a') => {
+  const burstAt = (el: Element | null, color = '#2257f0') => {
     if (!el) return;
     const r = el.getBoundingClientRect();
     services.fx.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: 'sparks', count: 18, color });
@@ -142,7 +142,7 @@ export function SettingsScene({ services }: SceneProps) {
   const confirmReset = () => {
     const keep = resetSettingsToo ? null : settingsOnly(services.save.exportAll());
     services.audio.play('thud');
-    services.fx.flash('#f43f5e', 220);
+    services.fx.flash('#e11d48', 220);
     replaceAndReload(() => {
       services.save.resetAll();
       if (keep) services.save.importAll(keep);
@@ -163,30 +163,30 @@ export function SettingsScene({ services }: SceneProps) {
 
       <div class="settings-grid">
         <div class="settings-col">
-          <GlassPanel as="section" class="settings-panel lm-enter" style={d(1)} icon="sound-on" eyebrow={t.soundEyebrow} title={t.soundTitle} accent="#ffd27a">
+          <GlassPanel as="section" class="settings-panel lm-enter" style={d(1)} icon="sound-on" eyebrow={t.soundEyebrow} title={t.soundTitle} accent="#2257f0">
             <div class="settings-stack">
               <VolumeSlider id="vol-master" label={t.master} hint={t.masterHint} icon="sound-on" value={settings.masterVolume}
                 onInput={(v) => patch({ masterVolume: v })} onCommit={(v) => preview('masterVolume', v)} onToggleMute={() => toggleMute('masterVolume')} />
-              <VolumeSlider id="vol-sfx" label={t.effects} hint={t.effectsHint} icon="sparkle" value={settings.sfxVolume} accent="#5eead4"
+              <VolumeSlider id="vol-sfx" label={t.effects} hint={t.effectsHint} icon="sparkle" value={settings.sfxVolume} accent="#059669"
                 disabled={settings.masterVolume === 0}
                 onInput={(v) => patch({ sfxVolume: v })} onCommit={(v) => preview('sfxVolume', v)} onToggleMute={() => toggleMute('sfxVolume')} />
-              <VolumeSlider id="vol-music" label={t.music} hint={t.musicHint} icon="play" value={settings.musicVolume} accent="#a78bfa"
+              <VolumeSlider id="vol-music" label={t.music} hint={t.musicHint} icon="play" value={settings.musicVolume} accent="#7c3aed"
                 disabled={settings.masterVolume === 0}
                 onInput={(v) => patch({ musicVolume: v })} onToggleMute={() => toggleMute('musicVolume')} />
             </div>
           </GlassPanel>
 
-          <GlassPanel as="section" class="settings-panel lm-enter" style={d(2)} icon="eye" eyebrow={t.comfortEyebrow} title={t.comfortTitle} accent="#38bdf8">
+          <GlassPanel as="section" class="settings-panel lm-enter" style={d(2)} icon="eye" eyebrow={t.comfortEyebrow} title={t.comfortTitle} accent="#0284c7">
             <div class="settings-stack settings-stack--switches">
-              <SwitchRow id="sw-motion" icon="sparkle" label={t.reducedMotion} checked={settings.reducedMotion}
+              <SwitchRow id="sw-motion" icon="sparkle" tint="#7c3aed" label={t.reducedMotion} checked={settings.reducedMotion}
                 description={t.reducedMotionDesc}
                 onChange={(v) => patch({ reducedMotion: v })}
                 preview={<span class={cx('settings-orbit', settings.reducedMotion && 'is-still')}><span /></span>} />
-              <SwitchRow id="sw-metric" icon="chart" label={t.metric} checked={settings.metricVA}
+              <SwitchRow id="sw-metric" icon="chart" tint="#0284c7" label={t.metric} checked={settings.metricVA}
                 description={<>{t.metricDescA}<bdi><b class="lm-num">{t.metricA}</b></bdi>{t.metricDescB}<bdi><b class="lm-num">{t.metricB}</b></bdi>{t.metricDescC}</>}
                 onChange={(v) => patch({ metricVA: v })}
                 preview={<span class="settings-va" dir="ltr"><span class="lm-num">{metricSample}</span><small class="lm-num">{otherSample}</small></span>} />
-              <SwitchRow id="sw-contrast" icon="eye" label={t.contrast} checked={settings.highContrast}
+              <SwitchRow id="sw-contrast" icon="eye" tint="#059669" label={t.contrast} checked={settings.highContrast}
                 description={t.contrastDesc}
                 onChange={(v) => patch({ highContrast: v })}
                 preview={<span class="settings-contrast"><span /><span /></span>} />
@@ -195,11 +195,11 @@ export function SettingsScene({ services }: SceneProps) {
         </div>
 
         <div class="settings-col">
-          <GlassPanel as="section" class="settings-panel lm-enter" style={d(3)} icon="user" eyebrow={t.identityEyebrow} title={t.identityTitle} accent="#a78bfa">
+          <GlassPanel as="section" class="settings-panel lm-enter" style={d(3)} icon="user" eyebrow={t.identityEyebrow} title={t.identityTitle} accent="#7c3aed">
             <form class="settings-name" onSubmit={(e) => { e.preventDefault(); commitName(); (document.activeElement as HTMLElement | null)?.blur(); }}>
               <label class="lm-sr-only" for="player-name">{t.nameLabel}</label>
               <div class="settings-name__plate">
-                <span class="settings-name__brass" aria-hidden="true" />
+                
                 <input id="player-name" class="settings-name__input" value={draft} maxLength={NAME_MAX} autoComplete="nickname" spellcheck={false}
                   placeholder={t.defaultName}
                   onInput={(e) => setDraft((e.currentTarget as HTMLInputElement).value)}
@@ -219,7 +219,7 @@ export function SettingsScene({ services }: SceneProps) {
             </form>
           </GlassPanel>
 
-          <GlassPanel as="section" class="settings-panel lm-enter" style={d(4)} icon="book" eyebrow={t.recordsEyebrow} title={t.recordsTitle} accent="#f5b942">
+          <GlassPanel as="section" class="settings-panel lm-enter" style={d(4)} icon="book" eyebrow={t.recordsEyebrow} title={t.recordsTitle} accent="#d97706">
             <p class="settings-note">
               {t.progressOnly}
               {exportInfo.records > 0 ? (
@@ -244,7 +244,7 @@ export function SettingsScene({ services }: SceneProps) {
             </div>
           </GlassPanel>
 
-          <GlassPanel as="section" class="settings-panel settings-about lm-enter" style={d(5)} icon="info" eyebrow={t.aboutEyebrow} title={t.aboutTitle} accent="#5eead4">
+          <GlassPanel as="section" class="settings-panel settings-about lm-enter" style={d(5)} icon="info" eyebrow={t.aboutEyebrow} title={t.aboutTitle} accent="#059669">
             <div class="settings-disclaimer" role="note">
               <Icon name="alert" class="settings-disclaimer__icon" />
               <div>
@@ -278,7 +278,7 @@ export function SettingsScene({ services }: SceneProps) {
         )}
       </Modal>
 
-      <Modal open={resetOpen} onClose={() => setResetOpen(false)} eyebrow={t.afreshTitle} title={t.eraseTitle} icon="alert" size="sm" accent="#f43f5e">
+      <Modal open={resetOpen} onClose={() => setResetOpen(false)} eyebrow={t.afreshTitle} title={t.eraseTitle} icon="alert" size="sm" accent="#e11d48">
         <div class="settings-modal">
           <p>{t.eraseBody}</p>
           <p class="settings-note">{t.eraseTip}</p>

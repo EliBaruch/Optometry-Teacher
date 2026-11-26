@@ -245,14 +245,14 @@ export function Game({ ctx, finish }: GameProps) {
     later(() => play(exam.classify >= 0.999 && loc === truthLoc ? 'success' : 'fail', { volume: 0.7 }), 260);
     const r = recordRef.current?.getBoundingClientRect();
     if (exam.perfect && r) {
-      ctx.fx.burst(r.left + r.width / 2, r.top, { kind: 'sparks', count: 30, color: '#ffd27a' });
+      ctx.fx.burst(r.left + r.width / 2, r.top, { kind: 'sparks', count: 30, color: '#5c87ff' });
       play('sparkle');
     } else if (loc !== truthLoc) {
       ctx.fx.shake(ctx.reducedMotion ? 0 : 0.3, 220);
     }
     if (practice && r) {
       const ok = loc === truthLoc;
-      ctx.fx.floatText(ok ? t.floatOk : t.floatNo, r.left + r.width / 2, r.top - 10, { color: ok ? '#5eead4' : '#f43f5e' });
+      ctx.fx.floatText(ok ? t.floatOk : t.floatNo, r.left + r.width / 2, r.top - 10, { color: ok ? '#059669' : '#e11d48' });
     }
   };
 

@@ -25,9 +25,9 @@ function paper(size: number): HTMLCanvasElement {
   const g = c.getContext('2d');
   if (!g) return c;
   const base = g.createRadialGradient(size * 0.38, size * 0.3, size * 0.05, size * 0.5, size * 0.5, size * 0.75);
-  base.addColorStop(0, '#f8f0de');
-  base.addColorStop(0.6, '#efe3c9');
-  base.addColorStop(1, '#ddcca8');
+  base.addColorStop(0, '#f8fafd');
+  base.addColorStop(0.6, '#e9eef6');
+  base.addColorStop(1, '#d3dbe8');
   g.fillStyle = base;
   g.fillRect(0, 0, size, size);
   // tooth: per-pixel grain
@@ -49,7 +49,7 @@ function paper(size: number): HTMLCanvasElement {
     const y = rnd() * size;
     const a = rnd() * Math.PI;
     const l = 4 + rnd() * 16;
-    g.strokeStyle = rnd() < 0.5 ? 'rgba(150,120,80,0.10)' : 'rgba(255,255,245,0.22)';
+    g.strokeStyle = rnd() < 0.5 ? 'rgba(90,110,150,0.10)' : 'rgba(255,255,245,0.22)';
     g.lineWidth = 0.6 + rnd() * 0.8;
     g.beginPath();
     g.moveTo(x, y);
@@ -112,8 +112,8 @@ export function paintPlate(dots: readonly Dot[], colors: readonly Vec3[], size =
   g.save();
   g.globalCompositeOperation = 'soft-light';
   const lamp = g.createRadialGradient(size * 0.28, size * 0.2, 0, size * 0.28, size * 0.2, size * 0.95);
-  lamp.addColorStop(0, 'rgba(255,250,235,0.55)');
-  lamp.addColorStop(0.5, 'rgba(255,245,225,0.08)');
+  lamp.addColorStop(0, 'rgba(255,255,255,0.55)');
+  lamp.addColorStop(0.5, 'rgba(255,255,255,0.08)');
   lamp.addColorStop(1, 'rgba(40,25,10,0.45)');
   g.fillStyle = lamp;
   g.fillRect(0, 0, size, size);

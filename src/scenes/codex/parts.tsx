@@ -50,32 +50,12 @@ export function useNarrow(px = 560): boolean {
   return narrow;
 }
 
-/** A gilded manuscript initial: the first letter in an ornamented frame tinted by the category accent. */
+/** A vivid app-icon tile: the first letter on a category-coloured glass tile (a padlock while locked). */
 export function Illumination(props: { letter: string; accent: string; size?: number; icon?: string; locked?: boolean }) {
   const s = props.size ?? 64;
   return (
-    <span class={cx('codex-illum', props.locked && 'is-locked')} style={{ '--acc': props.accent, width: s, height: s, fontSize: s * 0.62 }} aria-hidden="true">
-      <svg class="codex-illum__frame" viewBox="0 0 64 64">
-        <rect x="2.5" y="2.5" width="59" height="59" rx="9" />
-        <rect x="6.5" y="6.5" width="51" height="51" rx="6" class="codex-illum__inner" />
-        {[[6.5, 6.5], [57.5, 6.5], [6.5, 57.5], [57.5, 57.5]].map(([cx_, cy], i) => (
-          <g key={i} transform={`translate(${cx_} ${cy})`}>
-            <path d="M-4 0 0 -4 4 0 0 4z" class="codex-illum__gem" />
-          </g>
-        ))}
-        <path d="M14 32c6-9 12-9 18 0s12 9 18 0" class="codex-illum__vine" />
-      </svg>
-      {props.locked ? (
-        <span class="codex-illum__seal">
-          <svg class="codex-illum__wax" viewBox="0 0 40 40">
-            <path d="M20 2.5c2.6 0 3.4 2 5.6 2.6 2.3.6 4.2-.6 6 1 1.8 1.6.9 3.7 1.7 5.9.8 2.2 3 3 3 5.6s-1.9 3.3-2.3 5.6c-.4 2.3.9 4.2-.7 6-1.6 1.8-3.8.9-6 1.7-2.2.8-3 3-5.6 3.6-2.6.6-3.4-1.6-5.6-2.2-2.3-.6-4.4.7-6.1-.9-1.7-1.6-.7-3.8-1.5-6-.8-2.2-3.1-3-3.1-5.6s2.2-3.4 2.9-5.6c.7-2.2-.4-4.3 1.3-5.9 1.7-1.6 3.8-.4 6-1 2.3-.6 3.2-2.8 5.8-2.8z" />
-            <circle cx="20" cy="20" r="10.5" class="codex-illum__wax-ring" />
-          </svg>
-          <Icon name="lock" class="codex-illum__lock" />
-        </span>
-      ) : (
-        <span class="codex-illum__letter">{props.letter}</span>
-      )}
+    <span class={cx('codex-illum', props.locked && 'is-locked')} style={{ '--acc': props.accent, width: s, height: s, fontSize: s * 0.5 }} aria-hidden="true">
+      {props.locked ? <Icon name="lock" class="codex-illum__lock" /> : <span class="codex-illum__letter">{props.letter}</span>}
       {props.icon && isIconName(props.icon) && !props.locked && (
         <span class="codex-illum__badge"><Icon name={props.icon} /></span>
       )}

@@ -5,7 +5,7 @@
   position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; outline: none; overflow: hidden;
   color: var(--lm-ink); font-family: var(--lm-font-ui, system-ui, sans-serif); background: transparent;
 }
-.pu-root button { font: inherit; color: inherit; }
+.pu-root button:not(.lm-btn) { font: inherit; color: inherit; }
 .pu-num { font-family: var(--lm-font-num, sans-serif); font-variant-numeric: tabular-nums; }
 .pu-eyebrow { margin: 0; font: 700 var(--lm-fs-2xs, 11px)/1.2 var(--lm-font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--lm-ink-3); }
 .pu-root :focus-visible { outline: 2px solid var(--lm-brand-600); outline-offset: 2px; }
@@ -187,3 +187,4 @@
 :lang(he) .pu-eyebrow, :lang(he) .pu-meas th, :lang(he) .pu-deb__h { letter-spacing: 0; text-transform: none; }
 .pu-tasks__p { direction: ltr; }
 .pu-lcd { direction: ltr; }
+@media (max-width: 760px) { .pu-head, .pu-foot { margin-inline: 10px; border-radius: 26px; } }

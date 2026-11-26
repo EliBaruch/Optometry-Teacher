@@ -69,21 +69,21 @@ export function LensDial({ value, min = -10, max = 10, disabled, cue, sharpness,
         <svg viewBox="-50 -50 100 100" width="100%" height="100%" aria-hidden="true">
           <defs>
             <radialGradient id="oph-knob-g" cx="35%" cy="30%" r="80%">
-              <stop offset="0" stop-color="#ffe9b8" />
-              <stop offset="0.35" stop-color="#d6a24a" />
-              <stop offset="0.8" stop-color="#5b3a0c" />
-              <stop offset="1" stop-color="#2a1804" />
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="0.35" stop-color="#e4e9f3" />
+              <stop offset="0.8" stop-color="#98a3b8" />
+              <stop offset="1" stop-color="#6b768b" />
             </radialGradient>
           </defs>
-          <circle r="47" fill="url(#oph-knob-g)" stroke="rgba(255,236,190,.55)" stroke-width="1" />
+          <circle r="47" fill="url(#oph-knob-g)" stroke="rgba(10,22,51,.15)" stroke-width="1" />
           <g style={{ transform: `rotate(${value * 11}deg)`, transition: 'transform 160ms cubic-bezier(.2,.8,.2,1)' }}>
             {Array.from({ length: 36 }, (_, i) => (
-              <line key={i} x1="0" y1="-45" x2="0" y2="-39" stroke={i % 3 === 0 ? 'rgba(40,22,2,.85)' : 'rgba(40,22,2,.45)'} stroke-width={i % 3 === 0 ? 2 : 1.2} transform={`rotate(${i * 10})`} />
+              <line key={i} x1="0" y1="-45" x2="0" y2="-39" stroke={i % 3 === 0 ? 'rgba(10,22,51,.8)' : 'rgba(10,22,51,.35)'} stroke-width={i % 3 === 0 ? 2 : 1.2} transform={`rotate(${i * 10})`} />
             ))}
-            <circle cx="0" cy="-30" r="3.4" fill="#2a1804" stroke="rgba(255,236,190,.8)" stroke-width="1" />
+            <circle cx="0" cy="-30" r="3.4" fill="#2257f0" stroke="#fff" stroke-width="1" />
           </g>
-          <circle r="26" fill="#0b0716" stroke="rgba(255,210,122,.5)" />
-          <text y="6" text-anchor="middle" font-size="19" font-weight="700" fill="#ffd27a" style={{ fontFamily: 'var(--lm-font-num, sans-serif)' }}>{label}</text>
+          <circle r="26" fill="#0a1633" stroke="rgba(255,255,255,.6)" />
+          <text y="6" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff" style={{ fontFamily: 'var(--lm-font-num, sans-serif)' }}>{label}</text>
         </svg>
       </div>
       <div class="oph-dial__cap">

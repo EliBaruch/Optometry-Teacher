@@ -26,7 +26,7 @@ export function ChartPanel(props: {
     <GlassPanel
       class="exm-chart"
       title={t.chartTitle}
-      eyebrow={t.chartEyebrow}
+      eyebrow={<><span class="exm-no">03</span>{t.chartEyebrow}</>}
       icon="chart"
       padding="md"
       actions={
@@ -57,8 +57,9 @@ export function ChartPanel(props: {
                   const txt = localizeFinding(r, locale);
                   return (
                     <li key={chartKey(r)} class={`exm-row exm-row--${r.flag}${fresh.has(chartKey(r)) ? ' is-fresh' : ''}`}>
-                      <span class="exm-row__flag" role="img" aria-label={flagWord[r.flag]}>
-                        <Icon name={FLAG_ICON[r.flag]} size={14} strokeWidth={2.2} />
+                      <span class="exm-row__flag">
+                        <Icon name={FLAG_ICON[r.flag]} size={12} strokeWidth={2.4} />
+                        {flagWord[r.flag]}
                       </span>
                       <span class="exm-row__label" dir="auto">{txt.label}</span>
                       <span class="exm-row__value lm-num" dir={valueDir(txt.value, locale)}>{txt.value}</span>

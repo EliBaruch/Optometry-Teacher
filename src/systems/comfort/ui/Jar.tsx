@@ -74,10 +74,10 @@ export function Jar(props: { fill: number; size?: number; class?: string }) {
     <svg class={cx('cf-jar', props.class)} viewBox="0 0 120 130" width={size} height={(size * 130) / 120} aria-hidden="true">
       <defs>
         <linearGradient id={`${id}-glass`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#bfe8ff" stop-opacity="0.32" />
-          <stop offset="0.18" stop-color="#bfe8ff" stop-opacity="0.08" />
-          <stop offset="0.8" stop-color="#bfe8ff" stop-opacity="0.05" />
-          <stop offset="1" stop-color="#bfe8ff" stop-opacity="0.26" />
+          <stop offset="0" stop-color="#9ec5ff" stop-opacity="0.38" />
+          <stop offset="0.18" stop-color="#bfe8ff" stop-opacity="0.18" />
+          <stop offset="0.8" stop-color="#bfe8ff" stop-opacity="0.14" />
+          <stop offset="1" stop-color="#9ec5ff" stop-opacity="0.38" />
         </linearGradient>
         <radialGradient id={`${id}-coin`} cx="0.35" cy="0.3" r="0.8">
           <stop offset="0" stop-color="#fff4da" />
@@ -107,7 +107,7 @@ export function Jar(props: { fill: number; size?: number; class?: string }) {
           <path d="M30 40 C22 50 20 62 20 80 C20 104 26 122 60 122 C94 122 100 104 100 80 C100 62 98 50 90 40 Z" />
         </clipPath>
       </defs>
-      <ellipse cx="60" cy="124" rx="40" ry="4.5" fill="#000" opacity="0.4" />
+      <ellipse cx="60" cy="124" rx="40" ry="4.5" fill="#0a1633" opacity="0.14" />
       <ellipse class="cf-jar__warm" cx="60" cy="96" rx="52" ry="40" fill={`url(#${id}-warm)`} />
       <g clip-path={`url(#${id}-clip)`}>
         {mass && <path d={mass} fill="#6b4410" opacity="0.85" />}
@@ -139,22 +139,22 @@ export function Jar(props: { fill: number; size?: number; class?: string }) {
       <path
         d="M30 40 C22 50 20 62 20 80 C20 104 26 122 60 122 C94 122 100 104 100 80 C100 62 98 50 90 40 Z"
         fill={`url(#${id}-glass)`}
-        stroke="rgba(200,235,255,.55)"
-        stroke-width="1.3"
+        stroke="rgba(34,87,240,.35)"
+        stroke-width="1.5"
       />
-      <path d="M28 56 C25 70 25 92 30 108" stroke="#f0fbff" stroke-width="2.6" stroke-linecap="round" fill="none" opacity="0.35" />
-      <path d="M92 60 C94 70 94 80 93 88" stroke="#f0fbff" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.25" />
+      <path d="M28 56 C25 70 25 92 30 108" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none" opacity="0.9" />
+      <path d="M92 60 C94 70 94 80 93 88" stroke="#fff" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.8" />
       {/* neck + brass lid */}
-      <rect x="32" y="33" width="56" height="9" rx="3" fill="rgba(190,230,255,.14)" stroke="rgba(200,235,255,.5)" stroke-width="1" />
+      <rect x="32" y="33" width="56" height="9" rx="3" fill="rgba(158,197,255,.3)" stroke="rgba(34,87,240,.3)" stroke-width="1" />
       <rect x="28" y="20" width="64" height="14" rx="4" fill={`url(#${id}-brass)`} />
       <rect x="28" y="20" width="64" height="3.5" rx="2" fill="#fff4da" opacity="0.45" />
       <path d="M34 27 h52" stroke="#7a4d10" stroke-width="0.8" opacity="0.6" />
       <circle cx="60" cy="16" r="5" fill={`url(#${id}-brass)`} />
       {/* little parchment tag */}
       <g transform="translate(86 46) rotate(12)">
-        <path d="M0 0 L22 0 L26 7 L22 14 L0 14 Z" fill="#f6efe4" opacity="0.92" />
-        <circle cx="21" cy="7" r="1.4" fill="#a99bbd" />
-        <path d="M4 5 h12 M4 9 h9" stroke="#7d6f95" stroke-width="1" />
+        <path d="M0 0 L22 0 L26 7 L22 14 L0 14 Z" fill="#ffffff" />
+        <circle cx="21" cy="7" r="1.4" fill="#8a95ab" />
+        <path d="M4 5 h12 M4 9 h9" stroke="#56637d" stroke-width="1" />
       </g>
       <path d="M86 47 C80 40 82 34 88 32" stroke="#d9962a" stroke-width="0.8" fill="none" />
     </svg>

@@ -182,7 +182,7 @@ export function bindRivals(services: GameServices): () => void {
           label,
           value: locale === 'he' ? `\u2066#${rank}\u2069` : `#${rank}`,
           icon: rank === 1 ? 'crown' : 'trophy',
-          color: rank === 1 ? '#ffd27a' : ACCENT,
+          color: rank === 1 ? '#ffcb00' : ACCENT,
           rarity: rank === 1 ? 'epic' : 'rare',
         });
         unlock('first-pass', t.achPassTitle, t.achPassDesc, 'trophy');
@@ -195,7 +195,7 @@ export function bindRivals(services: GameServices): () => void {
           });
           safe(() => {
             const { x, y } = screenCenter();
-            services.fx.burst(x, y, { kind: rank === 1 ? 'confetti' : 'sparks', count: rank === 1 ? 60 : 32, color: rank === 1 ? '#ffd27a' : lead.color });
+            services.fx.burst(x, y, { kind: rank === 1 ? 'confetti' : 'sparks', count: rank === 1 ? 60 : 32, color: rank === 1 ? '#ffcb00' : lead.color });
             services.audio.play(rank === 1 ? 'legendary' : 'rare', { volume: 0.7 });
           });
         }, 900);

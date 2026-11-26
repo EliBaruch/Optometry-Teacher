@@ -3,8 +3,8 @@ import { defineStrings } from '@core';
 export const S = defineStrings({
   en: {
     title: 'Settings',
-    eyebrow: 'The instrument room',
-    lede: 'Tune the clinic to suit you — every change applies the moment you make it.',
+    eyebrow: 'Preferences',
+    lede: 'Tune the clinic to suit you. Every change applies instantly.',
     defaultName: 'Doctor',
     soundEyebrow: 'Sound',
     soundTitle: 'Audio mix',
@@ -47,7 +47,7 @@ export const S = defineStrings({
     credits: [
       ['Clinical content', 'Written against EyeWiki (AAO), StatPearls and national optometric guidance; each Codex entry cites its source.'],
       ['Art & sound', 'Every portrait, iris, fundus, chart and note is generated live in your browser — no stock images or samples.'],
-      ['Type', 'Fraunces, Inter and Space Grotesk, under the SIL Open Font License.'],
+      ['Type', 'Plus Jakarta Sans, Inter and Space Grotesk, under the SIL Open Font License.'],
       ['Built with', 'Preact, TypeScript and the Web Audio API.'],
     ] as [string, string][],
     replayTour: 'Replay welcome tour',
@@ -78,7 +78,7 @@ export const S = defineStrings({
   },
   he: {
     title: 'הגדרות',
-    eyebrow: 'חדר המכשירים',
+    eyebrow: 'העדפות',
     lede: 'כוונו את המרפאה לפי הטעם שלכם. כל שינוי נכנס לתוקף מיד.',
     defaultName: 'דוקטור',
     soundEyebrow: 'סאונד',
@@ -122,7 +122,7 @@ export const S = defineStrings({
     credits: [
       ['תוכן קליני', 'נכתב על בסיס EyeWiki (AAO), StatPearls והנחיות אופטומטריות מקובלות. כל ערך בקודקס מציין את המקור שלו.'],
       ['אמנות וסאונד', 'כל דיוקן, קשתית, תמונת קרקעית, לוח ראייה וצליל נוצרים בזמן אמת בדפדפן שלכם. בלי תמונות מלאי ובלי דגימות.'],
-      ['גופנים', 'Frank Ruhl Libre ו-Heebo לעברית; Fraunces, Inter ו-Space Grotesk ללטינית. הכול ברישיון SIL Open Font License.'],
+      ['גופנים', 'Heebo לעברית; Plus Jakarta Sans, Inter ו-Space Grotesk ללטינית. הכול ברישיון SIL Open Font License.'],
       ['נבנה עם', 'Preact, TypeScript ו-Web Audio API.'],
     ] as [string, string][],
     replayTour: 'להפעיל שוב את סיור ההיכרות',

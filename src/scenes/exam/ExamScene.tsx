@@ -130,7 +130,7 @@ export function ExamScene({ services, params }: SceneProps) {
       setStage(null);
       setBoard(false);
       play('alarm');
-      services.fx.flash('#ef4444', 400);
+      services.fx.flash('#ff5a6e', 400);
       try {
         services.session.fail('timeout');
       } catch (err) {
@@ -223,13 +223,13 @@ export function ExamScene({ services, params }: SceneProps) {
     later(() => setFresh(new Set()), 6000);
     const worst = rows.some((r) => r.flag === 'critical') ? 'critical' : rows.some((r) => r.flag === 'abnormal') ? 'abnormal' : 'normal';
     play(worst === 'critical' ? 'rare' : 'success');
-    if (worst === 'critical') services.fx.vignette('#f43f5e', 900);
-    const colorOf = (f: string) => (f === 'critical' ? '#f43f5e' : f === 'abnormal' ? '#fbbf24' : '#5eead4');
+    if (worst === 'critical') services.fx.vignette('#ff5a6e', 900);
+    const colorOf = (f: string) => (f === 'critical' ? '#ff5a6e' : f === 'abnormal' ? '#fdab3d' : '#00c875');
     const arrive = (x: number, y: number) => {
       play('reveal', { volume: 0.7 });
       setPulse((n) => n + 1);
       services.fx.burst(x, y, { kind: 'sparks', count: 16, color: colorOf(worst) });
-      services.fx.floatText(t.chartUpdated, x, Math.max(y + 70, 190), { color: '#ffd27a', size: 18 });
+      services.fx.floatText(t.chartUpdated, x, Math.max(y + 70, 190), { color: '#2257f0', size: 18 });
     };
     // Let the stage fade before the findings take flight.
     later(() => {
