@@ -1,9 +1,9 @@
 .lm-btn {
-  --btn-h: 44px; --btn-px: 20px; --btn-r: 14px; --btn-fs: var(--lm-fs-md);
+  --btn-h: 44px; --btn-px: 20px; --btn-r: 12px; --btn-fs: var(--lm-fs-md);
   position: relative; isolation: isolate; overflow: hidden;
   display: inline-flex; align-items: center; justify-content: center; gap: 0.55em;
   height: var(--btn-h); padding: 0 var(--btn-px); border-radius: var(--btn-r);
-  font-family: var(--lm-font-ui); font-size: var(--btn-fs); font-weight: 620; letter-spacing: 0.01em; line-height: 1;
+  font-family: var(--lm-font-ui); font-size: var(--btn-fs); font-weight: 620; letter-spacing: -0.005em; line-height: 1;
   white-space: nowrap; user-select: none; touch-action: manipulation;
   transition:
     transform var(--lm-dur-fast) var(--lm-ease-out),
@@ -14,7 +14,7 @@
     filter var(--lm-dur-ui) var(--lm-ease-out);
 }
 .lm-btn--sm { --btn-h: 34px; --btn-px: 14px; --btn-r: 10px; --btn-fs: var(--lm-fs-sm); }
-.lm-btn--lg { --btn-h: 54px; --btn-px: 28px; --btn-r: 17px; --btn-fs: var(--lm-fs-lg); }
+.lm-btn--lg { --btn-h: 54px; --btn-px: 28px; --btn-r: 16px; --btn-fs: var(--lm-fs-lg); }
 .lm-btn--block { display: flex; width: 100%; }
 .lm-btn__label { position: relative; z-index: 1; }
 .lm-btn__icon { position: relative; z-index: 1; width: 1.15em; height: 1.15em; transition: transform var(--lm-dur-ui) var(--lm-ease-spring); }
@@ -35,7 +35,7 @@
 
 .lm-btn__ripple {
   position: absolute; z-index: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 70%);
   pointer-events: none; animation: lm-btn-ripple 650ms var(--lm-ease-out-expo) forwards;
 }
 @keyframes lm-btn-ripple { from { transform: scale(1); opacity: 0.9; } to { transform: scale(26); opacity: 0; } }
@@ -50,83 +50,70 @@
   animation: lm-spin 700ms linear infinite;
 }
 
-/* ── primary: candle gold ─────────────────────────────────────────────── */
+/* ── primary: Lumen teal, solid and confident ─────────────────────────── */
 .lm-btn--primary {
-  color: var(--lm-text-on-gold);
-  background: linear-gradient(180deg, #fff0c9 0%, #ffd98c 30%, #f5b942 78%, #e9a531 100%);
+  color: var(--lm-on-accent);
+  background: linear-gradient(180deg, #0c8a94 0%, var(--lm-brand-600) 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    inset 0 -2px 0 rgba(140, 80, 8, 0.35),
-    0 0 0 1px rgba(255, 214, 140, 0.75),
-    0 10px 26px -8px rgba(245, 170, 50, 0.7),
-    0 2px 5px rgba(10, 4, 0, 0.45);
-  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.6);
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(8, 60, 66, 0.25),
+    0 6px 16px -6px rgba(8, 120, 130, 0.55);
 }
 .lm-btn--primary:hover:not(:disabled) {
-  filter: brightness(1.06) saturate(1.05);
+  background: linear-gradient(180deg, #0b929b 0%, #087f89 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -2px 0 rgba(140, 80, 8, 0.35),
-    0 0 0 1px rgba(255, 224, 160, 0.95),
-    0 0 26px rgba(255, 210, 122, 0.45),
-    0 14px 34px -8px rgba(245, 170, 50, 0.8),
-    0 2px 5px rgba(10, 4, 0, 0.45);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 2px rgba(8, 60, 66, 0.25),
+    0 10px 24px -8px rgba(8, 120, 130, 0.6);
   transform: translateY(-1px);
 }
 .lm-btn--primary:active:not(:disabled) {
-  box-shadow: inset 0 2px 6px rgba(120, 60, 0, 0.45), 0 0 0 1px rgba(255, 214, 140, 0.8), 0 4px 10px -4px rgba(245, 170, 50, 0.6);
+  background: var(--lm-brand-700);
+  box-shadow: inset 0 1px 3px rgba(0, 40, 45, 0.3), 0 1px 2px rgba(8, 60, 66, 0.2);
 }
+.lm-btn--primary .lm-btn__sheen::before { background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent); }
 
-/* ── glass ────────────────────────────────────────────────────────────── */
+/* ── glass → secondary: white card button with a crisp border ─────────── */
 .lm-btn--glass {
-  color: var(--lm-ivory);
-  background: linear-gradient(180deg, rgba(255, 245, 230, 0.1), rgba(255, 245, 230, 0.03)), rgba(36, 22, 64, 0.55);
-  backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
-  box-shadow: inset 0 1px 0 rgba(255, 245, 230, 0.14), inset 0 0 0 1px var(--lm-glass-border), var(--lm-shadow-1);
+  color: var(--lm-ink);
+  background: var(--lm-surface);
+  box-shadow: inset 0 0 0 1px var(--lm-border-strong), 0 1px 2px rgba(15, 30, 50, 0.05);
 }
-.lm-btn--glass .lm-btn__sheen::before { background: linear-gradient(100deg, transparent, rgba(255, 230, 180, 0.22), transparent); }
+.lm-btn--glass .lm-btn__sheen::before { background: linear-gradient(100deg, transparent, rgba(11, 146, 155, 0.08), transparent); }
 .lm-btn--glass:hover:not(:disabled) {
-  color: #fffaf0;
-  background: linear-gradient(180deg, rgba(255, 235, 200, 0.16), rgba(255, 235, 200, 0.05)), rgba(48, 30, 84, 0.6);
-  box-shadow: inset 0 1px 0 rgba(255, 245, 230, 0.2), inset 0 0 0 1px var(--lm-glass-border-hi), 0 0 22px rgba(255, 210, 122, 0.16), var(--lm-shadow-2);
+  color: var(--lm-ink);
+  background: var(--lm-surface-2);
+  box-shadow: inset 0 0 0 1px #b4c2cf, 0 4px 12px -4px rgba(15, 30, 50, 0.14);
   transform: translateY(-1px);
 }
-.lm-btn--glass .lm-btn__icon { color: var(--lm-gold); }
+.lm-btn--glass .lm-btn__icon { color: var(--lm-accent-text); }
 
 /* ── ghost ────────────────────────────────────────────────────────────── */
-.lm-btn--ghost { color: var(--lm-muted); background: transparent; }
+.lm-btn--ghost { color: var(--lm-ink-3); background: transparent; }
 .lm-btn--ghost .lm-btn__sheen::before { display: none; }
-.lm-btn--ghost:hover:not(:disabled) { color: var(--lm-ivory); background: rgba(255, 240, 220, 0.06); }
-.lm-btn--ghost:active:not(:disabled) { background: rgba(255, 240, 220, 0.1); }
+.lm-btn--ghost:hover:not(:disabled) { color: var(--lm-ink); background: rgba(15, 30, 50, 0.05); }
+.lm-btn--ghost:active:not(:disabled) { background: rgba(15, 30, 50, 0.09); }
+.lm-btn--ghost .lm-btn__ripple, .lm-btn--glass .lm-btn__ripple { background: radial-gradient(circle, rgba(11, 146, 155, 0.18), rgba(11, 146, 155, 0) 70%); }
 
 /* ── danger ───────────────────────────────────────────────────────────── */
 .lm-btn--danger {
-  color: #fff4f4;
-  background: linear-gradient(180deg, #ff7b8c 0%, #f43f5e 45%, #c81e45 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 220, 225, 0.6), inset 0 -2px 0 rgba(90, 0, 20, 0.35), 0 0 0 1px rgba(255, 130, 150, 0.6), 0 10px 26px -8px rgba(244, 63, 94, 0.65), 0 2px 5px rgba(10, 0, 4, 0.45);
-  text-shadow: 0 1px 1px rgba(100, 0, 20, 0.35);
+  color: #fff;
+  background: linear-gradient(180deg, #ef4466 0%, #e11d48 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(120, 10, 30, 0.25), 0 6px 16px -6px rgba(225, 29, 72, 0.55);
 }
 .lm-btn--danger:hover:not(:disabled) {
-  filter: brightness(1.08);
-  box-shadow: inset 0 1px 0 rgba(255, 220, 225, 0.7), inset 0 -2px 0 rgba(90, 0, 20, 0.35), 0 0 0 1px rgba(255, 150, 165, 0.9), 0 0 26px rgba(244, 63, 94, 0.45), 0 14px 32px -8px rgba(244, 63, 94, 0.7);
+  filter: brightness(1.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 2px rgba(120, 10, 30, 0.25), 0 10px 24px -8px rgba(225, 29, 72, 0.6);
   transform: translateY(-1px);
 }
 
-html.high-contrast .lm-btn--glass, html.high-contrast .lm-btn--ghost { box-shadow: inset 0 0 0 1.5px var(--lm-glass-border-hi); }
+.lm-btn:disabled { filter: grayscale(0.4); opacity: 0.5; }
+html.high-contrast .lm-btn--glass, html.high-contrast .lm-btn--ghost { box-shadow: inset 0 0 0 1.5px var(--lm-ink-2); }
 
 /* ── keyboard focus: the outline ring comes from base.css; each variant
-      keeps its own depth and adds the candle glow on top ─────────────── */
-.lm-btn--primary:focus-visible {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -2px 0 rgba(140, 80, 8, 0.35), 0 0 0 1px rgba(255, 214, 140, 0.75),
-    var(--lm-focus-glow), 0 10px 26px -8px rgba(245, 170, 50, 0.7);
-}
-.lm-btn--glass:focus-visible {
-  box-shadow: inset 0 1px 0 rgba(255, 245, 230, 0.2), inset 0 0 0 1px var(--lm-glass-border-hi), var(--lm-focus-glow), var(--lm-shadow-1);
-}
-.lm-btn--ghost:focus-visible { color: var(--lm-ivory); background: rgba(255, 240, 220, 0.06); box-shadow: var(--lm-focus-glow); }
-.lm-btn--danger:focus-visible {
-  --lm-focus-color: #ff9aaa;
-  box-shadow: inset 0 1px 0 rgba(255, 220, 225, 0.6), inset 0 -2px 0 rgba(90, 0, 20, 0.35), 0 0 0 1px rgba(255, 130, 150, 0.6),
-    0 0 0 1px rgba(11, 7, 22, 0.9), 0 0 18px 3px rgba(244, 63, 94, 0.5);
-}
-html.high-contrast .lm-btn--danger:focus-visible { --lm-focus-color: #fff; }
+      keeps its own depth and adds the soft teal halo on top ──────────── */
+.lm-btn--primary:focus-visible { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), var(--lm-focus-glow), 0 6px 16px -6px rgba(8, 120, 130, 0.55); }
+.lm-btn--glass:focus-visible { box-shadow: inset 0 0 0 1px var(--lm-border-strong), var(--lm-focus-glow); }
+.lm-btn--ghost:focus-visible { color: var(--lm-ink); background: rgba(15, 30, 50, 0.05); box-shadow: var(--lm-focus-glow); }
+.lm-btn--danger:focus-visible { --lm-focus-color: var(--lm-critical); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 0 4px rgba(225, 29, 72, 0.18); }
+html.high-contrast .lm-btn--danger:focus-visible { --lm-focus-color: #000; }

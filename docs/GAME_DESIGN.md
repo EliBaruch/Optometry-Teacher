@@ -6,9 +6,8 @@
 > Players only ever see clinic-themed names: Career, Boutique, Rivals, Gallery, Lounge, Code Red…
 
 ## 1. Pitch
-You are the newest optometrist at **Lumen**, a breathtaking after-hours eye clinic built inside an old
-glass observatory. Patients drift in from the rain with blurry vision, red eyes, halos, curtains,
-double vision. You take their history, run real clinical tests — each a tactile, gorgeous mini-game —
+You are the newest optometrist at **Lumen**, a bright, modern, beautifully designed eye clinic.
+Patients walk in with blurry vision, red eyes, halos, curtains, double vision. You take their history, run real clinical tests — each a tactile, gorgeous mini-game —
 and make the call: *what is it, and how urgently must they be seen?*
 
 Around the clinical core sit seven engagement systems that make it hard to put down: a career ladder
@@ -28,19 +27,19 @@ Learning science baked in: retrieval practice (diagnose before being told), imme
 feedback, spaced repetition (missed diagnoses return — "Confessional"), interleaving across categories,
 desirable difficulty that ramps with rank.
 
-## 3. Art direction — "Observatory at midnight"
-* Background: deep ink `#0b0716` → aubergine `#1a0f2e`, subtle animated nebula/bokeh, film grain.
-* Surfaces: glass panels (`backdrop-filter: blur`), 1px luminous borders, soft inner glows.
-* Accent: candle gold `#ffd27a`; text ivory `#f6efe4`; muted `#a99bbd`.
-* System accents (jewel tones): Career `#a78bfa` (violet) · Economy `#f5b942` (gold) · Rivals `#4ade80` (green)
-  · Streaks `#fb923c` (amber) · Gallery `#f472b6` (rose) · Code Red `#ef4444` (crimson) · Lounge `#38bdf8` (ice blue).
-* Clinical states: normal `#5eead4`, abnormal `#fbbf24`, critical `#f43f5e`.
-* Type: **Fraunces** (display, elegant serif — titles, diagnosis names), **Inter** (UI),
-  **Space Grotesk** (numbers, scores, data readouts).
+## 3. Art direction — "Daylight Clinic"
+The full spec lives in `docs/DESIGN_SYSTEM.md` (tokens in `src/ui-kit/styles/tokens.css`). In short:
+* Bright, airy, modern clinic: cool white canvas `#f4f7fa`, white cards with 1px borders and soft shadows.
+* Brand: Lumen teal `#087882`; ink text `#0d1b2a`; secondary `#5b6878`. Real gold only for coins/rewards.
+* System accents (legible on white): Career `#7c3aed` · Economy `#d98a06` · Rivals `#16a34a`
+  · Streaks `#ea580c` · Gallery `#db2777` · Code Red `#dc2626` · Lounge `#0284c7`.
+* Clinical states: normal `#0f9f8f`, abnormal `#d97706`, critical `#e11d48`.
+* Type: **Plus Jakarta Sans** (display), **Inter** (UI), **Space Grotesk** (numbers). Hebrew: Heebo.
 * Motion: everything eases (`cubic-bezier(.2,.8,.2,1)` out, springy overshoot for rewards). 150–250ms UI,
   400–900ms reveals. Juice: screen shake on wrong/critical, hit-stop on correct diagnosis, particle bursts,
-  count-up numbers, staggered list entrances, parallax. Respect `reducedMotion`.
-* Motifs: glass, brass instruments, star charts, lens flares, candlelight, rain on windows. Lenses and irises as jewels.
+  count-up numbers, staggered list entrances. Respect `reducedMotion`.
+* Motifs: daylight through big windows, clean lines, plants, light wood, modern instruments.
+  Instrument viewports (slit lamp, fundus, retinoscope) stay clinically dark, framed as screens.
 * Procedural everything (no external image assets): SVG patient portraits, canvas eyes with layered
   iris fibres, fundus paintings, Ishihara plates, charts. It must look *illustrated*, not programmer-art.
 * Audio: procedural WebAudio — glassy chimes, soft clinic ambience, a warm generative pad per scene,

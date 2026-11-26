@@ -1,10 +1,12 @@
+/* Daylight backdrop: a bright clinic interior — soft sky light from the windows,
+   a whisper of teal and lilac, and a few slow sunlit dust motes (canvas). */
 .lm-backdrop {
-  --bd-a: rgba(108, 64, 180, 0.5);   /* upper glow */
-  --bd-b: rgba(255, 196, 110, 0.18); /* lower candle glow */
-  --bd-c: rgba(244, 114, 182, 0.12); /* nebula tint 1 */
-  --bd-d: rgba(56, 189, 248, 0.08);  /* nebula tint 2 */
-  --bd-top: #0b0716;
-  --bd-bottom: #1a0f2e;
+  --bd-a: rgba(95, 203, 205, 0.20);   /* window light, top right */
+  --bd-b: rgba(122, 168, 255, 0.12);  /* cool fill, top left */
+  --bd-c: rgba(255, 214, 160, 0.14);  /* warm sun patch, low */
+  --bd-d: rgba(182, 156, 255, 0.08);  /* lilac tint */
+  --bd-top: #f9fbfd;
+  --bd-bottom: #eef3f7;
   position: absolute; inset: 0; z-index: var(--lm-z-backdrop); overflow: hidden; pointer-events: none;
   background: linear-gradient(180deg, var(--bd-top) 0%, var(--bd-bottom) 100%);
   contain: strict;
@@ -13,77 +15,71 @@
 .lm-backdrop__sky, .lm-backdrop__nebula, .lm-backdrop__canvas, .lm-backdrop__grain, .lm-backdrop__vignette { position: absolute; inset: 0; width: 100%; height: 100%; }
 .lm-backdrop__sky {
   background:
-    radial-gradient(90% 60% at 50% -12%, var(--bd-a), transparent 70%),
-    radial-gradient(70% 45% at 50% 112%, var(--bd-b), transparent 72%);
+    radial-gradient(70% 60% at 88% -8%, var(--bd-a), transparent 70%),
+    radial-gradient(60% 50% at 6% -6%, var(--bd-b), transparent 70%),
+    radial-gradient(60% 40% at 30% 112%, var(--bd-c), transparent 72%);
 }
+/* soft architectural light: two long diagonal window beams */
 .lm-backdrop__nebula {
   inset: -20%; width: 140%; height: 140%;
   background:
-    radial-gradient(38% 30% at 22% 34%, var(--bd-c), transparent 70%),
-    radial-gradient(34% 28% at 78% 62%, var(--bd-d), transparent 70%),
-    radial-gradient(26% 20% at 62% 22%, var(--bd-c), transparent 70%);
-  /* Static on purpose: the canvas motes carry the motion. A continuously
-     transforming full-screen layer would force every glass panel above it
-     to re-blur its backdrop on every frame. */
-  transform: rotate(-4deg);
+    linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.55) 44%, transparent 52%),
+    linear-gradient(115deg, transparent 56%, rgba(255, 255, 255, 0.35) 60%, transparent 66%),
+    radial-gradient(34% 28% at 78% 62%, var(--bd-d), transparent 70%);
+  /* Static on purpose: the canvas motes carry the motion. */
 }
 .lm-backdrop__canvas { display: block; }
+/* paper-fine texture, barely there */
 .lm-backdrop__grain {
-  inset: -50%; width: 200%; height: 200%; opacity: 0.075; mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -0.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  animation: lm-bd-grain 1.2s steps(6) infinite;
+  opacity: 0.035; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.35  0 0 0 0 0.4  0 0 0 1.2 -0.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
-@keyframes lm-bd-grain {
-  0% { transform: translate(0, 0); } 17% { transform: translate(-6%, 4%); } 33% { transform: translate(5%, -7%); }
-  50% { transform: translate(-3%, 8%); } 67% { transform: translate(8%, 2%); } 83% { transform: translate(-7%, -4%); } 100% { transform: translate(2%, 5%); }
-}
+/* the "vignette" is now a gentle floor shade that grounds the scene */
 .lm-backdrop__vignette {
-  background:
-    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 52%, rgba(3, 1, 8, 0.55) 82%, rgba(3, 1, 8, 0.9) 100%);
+  background: linear-gradient(180deg, transparent 70%, rgba(15, 30, 50, 0.035) 100%);
 }
-.lm-backdrop.is-static .lm-backdrop__grain, html.lm-lite .lm-backdrop__grain { animation: none; }
 
 /* ── variants ─────────────────────────────────────────────────────────── */
 .lm-backdrop--title {
-  --bd-a: rgba(126, 74, 206, 0.55); --bd-b: rgba(255, 190, 100, 0.26);
-  --bd-c: rgba(244, 114, 182, 0.16); --bd-d: rgba(120, 140, 255, 0.12);
-  --bd-top: #07040f; --bd-bottom: #1d1033;
+  --bd-a: rgba(95, 203, 205, 0.28); --bd-b: rgba(122, 168, 255, 0.18);
+  --bd-c: rgba(255, 210, 150, 0.18); --bd-d: rgba(182, 156, 255, 0.12);
+  --bd-top: #fbfdfe; --bd-bottom: #eaf2f6;
 }
 .lm-backdrop--hub {
-  --bd-a: rgba(110, 66, 180, 0.48); --bd-b: rgba(255, 186, 96, 0.22);
-  --bd-c: rgba(255, 170, 100, 0.1); --bd-d: rgba(167, 139, 250, 0.12);
+  --bd-a: rgba(95, 203, 205, 0.22); --bd-b: rgba(122, 168, 255, 0.12);
+  --bd-c: rgba(255, 214, 160, 0.16); --bd-d: rgba(182, 156, 255, 0.08);
 }
 .lm-backdrop--exam {
-  --bd-a: rgba(60, 120, 170, 0.32); --bd-b: rgba(94, 234, 212, 0.1);
-  --bd-c: rgba(94, 234, 212, 0.08); --bd-d: rgba(167, 139, 250, 0.1);
-  --bd-top: #080a17; --bd-bottom: #161131;
+  --bd-a: rgba(95, 203, 205, 0.16); --bd-b: rgba(122, 168, 255, 0.1);
+  --bd-c: rgba(95, 203, 205, 0.06); --bd-d: rgba(122, 168, 255, 0.06);
+  --bd-top: #f8fbfd; --bd-bottom: #eff4f8;
 }
 .lm-backdrop--emergency {
-  --bd-a: rgba(180, 20, 50, 0.45); --bd-b: rgba(251, 146, 60, 0.16);
-  --bd-c: rgba(239, 68, 68, 0.14); --bd-d: rgba(120, 20, 60, 0.2);
-  --bd-top: #10040a; --bd-bottom: #240916;
+  --bd-a: rgba(244, 63, 94, 0.14); --bd-b: rgba(251, 146, 60, 0.1);
+  --bd-c: rgba(244, 63, 94, 0.08); --bd-d: rgba(251, 146, 60, 0.06);
+  --bd-top: #fffafa; --bd-bottom: #fbeef0;
 }
 .lm-backdrop--emergency .lm-backdrop__vignette {
-  background: radial-gradient(ellipse 110% 85% at 50% 45%, transparent 45%, rgba(120, 6, 24, 0.55) 80%, rgba(40, 0, 8, 0.95) 100%);
+  background: radial-gradient(ellipse 120% 95% at 50% 45%, transparent 62%, rgba(225, 29, 72, 0.10) 88%, rgba(225, 29, 72, 0.18) 100%);
   animation: lm-bd-heartbeat 1.05s var(--lm-ease-out) infinite;
 }
-@keyframes lm-bd-heartbeat { 0%, 100% { opacity: 0.7; } 12% { opacity: 1; } 24% { opacity: 0.8; } 36% { opacity: 1; } }
+@keyframes lm-bd-heartbeat { 0%, 100% { opacity: 0.6; } 12% { opacity: 1; } 24% { opacity: 0.75; } 36% { opacity: 1; } }
 .lm-backdrop--results {
-  --bd-a: rgba(255, 200, 110, 0.3); --bd-b: rgba(167, 139, 250, 0.22);
-  --bd-c: rgba(255, 210, 122, 0.12); --bd-d: rgba(244, 114, 182, 0.1);
-  --bd-top: #110a1c; --bd-bottom: #1d1030;
+  --bd-a: rgba(95, 203, 205, 0.24); --bd-b: rgba(255, 200, 110, 0.16);
+  --bd-c: rgba(255, 214, 160, 0.16); --bd-d: rgba(182, 156, 255, 0.12);
+  --bd-top: #fbfdfe; --bd-bottom: #eef3f7;
 }
 .lm-backdrop--results .lm-backdrop__sky::after {
   content: ''; position: absolute; left: 50%; top: -30%; width: 160%; aspect-ratio: 1; transform: translateX(-50%);
-  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 220, 150, 0.06) 0deg 6deg, transparent 6deg 18deg);
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(11, 146, 155, 0.045) 0deg 6deg, transparent 6deg 18deg);
   -webkit-mask: radial-gradient(circle, #000 5%, transparent 55%); mask: radial-gradient(circle, #000 5%, transparent 55%);
   animation: lm-bd-sunburst 120s steps(3600) infinite;
 }
 @keyframes lm-bd-sunburst { from { transform: translateX(-50%) rotate(0deg); } to { transform: translateX(-50%) rotate(360deg); } }
 .lm-backdrop.is-static .lm-backdrop__sky::after { animation: none; }
 .lm-backdrop--calm {
-  --bd-a: rgba(56, 130, 200, 0.32); --bd-b: rgba(165, 243, 252, 0.08);
-  --bd-c: rgba(56, 189, 248, 0.08); --bd-d: rgba(196, 181, 253, 0.1);
-  --bd-top: #060a16; --bd-bottom: #111433;
+  --bd-a: rgba(56, 189, 248, 0.16); --bd-b: rgba(95, 203, 205, 0.14);
+  --bd-c: rgba(196, 230, 220, 0.2); --bd-d: rgba(182, 156, 255, 0.08);
+  --bd-top: #f8fcfd; --bd-bottom: #ecf4f6;
 }
 html.high-contrast .lm-backdrop__grain, html.high-contrast .lm-backdrop__nebula { display: none; }

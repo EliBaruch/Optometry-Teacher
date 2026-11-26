@@ -1,12 +1,9 @@
 import { render } from 'preact';
 import '@fontsource-variable/inter';
-import '@fontsource-variable/fraunces';
+import '@fontsource-variable/plus-jakarta-sans';
 import '@fontsource/space-grotesk/500.css';
 import '@fontsource/space-grotesk/700.css';
 // Hebrew edition typography (unicode-range subsets: only downloaded when Hebrew glyphs render)
-import '@fontsource/frank-ruhl-libre/400.css';
-import '@fontsource/frank-ruhl-libre/500.css';
-import '@fontsource/frank-ruhl-libre/700.css';
 import '@fontsource-variable/heebo';
 import { browserStorage, createServices, isLocale, isRtl, type Locale } from '@core';
 import { APP_TEXT } from './strings';

@@ -2,45 +2,58 @@ import type { Grade, RewardGrant } from '@core';
 
 /** JS mirror of the colour tokens (for canvas / SVG drawing). Keep in sync with styles/tokens.css. */
 export const palette = {
-  ink: '#0b0716',
-  inkDeep: '#06030d',
-  aubergine: '#1a0f2e',
-  plum: '#2a1846',
-  gold: '#ffd27a',
-  goldDeep: '#f5b942',
-  ivory: '#f6efe4',
-  muted: '#a99bbd',
-  career: '#a78bfa',
-  economy: '#f5b942',
-  rivals: '#4ade80',
-  streaks: '#fb923c',
-  gallery: '#f472b6',
-  codeRed: '#ef4444',
-  lounge: '#38bdf8',
-  normal: '#5eead4',
-  abnormal: '#fbbf24',
-  critical: '#f43f5e',
+  // Daylight canvas & surfaces
+  canvas: '#f4f7fa',
+  surface: '#ffffff',
+  border: '#e1e8ef',
+  // Legacy keys (remapped like the CSS tokens): "ink" = page background, "ivory" = text, "gold" = accent.
+  ink: '#f4f7fa',
+  inkDeep: '#e4ebf1',
+  aubergine: '#eaf0f5',
+  plum: '#dbe4ec',
+  gold: '#087882',
+  goldDeep: '#0a616a',
+  ivory: '#0d1b2a',
+  muted: '#5b6878',
+  // Brand + text
+  brand: '#087882',
+  brandBright: '#0b929b',
+  brandSoft: '#ebfafa',
+  text: '#0d1b2a',
+  coin: '#e9a20b',
+  // System accents
+  career: '#7c3aed',
+  economy: '#d98a06',
+  rivals: '#16a34a',
+  streaks: '#ea580c',
+  gallery: '#db2777',
+  codeRed: '#dc2626',
+  lounge: '#0284c7',
+  // Clinical states
+  normal: '#0f9f8f',
+  abnormal: '#d97706',
+  critical: '#e11d48',
 } as const;
 
 export type Rarity = NonNullable<RewardGrant['rarity']>;
 export const RARITIES: readonly Rarity[] = ['common', 'rare', 'epic', 'legendary'];
 export const RARITY_COLOR: Record<Rarity, string> = {
-  common: '#cbd5e1',
-  rare: '#38bdf8',
-  epic: '#c084fc',
-  legendary: '#ffd27a',
+  common: '#64748b',
+  rare: '#0284c7',
+  epic: '#9333ea',
+  legendary: '#d98a06',
 };
 export const RARITY_LABEL: Record<Rarity, string> = {
   common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary',
 };
 
 export const GRADE_COLOR: Record<Grade, string> = {
-  S: '#ffd27a',
-  A: '#5eead4',
-  B: '#38bdf8',
-  C: '#a78bfa',
-  D: '#fb923c',
-  F: '#f43f5e',
+  S: '#d98a06',
+  A: '#0f9f8f',
+  B: '#0284c7',
+  C: '#7c3aed',
+  D: '#ea580c',
+  F: '#e11d48',
 };
 export const GRADE_WORD: Record<Grade, string> = {
   S: 'Exemplary', A: 'Excellent', B: 'Solid', C: 'Adequate', D: 'Needs review', F: 'Missed',
@@ -48,16 +61,16 @@ export const GRADE_WORD: Record<Grade, string> = {
 
 export type Tone = 'neutral' | 'gold' | 'info' | 'good' | 'warn' | 'bad' | 'epic' | 'normal' | 'abnormal' | 'critical';
 export const TONE_COLOR: Record<Tone, string> = {
-  neutral: '#a99bbd',
-  gold: '#ffd27a',
-  info: '#38bdf8',
-  good: '#5eead4',
-  warn: '#fbbf24',
-  bad: '#f43f5e',
-  epic: '#c084fc',
-  normal: '#5eead4',
-  abnormal: '#fbbf24',
-  critical: '#f43f5e',
+  neutral: '#64748b',
+  gold: '#087882',
+  info: '#0284c7',
+  good: '#0f9f8f',
+  warn: '#d97706',
+  bad: '#e11d48',
+  epic: '#9333ea',
+  normal: '#0f9f8f',
+  abnormal: '#d97706',
+  critical: '#e11d48',
 };
 
 /** "#rrggbb" + alpha → "rgba(r,g,b,a)". Falls back to the input for non-hex colours. */

@@ -1,65 +1,110 @@
 /* ==========================================================================
-   Lumen design tokens — "Observatory at midnight"
+   Lumen design tokens — "Daylight Clinic"
+   A bright, modern optometry practice: airy whites, crisp ink, Lumen teal.
+   Instrument viewports (slit lamp, fundus, retinoscope…) stay dark on purpose:
+   they are screens inside the bright UI, like a camera view in a light app.
    Every scene, mini-game and system styles itself from these variables.
    JS mirror (for canvas/SVG): src/ui-kit/lib/palette.ts
    ========================================================================== */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* ── Night ───────────────────────────────────────────────────────────── */
-  --lm-ink-950: #06030d;
-  --lm-ink-900: #0b0716;
-  --lm-ink-850: #100a1f;
-  --lm-ink-800: #140c26;
-  --lm-aubergine-700: #1a0f2e;
-  --lm-aubergine-600: #231540;
-  --lm-plum-500: #2f1d52;
-  --lm-plum-400: #45306f;
+  /* ══ Daylight canvas ══════════════════════════════════════════════════════
+     Cool, airy whites — a bright modern clinic at mid-morning. */
+  --lm-canvas: #f4f7fa;          /* app background */
+  --lm-canvas-2: #eaf0f5;        /* recessed areas, wells */
+  --lm-surface: #ffffff;         /* cards */
+  --lm-surface-2: #f8fafc;       /* subtle fill inside cards */
+  --lm-surface-3: #eef3f7;       /* pressed / selected fills, input wells */
+  --lm-border: #e1e8ef;          /* default 1px border */
+  --lm-border-strong: #c9d4df;   /* inputs, emphasised outlines */
 
-  /* ── Candlelight ─────────────────────────────────────────────────────── */
-  --lm-gold-100: #fff4da;
-  --lm-gold-200: #ffe7b3;
-  --lm-gold-300: #ffdc93;
-  --lm-gold: #ffd27a;
-  --lm-gold-500: #f5b942;
-  --lm-gold-600: #d9962a;
-  --lm-gold-700: #a86d17;
-  --lm-gold-900: #4a2e06;
+  /* ══ Brand: Lumen teal (clear, clinical, confident) ══════════════════════ */
+  --lm-brand-50: #ebfafa;
+  --lm-brand-100: #cdf2f1;
+  --lm-brand-200: #9fe3e2;
+  --lm-brand-300: #5fcbcd;
+  --lm-brand-400: #23aeb4;
+  --lm-brand-500: #0b929b;
+  --lm-brand-600: #087882;       /* primary fills (white text 5.0:1) */
+  --lm-brand-700: #0a616a;       /* brand text on white (6.9:1) */
+  --lm-brand-800: #0d4e56;
+  --lm-brand-900: #0c3c43;
+  --lm-accent: var(--lm-brand-600);
+  --lm-accent-text: var(--lm-brand-700);
+  --lm-accent-soft: var(--lm-brand-50);
+  --lm-on-accent: #ffffff;
+
+  /* ══ Ink (text) ═══════════════════════════════════════════════════════════ */
+  --lm-ink: #0d1b2a;             /* headings / primary text (16.8:1) */
+  --lm-ink-2: #334155;           /* body copy */
+  --lm-ink-3: #5b6878;           /* secondary text (5.6:1) */
+  --lm-ink-4: #8693a3;           /* placeholder / disabled (decorative only) */
+
+  /* ── Legacy names, remapped to daylight values ───────────────────────────
+     The old night palette's names are kept so every module keeps resolving;
+     backgrounds become light, "ivory" text becomes ink, "gold" accent becomes teal. */
+  --lm-ink-950: #e4ebf1;
+  --lm-ink-900: var(--lm-canvas);
+  --lm-ink-850: #f0f4f8;
+  --lm-ink-800: var(--lm-surface-2);
+  --lm-aubergine-700: var(--lm-canvas-2);
+  --lm-aubergine-600: var(--lm-surface-3);
+  --lm-plum-500: #dbe4ec;
+  --lm-plum-400: #c3cfdb;
+
+  --lm-gold-100: var(--lm-brand-50);
+  --lm-gold-200: var(--lm-brand-700);   /* was "light gold text": now readable accent text */
+  --lm-gold-300: var(--lm-brand-500);
+  --lm-gold: var(--lm-brand-600);
+  --lm-gold-500: var(--lm-brand-500);
+  --lm-gold-600: var(--lm-brand-700);
+  --lm-gold-700: var(--lm-brand-800);
+  --lm-gold-900: var(--lm-brand-900);
 
   /* ── Text ────────────────────────────────────────────────────────────── */
-  --lm-ivory: #f6efe4;
-  --lm-ivory-dim: #ddd3c4;
-  --lm-muted: #a99bbd;
-  --lm-muted-2: #7d6f95;
-  --lm-faint: #54486b;
-  --lm-text: var(--lm-ivory);
-  --lm-text-muted: var(--lm-muted);
-  --lm-text-on-gold: #2a1a05;
+  --lm-ivory: var(--lm-ink);
+  --lm-ivory-dim: var(--lm-ink-2);
+  --lm-muted: var(--lm-ink-3);
+  --lm-muted-2: #6b7889;
+  --lm-faint: var(--lm-ink-4);
+  --lm-text: var(--lm-ink);
+  --lm-text-muted: var(--lm-ink-3);
+  --lm-text-on-gold: var(--lm-on-accent);
 
-  /* ── System accents (jewel tones) ────────────────────────────────────── */
-  --lm-career: #a78bfa;
-  --lm-economy: #f5b942;
-  --lm-rivals: #4ade80;
-  --lm-streaks: #fb923c;
-  --lm-gallery: #f472b6;
-  --lm-code-red: #ef4444;
-  --lm-lounge: #38bdf8;
+  /* ── Reward gold (coins, legendary) — a true warm gold that reads on white ── */
+  --lm-coin: #e9a20b;
+  --lm-coin-deep: #b45309;
+  --lm-coin-soft: #fef6e1;
+
+  /* ── System accents (crisp, saturated — legible on white) ────────────── */
+  --lm-career: #7c3aed;
+  --lm-economy: #d98a06;
+  --lm-rivals: #16a34a;
+  --lm-streaks: #ea580c;
+  --lm-gallery: #db2777;
+  --lm-code-red: #dc2626;
+  --lm-lounge: #0284c7;
 
   /* ── Clinical states ─────────────────────────────────────────────────── */
-  --lm-normal: #5eead4;
-  --lm-abnormal: #fbbf24;
-  --lm-critical: #f43f5e;
-  --lm-info: #38bdf8;
+  --lm-normal: #0f9f8f;
+  --lm-abnormal: #d97706;
+  --lm-critical: #e11d48;
+  --lm-info: #0284c7;
+  --lm-normal-soft: #e6f7f4;
+  --lm-abnormal-soft: #fef4e2;
+  --lm-critical-soft: #fde8ed;
+  --lm-info-soft: #e3f2fb;
 
   /* ── Rarity ──────────────────────────────────────────────────────────── */
-  --lm-rarity-common: #cbd5e1;
-  --lm-rarity-rare: #38bdf8;
-  --lm-rarity-epic: #c084fc;
-  --lm-rarity-legendary: #ffd27a;
-  --lm-iridescent: conic-gradient(from var(--lm-hue-angle, 0deg), #ffd27a, #ffb3d9, #b9a2ff, #8be9ff, #b7ffcf, #fff0a8, #ffd27a);
+  --lm-rarity-common: #64748b;
+  --lm-rarity-rare: #0284c7;
+  --lm-rarity-epic: #9333ea;
+  --lm-rarity-legendary: #d98a06;
+  --lm-iridescent: conic-gradient(from var(--lm-hue-angle, 0deg), #5fcbcd, #7aa8ff, #b69cff, #ff9cc8, #ffc56b, #8fe3b0, #5fcbcd);
 
   /* ── Typography ──────────────────────────────────────────────────────── */
-  --lm-font-display: 'Fraunces Variable', 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --lm-font-display: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', 'Inter Variable', system-ui, sans-serif;
   --lm-font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --lm-font-num: 'Space Grotesk', 'Inter Variable', ui-monospace, sans-serif;
 
@@ -74,10 +119,11 @@
   --lm-fs-4xl: clamp(2.4rem, 1.6rem + 2.8vw, 3.5rem);
   --lm-fs-5xl: clamp(3rem, 1.8rem + 4.6vw, 5.25rem);
 
-  --lm-lh-tight: 1.08;
+  --lm-lh-tight: 1.1;
   --lm-lh-snug: 1.3;
   --lm-lh-body: 1.55;
-  --lm-tracking-caps: 0.14em;
+  --lm-tracking-caps: 0.08em;
+  --lm-tracking-display: -0.025em;
 
   /* ── Space (4px base) ────────────────────────────────────────────────── */
   --lm-sp-0: 2px;
@@ -93,31 +139,31 @@
   --lm-sp-10: 72px;
   --lm-gutter: clamp(16px, 3.2vw, 40px);
 
-  /* ── Radii ───────────────────────────────────────────────────────────── */
-  --lm-r-xs: 6px;
-  --lm-r-sm: 10px;
-  --lm-r-md: 14px;
+  /* ── Radii (soft, friendly, app-like) ────────────────────────────────── */
+  --lm-r-xs: 8px;
+  --lm-r-sm: 12px;
+  --lm-r-md: 16px;
   --lm-r-lg: 20px;
   --lm-r-xl: 28px;
   --lm-r-pill: 999px;
 
-  /* ── Elevation: layered shadows (ambient + key + contact) ─────────────── */
-  --lm-shadow-1: 0 1px 1px rgba(3, 1, 8, 0.35), 0 2px 6px rgba(3, 1, 8, 0.3);
-  --lm-shadow-2: 0 1px 2px rgba(3, 1, 8, 0.4), 0 6px 16px -2px rgba(3, 1, 8, 0.45), 0 18px 40px -12px rgba(3, 1, 8, 0.55);
-  --lm-shadow-3: 0 2px 4px rgba(3, 1, 8, 0.4), 0 14px 34px -6px rgba(3, 1, 8, 0.6), 0 40px 90px -24px rgba(3, 1, 8, 0.8);
-  --lm-glow-gold: 0 0 0 1px rgba(255, 210, 122, 0.35), 0 0 18px rgba(255, 210, 122, 0.28), 0 0 48px rgba(245, 185, 66, 0.18);
-  --lm-glow-soft: 0 0 24px rgba(255, 210, 122, 0.14);
-  --lm-text-glow: 0 0 18px rgba(255, 210, 122, 0.45), 0 0 2px rgba(255, 230, 180, 0.6);
+  /* ── Elevation: soft, cool, layered ──────────────────────────────────── */
+  --lm-shadow-1: 0 1px 2px rgba(15, 30, 50, 0.05), 0 1px 3px rgba(15, 30, 50, 0.06);
+  --lm-shadow-2: 0 1px 2px rgba(15, 30, 50, 0.04), 0 4px 12px -2px rgba(15, 30, 50, 0.08), 0 12px 28px -10px rgba(15, 30, 50, 0.1);
+  --lm-shadow-3: 0 2px 4px rgba(15, 30, 50, 0.04), 0 12px 32px -6px rgba(15, 30, 50, 0.14), 0 36px 72px -24px rgba(15, 30, 50, 0.22);
+  --lm-glow-gold: 0 0 0 1px rgba(8, 120, 130, 0.22), 0 6px 20px -6px rgba(8, 120, 130, 0.35);
+  --lm-glow-soft: 0 8px 24px -10px rgba(8, 120, 130, 0.25);
+  --lm-text-glow: none;
 
-  /* ── Glass surface recipe ────────────────────────────────────────────── */
-  --lm-glass-bg: linear-gradient(160deg, rgba(58, 38, 96, 0.46) 0%, rgba(28, 17, 50, 0.52) 46%, rgba(16, 9, 30, 0.6) 100%);
-  --lm-glass-bg-strong: linear-gradient(160deg, rgba(62, 41, 102, 0.78) 0%, rgba(30, 18, 54, 0.86) 50%, rgba(17, 10, 32, 0.9) 100%);
-  --lm-glass-blur: blur(18px) saturate(140%);
-  --lm-glass-border: rgba(255, 236, 210, 0.13);
-  --lm-glass-border-hi: rgba(255, 228, 180, 0.32);
-  --lm-glass-highlight: inset 0 1px 0 rgba(255, 245, 230, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-  --lm-glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 38%);
-  --lm-hairline: rgba(255, 236, 210, 0.09);
+  /* ── Surface recipe (was "glass": now frosted white cards) ───────────── */
+  --lm-glass-bg: rgba(255, 255, 255, 0.86);
+  --lm-glass-bg-strong: #ffffff;
+  --lm-glass-blur: blur(16px) saturate(160%);
+  --lm-glass-border: var(--lm-border);
+  --lm-glass-border-hi: rgba(8, 120, 130, 0.38);
+  --lm-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --lm-glass-sheen: none;
+  --lm-hairline: #e7edf3;
 
   /* ── Motion ──────────────────────────────────────────────────────────── */
   --lm-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -144,14 +190,11 @@
   --lm-z-tooltip: 1300;
 
   /* ── Focus ───────────────────────────────────────────────────────────── */
-  /* The ring itself is an outline (box-shadow stacks on components can never
-     erase it); the glow is a shadow that components append to their stack. */
-  --lm-focus-color: var(--lm-gold);
+  --lm-focus-color: var(--lm-brand-500);
   --lm-focus-width: 2px;
-  --lm-focus-offset: 3px;
-  --lm-focus-glow: 0 0 0 1px rgba(11, 7, 22, 0.9), 0 0 18px 3px rgba(255, 210, 122, 0.5);
-  /* Legacy full ring as a box-shadow (for custom drawing). */
-  --lm-focus-ring: 0 0 0 2px var(--lm-ink-900), 0 0 0 4px var(--lm-gold), 0 0 16px 4px rgba(255, 210, 122, 0.45);
+  --lm-focus-offset: 2px;
+  --lm-focus-glow: 0 0 0 4px rgba(11, 146, 155, 0.18);
+  --lm-focus-ring: 0 0 0 2px #fff, 0 0 0 4px var(--lm-brand-500);
 
   /* ── Layout ──────────────────────────────────────────────────────────── */
   --lm-topbar-h: 64px;
@@ -170,32 +213,33 @@
 }
 /* Phones and tablets: a smaller blur radius costs far less to composite. */
 @media (max-width: 640px), (pointer: coarse) {
-  :root { --lm-glass-blur: blur(12px) saturate(135%); }
+  :root { --lm-glass-blur: blur(10px) saturate(150%); }
 }
 
-/* ── High contrast: opaque surfaces, brighter text & borders ─────────────── */
+/* ── High contrast: opaque surfaces, darker text & borders ───────────────── */
 html.high-contrast {
-  --lm-muted: #d8cfe6;
-  --lm-muted-2: #b9aecb;
-  --lm-text-muted: #e2dbee;
-  --lm-glass-bg: linear-gradient(160deg, #241546, #150c2a);
-  --lm-glass-bg-strong: linear-gradient(160deg, #2a1950, #170d2e);
-  --lm-glass-border: rgba(255, 240, 220, 0.55);
-  --lm-glass-border-hi: rgba(255, 228, 180, 0.9);
-  --lm-hairline: rgba(255, 240, 220, 0.35);
+  --lm-ink-3: #334155;
+  --lm-muted: #334155;
+  --lm-muted-2: #3f4b5b;
+  --lm-text-muted: #2b3646;
+  --lm-glass-bg: #ffffff;
+  --lm-glass-bg-strong: #ffffff;
+  --lm-border: #7b8898;
+  --lm-glass-border: #5b6878;
+  --lm-glass-border-hi: var(--lm-brand-700);
+  --lm-hairline: #9aa6b4;
   --lm-glass-blur: none;
-  --lm-focus-ring: 0 0 0 2px #000, 0 0 0 5px #fff;
-  --lm-focus-color: #fff;
+  --lm-focus-ring: 0 0 0 2px #fff, 0 0 0 5px #000;
+  --lm-focus-color: #000;
   --lm-focus-width: 3px;
-  --lm-focus-glow: 0 0 0 1px #000;
+  --lm-focus-glow: none;
 }
 
 /* ── Lite rendering (set by the Backdrop when the device cannot keep up):
-      no live blur behind glass, slightly denser surfaces so text stays crisp. */
+      no live blur behind surfaces. */
 html.lm-lite {
   --lm-glass-blur: none;
-  --lm-glass-bg: linear-gradient(160deg, rgba(52, 34, 88, 0.86) 0%, rgba(27, 16, 48, 0.9) 46%, rgba(16, 9, 30, 0.92) 100%);
-  --lm-glass-bg-strong: linear-gradient(160deg, rgba(58, 38, 96, 0.94) 0%, rgba(29, 17, 52, 0.96) 50%, rgba(17, 10, 32, 0.97) 100%);
+  --lm-glass-bg: rgba(255, 255, 255, 0.97);
 }
 
 /* ── Reduced motion: the app's setting class or the OS preference ────────── */
@@ -219,10 +263,10 @@ html.reduced-motion {
 }
 
 /* ── Hebrew edition typography ──────────────────────────────
-   Frank Ruhl Libre: the classic Israeli book serif (display); Heebo: clean UI sans.
+   Heebo for display and UI: the clean, modern Israeli app sans.
    Latin glyphs inside Hebrew text fall back to the original faces. */
 :root:lang(he) {
-  --lm-font-display: 'Frank Ruhl Libre', 'Fraunces Variable', 'David Libre', serif;
+  --lm-font-display: 'Heebo Variable', 'Heebo', 'Plus Jakarta Sans Variable', system-ui, sans-serif;
   --lm-font-ui: 'Heebo Variable', 'Heebo', 'Inter Variable', system-ui, sans-serif;
 }
 

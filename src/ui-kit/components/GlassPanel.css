@@ -5,39 +5,37 @@
   border-radius: var(--lm-r-lg);
   padding: var(--panel-pad);
   color: var(--lm-text);
-  background: var(--lm-glass-sheen), var(--lm-glass-bg);
+  background: var(--lm-glass-bg);
   backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
-  box-shadow: var(--lm-glass-highlight), inset 0 0 0 1px var(--lm-glass-border), var(--lm-shadow-2);
+  box-shadow: inset 0 0 0 1px var(--lm-glass-border), var(--lm-shadow-2);
   transition: transform var(--lm-dur-ui) var(--lm-ease-out), box-shadow var(--lm-dur-med) var(--lm-ease-out);
 }
-/* luminous top edge: a gold filament that fades toward the corners */
+/* accent edge: only shown on glow panels (a thin brand line at the top) */
 .lm-panel::before {
-  content: ''; position: absolute; left: 12%; right: 12%; top: 0; height: 1px; pointer-events: none;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--panel-accent) 70%, white), transparent);
-  opacity: 0.55;
+  content: ''; position: absolute; left: 24px; right: 24px; top: 0; height: 2px; border-radius: 0 0 2px 2px; pointer-events: none;
+  background: var(--panel-accent);
+  opacity: 0;
 }
 .lm-panel--pad-none { --panel-pad: 0; }
 .lm-panel--pad-sm { --panel-pad: var(--lm-sp-3); border-radius: var(--lm-r-md); }
 .lm-panel--pad-lg { --panel-pad: var(--lm-sp-7); border-radius: var(--lm-r-xl); }
 @media (max-width: 640px) { .lm-panel--pad-lg { --panel-pad: var(--lm-sp-5); } }
-.lm-panel--strong { background: var(--lm-glass-sheen), var(--lm-glass-bg-strong); }
-.lm-panel--accent { box-shadow: var(--lm-glass-highlight), inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 32%, transparent), var(--lm-shadow-2); }
+.lm-panel--strong { background: var(--lm-glass-bg-strong); }
+.lm-panel--accent { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 30%, var(--lm-border)), var(--lm-shadow-2); }
 .lm-panel--glow {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel-accent) 6%, #fff), #fff 140px);
   box-shadow:
-    var(--lm-glass-highlight),
-    inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 45%, transparent),
-    inset 0 0 40px -12px color-mix(in srgb, var(--panel-accent) 35%, transparent),
-    0 0 40px -6px color-mix(in srgb, var(--panel-accent) 38%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 35%, var(--lm-border)),
+    0 12px 32px -14px color-mix(in srgb, var(--panel-accent) 45%, transparent),
     var(--lm-shadow-2);
 }
-.lm-panel--glow::before { opacity: 0.95; }
+.lm-panel--glow::before { opacity: 0.9; }
 .lm-panel--interactive { cursor: pointer; }
 .lm-panel--interactive:hover {
   transform: translateY(-3px);
   box-shadow:
-    var(--lm-glass-highlight),
-    inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 55%, transparent),
-    0 0 36px -4px color-mix(in srgb, var(--panel-accent) 34%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 45%, var(--lm-border)),
+    0 16px 36px -14px color-mix(in srgb, var(--panel-accent) 40%, transparent),
     var(--lm-shadow-3);
 }
 .lm-panel--interactive:active { transform: translateY(-1px) scale(0.99); transition-duration: var(--lm-dur-instant); }
@@ -47,19 +45,18 @@
 .lm-panel__icon {
   display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 11px;
   color: var(--panel-accent);
-  background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--panel-accent) 30%, transparent), color-mix(in srgb, var(--panel-accent) 8%, transparent));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 40%, transparent), 0 0 16px -4px color-mix(in srgb, var(--panel-accent) 60%, transparent);
+  background: color-mix(in srgb, var(--panel-accent) 11%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 18%, transparent);
 }
 .lm-panel__titles { flex: 1; min-width: 0; }
 .lm-panel__eyebrow { color: var(--panel-accent); margin-bottom: 2px; }
-.lm-panel__title { font-size: var(--lm-fs-xl); font-weight: 540; color: var(--lm-ivory); }
+.lm-panel__title { font-size: var(--lm-fs-xl); font-weight: 700; color: var(--lm-ink); }
 .lm-panel__actions { display: flex; align-items: center; gap: var(--lm-sp-2); }
 html.high-contrast .lm-panel { box-shadow: inset 0 0 0 1.5px var(--lm-glass-border), var(--lm-shadow-2); }
 
 .lm-panel--interactive:focus-visible {
   box-shadow:
-    var(--lm-glass-highlight),
-    inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 55%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--panel-accent) 45%, var(--lm-border)),
     var(--lm-focus-glow),
     var(--lm-shadow-2);
 }
