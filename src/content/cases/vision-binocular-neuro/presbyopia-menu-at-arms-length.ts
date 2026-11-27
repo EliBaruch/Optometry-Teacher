@@ -24,7 +24,7 @@ const presbyopiaMenu: ClinicalCase = {
     },
   },
   chiefComplaint:
-    "Doc, my arms are too short. I hold the recipe cards out here like a trombone, and in the restaurant's lovely candlelight I can't read my own menu. My customers think it's charming. I do not.",
+    "Honestly, my arms are too short. I hold the recipe cards out here like a trombone, and in the restaurant's lovely candlelight I can't read my own menu. My customers think it's charming. I do not.",
   history: [
     { id: 'gradual', category: 'onset', q: 'Did this come on suddenly or gradually?', a: 'Slowly, over the last year or so. First the small print on spice jars, now everything close.', relevance: 'key' },
     { id: 'distance', category: 'symptoms', q: 'How is your distance vision?', a: 'Perfect! I can read the specials board from the kitchen pass.', relevance: 'key' },

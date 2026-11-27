@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { beginRun, modeText, type ModeModule, type SceneProps } from '@core';
-import { HudSlot, IconButton, Screen, useReducedMotion, useRegistry, useSignal, useStrings } from '@ui-kit';
+import { beginRun, modeText, playerNameOf, type ModeModule, type SceneProps } from '@core';
+import { HudSlot, Icon, IconButton, Screen, useReducedMotion, useRegistry, useSignal, useStrings } from '@ui-kit';
 import { S } from './strings';
 import { useNarrow } from './useNarrow';
 import { ModeCard, SoonCard, WingTile } from './Cards';
@@ -77,7 +77,8 @@ export function HubScene({ services }: SceneProps) {
   };
   const open = (w: WingView) => services.router.go(w.sceneId, w.params);
 
-  const name = (settings.playerName && settings.playerName !== 'Doctor' ? settings.playerName : t.doctor);
+  // The player's own name, or nothing: the clinic never calls them "Doctor".
+  const name = playerNameOf(settings.playerName);
   const none = modes.length === 0;
   const navItems = [
     { id: 'hub', label: t.navClinic },
@@ -92,8 +93,8 @@ export function HubScene({ services }: SceneProps) {
     <Screen
       backdrop="hub" class="hub" contentClass="hub-content"
       left={<button type="button" class="hub-who" onClick={() => services.router.go('profile')} aria-label={t.openProfile(name)} disabled={!sceneIds.has('profile')}>
-        <span class="hub-who__dot" aria-hidden="true">{name.trim().charAt(0).toUpperCase()}</span>
-        <span class="hub-who__name">{name}</span>
+        <span class="hub-who__dot" aria-hidden="true">{name ? name.charAt(0).toUpperCase() : <Icon name="user" size={15} />}</span>
+        <span class="hub-who__name">{name || t.profileChip}</span>
       </button>}
       right={sceneIds.has('settings') ? <IconButton icon="settings" label={t.settings} onClick={() => services.router.go('settings')} /> : undefined}
     >
@@ -112,7 +113,9 @@ export function HubScene({ services }: SceneProps) {
         <header class="hub-hero">
           <div class="hub-hero__copy">
             <div class="lm-eyebrow hub-hero__eyebrow">{t.eyebrow}</div>
-            <h1 class="hub-hero__title">{greetingFor(now.getHours(), locale)}, <span class="hub-hero__name">{name}</span></h1>
+            <h1 class="hub-hero__title">{name
+              ? <>{greetingFor(now.getHours(), locale)}, <span class="hub-hero__name">{name}</span></>
+              : <>{greetingFor(now.getHours(), locale)}<span class="hub-hero__name">.</span></>}</h1>
             <p class="hub-hero__sub">{t.sub}</p>
           </div>
           <time class="hub-hero__date lm-glass" dateTime={now.toISOString().slice(0, 10)}>

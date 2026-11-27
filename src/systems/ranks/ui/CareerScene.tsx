@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'preact/hooks';
-import type { SceneProps } from '@core';
+import { playerNameOf, type SceneProps } from '@core';
 import { CountUp, Icon, Ornament, Screen, TabPanel, Tabs, useStrings } from '@ui-kit';
 import { S } from '../strings';
 import { ACHIEVEMENTS } from '../model/achievements';
@@ -38,7 +38,7 @@ export function CareerScene({ services, params }: SceneProps) {
           </div>
           <div class="rk-hero__main">
             <div class="lm-eyebrow rk-hero__eyebrow">
-              {t.levelLine('')}<span class="lm-num">{info.number}</span> · {services.settings.get().playerName === 'Doctor' ? t.defaultName : services.settings.get().playerName}
+              {t.levelLine('')}<span class="lm-num">{info.number}</span>{playerNameOf(services.settings.get().playerName) ? ` · ${playerNameOf(services.settings.get().playerName)}` : ''}
             </div>
             <h2 class="rk-hero__title">{info.title}</h2>
             <p class="rk-hero__motto">{info.rank.motto}</p>

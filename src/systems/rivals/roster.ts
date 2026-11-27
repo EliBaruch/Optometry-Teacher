@@ -87,9 +87,9 @@ export interface Rival {
 export const ROSTER: readonly Rival[] = [
   {
     id: 'vex',
-    name: 'Dr. Cassius Vex',
-    short: 'Dr. Vex',
-    title: 'Neuro-ophthalmology fellow',
+    name: 'Cassius Vex',
+    short: 'Cassius',
+    title: 'Neuro-optometry specialist',
     tagline: 'Brilliant. Knows it. Mentions it.',
     bio: 'Reads a visual field like a love letter and a pupil like a confession. Thinks pressure checks are beneath him — which is exactly where angle closure hides.',
     color: '#34d399',
@@ -124,8 +124,8 @@ export const ROSTER: readonly Rival[] = [
   },
   {
     id: 'okafor',
-    name: 'Dr. Amara Okafor',
-    short: 'Dr. Okafor',
+    name: 'Amara Okafor',
+    short: 'Amara',
     title: 'Glaucoma & retina specialist',
     tagline: 'Meticulous. Never misses a step.',
     bio: 'Twenty years of dilated fundus exams and not one skipped. Her charts read like textbooks — and take nearly as long to write.',
@@ -161,8 +161,8 @@ export const ROSTER: readonly Rival[] = [
   },
   {
     id: 'mori',
-    name: 'Dr. Kenji Mori',
-    short: 'Dr. Mori',
+    name: 'Kenji Mori',
+    short: 'Kenji',
     title: 'Refraction & binocular vision',
     tagline: 'Fastest hands in the building.',
     bio: 'Neutralises a retinoscopy reflex before you have found the switch. Occasionally so quick he forgets to look at the back of the eye.',
@@ -198,8 +198,8 @@ export const ROSTER: readonly Rival[] = [
   },
   {
     id: 'reyes',
-    name: 'Dr. Lucía Reyes',
-    short: 'Dr. Reyes',
+    name: 'Lucía Reyes',
+    short: 'Lucía',
     title: 'Anterior segment & paediatrics',
     tagline: 'Kind mentor. Best pearls on the ward.',
     bio: 'Calms frightened toddlers and anxious executives alike. Her soft spot: she hates scaring patients, so she sometimes books urgent cases a little too gently.',
@@ -235,9 +235,9 @@ export const ROSTER: readonly Rival[] = [
   },
   {
     id: 'lindqvist',
-    name: 'Dr. Theo Lindqvist',
-    short: 'Dr. Lindqvist',
-    title: 'First-year resident',
+    name: 'Theo Lindqvist',
+    short: 'Theo',
+    title: 'First-year optometrist',
     tagline: 'Eager, earnest, decides a little early.',
     bio: 'Arrived last month with a new ophthalmoscope and a notebook of mnemonics. Tends to fall in love with the first diagnosis the history suggests.',
     color: '#67e8f9',

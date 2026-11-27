@@ -5,14 +5,14 @@ import { ACCENT } from '../controller';
 import { COMEBACK_AFTER_MS, EARN_CAP_HOURS, collectable, formatDuration, jarCapacity, ratePerHour, welcomeLine } from '../logic';
 import { S } from '../strings';
 import { Jar } from './Jar';
-import { centerOf, doctorName, safePlay, useComfort, useHostLease } from './hooks';
+import { centerOf, playerName, safePlay, useComfort, useHostLease } from './hooks';
 
 /** Where the note is hosted. Only one host renders it: the lounge, then the hub banner, then the top bar. */
 export type WelcomeHost = 'scene' | 'banner' | 'global';
 const HOST_PRIORITY: Record<WelcomeHost, number> = { scene: 2, banner: 1, global: 0 };
 
 /**
- * "Welcome back, Doctor" — shown once after a real absence. Warm, never
+ * "Welcome back, Ada" — shown once after a real absence. Warm, never
  * guilt-tripping: the clinic simply hands over what it earned, adds a
  * comeback gift after a long break, and points at reviews that are due.
  */
@@ -77,7 +77,7 @@ export function WelcomeBack(props: { services: GameServices; host: WelcomeHost }
       open={!!note}
       onClose={() => ctl.dismissWelcome()}
       eyebrow={note ? t.away(formatDuration(note.awayMs, loc)) : undefined}
-      title={t.welcomeTitle(doctorName(services))}
+      title={t.welcomeTitle(playerName(services))}
       accent={ACCENT}
       size="md"
       class="cf-welcome"

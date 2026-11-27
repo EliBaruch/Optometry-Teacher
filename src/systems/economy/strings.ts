@@ -53,7 +53,7 @@ const cratesHe = (n: number) => (n === 1 ? 'ארגז אחד' : `${n} ארגזי�
 export const S = defineStrings({
   en: {
     currency: 'lumens',
-    defaultName: 'Doctor',
+    defaultName: 'Your name',
     nameplateTitle: 'Optometrist · Lumen',
     // wallet
     walletLabel: (bal: string, crates: number, here: boolean) => `${bal} lumens${crates ? `, ${crates} supply crate${crates > 1 ? 's' : ''} waiting` : ''}${here ? '' : ' — open the Boutique'}`,
@@ -167,7 +167,7 @@ export const S = defineStrings({
     rarity: { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' } as Record<string, string>,
   },
   he: {
-    defaultName: 'דוקטור',
+    defaultName: 'השם שלכם',
     nameplateTitle: 'אופטומטריסט · לומן',
     currency: 'ניצוצות',
     walletLabel: (bal: string, crates: number, here: boolean) => `${bal} ניצוצות${crates ? `, ${cratesHe(crates)} ${crates === 1 ? 'מחכה' : 'מחכים'}` : ''}${here ? '' : ' · לחצו כדי לפתוח את הבוטיק'}`,

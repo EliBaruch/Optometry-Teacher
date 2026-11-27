@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useNarrow } from './useNarrow';
 import { useParallax } from './useParallax';
-import { beginRun, hashString, type SceneProps } from '@core';
+import { beginRun, hashString, playerNameOf, type SceneProps } from '@core';
 import {
   Button, CountUp, Divider, GlassPanel, HudSlot, Icon, ProgressBar, RingMeter, Screen, cx,
   useReducedMotion, useRegistry, useSignal, useStrings, type IconName,
@@ -19,8 +19,8 @@ export function ProfileScene({ services }: SceneProps) {
     return { ...m, label: t.cat[c] ?? m.label };
   };
   const settings = useSignal(services.settings);
-  /** The stored default is the English "Doctor"; show this edition's word for it. */
-  const shownName = settings.playerName === 'Doctor' ? t.fallbackName : settings.playerName;
+  /** The player's own name ('' until they set one; the clinic never calls them "Doctor"). */
+  const name = playerNameOf(settings.playerName);
   const reduced = useReducedMotion();
   const narrow = useNarrow();
   // Phones: give the top bar to the title — the same HUD widgets appear below in "Clinic record".
@@ -40,7 +40,7 @@ export function ProfileScene({ services }: SceneProps) {
   const cats = categoryStats(diagnoses, (id) => learning.seen(id), (id) => learning.mastery(id));
   const { strongest, weakest } = strongestWeakest(cats);
   const tier = crestTier(stats.mastered);
-  const seed = hashString(settings.playerName.toLowerCase());
+  const seed = hashString(name.toLowerCase());
   const palette = crestPalette(seed);
   const reviewMode = modes.find((m) => m.id === 'review');
   const reviewLocked = reviewMode?.locked?.(services);
@@ -51,16 +51,16 @@ export function ProfileScene({ services }: SceneProps) {
 
   /* inline name editing */
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(shownName);
+  const [draft, setDraft] = useState(name);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (editing) {
-      setDraft(shownName);
+      setDraft(name);
       requestAnimationFrame(() => inputRef.current?.select());
     }
   }, [editing]);
   const saveName = () => {
-    const next = cleanName(draft, t.fallbackName);
+    const next = cleanName(draft);
     setEditing(false);
     if (next === services.settings.get().playerName) return;
     services.settings.update((s) => ({ ...s, playerName: next }));
@@ -83,7 +83,7 @@ export function ProfileScene({ services }: SceneProps) {
     <Screen title={t.title} eyebrow={t.eyebrow} onBack={() => services.router.back()} escToBack={!editing} hud={!compactBar} backdrop="hub" class="profile-scene" contentClass="profile-content">
       <section class="profile-hero" ref={heroRef}>
         <div class="profile-hero__crest">
-          <Crest seed={seed} palette={palette} rarity={tier.rarity} size={narrow ? 124 : 176} initials={initials(shownName, t.fallbackInitials)} />
+          <Crest seed={seed} palette={palette} rarity={tier.rarity} size={narrow ? 124 : 176} initials={initials(name, t.fallbackInitials)} />
         </div>
         <div class="profile-hero__id lm-enter" style={d(0)}>
           <div class="lm-eyebrow">{t.greeting(hour)}</div>
@@ -104,8 +104,8 @@ export function ProfileScene({ services }: SceneProps) {
             </form>
           ) : (
             <h2 class="profile-name">
-              <span class="profile-name__text">{shownName}</span>
-              <Button size="sm" variant="glass" class="profile-name__edit" onClick={() => setEditing(true)} aria-label={t.rename}>{t.rename}</Button>
+              <span class={cx('profile-name__text', !name && 'is-placeholder')}>{name || t.fallbackName}</span>
+              <Button size="sm" variant="glass" class="profile-name__edit" onClick={() => setEditing(true)} aria-label={name ? t.rename : t.addName}>{name ? t.rename : t.addName}</Button>
             </h2>
           )}
           <p class="profile-hero__role">{t.role}</p>

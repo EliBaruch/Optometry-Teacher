@@ -17,7 +17,7 @@ import { Jar } from './Jar';
 import { LoungeArt } from './LoungeArt';
 import { Portal } from './Portal';
 import { WelcomeBack } from './WelcomeBack';
-import { centerOf, doctorName, safePlay, useComfort, useNow } from './hooks';
+import { centerOf, playerName, safePlay, useComfort, useNow } from './hooks';
 import './comfort.css';
 import './lounge.css';
 
@@ -149,7 +149,7 @@ export function LoungeScene({ services }: SceneProps) {
           />
           <div class="cf-hero__shade" aria-hidden="true" />
           <div class="cf-hero__copy">
-            <p class="lm-eyebrow">{salutation(new Date(now).getHours(), loc)}, {doctorName(services)}</p>
+            <p class="lm-eyebrow">{salutation(new Date(now).getHours(), loc)}{playerName(services) ? `, ${playerName(services)}` : ''}</p>
             <h2 class="cf-hero__title">{t.heroTitle}</h2>
             {seen >= REST_AFTER_CASES ? (
               <p class="cf-hero__sub">{t.heroDone(seen)}</p>

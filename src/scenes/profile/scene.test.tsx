@@ -30,7 +30,8 @@ describe('profile scene', () => {
     mount();
     act(() => void vi.advanceTimersByTime(3000));
     const text = host.textContent ?? '';
-    expect(text).toContain('Doctor');
+    expect(text).toContain('Add your name');
+    expect(text).not.toMatch(/\bDoctor\b/);
     expect(text).toContain('Encountered');
     expect(text).toContain('Due for review');
     expect(text).toContain('Refraction');
@@ -46,7 +47,7 @@ describe('profile scene', () => {
 
   it('renames the player through settings, sanitised', () => {
     mount();
-    act(() => [...host.querySelectorAll('button')].find((b) => b.textContent === 'Rename')!.click());
+    act(() => [...host.querySelectorAll('button')].find((b) => b.textContent === 'Add name')!.click());
     const input = host.querySelector<HTMLInputElement>('#profile-name-input')!;
     act(() => {
       input.value = '  Dr   <Ada>  Lovelace ';

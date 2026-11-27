@@ -1,6 +1,6 @@
 /** Shared UI bits: hooks, portraits, sparkline. */
 import { useMemo, useState } from 'preact/hooks';
-import { createRng, type AvatarSpec, type GameServices } from '@core';
+import { createRng, playerNameOf, type AvatarSpec, type GameServices } from '@core';
 import type { ComponentChildren } from 'preact';
 import { useInterval, useLocale, useSignal, useStrings } from '@ui-kit';
 import { AvatarBust, generateAvatar } from '@render';
@@ -60,7 +60,7 @@ export function RivalPortrait(props: { rival: Rival; size?: number; animated?: b
 export function PlayerPortrait(props: { name: string; size?: number; class?: string }) {
   const t = useStrings(S);
   const size = props.size ?? 44;
-  const initial = (props.name.replace(/^dr\.?\s*/i, '').trim()[0] ?? 'Y').toUpperCase();
+  const initial = (playerNameOf(props.name)[0] ?? t.you[0] ?? 'Y').toUpperCase();
   return (
     <span class={`rv-portrait rv-portrait--you ${props.class ?? ''}`} style={{ width: `${size}px`, height: `${size}px` }} role="img" aria-label={t.youAria}>
       <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">

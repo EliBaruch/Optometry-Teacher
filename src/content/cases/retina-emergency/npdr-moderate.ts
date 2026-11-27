@@ -17,7 +17,7 @@ const npdrModerate: ClinicalCase = {
     },
   },
   chiefComplaint:
-    "Nothing's wrong, Doc — I need the form signed for my commercial licence. I can read a mile marker before my co-driver can. Small print's getting short-armed, that's all.",
+    "Nothing's wrong — I just need the form signed for my commercial licence. I can read a mile marker before my co-driver can. Small print's getting short-armed, that's all.",
   triageNote: 'Licence renewal. Type 2 diabetes on file. Last dilated eye exam: "can\'t remember".',
   history: [
     { id: 'dm-duration', category: 'medical', q: 'Do you have diabetes? How long, and how well controlled?', a: "Type 2, nine years now. Last A1c was 8.9 — the nurse wasn't thrilled. Truck-stop dinners don't help.", relevance: 'key' },

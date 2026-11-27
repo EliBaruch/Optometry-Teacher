@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { formatSnellen, type SceneProps, type Settings } from '@core';
+import { formatSnellen, playerNameOf, type SceneProps, type Settings } from '@core';
 import { Button, GlassPanel, Icon, Modal, Screen, cx, useReducedMotion, useSignal, useStrings } from '@ui-kit';
 import { S } from './strings';
 import { HoldButton, SwitchRow, TransferGlyph, VolumeSlider } from './controls';
@@ -37,12 +37,12 @@ export function SettingsScene({ services }: SceneProps) {
   };
 
   /* ── identity ──────────────────────────────────────────────────────── */
-  const shown = (n: string) => (n === 'Doctor' ? t.defaultName : n);
+  const shown = playerNameOf;
   const [draft, setDraft] = useState(shown(settings.playerName));
   const [savedTick, setSavedTick] = useState(0);
   useEffect(() => setDraft(shown(settings.playerName)), [settings.playerName]);
   const commitName = () => {
-    const next = sanitizeName(draft, t.defaultName);
+    const next = sanitizeName(draft);
     setDraft(next);
     if (next !== shown(services.settings.get().playerName)) {
       patch({ playerName: next });
@@ -210,7 +210,7 @@ export function SettingsScene({ services }: SceneProps) {
                     if (e.key === 'Escape') {
                       e.preventDefault();
                       e.stopPropagation();
-                      setDraft(services.settings.get().playerName);
+                      setDraft(shown(services.settings.get().playerName));
                     }
                   }} />
                 <span key={savedTick} class={cx('settings-name__saved', savedTick > 0 && 'is-shown')} aria-live="polite">

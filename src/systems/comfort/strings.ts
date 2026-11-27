@@ -50,9 +50,6 @@ export const S = defineStrings({
     seenSuffix: (title: string, n: number) => `${title} · ${n} seen`,
     dailyWaiting: 'Today’s patients are waiting',
     shiftReady: 'Your next shift is ready',
-    // doctor
-    doctor: 'Doctor',
-    drName: (n: string) => `Dr. ${n}`,
     // banner
     bannerLabel: 'Lounge',
     openTonight: (d: number) => `Open today's gift: day ${d}`,
@@ -71,7 +68,7 @@ export const S = defineStrings({
     continue: 'Continue',
     // welcome back
     away: (d: string) => `Away ${d}`,
-    welcomeTitle: (who: string) => `Welcome back, ${who}`,
+    welcomeTitle: (who: string) => (who ? `Welcome back, ${who}` : 'Welcome back'),
     keepJar: 'Keep it in the jar',
     collectN: (n: number) => `Collect ✦ ${n}`,
     intoClinic: 'Into the clinic',
@@ -193,8 +190,6 @@ export const S = defineStrings({
     seenSuffix: (title: string, n: number) => `${title} · ${n === 1 ? 'נבדק מטופל אחד' : `נבדקו ${n} מטופלים`}`,
     dailyWaiting: 'המטופלים של היום מחכים',
     shiftReady: 'המשמרת הבאה שלכם מוכנה',
-    doctor: 'דוקטור',
-    drName: (n: string) => `ד״ר ${n}`,
     bannerLabel: 'הטרקלין',
     openTonight: (d: number) => `פתחו את המתנה של היום: יום ${d}`,
     visit: 'לביקור בטרקלין',
@@ -211,7 +206,7 @@ export const S = defineStrings({
     continueAria: (t: string) => `המשיכו: ${t}`,
     continue: 'המשיכו',
     away: (d: string) => `נעדרתם ${d}`,
-    welcomeTitle: (who: string) => `ברוכים השבים, ${who}`,
+    welcomeTitle: (who: string) => (who ? `ברוכים השבים, ${who}` : 'ברוכים השבים'),
     keepJar: 'השאירו בצנצנת',
     collectN: (n: number) => `אספו ✦ ${n}`,
     intoClinic: 'חזרה למרפאה',

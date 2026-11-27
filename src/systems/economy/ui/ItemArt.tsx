@@ -1,3 +1,4 @@
+import { playerNameOf } from '@core';
 import type { JSX } from 'preact';
 import { useId } from 'preact/hooks';
 import { useStrings } from '@ui-kit';
@@ -127,7 +128,7 @@ export function FrameArt(props: { id: string; width?: number | string; class?: s
 
 export function Nameplate(props: { id: string; name: string; title?: string; size?: 'sm' | 'md' | 'lg'; class?: string }) {
   const t = useStrings(S);
-  const name = props.name === 'Doctor' ? t.defaultName : props.name;
+  const name = playerNameOf(props.name) || t.defaultName;
   return (
     <div class={`eco-np eco-np--${props.id} eco-np--${props.size ?? 'md'}${props.class ? ' ' + props.class : ''}`}>
       {props.id === 'gilded-marquee' && <span class="eco-np__bulbs" aria-hidden="true" />}

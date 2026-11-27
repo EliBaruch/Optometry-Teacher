@@ -87,21 +87,21 @@ describe.skipIf(CASES.length === 0)('colleagues on the real case registry', () =
     const mori = dist('mori');
     const reyes = dist('reyes');
     const lind = dist('lindqvist');
-    // Dr. Vex: brilliant, mostly A/S, but his shortcuts sometimes cost him the diagnosis.
+    // Cassius: brilliant, mostly A/S, but his shortcuts sometimes cost him the diagnosis.
     expect(share(vex, 'S', 'A')).toBeGreaterThanOrEqual(0.75);
     expect(share(vex, 'S')).toBeGreaterThanOrEqual(0.3);
     expect(share(vex, 'D', 'F')).toBeGreaterThan(0);
-    // Dr. Okafor: meticulous and slow, A/B, rarely S.
+    // Amara: meticulous and slow, A/B, rarely S.
     expect(share(okafor, 'A', 'B')).toBeGreaterThanOrEqual(0.85);
     expect(share(okafor, 'B')).toBeGreaterThanOrEqual(0.15);
     expect(share(okafor, 'S')).toBeLessThanOrEqual(0.15);
-    // Dr. Mori and Dr. Reyes: A/B with a real B share.
+    // Kenji and Lucía: A/B with a real B share.
     for (const d of [mori, reyes]) {
       expect(share(d, 'A', 'B')).toBeGreaterThanOrEqual(0.75);
       expect(share(d, 'B')).toBeGreaterThanOrEqual(0.15);
       expect(share(d, 'S')).toBeLessThanOrEqual(0.15);
     }
-    // Dr. Lindqvist, first-year resident: mostly B/C when right, never S, often wrong.
+    // Theo, first-year resident: mostly B/C when right, never S, often wrong.
     const lindRight = n - lind.D - lind.F;
     expect((lind.B + lind.C) / lindRight).toBeGreaterThanOrEqual(0.6);
     expect(lind.S).toBe(0);

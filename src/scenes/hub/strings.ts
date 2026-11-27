@@ -2,8 +2,8 @@ import { defineStrings } from '@core';
 
 export const S = defineStrings({
   en: {
-    doctor: 'Doctor',
-    openProfile: (name: string) => `${name}, open profile`,
+    profileChip: 'Profile',
+    openProfile: (name: string) => (name ? `${name}, open profile` : 'Open profile'),
     settings: 'Settings',
     eyebrow: 'Lumen · The Eye Clinic',
     sub: 'The waiting room is filling up. Who will you see first?',
@@ -40,8 +40,8 @@ export const S = defineStrings({
     navBoutique: 'Boutique',
   },
   he: {
-    doctor: 'דוקטור',
-    openProfile: (name: string) => `${name}, פתחו את הפרופיל`,
+    profileChip: 'פרופיל',
+    openProfile: (name: string) => (name ? `${name}, פתחו את הפרופיל` : 'פתחו את הפרופיל'),
     settings: 'הגדרות',
     eyebrow: 'לומן · מרפאת העיניים',
     sub: 'חדר ההמתנה מתמלא. את מי תכניסו ראשון?',

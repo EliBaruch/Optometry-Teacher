@@ -33,7 +33,7 @@ export function crestPalette(seed: number): string[] {
   return PALETTES[(seed >>> 0) % PALETTES.length]!;
 }
 
-export function initials(name: string, fallback = 'Dr'): string {
+export function initials(name: string, fallback = 'L'): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return fallback;
   return (parts[0]!.charAt(0) + (parts.length > 1 ? parts[parts.length - 1]!.charAt(0) : '')).toUpperCase();
@@ -47,7 +47,7 @@ export function greeting(hour: number): string {
 }
 
 export const NAME_MAX = 24;
-export function cleanName(raw: string, fallback = 'Doctor'): string {
+export function cleanName(raw: string, fallback = ''): string {
   const s = raw.replace(/[\u0000-\u001f\u007f<>{}]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX).trim();
   return s || fallback;
 }

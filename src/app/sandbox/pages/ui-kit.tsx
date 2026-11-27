@@ -296,7 +296,7 @@ function UiKitShowcase({ services }: { services: GameServices }) {
             <div class="lm-stack" style={{ '--lm-stack-gap': '14px' }}>
               <div class="lm-eyebrow">Plus Jakarta Sans · headlines</div>
               <div class="d1">Acute angle closure</div>
-              <div class="d2">“The lights have rainbow halos, doctor.”</div>
+              <div class="d2">“The lights have rainbow halos.”</div>
               <div class="lm-eyebrow" style={{ marginTop: 8 }}>Inter · interface</div>
               <p>Intraocular pressure 52 mmHg OD with a mid-dilated, poorly reactive pupil and a shallow anterior chamber. Emergency: refer immediately.</p>
               <div class="lm-eyebrow" style={{ marginTop: 8 }}>Space Grotesk · numerals</div>
@@ -550,7 +550,7 @@ function UiKitShowcase({ services }: { services: GameServices }) {
       </div>
 
       <Modal open={modal} onClose={() => setModal(false)} eyebrow="Lumen" title="A bright day at the clinic" icon="book"
-        footer={<><Button variant="ghost" onClick={() => setModal(false)}>Later</Button><Button variant="primary" icon="check" onClick={() => { setModal(false); toast('good', 'Welcome aboard, Doctor.'); }}>Begin shift</Button></>}>
+        footer={<><Button variant="ghost" onClick={() => setModal(false)}>Later</Button><Button variant="primary" icon="check" onClick={() => { setModal(false); toast('good', 'Welcome aboard.'); }}>Begin shift</Button></>}>
         <p>You are the newest optometrist at Lumen, a bright, modern eye clinic. Patients walk in with blurry vision, red eyes, halos and curtains.</p>
         <Divider />
         <p>Take a focused history, run the right tests, and make the call: what is it, and how urgently must they be seen?</p>

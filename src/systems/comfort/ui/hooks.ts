@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
-import { pickStrings, type GameServices } from '@core';
+import { playerNameOf, type GameServices } from '@core';
 import { useInterval, useSignal } from '@ui-kit';
 import { comfortOf, type ComfortController } from '../controller';
 import { INITIAL, type ComfortState } from '../logic';
-import { S } from '../strings';
 import { signal, type Signal } from '@core';
 
 const EMPTY = signal<ComfortState>(INITIAL);
@@ -22,12 +21,9 @@ export function useNow(services: GameServices, ms = 30_000): number {
   return now;
 }
 
-/** "Doctor" or "Dr. Ada" — how the clinic addresses the player. */
-export function doctorName(services: GameServices): string {
-  const raw = (services.settings.get().playerName || '').trim();
-  const t = pickStrings(S, services.locale);
-  if (!raw || /^(doctor|דוקטור)$/i.test(raw)) return t.doctor;
-  return /^(dr\.?|ד״ר|דר׳?)\s/i.test(raw) ? raw : t.drName(raw);
+/** The player's own name, or '' — the clinic greets them by name, never as "Doctor". */
+export function playerName(services: GameServices): string {
+  return playerNameOf(services.settings.get().playerName);
 }
 
 /** Center of an element in viewport coordinates (for fx bursts). */

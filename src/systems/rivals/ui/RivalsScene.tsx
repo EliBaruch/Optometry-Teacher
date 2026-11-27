@@ -1,6 +1,6 @@
 /** The Rivals scene: the weekly board, the week's race, and a profile card for every colleague. */
 import { useRef, useState } from 'preact/hooks';
-import { testText, type SceneProps } from '@core';
+import { playerNameOf, testText, type SceneProps } from '@core';
 import {
   Badge, Button, CountUp, GlassPanel, Icon, ProgressBar, Screen, isIconName, useLocale, useReducedMotion, useSfx, useSignal, useStrings,
 } from '@ui-kit';
@@ -147,7 +147,7 @@ function BoardRow(props: { row: Standing; i: number; state: RivalsState; playerN
       <span class="rv-brow__pos lm-num" style={row.rank <= 3 ? { '--rv-m': MEDAL[row.rank - 1] } : undefined}>{row.rank}</span>
       {r ? <RivalPortrait rival={r} size={42} /> : <PlayerPortrait name={props.playerName} size={42} />}
       <span class="rv-brow__who">
-        <b>{r ? rivalText(r, locale).name : t.youPlayer(props.playerName && props.playerName !== 'Doctor' && props.playerName !== text(locale).you ? props.playerName : '')}</b>
+        <b>{r ? rivalText(r, locale).name : t.youPlayer(playerNameOf(props.playerName) !== text(locale).you ? playerNameOf(props.playerName) : '')}</b>
         <span class="rv-dim">{r ? rivalText(r, locale).title : t.patientsWeek(state.cases)}</span>
       </span>
       {h && (h.w || h.l) ? (

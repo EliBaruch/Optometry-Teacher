@@ -10,7 +10,7 @@ no dark-pattern guilt trips, streaks can be repaired, sessions have natural stop
 |---|---|---|---|
 | Pride | status, mastery, being admired | **Career** (`ranks`): XP, rank titles, mastery stars, trophy wall, S-grade stamps, perfect-case seals | deliberate practice; mastery per diagnosis is explicit |
 | Greed | wanting more, variable rewards | **Economy** (`economy`): coins per case scaled by accuracy, supply crates with rarity tiers, Boutique | rewards scale with *correctness & efficiency*, not grinding |
-| Envy | social comparison, beating a rival | **Rivals** (`rivals`): AI colleagues with times/grades per case, weekly board, overtake alerts | benchmarks good work-ups ("Dr. Vex skipped tonometry and missed it") |
+| Envy | social comparison, beating a rival | **Rivals** (`rivals`): AI colleagues with times/grades per case, weekly board, overtake alerts | benchmarks good work-ups ("Cassius skipped tonometry and missed it") |
 | Gluttony | "just one more" | **Streaks** (`streaks`): combo multiplier, daily streak flame, near-miss nudges, next-patient momentum, Rush Hour | interleaved, high-volume retrieval practice |
 | Lust | desire for beautiful things | **Gallery** (`collection`): holographic iris cards from every patient, frames, clinic themes | each card is a mini flash-card of the case's diagnosis |
 | Wrath | adrenaline, righteous urgency | **Code Red** (`emergencies`): timers, heartbeat, red vignette, sight-saved finale, Grand Rounds boss | red-flag recognition & correct emergency triage |

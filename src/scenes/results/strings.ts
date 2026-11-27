@@ -135,7 +135,7 @@ export const S = defineStrings<Table>({
   en: {
     headline: {
       S: 'Textbook. Frame it.',
-      A: 'Sharp work, doctor.',
+      A: 'Sharp work.',
       B: 'A solid call.',
       C: 'Right answer, rough road.',
       D: 'Close, but not this time.',

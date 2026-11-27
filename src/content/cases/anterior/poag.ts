@@ -17,7 +17,7 @@ const poagCase: ClinicalCase = {
     },
   },
   chiefComplaint:
-    "Nothing's wrong with my eyes, doc. Just need stronger readers — the timetable print keeps shrinking. My wife made me book because my brother's on eye drops.",
+    "Nothing's wrong with my eyes. Just need stronger readers — the timetable print keeps shrinking. My wife made me book because my brother's on eye drops.",
   triageNote: 'Tech note: central corneal thickness 528 µm OD / 531 µm OS.',
   history: [
     { id: 'fhx', category: 'family', q: 'Is there glaucoma in the family?', a: 'My older brother puts drops in every night for "pressure". Our mother went blind late in life — nobody ever told us why.', relevance: 'key' },

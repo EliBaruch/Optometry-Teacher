@@ -91,7 +91,7 @@ Engagement systems register their own scenes (e.g. `career`, `boutique`, `rivals
 |---|---|---|
 | `ranks` | Career | XP & rank titles (Student → Intern → Resident → Associate → Senior → Clinic Director → Living Legend), mastery stars per diagnosis, achievements/trophy wall, S-grade stamps. Scene `career`. |
 | `economy` | Boutique & coins | Coins (✦ "lumens") per case, surprise supply crates with rarity tiers, Boutique scene to buy cosmetics & hint tokens. Scene `boutique`. |
-| `rivals` | Rivals | AI colleagues with personalities on a weekly board; "Dr. Vex solved this in 48s"; overtake alerts. Scene `rivals`. |
+| `rivals` | Rivals | AI colleagues with personalities on a weekly board; "Cassius solved this in 48s"; overtake alerts. Scene `rivals`. |
 | `streaks` | Streaks | In-run combo multiplier with fire, daily streak flame, near-miss nudges, "next patient" momentum. |
 | `collection` | Gallery | Every patient leaves a procedurally generated, holographic iris card (rarities); eyewear frames; clinic themes. Scene `gallery`. |
 | `emergencies` | Code Red | Emergency overlay: countdown, heartbeat, red vignette, "sight saved" finale; weekly Grand Rounds boss case. |

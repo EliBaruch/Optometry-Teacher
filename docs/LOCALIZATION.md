@@ -10,6 +10,8 @@ Israeli optometry student, it is wrong even if it is accurate.
 * **Israeli, warm, sharp, a little witty.** Short sentences. Everyday spoken register for UI and
   patients; precise professional register for clinical teaching. Never stiff "official" Hebrew
   (no "הנך מתבקש", no "על מנת ל-" when "כדי ל-" works).
+* **Never call the player (or the optometrist colleagues) "Doctor" / "דוקטור" / "ד״ר".** In Israel an
+  optometrist is not a doctor. Use the player's own name, or a greeting with no name at all.
 * **Addressing the player: plural imperative** — `בחרו`, `לחצו`, `שאלו`, `בדקו` — the standard,
   gender-inclusive Israeli UI voice. Never "בחר/י". Descriptions of the player may use plural too.
 * **Patients speak as themselves.** Gender must match `patient.sex` (F → feminine forms,

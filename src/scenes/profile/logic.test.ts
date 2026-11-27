@@ -17,9 +17,9 @@ describe('profile logic', () => {
   it('formats names', () => {
     expect(initials('Ada Lovelace')).toBe('AL');
     expect(initials('Doctor')).toBe('D');
-    expect(initials('   ')).toBe('Dr');
+    expect(initials('   ')).toBe('L');
     expect(cleanName('  a   b ')).toBe('a b');
-    expect(cleanName('')).toBe('Doctor');
+    expect(cleanName('')).toBe('');
     expect(crestPalette(7)).toHaveLength(4);
     expect(greeting(3)).toMatch(/midnight/);
     expect(greeting(20)).toBe('Good evening');

@@ -1,7 +1,8 @@
 /** Pure helpers for the settings scene (unit-tested). */
 
 export const NAME_MAX = 24;
-export const DEFAULT_NAME = 'Doctor';
+/** No name yet: the clinic greets the player without a title (never "Doctor"). */
+export const DEFAULT_NAME = '';
 const SAVE_PREFIX = 'lumen:';
 /** The namespace the core settings slice is persisted under. */
 export const SETTINGS_KEY = SAVE_PREFIX + 'settings';

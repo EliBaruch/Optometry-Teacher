@@ -7,7 +7,7 @@ describe('settings logic', () => {
   it('sanitises player names', () => {
     expect(sanitizeName('  Ada   Lovelace  ')).toBe('Ada Lovelace');
     expect(sanitizeName('<b>Eve</b>')).toBe('bEve/b');
-    expect(sanitizeName('   ')).toBe('Doctor');
+    expect(sanitizeName('   ')).toBe('');
     expect(sanitizeName('x'.repeat(60))).toHaveLength(24);
     expect(sanitizeName('a\u0007b')).toBe('ab');
   });

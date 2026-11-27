@@ -1,6 +1,6 @@
 /**
  * Deterministic simulation of how each colleague handled a given patient.
- * Same rival + same case → same result, every time (so "Dr. Mori did this in 1:12" is stable).
+ * Same rival + same case → same result, every time (so "Kenji did this in 1:12" is stable).
  *
  * Clinical rules (see clinical.ts):
  * - A skipped test only leads to a wrong diagnosis when that test genuinely separates the

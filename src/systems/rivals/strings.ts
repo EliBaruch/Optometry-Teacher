@@ -360,9 +360,9 @@ export interface RivalText {
 const RIVAL_HE: Record<RivalId, RivalText> = {
   // The brilliant, smug neuro-ophthalmology fellow.
   vex: {
-    name: 'ד״ר יובל רוזנברג',
-    short: 'ד״ר רוזנברג',
-    title: 'עמית בנוירו-אופתלמולוגיה',
+    name: 'יובל רוזנברג',
+    short: 'יובל',
+    title: 'מומחה לנוירו-אופטומטריה',
     tagline: 'גאון. יודע את זה. ומקפיד להזכיר.',
     bio: 'קורא שדה ראייה כמו מכתב אהבה ואישון כמו וידוי. לחץ תוך-עיני? זה מתחת לכבודו, ובדיוק שם מסתתרת סגירת זווית.',
     signatureLabel: 'בלש נוירולוגי',
@@ -376,8 +376,8 @@ const RIVAL_HE: Record<RivalId, RivalText> = {
   },
   // The meticulous glaucoma & retina specialist.
   okafor: {
-    name: 'ד״ר אלמז מקונן',
-    short: 'ד״ר מקונן',
+    name: 'אלמז מקונן',
+    short: 'אלמז',
     title: 'מומחית לגלאוקומה ורשתית',
     tagline: 'מדוקדקת. לא מפספסת אף שלב.',
     bio: 'עשרים שנה של בדיקות קרקעית מורחבות, ואף אחת לא דולגה. התיקים שלה נקראים כמו ספרי לימוד, ולוקח כמעט אותו זמן לכתוב אותם.',
@@ -392,8 +392,8 @@ const RIVAL_HE: Record<RivalId, RivalText> = {
   },
   // The lightning-fast refraction guy.
   mori: {
-    name: 'ד״ר איתי אוחיון',
-    short: 'ד״ר אוחיון',
+    name: 'איתי אוחיון',
+    short: 'איתי',
     title: 'רפרקציה וראייה דו-עינית',
     tagline: 'הידיים הכי מהירות במרפאה.',
     bio: 'מנטרל רפלקס ברטינוסקופיה לפני שמצאתם את המתג. לפעמים הוא כל כך מהיר, שהוא שוכח להסתכל על קרקעית העין.',
@@ -408,8 +408,8 @@ const RIVAL_HE: Record<RivalId, RivalText> = {
   },
   // The kind mentor.
   reyes: {
-    name: 'ד״ר ריאם חדאד',
-    short: 'ד״ר חדאד',
+    name: 'ריאם חדאד',
+    short: 'ריאם',
     title: 'קטע קדמי ועיניים בילדים',
     tagline: 'מנטורית חמה, עם הפנינים הכי טובות במחלקה.',
     bio: 'מרגיעה פעוטות מפוחדים ומנהלים לחוצים באותה קלות. נקודת התורפה שלה: היא שונאת להפחיד מטופלים, ולכן לפעמים קובעת מקרים דחופים בעדינות קצת יותר מדי.',
@@ -424,9 +424,9 @@ const RIVAL_HE: Record<RivalId, RivalText> = {
   },
   // The eager first-year resident.
   lindqvist: {
-    name: 'ד״ר מקסים גולדין',
-    short: 'ד״ר גולדין',
-    title: 'מתמחה בשנה א׳',
+    name: 'מקסים גולדין',
+    short: 'מקסים',
+    title: 'אופטומטריסט בשנה הראשונה',
     tagline: 'להוט, כן, ומחליט קצת מוקדם.',
     bio: 'הגיע החודש עם אופתלמוסקופ חדש ומחברת מלאה בראשי תיבות לזכירה. נוטה להתאהב באבחנה הראשונה שהאנמנזה מציעה.',
     signatureLabel: 'יסודות מהספר',
