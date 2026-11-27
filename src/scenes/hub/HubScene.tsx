@@ -79,6 +79,13 @@ export function HubScene({ services }: SceneProps) {
 
   const name = (settings.playerName && settings.playerName !== 'Doctor' ? settings.playerName : t.doctor);
   const none = modes.length === 0;
+  const navItems = [
+    { id: 'hub', label: t.navClinic },
+    { id: 'codex', label: t.navCodex },
+    { id: 'arcade', label: t.navArcade },
+    { id: 'career', label: t.navCareer },
+    { id: 'boutique', label: t.navBoutique },
+  ].filter((n) => n.id === 'hub' || sceneIds.has(n.id));
   const now = useMemo(() => new Date(), []);
 
   return (
@@ -90,6 +97,17 @@ export function HubScene({ services }: SceneProps) {
       </button>}
       right={sceneIds.has('settings') ? <IconButton icon="settings" label={t.settings} onClick={() => services.router.go('settings')} /> : undefined}
     >
+      {navItems.length > 1 && (
+        <nav class="hub-nav" aria-label={t.navLabel}>
+          {navItems.map((n) => (
+            <button key={n.id} type="button" class={`hub-nav__item${n.id === 'hub' ? ' is-active' : ''}`}
+              aria-current={n.id === 'hub' ? 'page' : undefined}
+              onClick={n.id === 'hub' ? undefined : () => { services.audio.play('click'); services.router.go(n.id); }}>
+              {n.label}
+            </button>
+          ))}
+        </nav>
+      )}
       <div class="hub-grid">
         <header class="hub-hero">
           <div class="hub-hero__copy">

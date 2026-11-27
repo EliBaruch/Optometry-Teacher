@@ -161,6 +161,7 @@
 }
 .exm-tool.is-done .exm-tool__icon { --t: var(--lm-vivid-green); }
 .exm-tool__text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.exm-tool.is-done .exm-tool__text { padding-inline-end: 24px; }
 .exm-tool__name { font-weight: 650; font-size: var(--lm-fs-md); color: var(--lm-ink); overflow-wrap: break-word; hyphens: manual; }
 .exm-tool__sub { font-size: var(--lm-fs-xs); color: var(--lm-ink-3); margin-top: 2px; }
 .exm-tool.is-done .exm-tool__sub { align-self: flex-start; padding: 2px 8px; border-radius: 999px; font-weight: 650; color: var(--lm-ink); background: var(--lm-vivid-green); }
@@ -306,7 +307,8 @@
 .exm-tabs { flex: none; }
 .exm-overlay:empty { display: none; }
 .exm-cols.is-narrow { display: block; }
-.exm-cols.is-narrow .exm-col { height: 100%; padding-bottom: 30px; -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent); }
+/* No mask on the column itself: a mask clips every descendant, including the fixed-position dialogs (e.g. the suspect picker) that render inside it. */
+.exm-cols.is-narrow .exm-col { height: 100%; padding-bottom: 30px; }
 .exm-cols.is-narrow { flex: 1; min-height: 0; }
 .exm-cols.is-narrow .exm-col--centre { overflow-y: auto; }
 .exm-cols.is-narrow .exm-tools { overflow: visible; }
@@ -604,7 +606,7 @@ html[dir="rtl"] { --exm-dir: -1; }
   /* the technician shortcut sits in the empty corner beside the "min" pill: a clear azure-ringed circle, not a disabled grey dot */
   .exm-cols:not(.is-narrow) .exm-tool__tech { position: absolute; inset-inline-end: 10px; bottom: 10px; width: 30px; height: 30px; margin: 0; }
   .exm-cols:not(.is-narrow) .exm-col--patient { padding-bottom: 30px; }
-  .exm-cols:not(.is-narrow) .exm-col--patient, .exm-cols:not(.is-narrow) .exm-col--chart,
+  /* columns themselves are not masked (it would clip the dialogs rendered inside them) */
   .exm-cols:not(.is-narrow) .exm-tools, .exm-cols:not(.is-narrow) .exm-history__groups,
   .exm-cols:not(.is-narrow) .exm-log__list, .exm-cols:not(.is-narrow) .exm-chart__groups {
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 30px), transparent);
@@ -639,17 +641,16 @@ html[dir="rtl"] { --exm-dir: -1; }
     var(--lm-canvas);
 }
 
-/* "More below" chevron for the instrument list (shown only while it can still scroll). */
+/* "More below" control for the instrument list: a small glass circle in the panel header (only while the list can still scroll). */
 .exm-tray__more {
-  all: unset; box-sizing: border-box; cursor: pointer; position: absolute; z-index: 2; bottom: 12px; inset-inline: 0; margin-inline: auto; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
-  color: #fff; background: var(--lm-accent-gradient); box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.45), 0 8px 18px -6px rgba(34, 87, 240, 0.7);
-  animation: exm-nudge-down 1.8s var(--lm-ease-in-out) infinite;
+  all: unset; box-sizing: border-box; cursor: pointer; display: inline-grid; place-items: center; width: 28px; height: 28px; margin-inline-end: 8px; border-radius: 50%;
+  color: var(--lm-accent-text); background: rgba(255, 255, 255, 0.85); box-shadow: inset 0 1px 0.5px #fff, 0 0 0 1px var(--lm-border), 0 4px 10px -4px rgba(10, 22, 51, 0.2);
+  transition: transform var(--lm-dur-fast) var(--lm-ease-spring), color var(--lm-dur-fast), background var(--lm-dur-fast);
 }
 .exm-tray__more svg { transform: rotate(90deg); }
+.exm-tray__more:hover { color: #fff; background: var(--lm-accent-gradient); transform: translateY(1px); }
 .exm-tray__more:focus-visible { outline: var(--lm-focus-width) solid var(--lm-focus-color); outline-offset: 2px; }
-@keyframes exm-nudge-down { 50% { transform: translateY(3px); } }
 @media (min-width: 1024px) { .exm-cols:not(.is-narrow) .exm-tools { padding-bottom: 22px; } }
-.exm.is-reduced .exm-tray__more { animation: none; }
 
 /* Diagnosis board: the same see-through glass + specular rim as the workspace. */
 .exm-dx__card, .exm-urg-grid, .exm-conf, .exm-board__foot {

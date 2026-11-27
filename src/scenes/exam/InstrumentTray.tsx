@@ -20,7 +20,7 @@ export function InstrumentTray(props: {
   const locale = useLocale();
   const nameOf = (mg: MiniGameModule) => testName(mg.id, mg, locale);
   const doneCount = instruments.filter((m) => done[m.id]).length;
-  // Explicit scroll affordance: when the tile list is taller than its box, a floating chevron says "more below".
+  // Explicit scroll affordance: when the tile list is taller than its box, a small header button scrolls it (it never covers a tile).
   const listRef = useRef<HTMLUListElement>(null);
   const [more, setMore] = useState(false);
   useEffect(() => {
@@ -43,7 +43,22 @@ export function InstrumentTray(props: {
       eyebrow={<><span class="exm-no">01</span>{t.trayEyebrow}</>}
       icon="eye"
       padding="md"
-      actions={<span class="exm-count lm-num" aria-label={t.trayCount(doneCount, instruments.length)}>{doneCount}/{instruments.length}</span>}
+      actions={
+        <>
+          {more && (
+            <button
+              type="button"
+              class="exm-tray__more"
+              aria-label={t.trayMore}
+              title={t.trayMore}
+              onClick={() => listRef.current?.scrollBy?.({ top: Math.max(120, (listRef.current?.clientHeight ?? 200) * 0.8), behavior: 'smooth' })}
+            >
+              <Icon name="chevron-right" size={14} strokeWidth={2.6} />
+            </button>
+          )}
+          <span class="exm-count lm-num" aria-label={t.trayCount(doneCount, instruments.length)}>{doneCount}/{instruments.length}</span>
+        </>
+      }
     >
       {instruments.length === 0 ? (
         <p class="lm-muted">{t.trayEmpty}</p>
@@ -94,17 +109,6 @@ export function InstrumentTray(props: {
             );
           })}
         </ul>
-      )}
-      {more && (
-        <button
-          type="button"
-          class="exm-tray__more"
-          aria-label={t.trayMore}
-          title={t.trayMore}
-          onClick={() => listRef.current?.scrollBy?.({ top: Math.max(120, (listRef.current?.clientHeight ?? 200) * 0.8), behavior: 'smooth' })}
-        >
-          <Icon name="chevron-right" size={18} strokeWidth={2.6} />
-        </button>
       )}
     </GlassPanel>
   );

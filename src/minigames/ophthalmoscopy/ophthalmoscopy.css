@@ -386,3 +386,10 @@
 .oph-reflex__panel { padding: 20px 22px; border-radius: var(--lm-r-xl, 28px); background: var(--lm-glass); backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur); box-shadow: var(--lm-glass-highlight), var(--lm-glass-shadow); }
 .oph-reflex__go > span { color: var(--lm-ink-3); }
 .oph-sheet footer { border-top: 1px solid var(--lm-rule); }
+/* floating chips over the dark scope read as near-opaque white glass, never grey */
+.oph-radial__item, .oph-toast { background: rgba(255, 255, 255, 0.96); }
+.oph-sheet, .oph-tutorial__card { background: var(--lm-glass-sheen), rgba(255, 255, 255, 0.95); }
+.oph-chip small, .oph-chip strong { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+/* a hovered selected control keeps its selected look */
+.oph-eyes__btn.is-on:hover:not(:disabled) { background: var(--lm-accent-gradient); color: #fff !important; }
+.oph-chip.is-on:hover:not(:disabled) { background: var(--lm-brand-50); }

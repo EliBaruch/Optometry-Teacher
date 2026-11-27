@@ -188,3 +188,7 @@
 .pu-tasks__p { direction: ltr; }
 .pu-lcd { direction: ltr; }
 @media (max-width: 760px) { .pu-head, .pu-foot { margin-inline: 10px; border-radius: 26px; } }
+/* a hovered selected control keeps its selected look */
+.pu-seg__b.is-on:hover:not(:disabled) { background: var(--lm-accent-gradient); color: #fff !important; }
+/* dialogs over the dark viewport: near-opaque glass so they read white, not grey */
+.pu-card { background: var(--lm-glass-sheen), rgba(255, 255, 255, 0.95); }

@@ -15,7 +15,7 @@
     var(--lm-canvas);
   overflow: hidden;
 }
-.amsler button { font: inherit; color: inherit; }
+:where(.amsler button) { font: inherit; color: inherit; }
 
 /* ── header ─────────────────────────────────────────────────────────────── */
 .amsler__head {

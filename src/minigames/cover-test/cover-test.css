@@ -222,3 +222,7 @@
   .cvt-overlay--s0 .cvt-card, .cvt-overlay--s1 .cvt-card { margin: 0; width: min(330px, 100%); }
 }
 @media (max-width: 760px) { .cvt-overlay .cvt-card__keys { display: none; } .cvt-overlay .cvt-card__title { font-size: 1.15rem; } .cvt-overlay .cvt-card__body { font-size: 0.82rem; line-height: 1.4; } }
+/* dialogs: near-opaque glass so they read white, not grey */
+.cvt-card { background: var(--lm-glass-sheen), rgba(255, 255, 255, 0.95); }
+/* short phone hosts: never let the stage column collapse under the panel; scroll instead */
+@media (max-width: 760px) { .cvt-main { overflow-y: auto; } .cvt-wrap { min-height: 164px; flex-shrink: 0; flex-basis: auto; } .cvt-stage { flex: 1 1 auto; } }

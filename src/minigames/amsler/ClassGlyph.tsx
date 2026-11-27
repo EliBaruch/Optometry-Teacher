@@ -28,7 +28,7 @@ export function ClassGlyph({ kind }: { kind: AmslerClass }) {
   }
   return (
     <svg class={`amsler-glyph amsler-glyph--${kind}`} viewBox="0 0 38 38" aria-hidden="true">
-      <rect x="1" y="1" width="36" height="36" rx="5" fill="#07050b" stroke="rgba(255,236,210,0.14)" />
+      <rect x="1" y="1" width="36" height="36" rx="5" fill="#f4f7fd" stroke="rgba(10,22,51,0.14)" />
       <path d={lines.join(' ')} fill="none" stroke="#f6efe4" stroke-width="0.9" stroke-linecap="round" opacity="0.88" />
       {kind === 'scotoma' && (
         <>

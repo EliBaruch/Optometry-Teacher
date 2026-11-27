@@ -24,8 +24,10 @@ export interface RimOpts {
 export function RimLight({ c, name, o }: { c: PaintCtx; name: string; o: RimOpts }) {
   const clip = c.id(`rimC-${name}`);
   const grad = c.id(`rimG-${name}`);
-  const dx = o.dx ?? 2.2;
-  const dy = o.dy ?? 0.9;
+  // Soft 1px inner highlight: no wide offset (reads as mis-registered print).
+  const dx = Math.sign(o.dx ?? 1) * 1;
+  const dy = 0;
+  const op = Math.min(o.opacity ?? 0.85, 0.35);
   const col = o.color ?? GOLD;
   // Everything outside the shifted shape, clipped to the shape = the crescent.
   // (A clip + even-odd fill rasterises far cheaper than a luminance mask.)
@@ -36,8 +38,8 @@ export function RimLight({ c, name, o }: { c: PaintCtx; name: string; o: RimOpts
         <path d={o.d} />
       </clipPath>
       <radialGradient id={grad} gradientUnits="userSpaceOnUse" cx={o.cx} cy={o.cy} r={o.r}>
-        <stop offset="0" stop-color={col} stop-opacity={o.opacity ?? 0.85} />
-        <stop offset="0.5" stop-color={col} stop-opacity={(o.opacity ?? 0.85) * 0.45} />
+        <stop offset="0" stop-color={col} stop-opacity={op} />
+        <stop offset="0.5" stop-color={col} stop-opacity={op * 0.45} />
         <stop offset="1" stop-color={col} stop-opacity="0" />
       </radialGradient>
       <g clip-path={`url(#${clip})`}>

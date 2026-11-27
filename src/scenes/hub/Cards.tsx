@@ -74,7 +74,7 @@ export function WingTile({ wing, index, onOpen }: { wing: WingView; index: numbe
   return (
     <GlassPanel
       interactive accent={wing.accent} padding="none" sfx={locked ? false : 'click'}
-      class={`hub-wing${locked ? ' is-locked' : ''}`} style={{ '--i': index, '--acc': wing.accent }}
+      class={`hub-wing${locked ? ' is-locked' : ''}${wing.badge && !locked ? ' has-badge' : ''}`} style={{ '--i': index, '--acc': wing.accent }}
       onClick={() => (locked ? play('error') : onOpen(wing))} aria-disabled={locked || undefined}
       aria-label={`${wing.title}. ${locked ? `${t.locked}: ${wing.lockedReason}` : wing.subtitle}${wing.badge ? `. ${wing.badge}` : ''}`}
     >

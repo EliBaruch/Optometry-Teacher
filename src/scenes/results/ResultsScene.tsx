@@ -208,6 +208,12 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
   };
 
   const score = review.score;
+  const dockShown = !!(hit.total || !score);
+  const skipButton = (
+    <button type="button" class={cx('rs-skip', dockShown && 'rs-skip--dock')} onClick={skip}>
+      {t.skip} <Kbd>Space</Kbd>
+    </button>
+  );
   const headline = score ? (score.perfect ? t.perfect : t.headline[score.grade]) : review.verdict === 'timeout' ? t.timeoutHeadline : t.closedHeadline;
 
   return (
@@ -292,13 +298,10 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
         </div>
       </div>
 
-      {!hit.settled && (
-        <button type="button" class="rs-skip" onClick={skip}>
-          {t.skip} <Kbd>Space</Kbd>
-        </button>
-      )}
+      {/* Until the dock rises the skip capsule floats; once it is up, the control lives in the dock so the two never collide. */}
+      {!hit.settled && !dockShown && skipButton}
 
-      <footer class={cx('rs-actions', hit.total || !score ? 'is-shown' : '')}>
+      <footer class={cx('rs-actions', dockShown ? 'is-shown' : '')}>
         <div class="rs-actions__info">
           {runActive && run && mode && (
             <>
@@ -316,6 +319,7 @@ function ResultsView({ services, kase, session, timeout }: { services: GameServi
             </>
           )}
         </div>
+        {!hit.settled && dockShown && skipButton}
         <div class={cx('rs-actions__btns', (runActive ? 1 : 0) + (hasCodex ? 1 : 0) === 1 && 'is-pair')}>
           {runActive && (
             <Button variant="ghost" icon="home" onClick={onBack} sfx="back" class="rs-sec" aria-label={t.backToClinic}>

@@ -17,7 +17,7 @@
     var(--lm-canvas);
   overflow: hidden; outline: none;
 }
-.va button { font: inherit; color: inherit; }
+:where(.va button) { font: inherit; color: inherit; }
 .va :focus-visible { outline: 2px solid var(--lm-brand-500); outline-offset: 2px; }
 
 /* ── header: a floating glass bar ───────────────────────────────────────── */

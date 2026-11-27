@@ -109,7 +109,7 @@ function Battery(props: { eye: Eye; lens: Lens; on: boolean; occluded: boolean; 
         <text x={cx - 25} y={CY + 86} class="php-win__k">C</text>
         <text x={cx + 26} y={CY + 87} text-anchor="end" class="php-win__v">{hasCyl ? formatDiopters(lens.cyl) : '0.00'}</text>
       </g>
-      <text x={cx} y={CY + 101} text-anchor="middle" class="php-eye-label">{eye}</text>
+      <text x={cx} y={CY + 133} text-anchor="middle" class="php-eye-label">{eye}</text>
       {/* aperture */}
       <circle cx={cx} cy={CY} r="45.5" fill="#0b101f" stroke="url(#php-brass)" stroke-width="3.5" />
       <circle cx={cx} cy={CY} r="40" fill="url(#php-glass)" />

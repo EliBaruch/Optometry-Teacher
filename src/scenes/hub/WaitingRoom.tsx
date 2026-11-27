@@ -94,6 +94,7 @@ export function WaitingRoom({ compact }: { compact?: boolean }) {
       <div class="hub-room__beam" />
 
       <div class="hub-room__layer hub-room__layer--mid">
+        <div class="hub-room__backrest" />
         <div class="hub-room__people">
           {people.map((p, i) => (
             <div key={p.seed} class={`hub-room__sitter hub-room__sitter--${p.idle}`} style={{ left: p.left, width: p.w, animationDelay: p.delay }}>

@@ -3,7 +3,7 @@ import { defineStrings } from '@core';
 export const S = defineStrings({
   en: {
     title: 'Profile',
-    eyebrow: "Your clinician's record",
+    eyebrow: 'Lumen · Profile',
     greeting: (h: number) => (h < 5 ? 'Early start' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'),
     yourName: 'Your name',
     saveName: 'Save name',
@@ -46,7 +46,7 @@ export const S = defineStrings({
   },
   he: {
     title: 'הפרופיל',
-    eyebrow: 'התיק המקצועי שלכם',
+    eyebrow: 'לומן · פרופיל',
     greeting: (h: number) => (h < 5 ? 'התחלה מוקדמת' : h < 12 ? 'בוקר טוב' : h < 18 ? 'צהריים טובים' : 'ערב טוב'),
     yourName: 'השם שלכם',
     saveName: 'שמירת השם',

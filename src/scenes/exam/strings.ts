@@ -59,7 +59,7 @@ export const S = defineStrings({
     alreadyAsked: (q: string) => `${q} (already asked)`,
     historyNone: 'This patient has nothing more to tell you.',
     conversation: 'Conversation',
-    conversationEmpty: (first: string, _sex: Sex) => `Choose a question above. The answer comes in ${first}'s own words.`,
+    conversationEmpty: (first: string, _sex: Sex) => `Pick a question and the answer appears here, in ${first}'s own words.`,
     historyLabel: {
       onset: 'Onset',
       symptoms: 'Symptoms',
@@ -75,7 +75,7 @@ export const S = defineStrings({
     trayCount: (n: number, total: number) => `${n} of ${total} tests done`,
     trayEmpty: 'The instrument trolley is empty for now. Questions and your clinical judgement will have to do.',
     trayMore: 'Show more instruments',
-    toolAria: (name: string, minutes: number, done: boolean) => `${done ? 'Repeat' : 'Start'} ${name}, ${minutes} minutes${done ? ', already done' : ''}`,
+    toolAria: (name: string, minutes: number, done: boolean) => `${done ? 'Repeat' : 'Start'} ${name}, ${minutes === 1 ? '1 minute' : `${minutes} minutes`}${done ? ', already done' : ''}`,
     toolByTech: 'By the technician',
     toolCharted: 'Charted',
     toolMin: (n: number) => `${n} min`,
@@ -212,7 +212,7 @@ export const S = defineStrings({
     alreadyAsked: (q: string) => `${q} (כבר נשאלה)`,
     historyNone: 'זה כל מה שהיה למטופל לספר.',
     conversation: 'שיחה',
-    conversationEmpty: (first: string, _sex: Sex) => `בחרו שאלה מלמעלה ושמעו את התשובה ישירות מ${first}.`,
+    conversationEmpty: (first: string, _sex: Sex) => `בחרו שאלה, והתשובה תופיע כאן במילים של ${first}.`,
     historyLabel: {
       onset: 'התחלה',
       symptoms: 'תסמינים',

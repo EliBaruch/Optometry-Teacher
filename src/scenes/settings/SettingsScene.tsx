@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { formatSnellen, type SceneProps, type Settings } from '@core';
-import { Button, Divider, GlassPanel, Icon, Modal, Screen, cx, useReducedMotion, useSignal, useStrings } from '@ui-kit';
+import { Button, GlassPanel, Icon, Modal, Screen, cx, useReducedMotion, useSignal, useStrings } from '@ui-kit';
 import { S } from './strings';
 import { HoldButton, SwitchRow, TransferGlyph, VolumeSlider } from './controls';
 import { NAME_MAX, countRecords, sanitizeName, saveFileName, settingsOnly, sizeLabel, validateImport } from './logic';
+import { useNarrow } from './useNarrow';
 import './settings.css';
 
 type VolumeKey = 'masterVolume' | 'sfxVolume' | 'musicVolume';
@@ -13,6 +14,8 @@ export function SettingsScene({ services }: SceneProps) {
   const t = useStrings(S);
   const settings = useSignal(services.settings);
   const reduced = useReducedMotion();
+  // Phones: the top bar keeps the title readable; elsewhere the same HUD as every other destination.
+  const narrow = useNarrow();
   const patch = (p: Partial<Settings>) => services.settings.update((s) => ({ ...s, ...p }));
 
   /* ── sound ─────────────────────────────────────────────────────────── */
@@ -155,10 +158,9 @@ export function SettingsScene({ services }: SceneProps) {
   const d = (i: number) => ({ '--lm-delay': `${reduced ? 0 : 80 + i * 70}ms` });
 
   return (
-    <Screen title={t.title} eyebrow={t.eyebrow} onBack={back} escToBack backdrop="calm" hud={false} class="settings-scene" contentClass="settings-content">
+    <Screen title={t.title} eyebrow={t.eyebrow} onBack={back} escToBack backdrop="calm" hud={!narrow} class="settings-scene" contentClass="settings-content">
       <div class="settings-hero lm-enter" style={d(0)}>
         <p class="settings-hero__lede">{t.lede}</p>
-        <Divider />
       </div>
 
       <div class="settings-grid">

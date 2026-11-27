@@ -444,13 +444,28 @@
   .rs-next .lm-btn { width: 100%; min-width: 0; }
   .rs-rewards__chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rs-rewards__chips > * { justify-content: center; }
-  .rs-skip { bottom: calc(110px + var(--lm-safe-bottom)); }
   .rs-callout { flex-wrap: wrap; }
   .rs-callout > div { flex-basis: calc(100% - 64px); }
   .rs-callout .lm-btn { margin-inline-start: auto; }
 }
-@media (pointer: coarse) {
+@media (pointer: coarse), (hover: none) {
   .rs-skip .lm-kbd { display: none; }
+  .rs-skip { padding-inline-end: 18px; }
+}
+/* Once the dock is up the skip control lives in it: a quiet text button, never a floating capsule over the score card. */
+.rs-skip--dock {
+  position: static; transform: none; animation: none; z-index: auto; flex: none; align-self: center;
+  background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; padding: 8px 12px; color: var(--lm-ink-3);
+}
+.rs-skip--dock:hover { color: var(--lm-ink); background: rgba(10, 22, 51, 0.05); }
+.rs-skip--dock:focus-visible { box-shadow: var(--lm-focus-ring); }
+@media (max-width: 640px) {
+  /* phones: a small capsule that rides the dock's top edge from above, clear of it */
+  .rs-actions .rs-skip--dock {
+    position: absolute; bottom: calc(100% + 8px); inset-inline-end: 4px; width: max-content; padding: 7px 18px; color: var(--lm-ink-2);
+    background: var(--lm-glass); backdrop-filter: var(--lm-glass-blur); -webkit-backdrop-filter: var(--lm-glass-blur);
+    box-shadow: var(--lm-glass-highlight), 0 0 0 1px var(--lm-glass-edge), 0 8px 18px -10px rgba(10, 22, 51, 0.25);
+  }
 }
 
 /* ── Keyframes ─────────────────────────────────────────────────────────── */
@@ -560,3 +575,40 @@ html.reduced-motion .rs-rosette, html.reduced-motion .rs-next::before, html.redu
 
 .rs-head__stamp { position: relative; }
 .rs-head__stamp::before { content: ''; position: absolute; inset: -22%; z-index: -1; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, color-mix(in srgb, var(--g) 42%, transparent), transparent 72%); }
+
+/* ── Career moments & trophy toasts: a dedicated slot that never lands on the hero ──────────────
+   The level-up banner and trophy plaques are mounted by the Career system in the overlay root.
+   While a results screen is up they dock bottom-start, just above the action dock, instead of the
+   top centre / top end where the grade pill, ring and headline live. */
+@media (min-width: 641px) {
+  :root:has(.rs-screen) .rk-banner {
+    left: auto; top: auto; inset-inline-start: max(var(--lm-gutter), calc((100vw - 1100px) / 2));
+    bottom: calc(var(--lm-sp-4) + 72px + 10px + var(--lm-safe-bottom)); transform: none; width: min(360px, calc(100vw - 32px));
+    padding-block: 6px; animation-name: rs-moment-in;
+  }
+  :root:has(.rs-screen) .rk-banner.is-leaving { animation-name: rs-moment-out; }
+  :root:has(.rs-screen) .rk-plaques {
+    top: auto; inset-inline-end: auto; inset-inline-start: max(var(--lm-gutter), calc((100vw - 1100px) / 2));
+    bottom: calc(var(--lm-sp-4) + 72px + 16px + var(--lm-safe-bottom)); width: min(360px, calc(100vw - 32px));
+  }
+}
+/* phones: above the two-row dock and its skip capsule, full width, never over the verdict card header */
+@media (max-width: 640px) {
+  :root:has(.rs-screen) .rk-banner {
+    left: 12px; right: 12px; top: auto; bottom: calc(178px + var(--lm-safe-bottom)); width: auto; transform: none;
+    padding-block: 6px; animation-name: rs-moment-in;
+  }
+  :root:has(.rs-screen) .rk-banner.is-leaving { animation-name: rs-moment-out; }
+  :root:has(.rs-screen) .rk-plaques { top: auto; bottom: calc(178px + var(--lm-safe-bottom)); left: 12px; right: 12px; transform: none; width: auto; }
+}
+@keyframes rs-moment-in { from { opacity: 0; transform: translateY(22px) scale(0.94); } to { opacity: 1; transform: none; } }
+@keyframes rs-moment-out { to { opacity: 0; transform: translateY(14px) scale(0.96); } }
+
+/* Gallery card in the rail: the pack art shrinks and the heading obeys the side-card type scale. */
+.rs-clinic .gp { grid-template-columns: auto minmax(0, 1fr); gap: var(--lm-sp-4); padding: var(--lm-sp-4); }
+.rs-clinic .gp-stage { width: 148px; }
+.rs-clinic .gp-title { font-size: var(--lm-fs-xl); line-height: 1.15; }
+@media (max-width: 560px) {
+  .rs-clinic .gp { grid-template-columns: minmax(0, 1fr); }
+  .rs-clinic .gp-stage { width: 150px; }
+}

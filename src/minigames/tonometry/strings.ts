@@ -56,6 +56,7 @@ export const S = defineStrings({
     icareNote: (eye: string, r: number, n: number) => `${eye} measured: ${r} mmHg (mean of ${n}).`,
     progress: 'Progress',
     recordFindings: 'Record findings',
+    notMeasured: 'Not measured',
     // Prep
     wordThin: 'Too thin: will under-read',
     wordGood: 'Just right',
@@ -179,6 +180,7 @@ export const S = defineStrings({
     icareNote: (eye: string, r: number, n: number) => `${eye} נמדדה: ${r} mmHg (ממוצע של ${n}).`,
     progress: 'התקדמות',
     recordFindings: 'רישום הממצאים',
+    notMeasured: 'לא נמדד',
     wordThin: 'דק מדי: הקריאה תצא נמוכה',
     wordGood: 'בדיוק כמו שצריך',
     wordThick: 'עבה מדי: הקריאה תצא גבוהה',

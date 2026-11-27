@@ -81,7 +81,7 @@ export const S = defineStrings({
     wallet: 'Wallet',
     // scene
     sceneTitle: 'The Boutique',
-    sceneEyebrow: 'Lumen · the shop',
+    sceneEyebrow: 'Lumen · Shop',
     closed: 'The Boutique is closed right now.',
     tabThemes: 'Clinic themes',
     tabEyewear: 'Eyewear',

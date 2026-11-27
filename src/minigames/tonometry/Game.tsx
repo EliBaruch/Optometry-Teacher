@@ -416,7 +416,7 @@ export function Game({ ctx, done }: { ctx: MiniGameContext; done: MiniGameDone }
       <footer class="tn-foot">
         <div class="tn-prog" aria-label={t.progress}>
           <span class="tn-prog__eyes" dir="ltr">
-            {EYES.map((e) => <span key={e} class={`tn-prog__eye${measures[e] ? ' is-done' : ''}`}>{e} {measures[e] ? `${measures[e]!.reading} mmHg` : '...'}</span>)}
+            {EYES.map((e) => <span key={e} class={`tn-prog__eye${measures[e] ? ' is-done' : ' is-empty'}`} title={measures[e] ? undefined : t.notMeasured}>{e} {measures[e] ? `${measures[e]!.reading} mmHg` : '\u2014'}</span>)}
           </span>
           <span class="tn-prog__method">{t.methodLabel[method]}</span>
         </div>

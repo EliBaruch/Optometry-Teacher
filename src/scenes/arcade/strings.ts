@@ -5,7 +5,7 @@ export const S = defineStrings({
   en: {
     titlePre: 'Practice ',
     title: 'Arcade',
-    eyebrow: 'Sharpen every skill',
+    eyebrow: 'Lumen · Practice',
     lede: 'No patient waiting, no clock on the wall — just you and the instruments. Practise until it feels natural.',
     instruments: (n: number) => (n === 1 ? 'instrument' : 'instruments'),
     runs: (n: number) => (n === 1 ? 'run' : 'runs'),
@@ -66,7 +66,7 @@ export const S = defineStrings({
   he: {
     titlePre: 'חדר ',
     title: 'אימונים',
-    eyebrow: 'מחדדים כל מיומנות',
+    eyebrow: 'לומן · אימונים',
     lede: 'אין מטופל שמחכה, אין שעון על הקיר, רק אתם והמכשירים. מתרגלים עד שזה הופך לטבע שני.',
     instruments: (n: number) => (n === 1 ? 'מכשיר' : 'מכשירים'),
     runs: (n: number) => (n === 1 ? 'סבב' : 'סבבים'),

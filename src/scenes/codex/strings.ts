@@ -7,7 +7,7 @@ type Urg = Record<Urgency, { label: string; when: string }>;
 export const S = defineStrings({
   en: {
     title: 'Codex',
-    eyebrow: 'Your knowledge base',
+    eyebrow: 'Lumen · Knowledge base',
     lede: 'Every condition you meet in clinic is saved here — findings, pearls and how fast to act.',
     discovered: 'Discovered',
     masteredN: 'mastered',
@@ -85,7 +85,7 @@ export const S = defineStrings({
   },
   he: {
     title: 'הקודקס',
-    eyebrow: 'מאגר הידע',
+    eyebrow: 'לומן · מאגר הידע',
     lede: 'כל מצב שפגשתם במרפאה נשמר כאן: ממצאים, פנינים קליניות, וכמה מהר צריך לפעול.',
     discovered: 'התגלו',
     masteredN: 'בשליטה',

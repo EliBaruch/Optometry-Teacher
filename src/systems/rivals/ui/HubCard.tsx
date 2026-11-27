@@ -53,7 +53,8 @@ export function HubCard({ services }: { services: GameServices }) {
       eyebrow={t.hubEyebrow(weekNumber(state.weekKey))}
       title={joined ? <span>{t.hubYoure}<b class="rv-hubcard__rank lm-num" dir="ltr">{t.hash}{rank}</b> <span class="rv-dim">{t.hubOf(rows.length)}</span></span> : t.hubBoard}
     >
-      <Sparkline series={series} t0={weekStart(now)} t1={Math.max(now, weekStart(now) + 12 * 3_600_000)} height={46} label={t.hubSpark} class={reduced ? 'is-static' : ''} />
+      {/* The race chart only means something once the player is on the board. */}
+      {joined && <Sparkline series={series} t0={weekStart(now)} t1={Math.max(now, weekStart(now) + 12 * 3_600_000)} height={46} label={t.hubSpark} class={reduced ? 'is-static' : ''} />}
       <ol class="rv-hubcard__list">
         {slice.map((r, i) => [
           i > 0 && r.rank - slice[i - 1]!.rank > 1 && <li key={`gap-${r.id}`} class="rv-hubrow rv-hubrow--gap" aria-hidden="true">⋯</li>,

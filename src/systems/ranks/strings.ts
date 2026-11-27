@@ -148,7 +148,7 @@ export const S = defineStrings({
     nextTrophy: 'Next trophy',
     nextTrophyLabel: (title: string, desc: string) => `Next trophy: ${title}. ${desc} Open Career.`,
     // scene
-    sceneEyebrow: 'Lumen Clinic',
+    sceneEyebrow: 'Lumen · Career',
     defaultName: 'Doctor',
     levelLine: (n: string) => `Level ${n}`,
     crestLabel: (title: string) => `${title} crest`,
@@ -232,7 +232,7 @@ export const S = defineStrings({
     openCareer: 'לקריירה',
     nextTrophy: 'הגביע הבא',
     nextTrophyLabel: (title: string, desc: string) => `הגביע הבא: ${title}. ${desc} פתחו את הקריירה.`,
-    sceneEyebrow: 'מרפאת לומן',
+    sceneEyebrow: 'לומן · קריירה',
     defaultName: 'דוקטור',
     levelLine: (n: string) => `רמה ${n}`,
     crestLabel: (title: string) => `סמל הדרגה: ${title}`,

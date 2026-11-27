@@ -267,13 +267,13 @@
 }
 .cv-overlay--soft { background: radial-gradient(80% 80% at 50% 40%, rgba(10, 22, 51, 0.06), rgba(10, 22, 51, 0.08)); }
 .cv-sheetpanel {
-  position: relative; width: min(680px, 100%); max-height: 100%; overflow: auto; padding: 20px 22px 16px;
+  position: relative; isolation: isolate; width: min(680px, 100%); max-height: 100%; overflow: auto; padding: 20px 22px 16px;
   border-radius: var(--lm-r-lg); background: var(--lm-glass-bg-strong);
   box-shadow: inset 0 0 0 1px var(--lm-glass-border-hi), var(--lm-glass-highlight), var(--lm-shadow-3);
   animation: cv-rise 420ms var(--lm-ease-out-expo) both;
 }
 .cv-sheetpanel::before {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: var(--lm-glass-sheen);
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background: var(--lm-glass-sheen);
 }
 @keyframes cv-rise { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
 .cv-sheetpanel__head { margin-bottom: 14px; }

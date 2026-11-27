@@ -50,9 +50,11 @@ export function paintBowlBase(ctx: CanvasRenderingContext2D, w: number, h: numbe
   ctx.beginPath();
   ctx.arc(cx, cy, R * 1.13, 0, Math.PI * 2);
   ctx.fillStyle = bez;
-  ctx.shadowColor = 'rgba(10,22,51,0.5)';
-  ctx.shadowBlur = 40 * dpr;
-  ctx.shadowOffsetY = 16 * dpr;
+  // keep the drop shadow inside the canvas so it never ends in a visible rectangle
+  const room = Math.max(0, Math.min(w, h) / 2 - R * 1.13);
+  ctx.shadowColor = 'rgba(10,22,51,0.38)';
+  ctx.shadowBlur = Math.min(40 * dpr, room * 0.4);
+  ctx.shadowOffsetY = Math.min(16 * dpr, room * 0.18);
   ctx.fill();
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;

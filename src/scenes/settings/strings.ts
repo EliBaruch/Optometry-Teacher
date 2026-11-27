@@ -3,7 +3,7 @@ import { defineStrings } from '@core';
 export const S = defineStrings({
   en: {
     title: 'Settings',
-    eyebrow: 'Preferences',
+    eyebrow: 'Lumen · Preferences',
     lede: 'Tune the clinic to suit you. Every change applies instantly.',
     defaultName: 'Doctor',
     soundEyebrow: 'Sound',
@@ -78,7 +78,7 @@ export const S = defineStrings({
   },
   he: {
     title: 'הגדרות',
-    eyebrow: 'העדפות',
+    eyebrow: 'לומן · העדפות',
     lede: 'כוונו את המרפאה לפי הטעם שלכם. כל שינוי נכנס לתוקף מיד.',
     defaultName: 'דוקטור',
     soundEyebrow: 'סאונד',
